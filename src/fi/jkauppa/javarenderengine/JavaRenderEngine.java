@@ -99,7 +99,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 
 	@Override public void keyTyped(KeyEvent e) {}
 	@Override public void keyReleased(KeyEvent e) {}
-	@Override public void mousePressed(MouseEvent e) {}
 	@Override public void mouseClicked(MouseEvent e) {}
 	@Override public void mouseReleased(MouseEvent e) {}
 	@Override public void mouseEntered(MouseEvent e) {}
@@ -137,23 +136,26 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			}
 		}
 	}
+
+	@Override public void mousePressed(MouseEvent e) {mouseDragged(e);}
 	
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		BufferedImage renderbufferhandle = renderpanel.getRenderBuffer();
 		if (renderbufferhandle!=null) {
+			int pencilwidth = (int)Math.round((double)(this.pencilsize-1)/2.0f);
 			Graphics2D renderbuffergfx = (Graphics2D)renderbufferhandle.getGraphics();
 		    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
 		    int offmask1 = 0;
 		    if ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1) {
 					renderbuffergfx.setColor(this.drawcolor);
-					renderbuffergfx.drawOval(e.getX(), e.getY(), this.pencilsize, this.pencilsize);
+					renderbuffergfx.drawOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
 			}			
 		    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
 		    int offmask3 = 0;
 		    if ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3) {
 					renderbuffergfx.setColor(Color.WHITE);
-					renderbuffergfx.drawOval(e.getX(), e.getY(), this.pencilsize, this.pencilsize);
+					renderbuffergfx.drawOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
 			}			
 		}
 	}
