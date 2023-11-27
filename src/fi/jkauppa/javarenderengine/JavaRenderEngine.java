@@ -20,6 +20,10 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+import fi.jkauppa.javarenderengine.MathLib.Direction;
+import fi.jkauppa.javarenderengine.MathLib.Plane;
+import fi.jkauppa.javarenderengine.MathLib.Position;
+
 public class JavaRenderEngine extends JFrame implements KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 	private static final long serialVersionUID = 1L;
 	private RenderPanel renderpanel = new RenderPanel();
@@ -38,6 +42,11 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	}
 
 	public static void main(String[] args) {
+		Position campos = new Position(0.0f,0.0f,0.0f);
+		Direction[] camdir = new Direction[1]; camdir[0] = new Direction(1.0f,0.0f,1.0f);
+		Plane[] tplane = new Plane[1]; tplane[0] = new Plane(1.0f,0.0f,0.0f,-2.0f);
+		double[][] dist = MathLib.RayPlaneDistance(campos, camdir, tplane);
+		System.out.println("dist["+dist.length+"]["+dist[0].length+"]: "+dist[0][0]);
 		JavaRenderEngine app = new JavaRenderEngine();
 	}
 	
