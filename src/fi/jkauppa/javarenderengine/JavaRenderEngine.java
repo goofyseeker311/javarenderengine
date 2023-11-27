@@ -9,16 +9,37 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-public class JavaRenderEngine extends JFrame implements KeyListener {
+public class JavaRenderEngine extends JFrame implements KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 	private static final long serialVersionUID = 1L;
 	private RenderPanel renderpanel = new RenderPanel();
 	private boolean windowedmode = false;
+
+	public JavaRenderEngine() {
+		this.addKeyListener(this);
+		renderpanel.addMouseListener(this);
+		renderpanel.addMouseMotionListener(this);
+		renderpanel.addMouseWheelListener(this);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setExtendedState(this.getExtendedState()|JFrame.MAXIMIZED_BOTH);
+		this.setUndecorated(true);
+		this.add(renderpanel);
+		this.setVisible(true);
+	}
+
+	public static void main(String[] args) {
+		JavaRenderEngine app = new JavaRenderEngine();
+	}
 	
 	private class RenderPanel extends JPanel implements ActionListener,ComponentListener {
 		private static final long serialVersionUID = 1L;
@@ -39,15 +60,15 @@ public class JavaRenderEngine extends JFrame implements KeyListener {
 			lastupdate = newupdate; 
 			Graphics2D g2 = (Graphics2D)g;
 			if (renderbuffer!=null) {
-				Graphics2D gfx = (Graphics2D)renderbuffer.getGraphics();
-				gfx.setColor(Color.GREEN);
-				gfx.fillRect(0, 0, this.getWidth(), this.getHeight());
 				g2.drawImage(renderbuffer, 0, 0, null);
 			}
 		}
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			this.repaint();
+		}
+		public BufferedImage getRenderBuffer() {
+			return renderbuffer;
 		}
 		
 		@Override public void componentMoved(ComponentEvent e) {}
@@ -57,24 +78,21 @@ public class JavaRenderEngine extends JFrame implements KeyListener {
 		@Override
 		public void componentResized(ComponentEvent e) {
 			renderbuffer = new BufferedImage(this.getWidth(),this.getWidth(),BufferedImage.TYPE_INT_ARGB);
+			Graphics2D gfx = (Graphics2D)renderbuffer.getGraphics();
+			gfx.setColor(Color.WHITE);
+			gfx.fillRect(0, 0, this.getWidth(), this.getHeight());
 		}
-	}
-
-	public JavaRenderEngine() {
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.addKeyListener(this);
-		this.setExtendedState(this.getExtendedState()|JFrame.MAXIMIZED_BOTH);
-		this.setUndecorated(true);
-		this.add(renderpanel);
-		this.setVisible(true);
-	}
-
-	public static void main(String[] args) {
-		JavaRenderEngine app = new JavaRenderEngine();
 	}
 
 	@Override public void keyTyped(KeyEvent e) {}
 	@Override public void keyReleased(KeyEvent e) {}
+	@Override public void mousePressed(MouseEvent e) {}
+	@Override public void mouseClicked(MouseEvent e) {}
+	@Override public void mouseReleased(MouseEvent e) {}
+	@Override public void mouseEntered(MouseEvent e) {}
+	@Override public void mouseExited(MouseEvent e) {}
+	@Override public void mouseMoved(MouseEvent e) {}
+	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
 
 	@Override
 	public void keyPressed(KeyEvent e) {
@@ -85,18 +103,52 @@ public class JavaRenderEngine extends JFrame implements KeyListener {
 		    int onmask = KeyEvent.ALT_DOWN_MASK;
 		    int offmask = 0;
 		    if ((e.getModifiersEx() & (onmask | offmask)) == onmask) {
-	    		this.dispose();
+		    	JavaRenderEngine.this.dispose();
 		    	if (!windowedmode) {
 		    		windowedmode = true;
-		    		this.setExtendedState(this.getExtendedState()&~JFrame.MAXIMIZED_BOTH);
-		    		this.setUndecorated(false);
+		    		JavaRenderEngine.this.setExtendedState(JavaRenderEngine.this.getExtendedState()&~JFrame.MAXIMIZED_BOTH);
+		    		JavaRenderEngine.this.setUndecorated(false);
 		    	}else {
 		    		windowedmode = false;
-		    		this.setExtendedState(this.getExtendedState()|JFrame.MAXIMIZED_BOTH);
-		    		this.setUndecorated(true);
+		    		JavaRenderEngine.this.setExtendedState(JavaRenderEngine.this.getExtendedState()|JFrame.MAXIMIZED_BOTH);
+		    		JavaRenderEngine.this.setUndecorated(true);
 		    	}
-	    		this.setVisible(true);
+		    	JavaRenderEngine.this.setVisible(true);
 		    }
+		}
+		if (e.getKeyCode()==KeyEvent.VK_DELETE) {
+			BufferedImage renderbufferhandle = renderpanel.getRenderBuffer();
+			if (renderbufferhandle!=null) {
+				Graphics2D gfx = (Graphics2D)renderbufferhandle.getGraphics();
+				gfx.setColor(Color.WHITE);
+				gfx.fillRect(0, 0, this.getWidth(), this.getHeight());
+			}
+		}
+	}
+	
+	@Override
+	public void mouseDragged(MouseEvent e) {
+		BufferedImage renderbufferhandle = renderpanel.getRenderBuffer();
+		if (renderbufferhandle!=null) {
+			Graphics2D renderbuffergfx = (Graphics2D)renderbufferhandle.getGraphics();
+		    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
+		    int offmask1 = 0;
+		    if ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1) {
+					renderbuffergfx.setColor(Color.BLACK);
+					renderbuffergfx.drawLine(e.getX(), e.getY(), e.getX(), e.getY());
+			}			
+		    int onmask2 = MouseEvent.BUTTON2_DOWN_MASK;
+		    int offmask2 = 0;
+		    if ((e.getModifiersEx() & (onmask2 | offmask2)) == onmask2) {
+					renderbuffergfx.setColor(Color.RED);
+					renderbuffergfx.drawLine(e.getX(), e.getY(), e.getX(), e.getY());
+			}			
+		    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
+		    int offmask3 = 0;
+		    if ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3) {
+					renderbuffergfx.setColor(Color.WHITE);
+					renderbuffergfx.drawLine(e.getX(), e.getY(), e.getX(), e.getY());
+			}			
 		}
 	}
 }
