@@ -28,6 +28,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private static final long serialVersionUID = 1L;
 	private RenderPanel renderpanel = new RenderPanel();
 	private boolean windowedmode = false;
+	private Color drawcolor = Color.BLACK;
+	private int pencilsize = 1;
 
 	public JavaRenderEngine() {
 		this.addKeyListener(this);
@@ -103,7 +105,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	@Override public void mouseEntered(MouseEvent e) {}
 	@Override public void mouseExited(MouseEvent e) {}
 	@Override public void mouseMoved(MouseEvent e) {}
-	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
 
 	@Override
 	public void keyPressed(KeyEvent e) {
@@ -145,21 +146,23 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
 		    int offmask1 = 0;
 		    if ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1) {
-					renderbuffergfx.setColor(Color.BLACK);
-					renderbuffergfx.drawLine(e.getX(), e.getY(), e.getX(), e.getY());
-			}			
-		    int onmask2 = MouseEvent.BUTTON2_DOWN_MASK;
-		    int offmask2 = 0;
-		    if ((e.getModifiersEx() & (onmask2 | offmask2)) == onmask2) {
-					renderbuffergfx.setColor(Color.RED);
-					renderbuffergfx.drawLine(e.getX(), e.getY(), e.getX(), e.getY());
+					renderbuffergfx.setColor(this.drawcolor);
+					renderbuffergfx.drawOval(e.getX(), e.getY(), this.pencilsize, this.pencilsize);
 			}			
 		    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
 		    int offmask3 = 0;
 		    if ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3) {
 					renderbuffergfx.setColor(Color.WHITE);
-					renderbuffergfx.drawLine(e.getX(), e.getY(), e.getX(), e.getY());
+					renderbuffergfx.drawOval(e.getX(), e.getY(), this.pencilsize, this.pencilsize);
 			}			
+		}
+	}
+	
+	@Override
+	public void mouseWheelMoved(MouseWheelEvent e) {
+		this.pencilsize += e.getWheelRotation();
+		if (this.pencilsize<1) {
+			this.pencilsize = 1;
 		}
 	}
 }
