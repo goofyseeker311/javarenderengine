@@ -138,12 +138,12 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		}
 		if (e.getKeyCode()==KeyEvent.VK_INSERT) {
 			this.drawcolorhsb[0] += 0.01f;
-			if (this.drawcolorhsb[0]>1.0f) {this.drawcolorhsb[0] = 1.0f;}
+			if (this.drawcolorhsb[0]>1.0f) {this.drawcolorhsb[0] = 0.0f;}
 			this.drawcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 		}
 		if (e.getKeyCode()==KeyEvent.VK_DELETE) {
 			this.drawcolorhsb[0] -= 0.01f;
-			if (this.drawcolorhsb[0]<0.0f) {this.drawcolorhsb[0] = 0.0f;}
+			if (this.drawcolorhsb[0]<0.0f) {this.drawcolorhsb[0] = 1.0f;}
 			this.drawcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 		}
 		if (e.getKeyCode()==KeyEvent.VK_HOME) {
