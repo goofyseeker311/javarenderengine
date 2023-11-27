@@ -9,6 +9,18 @@ public class MathLib {
 	public static class Ray {public Position pos; public Direction dir; public Ray(Position posi,Direction diri){this.pos=posi;this.dir=diri;}}
 	public static class Triangle {public Position pos1,pos2,pos3; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;}}
 	
+	public static Direction[] NormalizeVector(Direction[] vdir) {
+		Direction[] k = null;
+		if (vdir!=null) {
+			k = new Direction[vdir.length];
+			for (int n=0;n<vdir.length;n++) {
+				double bottom = Math.sqrt(vdir[n].dx*vdir[n].dx+vdir[n].dy*vdir[n].dy+vdir[n].dz*vdir[n].dz);
+				k[n] = new Direction(vdir[n].dx/bottom, vdir[n].dy/bottom, vdir[n].dz/bottom);
+			}
+		}
+		return k;
+	}
+	
 	public static double[][] RayPlaneDistance(Position vpos, Direction[] vdir, Plane[] vplane) {
 		double[][] k = null;
 		if ((vdir!=null)&&(vplane!=null)) {

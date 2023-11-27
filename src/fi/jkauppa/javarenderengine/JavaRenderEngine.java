@@ -43,7 +43,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 
 	public static void main(String[] args) {
 		Position campos = new Position(0.0f,0.0f,0.0f);
-		Direction[] camdir = new Direction[1]; camdir[0] = new Direction(1.0f,0.0f,1.0f);
+		Direction[] camdir = new Direction[1]; camdir[0] = new Direction(1.0f,0.0f,0.0f);
+		camdir = MathLib.NormalizeVector(camdir);
+		System.out.println("camdir: "+camdir[0].dx+" "+camdir[0].dy+" "+camdir[0].dz);
 		Plane[] tplane = new Plane[1]; tplane[0] = new Plane(1.0f,0.0f,0.0f,-2.0f);
 		double[][] dist = MathLib.RayPlaneDistance(campos, camdir, tplane);
 		System.out.println("dist["+dist.length+"]["+dist[0].length+"]: "+dist[0][0]);
