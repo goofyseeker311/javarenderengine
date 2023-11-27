@@ -29,7 +29,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private RenderPanel renderpanel = new RenderPanel();
 	private boolean windowedmode = false;
 	private Color drawcolor = Color.BLACK;
-	private int pencilsize = 1;
+	private float[] drawcolorhsb = {0.0f, 0.0f, 0.0f};
+	private int pencilsize = 2;
 
 	public JavaRenderEngine() {
 		this.addKeyListener(this);
@@ -127,13 +128,43 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    	JavaRenderEngine.this.setVisible(true);
 		    }
 		}
-		if (e.getKeyCode()==KeyEvent.VK_DELETE) {
+		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
 			BufferedImage renderbufferhandle = renderpanel.getRenderBuffer();
 			if (renderbufferhandle!=null) {
 				Graphics2D gfx = (Graphics2D)renderbufferhandle.getGraphics();
 				gfx.setColor(Color.WHITE);
 				gfx.fillRect(0, 0, this.getWidth(), this.getHeight());
 			}
+		}
+		if (e.getKeyCode()==KeyEvent.VK_INSERT) {
+			this.drawcolorhsb[0] += 0.01f;
+			if (this.drawcolorhsb[0]>1.0f) {this.drawcolorhsb[0] = 1.0f;}
+			this.drawcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+		}
+		if (e.getKeyCode()==KeyEvent.VK_DELETE) {
+			this.drawcolorhsb[0] -= 0.01f;
+			if (this.drawcolorhsb[0]<0.0f) {this.drawcolorhsb[0] = 0.0f;}
+			this.drawcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+		}
+		if (e.getKeyCode()==KeyEvent.VK_HOME) {
+			this.drawcolorhsb[1] += 0.01f;
+			if (this.drawcolorhsb[1]>1.0f) {this.drawcolorhsb[1] = 1.0f;}
+			this.drawcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+		}
+		if (e.getKeyCode()==KeyEvent.VK_END) {
+			this.drawcolorhsb[1] -= 0.01f;
+			if (this.drawcolorhsb[1]<0.0f) {this.drawcolorhsb[1] = 0.0f;}
+			this.drawcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+		}
+		if (e.getKeyCode()==KeyEvent.VK_PAGE_UP) {
+			this.drawcolorhsb[2] += 0.01f;
+			if (this.drawcolorhsb[2]>1.0f) {this.drawcolorhsb[2] = 1.0f;}
+			this.drawcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+		}
+		if (e.getKeyCode()==KeyEvent.VK_PAGE_DOWN) {
+			this.drawcolorhsb[2] -= 0.01f;
+			if (this.drawcolorhsb[2]<0.0f) {this.drawcolorhsb[2] = 0.0f;}
+			this.drawcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 		}
 	}
 
@@ -149,13 +180,13 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    int offmask1 = 0;
 		    if ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1) {
 					renderbuffergfx.setColor(this.drawcolor);
-					renderbuffergfx.drawOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+					renderbuffergfx.fillOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
 			}			
 		    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
 		    int offmask3 = 0;
 		    if ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3) {
 					renderbuffergfx.setColor(Color.WHITE);
-					renderbuffergfx.drawOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+					renderbuffergfx.fillOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
 			}			
 		}
 	}
@@ -163,8 +194,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		this.pencilsize += e.getWheelRotation();
-		if (this.pencilsize<1) {
-			this.pencilsize = 1;
+		if (this.pencilsize<2) {
+			this.pencilsize = 2;
 		}
 	}
 }
