@@ -3,6 +3,7 @@ package fi.jkauppa.javarenderengine;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -14,6 +15,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JFrame;
@@ -31,6 +33,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private Color drawcolor = Color.BLACK;
 	private float[] drawcolorhsb = {0.0f, 0.0f, 0.0f};
 	private int pencilsize = 2;
+	private int pencilshape = 1;
 
 	public JavaRenderEngine() {
 		this.addKeyListener(this);
@@ -180,14 +183,30 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    int offmask1 = 0;
 		    if ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1) {
 					renderbuffergfx.setColor(this.drawcolor);
-					renderbuffergfx.fillOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+					if (this.pencilshape==2) {
+						renderbuffergfx.drawOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+					}else {
+						renderbuffergfx.fillOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+					}
 			}			
 		    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
 		    int offmask3 = 0;
 		    if ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3) {
 					renderbuffergfx.setColor(Color.WHITE);
-					renderbuffergfx.fillOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+					if (this.pencilshape==2) {
+						renderbuffergfx.drawOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+					}else {
+						renderbuffergfx.fillOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+					}
 			}			
+		    int onmask2 = MouseEvent.BUTTON2_DOWN_MASK;
+		    int offmask2 = 0;
+		    if ((e.getModifiersEx() & (onmask2 | offmask2)) == onmask2) {
+		    	this.pencilshape += 1;
+		    	if (this.pencilshape>2) {
+		    		this.pencilshape = 1;
+		    	}
+		    }
 		}
 	}
 	
