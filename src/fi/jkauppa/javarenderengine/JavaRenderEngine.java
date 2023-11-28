@@ -19,12 +19,14 @@ import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
+import javax.swing.UIManager;
 
 import fi.jkauppa.javarenderengine.MathLib.Direction;
 import fi.jkauppa.javarenderengine.MathLib.Plane;
@@ -39,7 +41,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private int pencilsize = 1;
 	private int pencilshape = 1;
 	private BufferedImage loadimage = null;
-
+	private JFileChooser filechooser = new JFileChooser();
+	
 	public JavaRenderEngine() {
 		this.addKeyListener(this);
 		renderpanel.addMouseListener(this);
@@ -53,6 +56,10 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	}
 
 	public static void main(String[] args) {
+		try {UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());} catch (Exception ex) {}
+		String userlocalpath = Paths.get("").toAbsolutePath().toString();
+		String userlocaldir = System.getProperty("user.dir");
+		
 		Position campos = new Position(0.0f,0.0f,0.0f);
 		Direction[] camdir = new Direction[1]; camdir[0] = new Direction(1.0f,0.0f,0.0f);
 		camdir = MathLib.NormalizeVector(camdir);
@@ -185,9 +192,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			//TODO save pop-up window
 		}
 		if (e.getKeyCode()==KeyEvent.VK_F3) {
-			JFileChooser chooser = new JFileChooser();
-			if (chooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
-				File loadfile = chooser.getSelectedFile() ;
+			if (filechooser.showOpenDialog(this)==JFileChooser.APPROVE_OPTION) {
+				File loadfile = filechooser.getSelectedFile() ;
 				try {loadimage = ImageIO.read(loadfile);} catch (IOException ex) {}
 				if (loadimage!=null) {
 					Graphics2D gfx = (Graphics2D)renderpanel.getRenderBuffer().getGraphics();
@@ -213,44 +219,37 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			Graphics2D renderbuffergfx = (Graphics2D)renderbufferhandle.getGraphics();
 		    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
 		    int offmask1 = 0;
-		    if ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1) {
+		    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
+		    int offmask3 = 0;
+		    boolean mouse1down = ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1);
+		    boolean mouse3down = ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3);
+		    if (mouse1down||mouse3down) {
+		    	if (mouse3down) {
+					renderbuffergfx.setColor(Color.WHITE);
+		    	} else {
 					renderbuffergfx.setColor(this.drawcolor);
-					if (this.pencilshape==1) {
-						renderbuffergfx.fillRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
-					} else if (this.pencilshape==2) {
-						renderbuffergfx.fillOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
-					} else if (this.pencilshape==3) {
-						renderbuffergfx.drawRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
-					} else if (this.pencilshape==4) {
-						renderbuffergfx.drawOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
-					}else {
-						renderbuffergfx.fillRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
-					}
+		    	}
+				if (this.pencilshape==1) {
+					renderbuffergfx.fillRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+				} else if (this.pencilshape==2) {
+					renderbuffergfx.fillOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+				} else if (this.pencilshape==3) {
+					renderbuffergfx.drawRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+				} else if (this.pencilshape==4) {
+					renderbuffergfx.drawOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+				}else {
+					renderbuffergfx.fillRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+				}
 			}			
 		    int onmask2 = MouseEvent.BUTTON2_DOWN_MASK;
 		    int offmask2 = MouseEvent.SHIFT_DOWN_MASK;
-		    if ((e.getModifiersEx() & (onmask2 | offmask2)) == onmask2) {
+		    boolean mouse2down = ((e.getModifiersEx() & (onmask2 | offmask2)) == onmask2);
+		    if (mouse2down) {
 		    	this.pencilshape += 1;
 		    	if (this.pencilshape>4) {
 		    		this.pencilshape = 1;
 		    	}
 		    }
-		    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
-		    int offmask3 = 0;
-		    if ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3) {
-					renderbuffergfx.setColor(Color.WHITE);
-					if (this.pencilshape==1) {
-						renderbuffergfx.fillRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
-					} else if (this.pencilshape==2) {
-						renderbuffergfx.fillOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
-					} else if (this.pencilshape==3) {
-						renderbuffergfx.drawRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
-					} else if (this.pencilshape==4) {
-						renderbuffergfx.drawOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
-					}else {
-						renderbuffergfx.fillRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
-					}
-			}			
 		    int onmask4 = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 		    int offmask4 = 0;
 		    if ((e.getModifiersEx() & (onmask4 | offmask4)) == onmask4) {
