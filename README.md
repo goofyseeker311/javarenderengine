@@ -3,6 +3,7 @@ Java Render Engine, file structure is for Eclipse IDE for Java.
 
 Starts in undecorated full screen JFrame window, with a child component JPanel updating at chosen frames per second.
 
+```
 Keys:
 ESC           -- exits the program
 ALT-ENTER     -- toggles between windowed and full screen mode
@@ -17,6 +18,7 @@ HOME          -- saturation positive change (minmax)
 END           -- saturation negative change (minmax)
 PGUP          -- brightness positive change (minmax)
 PGDOWN        -- brightness negative change (minmax)
+```
 
 ![viivapiirto](https://github.com/goofyseeker311/javarenderengine/assets/19920254/f82d1071-42be-4af9-ab54-2a7216c31c86)
 ![ovaldrawing](https://github.com/goofyseeker311/javarenderengine/assets/19920254/aedb60dc-6c53-467f-9ffa-824b9616a508)
