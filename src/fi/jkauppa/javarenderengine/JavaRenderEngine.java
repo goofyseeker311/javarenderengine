@@ -98,7 +98,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		Plane[] pplane = MathLib.planeFromNormalAtPoint(campos2, camdir2);
 		for (int i=0;i<pplane.length;i++) {System.out.println("pplane: "+pplane[i].a+" "+pplane[i].b+" "+pplane[i].c+" "+pplane[i].d);}
 		
-		//JavaRenderEngine app = new JavaRenderEngine();
+		JavaRenderEngine app = new JavaRenderEngine();
 	}
 	
 	private class RenderPanel extends JPanel implements ActionListener,ComponentListener {
