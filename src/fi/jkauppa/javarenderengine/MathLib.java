@@ -9,7 +9,9 @@ public class MathLib {
 	public static class Ray {public Position pos; public Direction dir; public Ray(Position posi,Direction diri){this.pos=posi;this.dir=diri;}}
 	public static class Triangle {public Position pos1,pos2,pos3; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;}}
 	
-	public static Direction[] NormalizeVector(Direction[] vdir) {
+	public static double[] vectordot(Direction[] vdir, Position[] vpoint){double[] k=null; if((vdir!=null)&&(vpoint!=null)&&(vdir.length==vpoint.length)){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vpoint[n].x+vdir[n].dy*vpoint[n].y+vdir[n].dz*vpoint[n].z;}}return k;}
+	
+	public static Direction[] normalizeVector(Direction[] vdir) {
 		Direction[] k = null;
 		if (vdir!=null) {
 			k = new Direction[vdir.length];
@@ -21,7 +23,7 @@ public class MathLib {
 		return k;
 	}
 	
-	public static double[][] RayPlaneDistance(Position vpos, Direction[] vdir, Plane[] vplane) {
+	public static double[][] rayPlaneDistance(Position vpos, Direction[] vdir, Plane[] vplane) {
 		double[][] k = null;
 		if ((vdir!=null)&&(vplane!=null)) {
 			k = new double[vdir.length][vplane.length];
@@ -31,6 +33,19 @@ public class MathLib {
 					double bottom = vdir[n].dx*vplane[m].a+vdir[n].dy*vplane[m].b+vdir[n].dz*vplane[m].c;
 					k[n][m] = top/bottom;
 				}
+			}
+		}
+		return k;
+	}
+
+	public static Plane[] planeFromNormalAtPoint(Position[] vpoint, Direction[] vnormal) {
+		Plane[] k = null;
+		if ((vpoint!=null)&&(vnormal!=null)&&(vpoint.length==vnormal.length)) {
+			k = new Plane[vpoint.length];
+			Direction[] nm = normalizeVector(vnormal);
+			double[] dv = vectordot(nm,vpoint);
+			for (int n=0;n<vpoint.length;n++) {
+				k[n] = new Plane(nm[n].dx,nm[n].dy,nm[n].dz,-dv[n]);
 			}
 		}
 		return k;

@@ -73,21 +73,26 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		String[] readformatnames = ImageIO.getReaderFormatNames();
 		
 		Position campos=new Position(0.0f,0.0f,0.0f);
+		Position[] campos2=new Position[2]; campos2[0]=new Position(1.0f,2.0f,3.0f); campos2[1]=new Position(1.0f,2.0f,3.0f);
 		System.out.println("campos: "+campos.x+" "+campos.y+" "+campos.z);
 		Direction[] camdir=new Direction[1]; camdir[0]=new Direction(1.0f,0.0f,0.0f);
-		Direction[] camdir2=new Direction[2]; camdir2[0]=new Direction(1.0f,0.0f,1.0f); camdir2[1]=new Direction(1.0f,0.0f,1.0f);
-		camdir = MathLib.NormalizeVector(camdir);
-		camdir2 = MathLib.NormalizeVector(camdir2);
+		Direction[] camdir2=new Direction[2]; camdir2[0]=new Direction(1.0f,-1.0f,1.0f); camdir2[1]=new Direction(1.0f,-1.0f,1.0f);
+		double[] camdot = MathLib.vectordot(camdir2, campos2);
+		for (int i=0;i<camdot.length;i++) {System.out.println("camdot: "+camdot[i]+" "+camdot[i]+" "+camdot[i]);}
+		camdir = MathLib.normalizeVector(camdir);
+		camdir2 = MathLib.normalizeVector(camdir2);
 		System.out.println("camdir: "+camdir[0].dx+" "+camdir[0].dy+" "+camdir[0].dz);
 		for (int i=0;i<camdir2.length;i++) {System.out.println("camdir2: "+camdir2[i].dx+" "+camdir2[i].dy+" "+camdir2[i].dz);}
 		Plane[] tplane=new Plane[1]; tplane[0]=new Plane(1.0f,0.0f,0.0f,-2.0f);
 		Plane[] tplane2=new Plane[3]; tplane2[0]=new Plane(1.0f,0.0f,0.0f,-2.0f);tplane2[1]=new Plane(1.0f,0.0f,0.0f,-2.0f);tplane2[2]=new Plane(1.0f,0.0f,0.0f,-2.0f);
-		double[][] camtplanedist = MathLib.RayPlaneDistance(campos, camdir, tplane);
-		double[][] camtplanedist2 = MathLib.RayPlaneDistance(campos, camdir2, tplane2);
+		double[][] camtplanedist = MathLib.rayPlaneDistance(campos, camdir, tplane);
+		double[][] camtplanedist2 = MathLib.rayPlaneDistance(campos, camdir2, tplane2);
 		System.out.println("camtplanedist["+camtplanedist.length+"]["+camtplanedist[0].length+"]: "+camtplanedist[0][0]);
 		System.out.println("camtplanedist2["+camtplanedist2.length+"]["+camtplanedist2[0].length+"]: "+camtplanedist2[0][0]);
 		for (int i=0;i<camtplanedist2.length;i++) {for (int j=0;j<camtplanedist2[i].length;j++) {System.out.println("camtplanedist2["+i+"]["+j+"]: "+camtplanedist2[i][j]);}}
-
+		Plane[] pplane = MathLib.planeFromNormalAtPoint(campos2, camdir2);
+		for (int i=0;i<pplane.length;i++) {System.out.println("pplane: "+pplane[i].a+" "+pplane[i].b+" "+pplane[i].c+" "+pplane[i].d);}
+		
 		JavaRenderEngine app = new JavaRenderEngine();
 	}
 	
