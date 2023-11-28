@@ -2,9 +2,21 @@
 Java Render Engine, file structure is for Eclipse IDE for Java.
 
 Starts in undecorated full screen JFrame window, with a child component JPanel updating at chosen frames per second.
-ESC exits the program. ALT-ENTER toggles between windowed and full screen mode. BACKSPACE erases the whole window canvas to white.
-Mouse button drag draws 1x1 pixel at position, MOUSE1/left=black/hsb-color,  MOUSE2/wheel=pencil/width,  MOUSE3/right=white/erase.
-Color wheel HSB buttons H:INSERT+/DELETE- S:HOME+/END- B:PGUP+/PGDOWN-.
+
+Keys:
+ESC           -- exits the program
+ALT-ENTER     -- toggles between windowed and full screen mode
+BACKSPACE     -- erases the whole window canvas to white.
+MOUSE1/left   -- black/hsb-color drag paint
+MOUSE2/center -- pencil type change
+MOUSE2/wheel  -- pencil width change
+MOUSE3/right  -- white drag paint eraser
+INSERT        -- hue positive change (looping)
+DELETE        -- hue negative change (looping)
+HOME          -- saturation positive change (minmax)
+END           -- saturation negative change (minmax)
+PGUP          -- brightness positive change (minmax)
+PGDOWN        -- brightness negative change (minmax)
 
 ![viivapiirto](https://github.com/goofyseeker311/javarenderengine/assets/19920254/f82d1071-42be-4af9-ab54-2a7216c31c86)
 ![ovaldrawing](https://github.com/goofyseeker311/javarenderengine/assets/19920254/aedb60dc-6c53-467f-9ffa-824b9616a508)
