@@ -29,6 +29,7 @@ import javax.swing.filechooser.FileFilter;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
 import fi.jkauppa.javarenderengine.MathLib.Plane;
 import fi.jkauppa.javarenderengine.MathLib.Position;
+import fi.jkauppa.javarenderengine.MathLib.Triangle;
 
 public class JavaRenderEngine extends JFrame implements KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 	private static final long serialVersionUID = 1L;
@@ -71,10 +72,12 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		String userlocaldir = System.getProperty("user.dir");
 		String[] writeformatnames = ImageIO.getWriterFormatNames();
 		String[] readformatnames = ImageIO.getReaderFormatNames();
-		
 		Position campos=new Position(0.0f,0.0f,0.0f);
 		Position[] campos2=new Position[2]; campos2[0]=new Position(1.0f,2.0f,3.0f); campos2[1]=new Position(1.0f,2.0f,3.0f);
+		Position[] campos3=new Position[2]; campos3[0]=new Position(1.0f,0.0f,0.0f); campos3[1]=new Position(1.0f,0.0f,0.0f);
 		System.out.println("campos: "+campos.x+" "+campos.y+" "+campos.z);
+		Direction[] camvec = MathLib.vectorFromPoints(campos2, campos3);
+		for (int i=0;i<camvec.length;i++) {System.out.println("camvec: "+camvec[i].dx+" "+camvec[i].dy+" "+camvec[i].dz);}
 		Direction[] camdir=new Direction[1]; camdir[0]=new Direction(1.0f,0.0f,0.0f);
 		Direction[] camdir2=new Direction[2]; camdir2[0]=new Direction(1.0f,-1.0f,1.0f); camdir2[1]=new Direction(1.0f,-1.0f,1.0f);
 		Direction[] camdir3=new Direction[2]; camdir3[0]=new Direction(1.0f,0.0f,0.0f); camdir3[1]=new Direction(1.0f,0.0f,0.0f);
@@ -82,6 +85,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		for (int i=0;i<camcross.length;i++) {System.out.println("camcross: "+camcross[i].dx+" "+camcross[i].dy+" "+camcross[i].dz);}
 		double[] camdir2len = MathLib.vectorLength(camdir2);
 		for (int i=0;i<camdir2len.length;i++) {System.out.println("camdir2len: "+camdir2len[i]);}
+		Triangle[] ptri = new Triangle[1]; ptri[0] = new Triangle(campos,campos2[0],campos3[0]);
+		Plane[] tpplane = MathLib.planeFromPoints(ptri);
+		System.out.println("tpplane: "+tpplane[0].a+" "+tpplane[0].b+" "+tpplane[0].c+" "+tpplane[0].d);
 		double[] camdot = MathLib.vectorDot(camdir2, campos2);
 		for (int i=0;i<camdot.length;i++) {System.out.println("camdot: "+camdot[i]+" "+camdot[i]+" "+camdot[i]);}
 		camdir = MathLib.normalizeVector(camdir);

@@ -63,10 +63,31 @@ public class MathLib {
 		return k;
 	}
 
+	public static Direction[] vectorFromPoints(Position[] vpoint1, Position[] vpoint2) {
+		Direction[] k = null;
+		if ((vpoint1!=null)&&(vpoint2!=null)&&(vpoint1.length==vpoint2.length)) {
+			k = new Direction[vpoint1.length];
+			for (int n=0;n<vpoint1.length;n++) {
+				k[n] = new Direction(vpoint2[n].x-vpoint1[n].x, vpoint2[n].y-vpoint1[n].y, vpoint2[n].z-vpoint1[n].z);
+			}
+		}
+		return k;
+	}
+
 	public static Plane[] planeFromPoints(Triangle[] vtri) {
 		Plane[] k = null;
 		if (vtri!=null) {
-			
+			k = new Plane[vtri.length];
+			for (int n=0;n<vtri.length;n++) {
+				Position[] p1 = new Position[1]; p1[0] = vtri[n].pos1;
+				Position[] p2 = new Position[1]; p2[0] = vtri[n].pos2;
+				Position[] p3 = new Position[1]; p3[0] = vtri[n].pos3;
+				Direction[] v1 = vectorFromPoints(p1, p2);
+				Direction[] v2 = vectorFromPoints(p1, p3);
+				Direction[] nm = normalizeVector(vectorCross(v1, v2));
+				double[] dv = vectorDot(nm, p1);
+				k[n] = new Plane(nm[0].dx,nm[0].dy,nm[0].dz,dv[0]);
+			}
 		}
 		return k;
 	}
