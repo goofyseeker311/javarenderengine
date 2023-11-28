@@ -9,15 +9,31 @@ public class MathLib {
 	public static class Ray {public Position pos; public Direction dir; public Ray(Position posi,Direction diri){this.pos=posi;this.dir=diri;}}
 	public static class Triangle {public Position pos1,pos2,pos3; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;}}
 	
-	public static double[] vectordot(Direction[] vdir, Position[] vpoint){double[] k=null; if((vdir!=null)&&(vpoint!=null)&&(vdir.length==vpoint.length)){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vpoint[n].x+vdir[n].dy*vpoint[n].y+vdir[n].dz*vpoint[n].z;}}return k;}
+	public static double[] vectorDot(Direction[] vdir, Position[] vpoint){double[] k=null; if((vdir!=null)&&(vpoint!=null)&&(vdir.length==vpoint.length)){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vpoint[n].x+vdir[n].dy*vpoint[n].y+vdir[n].dz*vpoint[n].z;}}return k;}
+	public static double[] vectorDot(Direction[] vdir1, Direction[] vdir2){double[] k=null; if((vdir1!=null)&&(vdir2!=null)&&(vdir1.length==vdir2.length)){k=new double[vdir1.length];for(int n=0;n<vdir1.length;n++){k[n] = vdir1[n].dx*vdir2[n].dx+vdir1[n].dy*vdir2[n].dy+vdir1[n].dz*vdir2[n].dz;}}return k;}
+	public static double[] vectorDot(Direction[] vdir){double[] k=null; if(vdir!=null){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vdir[n].dx+vdir[n].dy*vdir[n].dy+vdir[n].dz*vdir[n].dz;}}return k;}
+	public static double[] vectorDot(Plane[] vplane, Position vpoint){double[] k=null; if((vplane!=null)&&(vpoint!=null)){k=new double[vplane.length];for(int n=0;n<vplane.length;n++){k[n] = vplane[n].a*vpoint.x+vplane[n].b*vpoint.y+vplane[n].c*vpoint.z+vplane[n].d;}}return k;}
+	public static double[] vectorDot(Plane[] vplane, Direction vdir){double[] k=null; if((vplane!=null)&&(vdir!=null)){k=new double[vplane.length];for(int n=0;n<vplane.length;n++){k[n] = vplane[n].a*vdir.dx+vplane[n].b*vdir.dy+vplane[n].c*vdir.dz;}}return k;}
+
+	public static double[] vectorLength(Direction[] vdir) {
+		double[] k = null;
+		if (vdir!=null) {
+			k = new double[vdir.length];
+			double[] vdirlength = vectorDot(vdir);
+			for (int n=0;n<vdir.length;n++) {
+				k[n] = Math.sqrt(vdirlength[n]);
+			}
+		}
+		return k;
+	}
 	
 	public static Direction[] normalizeVector(Direction[] vdir) {
 		Direction[] k = null;
 		if (vdir!=null) {
 			k = new Direction[vdir.length];
+			double[] vdirlength =  vectorLength(vdir);
 			for (int n=0;n<vdir.length;n++) {
-				double bottom = Math.sqrt(vdir[n].dx*vdir[n].dx+vdir[n].dy*vdir[n].dy+vdir[n].dz*vdir[n].dz);
-				k[n] = new Direction(vdir[n].dx/bottom, vdir[n].dy/bottom, vdir[n].dz/bottom);
+				k[n] = new Direction(vdir[n].dx/vdirlength[n], vdir[n].dy/vdirlength[n], vdir[n].dz/vdirlength[n]);
 			}
 		}
 		return k;
@@ -28,10 +44,10 @@ public class MathLib {
 		if ((vdir!=null)&&(vplane!=null)) {
 			k = new double[vdir.length][vplane.length];
 			for (int n=0;n<vdir.length;n++) {
+				double[] top = vectorDot(vplane, vpos);
+				double[] bottom =  vectorDot(vplane, vdir[n]);
 				for (int m=0;m<vplane.length;m++) {
-					double top = -(vpos.x*vplane[m].a+vpos.y*vplane[m].b+vpos.z*vplane[m].c+vplane[m].d);
-					double bottom = vdir[n].dx*vplane[m].a+vdir[n].dy*vplane[m].b+vdir[n].dz*vplane[m].c;
-					k[n][m] = top/bottom;
+					k[n][m] = -top[m]/bottom[m];
 				}
 			}
 		}
@@ -43,7 +59,7 @@ public class MathLib {
 		if ((vpoint!=null)&&(vnormal!=null)&&(vpoint.length==vnormal.length)) {
 			k = new Plane[vpoint.length];
 			Direction[] nm = normalizeVector(vnormal);
-			double[] dv = vectordot(nm,vpoint);
+			double[] dv = vectorDot(nm,vpoint);
 			for (int n=0;n<vpoint.length;n++) {
 				k[n] = new Plane(nm[n].dx,nm[n].dy,nm[n].dz,-dv[n]);
 			}
