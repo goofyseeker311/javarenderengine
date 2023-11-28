@@ -3,7 +3,6 @@ package fi.jkauppa.javarenderengine;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -15,10 +14,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Paths;
 
 import javax.imageio.ImageIO;
@@ -27,6 +24,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.UIManager;
+import javax.swing.filechooser.FileFilter;
 
 import fi.jkauppa.javarenderengine.MathLib.Direction;
 import fi.jkauppa.javarenderengine.MathLib.Plane;
@@ -37,21 +35,33 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private RenderPanel renderpanel = new RenderPanel();
 	private boolean windowedmode = false;
 	private Color drawcolor = Color.BLACK;
-	private float[] drawcolorhsb = {0.0f, 0.0f, 0.0f};
+	private float[] drawcolorhsb = {0.0f, 1.0f, 0.0f};
 	private int pencilsize = 1;
 	private int pencilshape = 1;
 	private BufferedImage loadimage = null;
 	private JFileChooser filechooser = new JFileChooser();
+	private ImageFileFilters.PNGFileFilter pngfilefilter = new ImageFileFilters.PNGFileFilter();
+	private ImageFileFilters.JPGFileFilter jpgfilefilter = new ImageFileFilters.JPGFileFilter();
+	private ImageFileFilters.GIFFileFilter giffilefilter = new ImageFileFilters.GIFFileFilter();
+	private ImageFileFilters.BMPFileFilter bmpfilefilter = new ImageFileFilters.BMPFileFilter();
+	private ImageFileFilters.WBMPFileFilter wbmpfilefilter = new ImageFileFilters.WBMPFileFilter();
 	
 	public JavaRenderEngine() {
+		this.filechooser.addChoosableFileFilter(this.pngfilefilter);
+		this.filechooser.addChoosableFileFilter(this.jpgfilefilter);
+		this.filechooser.addChoosableFileFilter(this.giffilefilter);
+		this.filechooser.addChoosableFileFilter(this.bmpfilefilter);
+		this.filechooser.addChoosableFileFilter(this.wbmpfilefilter);
+		this.filechooser.setFileFilter(pngfilefilter);
+		
 		this.addKeyListener(this);
-		renderpanel.addMouseListener(this);
-		renderpanel.addMouseMotionListener(this);
-		renderpanel.addMouseWheelListener(this);
+		this.renderpanel.addMouseListener(this);
+		this.renderpanel.addMouseMotionListener(this);
+		this.renderpanel.addMouseWheelListener(this);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setExtendedState(this.getExtendedState()|JFrame.MAXIMIZED_BOTH);
 		this.setUndecorated(true);
-		this.add(renderpanel);
+		this.setContentPane(this.renderpanel);
 		this.setVisible(true);
 	}
 
@@ -59,6 +69,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		try {UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());} catch (Exception ex) {}
 		String userlocalpath = Paths.get("").toAbsolutePath().toString();
 		String userlocaldir = System.getProperty("user.dir");
+		String[] writeformatnames = ImageIO.getWriterFormatNames();
+		String[] readformatnames = ImageIO.getReaderFormatNames();
 		
 		Position campos = new Position(0.0f,0.0f,0.0f);
 		Direction[] camdir = new Direction[1]; camdir[0] = new Direction(1.0f,0.0f,0.0f);
@@ -106,14 +118,37 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		
 		@Override
 		public void componentResized(ComponentEvent e) {
-			BufferedImage oldimage = renderbuffer; 
-			renderbuffer = new BufferedImage(this.getWidth(),this.getWidth(),BufferedImage.TYPE_INT_ARGB);
-			Graphics2D gfx = (Graphics2D)renderbuffer.getGraphics();
+			BufferedImage oldimage = this.renderbuffer; 
+			this.renderbuffer = new BufferedImage(this.getWidth(),this.getHeight(),BufferedImage.TYPE_INT_ARGB);
+			Graphics2D gfx = (Graphics2D)this.renderbuffer.getGraphics();
 			gfx.setColor(Color.WHITE);
-			gfx.fillRect(0, 0, renderbuffer.getWidth(), renderbuffer.getHeight());
+			gfx.fillRect(0, 0, this.renderbuffer.getWidth(), this.renderbuffer.getHeight());
 			if (oldimage!=null) {
 				gfx.drawImage(oldimage, 0, 0, null);
 			}
+		}
+	}
+	
+	public class ImageFileFilters  {
+		public static class PNGFileFilter extends FileFilter {
+			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".png"));}
+			@Override public String getDescription() {return "PNG Image file";}
+		}
+		public static class JPGFileFilter extends FileFilter {
+			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".jpg"));}
+			@Override public String getDescription() {return "JPG Image file";}
+		}
+		public static class GIFFileFilter extends FileFilter {
+			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".gif"));}
+			@Override public String getDescription() {return "GIF Image file";}
+		}
+		public static class BMPFileFilter extends FileFilter {
+			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".bmp"));}
+			@Override public String getDescription() {return "BMP Image file";}
+		}
+		public static class WBMPFileFilter extends FileFilter {
+			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".wbmp"));}
+			@Override public String getDescription() {return "WBMP Image file";}
 		}
 	}
 
@@ -189,12 +224,32 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			//TODO help pop-up window
 		}
 		if (e.getKeyCode()==KeyEvent.VK_F2) {
-			//TODO save pop-up window
+			this.filechooser.setDialogTitle("Save File");
+			this.filechooser.setApproveButtonText("Save");
+			if (this.filechooser.showOpenDialog(this)==JFileChooser.APPROVE_OPTION) {
+				File savefile = this.filechooser.getSelectedFile();
+				FileFilter savefileformat = this.filechooser.getFileFilter();
+				if (savefileformat.equals(this.pngfilefilter)) {
+					try {ImageIO.write(renderpanel.getRenderBuffer(), "PNG", savefile);} catch (Exception ex) {ex.printStackTrace();}
+				} else if (savefileformat.equals(this.jpgfilefilter)) {
+					try {ImageIO.write(renderpanel.getRenderBuffer(), "JPG", savefile);} catch (Exception ex) {ex.printStackTrace();}
+				} else if (savefileformat.equals(this.giffilefilter)) {
+					try {ImageIO.write(renderpanel.getRenderBuffer(), "GIF", savefile);} catch (Exception ex) {ex.printStackTrace();}
+				} else if (savefileformat.equals(this.bmpfilefilter)) {
+					try {ImageIO.write(renderpanel.getRenderBuffer(), "BMP", savefile);} catch (Exception ex) {ex.printStackTrace();}
+				} else if (savefileformat.equals(this.wbmpfilefilter)) {
+					try {ImageIO.write(renderpanel.getRenderBuffer(), "WBMP", savefile);} catch (Exception ex) {ex.printStackTrace();}
+				} else {
+					try {ImageIO.write(renderpanel.getRenderBuffer(), "PNG", savefile);} catch (Exception ex) {ex.printStackTrace();}
+				}
+			}
 		}
 		if (e.getKeyCode()==KeyEvent.VK_F3) {
-			if (filechooser.showOpenDialog(this)==JFileChooser.APPROVE_OPTION) {
-				File loadfile = filechooser.getSelectedFile() ;
-				try {loadimage = ImageIO.read(loadfile);} catch (IOException ex) {}
+			this.filechooser.setDialogTitle("Load File");
+			this.filechooser.setApproveButtonText("Load");
+			if (this.filechooser.showOpenDialog(this)==JFileChooser.APPROVE_OPTION) {
+				File loadfile = this.filechooser.getSelectedFile() ;
+				try {loadimage = ImageIO.read(loadfile);} catch (Exception ex) {ex.printStackTrace();}
 				if (loadimage!=null) {
 					Graphics2D gfx = (Graphics2D)renderpanel.getRenderBuffer().getGraphics();
 					gfx.drawImage(loadimage, 0, 0, null);
@@ -238,7 +293,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 				} else if (this.pencilshape==4) {
 					renderbuffergfx.drawOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
 				}else {
-					renderbuffergfx.fillRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+					renderbuffergfx.fillOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
 				}
 			}			
 		    int onmask2 = MouseEvent.BUTTON2_DOWN_MASK;
