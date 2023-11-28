@@ -37,6 +37,20 @@ public class MathLib {
 		}
 		return k;
 	}
+
+	public static double[] vectorAngle(Direction[] vdir1, Direction[] vdir2) {
+		double[] k = null;
+		if ((vdir1!=null)&&(vdir2!=null)&&(vdir1.length==vdir2.length)) {
+			k = new double[vdir1.length];
+			double[] vdir1length = vectorLength(vdir1);
+			double[] vdir2length = vectorLength(vdir2);
+			double[] vdir12dot = vectorDot(vdir1,vdir2);
+			for (int n=0;n<vdir1.length;n++) {
+				k[n] = (180/Math.PI)*Math.acos(vdir12dot[n])/(vdir1length[n]*vdir2length[n]);
+			}
+		}
+		return k;
+	}
 	
 	public static Direction[] normalizeVector(Direction[] vdir) {
 		Direction[] k = null;
@@ -85,8 +99,8 @@ public class MathLib {
 				Direction[] v1 = vectorFromPoints(p1, p2);
 				Direction[] v2 = vectorFromPoints(p1, p3);
 				Direction[] nm = normalizeVector(vectorCross(v1, v2));
-				double[] dv = vectorDot(nm, p1);
-				k[n] = new Plane(nm[0].dx,nm[0].dy,nm[0].dz,dv[0]);
+				Plane[] pplane = planeFromNormalAtPoint(p1, nm);
+				k[n] = pplane[0];
 			}
 		}
 		return k;
@@ -94,11 +108,11 @@ public class MathLib {
 
 	public static double[][] rayPlaneDistance(Position vpos, Direction[] vdir, Plane[] vplane) {
 		double[][] k = null;
-		if ((vdir!=null)&&(vplane!=null)) {
+		if ((vpos!=null)&&(vdir!=null)&&(vplane!=null)) {
 			k = new double[vdir.length][vplane.length];
 			for (int n=0;n<vdir.length;n++) {
 				double[] top = vectorDot(vplane, vpos);
-				double[] bottom =  vectorDot(vplane, vdir[n]);
+				double[] bottom = vectorDot(vplane, vdir[n]);
 				for (int m=0;m<vplane.length;m++) {
 					k[n][m] = -top[m]/bottom[m];
 				}
@@ -107,8 +121,44 @@ public class MathLib {
 		return k;
 	}
 
-	public static Position[] rayTriangleIntersection(Position vpos, Direction[] vdir, Triangle[] vtri) {
-		Position[] k = null;
+	public static Position[][] rayTriangleIntersection(Position vpos, Direction[] vdir, Triangle[] vtri) {
+		Position[][] k = null;
+		if ((vpos!=null)&&(vdir!=null)&&(vtri!=null)) {
+			k = new Position[vdir.length][vtri.length];
+			Plane[] tplanes = planeFromPoints(vtri);
+			double[][] tpdist = rayPlaneDistance(vpos, vdir, tplanes);
+			for (int n=0;n<vdir.length;n++) {
+				for (int m=0;m<vtri.length;m++) {
+					if ((!Double.isInfinite(tpdist[n][m]))&&(tpdist[n][m]>=0)) {
+						Position[] p4 = new Position[1]; p4[0] = new Position(vpos.x+vdir[n].dx*tpdist[n][m],vpos.y+vdir[n].dy*tpdist[n][m],vpos.z+vdir[n].dz*tpdist[n][m]);
+						Position[] p1 = new Position[1]; p1[0] = vtri[m].pos1;
+						Position[] p2 = new Position[1]; p2[0] = vtri[m].pos2;
+						Position[] p3 = new Position[1]; p3[0] = vtri[m].pos3;
+						Direction[] v12 = vectorFromPoints(p1, p2); Direction[] v21 = vectorFromPoints(p2, p1);
+						Direction[] v13 = vectorFromPoints(p1, p3); Direction[] v31 = vectorFromPoints(p3, p1);
+						Direction[] v23 = vectorFromPoints(p2, p3); Direction[] v32 = vectorFromPoints(p3, p2);
+						Direction[] v12n = normalizeVector(v12);
+						Direction[] v13n = normalizeVector(v13);
+						Direction[] v23n = normalizeVector(v23);
+						double[] v12L = vectorLength(v12);
+						double[] v13L = vectorLength(v13);
+						double[] v23L = vectorLength(v23);
+						double[] a1 = vectorAngle(v12,v13);
+						double[] a2 = vectorAngle(v21,v23);
+						double[] a3 = vectorAngle(v31,v32);
+						Direction[] t1 = vectorFromPoints(p1, p4);
+						Direction[] t2 = vectorFromPoints(p2, p4);
+						Direction[] t3 = vectorFromPoints(p3, p4);
+						double[] h12 = vectorAngle(v12,t1); double[] h13 = vectorAngle(v13,t1);
+						double[] h21 = vectorAngle(v21,t2); double[] h23 = vectorAngle(v23,t2);
+						double[] h31 = vectorAngle(v31,t3); double[] h32 = vectorAngle(v32,t3);
+						if((h12[0]<=a1[0])&&(h13[0]<=a1[0])&&(h21[0]<=a2[0])&&(h23[0]<=a2[0])&&(h31[0]<=a3[0])&&(h32[0]<=a3[0])) {
+							k[n][m] = p4[0];
+						}
+					}
+				}
+			}
+		}
 		return k;
 	}
 

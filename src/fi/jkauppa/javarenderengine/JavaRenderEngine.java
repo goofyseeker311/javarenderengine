@@ -75,6 +75,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		Position campos=new Position(0.0f,0.0f,0.0f);
 		Position[] campos2=new Position[2]; campos2[0]=new Position(1.0f,2.0f,3.0f); campos2[1]=new Position(1.0f,2.0f,3.0f);
 		Position[] campos3=new Position[2]; campos3[0]=new Position(1.0f,0.0f,0.0f); campos3[1]=new Position(1.0f,0.0f,0.0f);
+		Position[] campos4=new Position[3]; campos4[0]=new Position(1.0f,0.0f,0.0f); campos4[1]=new Position(1.0f,1.0f,0.0f); campos4[2]=new Position(1.0f,0.0f,1.0f);
 		System.out.println("campos: "+campos.x+" "+campos.y+" "+campos.z);
 		Direction[] camvec = MathLib.vectorFromPoints(campos2, campos3);
 		for (int i=0;i<camvec.length;i++) {System.out.println("camvec: "+camvec[i].dx+" "+camvec[i].dy+" "+camvec[i].dz);}
@@ -85,8 +86,10 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		for (int i=0;i<camcross.length;i++) {System.out.println("camcross: "+camcross[i].dx+" "+camcross[i].dy+" "+camcross[i].dz);}
 		double[] camdir2len = MathLib.vectorLength(camdir2);
 		for (int i=0;i<camdir2len.length;i++) {System.out.println("camdir2len: "+camdir2len[i]);}
-		Triangle[] ptri = new Triangle[1]; ptri[0] = new Triangle(campos,campos2[0],campos3[0]);
-		Plane[] tpplane = MathLib.planeFromPoints(ptri);
+		Triangle[] ptri = new Triangle[1]; ptri[0]=new Triangle(campos,campos2[0],campos3[0]);
+		Triangle[] ptri2 = new Triangle[3]; ptri2[0]=ptri[0]; ptri2[1]=ptri[0]; ptri2[2]=ptri[0];
+		Triangle[] ptri3 = new Triangle[3]; ptri3[0]=new Triangle(campos4[0],campos4[1],campos4[2]); ptri3[1]=ptri3[0]; ptri3[2]=ptri3[0];
+		Plane[] tpplane = MathLib.planeFromPoints(ptri3);
 		System.out.println("tpplane: "+tpplane[0].a+" "+tpplane[0].b+" "+tpplane[0].c+" "+tpplane[0].d);
 		double[] camdot = MathLib.vectorDot(camdir2, campos2);
 		for (int i=0;i<camdot.length;i++) {System.out.println("camdot: "+camdot[i]+" "+camdot[i]+" "+camdot[i]);}
@@ -103,6 +106,10 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		for (int i=0;i<cpdist2.length;i++) {for (int j=0;j<cpdist2[i].length;j++) {System.out.println("cpdist2["+i+"]["+j+"]: "+cpdist2[i][j]);}}
 		Plane[] pplane = MathLib.planeFromNormalAtPoint(campos2, camdir2);
 		for (int i=0;i<pplane.length;i++) {System.out.println("pplane: "+pplane[i].a+" "+pplane[i].b+" "+pplane[i].c+" "+pplane[i].d);}
+		double[] camdirang = MathLib.vectorAngle(camdir2, camdir3);
+		for (int i=0;i<camdirang.length;i++) {System.out.println("camdirang: "+camdirang[i]);}
+		Position[][] camrtint = MathLib.rayTriangleIntersection(campos, camdir3, ptri3);
+		for (int i=0;i<camrtint.length;i++) {for (int j=0;j<camrtint[i].length;j++) {if(camrtint[i][j]!=null) {System.out.println("camrtint["+i+"]["+j+"]: "+camrtint[i][j].x+" "+camrtint[i][j].y+" "+camrtint[i][j].z);}else{System.out.println("camrtint["+i+"]["+j+"]: no hit.");}}}
 		
 		JavaRenderEngine app = new JavaRenderEngine();
 	}
