@@ -14,6 +14,17 @@ public class MathLib {
 	public static double[] vectorDot(Direction[] vdir){double[] k=null; if(vdir!=null){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vdir[n].dx+vdir[n].dy*vdir[n].dy+vdir[n].dz*vdir[n].dz;}}return k;}
 	public static double[] vectorDot(Plane[] vplane, Position vpoint){double[] k=null; if((vplane!=null)&&(vpoint!=null)){k=new double[vplane.length];for(int n=0;n<vplane.length;n++){k[n] = vplane[n].a*vpoint.x+vplane[n].b*vpoint.y+vplane[n].c*vpoint.z+vplane[n].d;}}return k;}
 	public static double[] vectorDot(Plane[] vplane, Direction vdir){double[] k=null; if((vplane!=null)&&(vdir!=null)){k=new double[vplane.length];for(int n=0;n<vplane.length;n++){k[n] = vplane[n].a*vdir.dx+vplane[n].b*vdir.dy+vplane[n].c*vdir.dz;}}return k;}
+	
+	public static Direction[] vectorCross(Direction[] vdir1, Direction[] vdir2) {
+		Direction[] k=null;
+		if ((vdir1!=null)&&(vdir2!=null)&&(vdir1.length==vdir2.length)) {
+			k=new Direction[vdir1.length];
+			for (int n=0;n<vdir1.length;n++) {
+				k[n] = new Direction(vdir1[n].dy*vdir2[n].dz-vdir1[n].dz*vdir2[n].dy,-(vdir1[n].dx*vdir2[n].dz-vdir1[n].dz*vdir2[n].dx),vdir1[n].dx*vdir2[n].dy-vdir1[n].dy*vdir2[n].dx);
+			}
+		}
+		return k;
+	}
 
 	public static double[] vectorLength(Direction[] vdir) {
 		double[] k = null;
@@ -38,7 +49,28 @@ public class MathLib {
 		}
 		return k;
 	}
-	
+
+	public static Plane[] planeFromNormalAtPoint(Position[] vpoint, Direction[] vnormal) {
+		Plane[] k = null;
+		if ((vpoint!=null)&&(vnormal!=null)&&(vpoint.length==vnormal.length)) {
+			k = new Plane[vpoint.length];
+			Direction[] nm = normalizeVector(vnormal);
+			double[] dv = vectorDot(nm,vpoint);
+			for (int n=0;n<vpoint.length;n++) {
+				k[n] = new Plane(nm[n].dx,nm[n].dy,nm[n].dz,-dv[n]);
+			}
+		}
+		return k;
+	}
+
+	public static Plane[] planeFromPoints(Triangle[] vtri) {
+		Plane[] k = null;
+		if (vtri!=null) {
+			
+		}
+		return k;
+	}
+
 	public static double[][] rayPlaneDistance(Position vpos, Direction[] vdir, Plane[] vplane) {
 		double[][] k = null;
 		if ((vdir!=null)&&(vplane!=null)) {
@@ -54,16 +86,13 @@ public class MathLib {
 		return k;
 	}
 
-	public static Plane[] planeFromNormalAtPoint(Position[] vpoint, Direction[] vnormal) {
-		Plane[] k = null;
-		if ((vpoint!=null)&&(vnormal!=null)&&(vpoint.length==vnormal.length)) {
-			k = new Plane[vpoint.length];
-			Direction[] nm = normalizeVector(vnormal);
-			double[] dv = vectorDot(nm,vpoint);
-			for (int n=0;n<vpoint.length;n++) {
-				k[n] = new Plane(nm[n].dx,nm[n].dy,nm[n].dz,-dv[n]);
-			}
-		}
+	public static Position[] rayTriangleIntersection(Position vpos, Direction[] vdir, Triangle[] vtri) {
+		Position[] k = null;
+		return k;
+	}
+
+	public static Position2[] planeTriangleIntersection(Plane[] vplane, Triangle[] vtri) {
+		Position2[] k = null;
 		return k;
 	}
 }

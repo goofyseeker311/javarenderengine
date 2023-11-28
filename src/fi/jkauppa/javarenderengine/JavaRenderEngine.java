@@ -77,6 +77,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		System.out.println("campos: "+campos.x+" "+campos.y+" "+campos.z);
 		Direction[] camdir=new Direction[1]; camdir[0]=new Direction(1.0f,0.0f,0.0f);
 		Direction[] camdir2=new Direction[2]; camdir2[0]=new Direction(1.0f,-1.0f,1.0f); camdir2[1]=new Direction(1.0f,-1.0f,1.0f);
+		Direction[] camdir3=new Direction[2]; camdir3[0]=new Direction(1.0f,0.0f,0.0f); camdir3[1]=new Direction(1.0f,0.0f,0.0f);
+		Direction[] camcross = MathLib.vectorCross(camdir2, camdir3);
+		for (int i=0;i<camcross.length;i++) {System.out.println("camcross: "+camcross[i].dx+" "+camcross[i].dy+" "+camcross[i].dz);}
 		double[] camdir2len = MathLib.vectorLength(camdir2);
 		for (int i=0;i<camdir2len.length;i++) {System.out.println("camdir2len: "+camdir2len[i]);}
 		double[] camdot = MathLib.vectorDot(camdir2, campos2);
@@ -95,7 +98,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		Plane[] pplane = MathLib.planeFromNormalAtPoint(campos2, camdir2);
 		for (int i=0;i<pplane.length;i++) {System.out.println("pplane: "+pplane[i].a+" "+pplane[i].b+" "+pplane[i].c+" "+pplane[i].d);}
 		
-		JavaRenderEngine app = new JavaRenderEngine();
+		//JavaRenderEngine app = new JavaRenderEngine();
 	}
 	
 	private class RenderPanel extends JPanel implements ActionListener,ComponentListener {
