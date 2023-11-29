@@ -32,6 +32,7 @@ import fi.jkauppa.javarenderengine.MathLib.Plane;
 import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Position2;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
+import fi.jkauppa.javarenderengine.ModelLib.Model;
 
 public class JavaRenderEngine extends JFrame implements KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 	private static final long serialVersionUID = 1L;
@@ -141,6 +142,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		Matrix matrot2 = MathLib.rotationMatrix(90, 45, 30);
 		System.out.println("matrot1: "+matrot1.a11+" "+matrot1.a12+" "+matrot1.a13); System.out.println("matrot1: "+matrot1.a21+" "+matrot1.a22+" "+matrot1.a23); System.out.println("matrot1: "+matrot1.a31+" "+matrot1.a32+" "+matrot1.a33);
 		System.out.println("matrot2: "+matrot2.a11+" "+matrot2.a12+" "+matrot2.a13); System.out.println("matrot2: "+matrot2.a21+" "+matrot2.a22+" "+matrot2.a23); System.out.println("matrot2: "+matrot2.a31+" "+matrot2.a32+" "+matrot2.a33);
+		
+		String modelfilename = "res/models/testcubemodel4.obj";
+		Model loadmodel = ModelLib.loadWaveFrontOBJFile(modelfilename);
 		
 		JavaRenderEngine app = new JavaRenderEngine();
 	}
@@ -337,13 +341,13 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		if (e.getKeyCode()==KeyEvent.VK_F9) {
 			//TODO Game run mode
 		}
-		if (e.getKeyCode()==KeyEvent.VK_PLUS) {
+		if (e.getKeyCode()==KeyEvent.VK_ADD) {
 			this.pencilsize += 1;
 			if (this.pencilsize<1) {
 				this.pencilsize = 1;
 			}
 		}
-		if (e.getKeyCode()==KeyEvent.VK_MINUS) {
+		if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
 			this.pencilsize -= 1;
 			if (this.pencilsize<1) {
 				this.pencilsize = 1;
