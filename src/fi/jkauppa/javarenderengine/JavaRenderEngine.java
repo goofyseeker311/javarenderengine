@@ -29,6 +29,7 @@ import javax.swing.filechooser.FileFilter;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
 import fi.jkauppa.javarenderengine.MathLib.Plane;
 import fi.jkauppa.javarenderengine.MathLib.Position;
+import fi.jkauppa.javarenderengine.MathLib.Position2;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
 
 public class JavaRenderEngine extends JFrame implements KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
@@ -74,6 +75,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		String[] readformatnames = ImageIO.getReaderFormatNames();
 		
 		Position campos=new Position(0.0f,0.0f,0.0f);
+		Position[] camposa=new Position[1]; camposa[0]=campos;
 		Position[] campos2=new Position[2]; campos2[0]=new Position(1.0f,2.0f,3.0f); campos2[1]=new Position(1.0f,2.0f,3.0f);
 		Position[] campos3=new Position[2]; campos3[0]=new Position(1.0f,0.0f,0.0f); campos3[1]=new Position(1.0f,0.0f,0.0f);
 		Position[] campos4=new Position[3]; campos4[0]=new Position(1.0f,0.0f,0.0f); campos4[1]=new Position(1.0f,1.0f,0.0f); campos4[2]=new Position(1.0f,0.0f,1.0f);
@@ -83,6 +85,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		Direction[] camdir=new Direction[1]; camdir[0]=new Direction(1.0f,0.0f,0.0f);
 		Direction[] camdir2=new Direction[2]; camdir2[0]=new Direction(1.0f,-1.0f,1.0f); camdir2[1]=new Direction(1.0f,-1.0f,1.0f);
 		Direction[] camdir3=new Direction[2]; camdir3[0]=new Direction(1.0f,0.0f,0.0f); camdir3[1]=new Direction(1.0f,0.0f,0.0f);
+		Direction[] camdir4=new Direction[1]; camdir4[0]=new Direction(0.0f,0.0f,1.0f);
 		Direction[] camcross = MathLib.vectorCross(camdir2, camdir3);
 		for (int i=0;i<camcross.length;i++) {System.out.println("camcross: "+camcross[i].dx+" "+camcross[i].dy+" "+camcross[i].dz);}
 		double[] camdir2len = MathLib.vectorLength(camdir2);
@@ -96,21 +99,28 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		for (int i=0;i<camdot.length;i++) {System.out.println("camdot: "+camdot[i]+" "+camdot[i]+" "+camdot[i]);}
 		Direction[] camdirnorm = MathLib.normalizeVector(camdir);
 		Direction[] camdir2norm = MathLib.normalizeVector(camdir2);
+		Direction[] camdir3norm = MathLib.normalizeVector(camdir3);
+		Direction[] camdir4norm = MathLib.normalizeVector(camdir4);
 		System.out.println("camdirnorm: "+camdirnorm[0].dx+" "+camdirnorm[0].dy+" "+camdirnorm[0].dz);
 		for (int i=0;i<camdir2norm.length;i++) {System.out.println("camdir2norm: "+camdir2norm[i].dx+" "+camdir2norm[i].dy+" "+camdir2norm[i].dz);}
 		Plane[] tplane=new Plane[1]; tplane[0]=new Plane(1.0f,0.0f,0.0f,-2.0f);
 		Plane[] tplane2=new Plane[3]; tplane2[0]=new Plane(1.0f,0.0f,0.0f,-2.0f);tplane2[1]=new Plane(1.0f,0.0f,0.0f,-2.0f);tplane2[2]=new Plane(1.0f,0.0f,0.0f,-2.0f);
 		double[][] cpdist = MathLib.rayPlaneDistance(campos, camdirnorm, tplane);
 		double[][] cpdist2 = MathLib.rayPlaneDistance(campos, camdir2norm, tplane2);
-		System.out.println("cpdist["+cpdist.length+"]["+cpdist[0].length+"]: "+cpdist[0][0]);
-		System.out.println("cpdist2["+cpdist2.length+"]["+cpdist2[0].length+"]: "+cpdist2[0][0]);
+		double[][] cpdist3 = MathLib.rayPlaneDistance(campos, camdirnorm, tpplane);
+		System.out.println("cpdist[0][0]: "+cpdist[0][0]);
 		for (int i=0;i<cpdist2.length;i++) {for (int j=0;j<cpdist2[i].length;j++) {System.out.println("cpdist2["+i+"]["+j+"]: "+cpdist2[i][j]);}}
+		for (int i=0;i<cpdist3.length;i++) {for (int j=0;j<cpdist3[i].length;j++) {System.out.println("cpdist3["+i+"]["+j+"]: "+cpdist3[i][j]);}}
 		Plane[] pplane = MathLib.planeFromNormalAtPoint(campos2, camdir2norm);
+		Plane[] camplane = MathLib.planeFromNormalAtPoint(camposa, camdir4norm);
 		for (int i=0;i<pplane.length;i++) {System.out.println("pplane: "+pplane[i].a+" "+pplane[i].b+" "+pplane[i].c+" "+pplane[i].d);}
+		for (int i=0;i<camplane.length;i++) {System.out.println("camplane: "+camplane[i].a+" "+camplane[i].b+" "+camplane[i].c+" "+camplane[i].d);}
 		double[] camdirang = MathLib.vectorAngle(camdir2, camdir3);
 		for (int i=0;i<camdirang.length;i++) {System.out.println("camdirang: "+camdirang[i]);}
 		Position[][] camrtint = MathLib.rayTriangleIntersection(campos, camdir3, ptri3);
 		for (int i=0;i<camrtint.length;i++) {for (int j=0;j<camrtint[i].length;j++) {if(camrtint[i][j]!=null) {System.out.println("camrtint["+i+"]["+j+"]: "+camrtint[i][j].x+" "+camrtint[i][j].y+" "+camrtint[i][j].z);}else{System.out.println("camrtint["+i+"]["+j+"]: no hit.");}}}
+		Position2[][] camptint = MathLib.planeTriangleIntersection(camplane, ptri3);
+		for (int i=0;i<camptint.length;i++) {for (int j=0;j<camptint[i].length;j++) {if(camptint[i][j]!=null) {System.out.println("camptint["+i+"]["+j+"]: "+camptint[i][j].pos1.x+" "+camptint[i][j].pos1.y+" "+camptint[i][j].pos1.z+", "+camptint[i][j].pos2.x+" "+camptint[i][j].pos2.y+" "+camptint[i][j].pos2.z);}else{System.out.println("camptint["+i+"]["+j+"]: no hit.");}}}
 		
 		JavaRenderEngine app = new JavaRenderEngine();
 	}
@@ -326,7 +336,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 				} else if (this.pencilshape==4) {
 					renderbuffergfx.drawOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
 				}else {
-					renderbuffergfx.fillOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+					renderbuffergfx.fillRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
 				}
 			}			
 		    int onmask2 = MouseEvent.BUTTON2_DOWN_MASK;

@@ -137,12 +137,6 @@ public class MathLib {
 						Direction[] v12 = vectorFromPoints(p1, p2); Direction[] v21 = vectorFromPoints(p2, p1);
 						Direction[] v13 = vectorFromPoints(p1, p3); Direction[] v31 = vectorFromPoints(p3, p1);
 						Direction[] v23 = vectorFromPoints(p2, p3); Direction[] v32 = vectorFromPoints(p3, p2);
-						Direction[] v12n = normalizeVector(v12);
-						Direction[] v13n = normalizeVector(v13);
-						Direction[] v23n = normalizeVector(v23);
-						double[] v12L = vectorLength(v12);
-						double[] v13L = vectorLength(v13);
-						double[] v23L = vectorLength(v23);
 						double[] a1 = vectorAngle(v12,v13);
 						double[] a2 = vectorAngle(v21,v23);
 						double[] a3 = vectorAngle(v31,v32);
@@ -164,8 +158,39 @@ public class MathLib {
 		return k;
 	}
 
-	public static Position2[] planeTriangleIntersection(Plane[] vplane, Triangle[] vtri) {
-		Position2[] k = null;
+	public static Position2[][] planeTriangleIntersection(Plane[] vplane, Triangle[] vtri) {
+		Position2[][] k = null;
+		if ((vplane!=null)&&(vtri!=null)) {
+			k = new Position2[vplane.length][vtri.length]; 
+			for (int m=0;m<vtri.length;m++) {
+				Position[] p1 = new Position[1]; p1[0] = vtri[m].pos1;
+				Position[] p2 = new Position[1]; p2[0] = vtri[m].pos2;
+				Position[] p3 = new Position[1]; p3[0] = vtri[m].pos3;
+				Direction[] vtri12 = vectorFromPoints(p1, p2);
+				Direction[] vtri13 = vectorFromPoints(p1, p3);
+				Direction[] vtri23 = vectorFromPoints(p2, p3);
+				double[][] ptd1 = rayPlaneDistance(vtri[m].pos1, vtri12, vplane);
+				double[][] ptd2 = rayPlaneDistance(vtri[m].pos1, vtri13, vplane);
+				double[][] ptd3 = rayPlaneDistance(vtri[m].pos2, vtri23, vplane);
+				for (int n=0;n<vplane.length;n++) {
+					Position[] ptlint1 = new Position[1]; ptlint1[0] = new Position(vtri[m].pos1.x+ptd1[0][n]*vtri12[0].dx,vtri[m].pos1.y+ptd1[0][n]*vtri12[0].dy,vtri[m].pos1.z+ptd1[0][n]*vtri12[0].dz);
+					Position[] ptlint2 = new Position[1]; ptlint2[0] = new Position(vtri[m].pos1.x+ptd2[0][n]*vtri13[0].dx,vtri[m].pos1.y+ptd2[0][n]*vtri13[0].dy,vtri[m].pos1.z+ptd2[0][n]*vtri13[0].dz);
+					Position[] ptlint3 = new Position[1]; ptlint3[0] = new Position(vtri[m].pos2.x+ptd3[0][n]*vtri23[0].dx,vtri[m].pos2.y+ptd3[0][n]*vtri23[0].dy,vtri[m].pos2.z+ptd3[0][n]*vtri23[0].dz);
+					boolean ptlhit1 = (ptd1[0][n]>=0)&(ptd1[0][n]<=1);
+					boolean ptlhit2 = (ptd2[0][n]>=0)&(ptd2[0][n]<=1);
+					boolean ptlhit3 = (ptd3[0][n]>=0)&(ptd3[0][n]<=1);
+					if (ptlhit1|ptlhit2|ptlhit3) {
+						if (ptlhit1&&ptlhit2) {
+							k[n][m] = new Position2(ptlint1[0],ptlint2[0]);
+						} else if (ptlhit1&&ptlhit3) {
+							k[n][m] = new Position2(ptlint1[0],ptlint3[0]);
+						} else if (ptlhit2&&ptlhit3) {
+							k[n][m] = new Position2(ptlint2[0],ptlint3[0]);
+						}
+					}
+				}
+			}
+		}
 		return k;
 	}
 }
