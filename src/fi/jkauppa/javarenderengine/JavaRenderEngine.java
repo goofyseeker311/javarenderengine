@@ -27,6 +27,7 @@ import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
 
 import fi.jkauppa.javarenderengine.MathLib.Direction;
+import fi.jkauppa.javarenderengine.MathLib.Matrix;
 import fi.jkauppa.javarenderengine.MathLib.Plane;
 import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Position2;
@@ -121,6 +122,25 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		for (int i=0;i<camrtint.length;i++) {for (int j=0;j<camrtint[i].length;j++) {if(camrtint[i][j]!=null) {System.out.println("camrtint["+i+"]["+j+"]: "+camrtint[i][j].x+" "+camrtint[i][j].y+" "+camrtint[i][j].z);}else{System.out.println("camrtint["+i+"]["+j+"]: no hit.");}}}
 		Position2[][] camptint = MathLib.planeTriangleIntersection(camplane, ptri3);
 		for (int i=0;i<camptint.length;i++) {for (int j=0;j<camptint[i].length;j++) {if(camptint[i][j]!=null) {System.out.println("camptint["+i+"]["+j+"]: "+camptint[i][j].pos1.x+" "+camptint[i][j].pos1.y+" "+camptint[i][j].pos1.z+", "+camptint[i][j].pos2.x+" "+camptint[i][j].pos2.y+" "+camptint[i][j].pos2.z);}else{System.out.println("camptint["+i+"]["+j+"]: no hit.");}}}
+		Matrix mat1 = new Matrix(1,0,0,0,1,0,0,0,1); Matrix mat2 = new Matrix(0.6124,0.6124,0.5000,0.3536,0.3536,-0.8660,-0.7071,0.7071,0);
+		Matrix matout1 = MathLib.matrixMultiply(mat1, mat2);
+		Matrix matout2 = MathLib.matrixMultiply(mat2, mat1);
+		Matrix matout3 = MathLib.matrixMultiply(mat2, mat2);
+		System.out.println("matout1: "+matout1.a11+" "+matout1.a12+" "+matout1.a13); System.out.println("matout1: "+matout1.a21+" "+matout1.a22+" "+matout1.a23); System.out.println("matout1: "+matout1.a31+" "+matout1.a32+" "+matout1.a33);
+		System.out.println("matout2: "+matout2.a11+" "+matout2.a12+" "+matout2.a13); System.out.println("matout2: "+matout2.a21+" "+matout2.a22+" "+matout2.a23); System.out.println("matout2: "+matout2.a31+" "+matout2.a32+" "+matout2.a33);
+		System.out.println("matout3: "+matout3.a11+" "+matout3.a12+" "+matout3.a13); System.out.println("matout3: "+matout3.a21+" "+matout3.a22+" "+matout3.a23); System.out.println("matout3: "+matout3.a31+" "+matout3.a32+" "+matout3.a33);
+		Position[] campos4rotmat1 = MathLib.matrixMultiply(campos4, mat1);
+		Position[] campos4rotmat2 = MathLib.matrixMultiply(campos4, mat2);
+		for (int i=0;i<campos4rotmat1.length;i++) {System.out.println("campos4rotmat1: "+campos4rotmat1[i].x+" "+campos4rotmat1[i].y+" "+campos4rotmat1[i].z);}
+		for (int i=0;i<campos4rotmat2.length;i++) {System.out.println("campos4rotmat2: "+campos4rotmat2[i].x+" "+campos4rotmat2[i].y+" "+campos4rotmat2[i].z);}
+		Direction[] camdir2normrotmat1 = MathLib.matrixMultiply(camdir2norm, mat1);
+		Direction[] camdir2normrotmat2 = MathLib.matrixMultiply(camdir2norm, mat2);
+		for (int i=0;i<camdir2normrotmat1.length;i++) {System.out.println("camdir2normrotmat1: "+camdir2normrotmat1[i].dx+" "+camdir2normrotmat1[i].dy+" "+camdir2normrotmat1[i].dz);}
+		for (int i=0;i<camdir2normrotmat2.length;i++) {System.out.println("camdir2normrotmat2: "+camdir2normrotmat2[i].dx+" "+camdir2normrotmat2[i].dy+" "+camdir2normrotmat2[i].dz);}
+		Matrix matrot1 = MathLib.rotationMatrix(0, 0, 0);
+		Matrix matrot2 = MathLib.rotationMatrix(90, 45, 30);
+		System.out.println("matrot1: "+matrot1.a11+" "+matrot1.a12+" "+matrot1.a13); System.out.println("matrot1: "+matrot1.a21+" "+matrot1.a22+" "+matrot1.a23); System.out.println("matrot1: "+matrot1.a31+" "+matrot1.a32+" "+matrot1.a33);
+		System.out.println("matrot2: "+matrot2.a11+" "+matrot2.a12+" "+matrot2.a13); System.out.println("matrot2: "+matrot2.a21+" "+matrot2.a22+" "+matrot2.a23); System.out.println("matrot2: "+matrot2.a31+" "+matrot2.a32+" "+matrot2.a33);
 		
 		JavaRenderEngine app = new JavaRenderEngine();
 	}
@@ -300,10 +320,34 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			}
 		}
 		if (e.getKeyCode()==KeyEvent.VK_F4) {
-			//TODO tools pop-up window
+			//TODO tools/color pop-up window
 		}
 		if (e.getKeyCode()==KeyEvent.VK_F5) {
-			//TODO color pop-up window
+			//TODO 2D image edit mode
+		}
+		if (e.getKeyCode()==KeyEvent.VK_F6) {
+			//TODO CAD 2D edit mode
+		}
+		if (e.getKeyCode()==KeyEvent.VK_F7) {
+			//TODO CAD 3D edit mode
+		}
+		if (e.getKeyCode()==KeyEvent.VK_F8) {
+			//TODO Game edit mode
+		}
+		if (e.getKeyCode()==KeyEvent.VK_F9) {
+			//TODO Game run mode
+		}
+		if (e.getKeyCode()==KeyEvent.VK_PLUS) {
+			this.pencilsize += 1;
+			if (this.pencilsize<1) {
+				this.pencilsize = 1;
+			}
+		}
+		if (e.getKeyCode()==KeyEvent.VK_MINUS) {
+			this.pencilsize -= 1;
+			if (this.pencilsize<1) {
+				this.pencilsize = 1;
+			}
 		}
 	}
 
