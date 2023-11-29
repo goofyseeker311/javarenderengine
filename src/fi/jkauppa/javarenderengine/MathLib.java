@@ -46,7 +46,7 @@ public class MathLib {
 			double[] vdir2length = vectorLength(vdir2);
 			double[] vdir12dot = vectorDot(vdir1,vdir2);
 			for (int n=0;n<vdir1.length;n++) {
-				k[n] = (180/Math.PI)*Math.acos(vdir12dot[n])/(vdir1length[n]*vdir2length[n]);
+				k[n] = (180.0f/Math.PI)*Math.acos(vdir12dot[n]/(vdir1length[n]*vdir2length[n]));
 			}
 		}
 		return k;
@@ -152,7 +152,9 @@ public class MathLib {
 						double[] h12 = vectorAngle(v12,t1); double[] h13 = vectorAngle(v13,t1);
 						double[] h21 = vectorAngle(v21,t2); double[] h23 = vectorAngle(v23,t2);
 						double[] h31 = vectorAngle(v31,t3); double[] h32 = vectorAngle(v32,t3);
-						if((h12[0]<=a1[0])&&(h13[0]<=a1[0])&&(h21[0]<=a2[0])&&(h23[0]<=a2[0])&&(h31[0]<=a3[0])&&(h32[0]<=a3[0])) {
+						boolean isatpoint = ((t1[0].dx==0)&&(t1[0].dy==0)&&(t1[0].dz==0))||((t2[0].dx==0)&&(t2[0].dy==0)&&(t2[0].dz==0))||((t3[0].dx==0)&&(t3[0].dy==0)&&(t3[0].dz==0));
+						boolean withinangles = (h12[0]<=a1[0])&&(h13[0]<=a1[0])&&(h21[0]<=a2[0])&&(h23[0]<=a2[0])&&(h31[0]<=a3[0])&&(h32[0]<=a3[0]);
+						if(isatpoint||withinangles) {
 							k[n][m] = p4[0];
 						}
 					}

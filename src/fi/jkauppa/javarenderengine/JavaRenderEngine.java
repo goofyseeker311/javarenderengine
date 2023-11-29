@@ -72,6 +72,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		String userlocaldir = System.getProperty("user.dir");
 		String[] writeformatnames = ImageIO.getWriterFormatNames();
 		String[] readformatnames = ImageIO.getReaderFormatNames();
+		
 		Position campos=new Position(0.0f,0.0f,0.0f);
 		Position[] campos2=new Position[2]; campos2[0]=new Position(1.0f,2.0f,3.0f); campos2[1]=new Position(1.0f,2.0f,3.0f);
 		Position[] campos3=new Position[2]; campos3[0]=new Position(1.0f,0.0f,0.0f); campos3[1]=new Position(1.0f,0.0f,0.0f);
@@ -93,18 +94,18 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		System.out.println("tpplane: "+tpplane[0].a+" "+tpplane[0].b+" "+tpplane[0].c+" "+tpplane[0].d);
 		double[] camdot = MathLib.vectorDot(camdir2, campos2);
 		for (int i=0;i<camdot.length;i++) {System.out.println("camdot: "+camdot[i]+" "+camdot[i]+" "+camdot[i]);}
-		camdir = MathLib.normalizeVector(camdir);
-		camdir2 = MathLib.normalizeVector(camdir2);
-		System.out.println("camdir: "+camdir[0].dx+" "+camdir[0].dy+" "+camdir[0].dz);
-		for (int i=0;i<camdir2.length;i++) {System.out.println("camdir2: "+camdir2[i].dx+" "+camdir2[i].dy+" "+camdir2[i].dz);}
+		Direction[] camdirnorm = MathLib.normalizeVector(camdir);
+		Direction[] camdir2norm = MathLib.normalizeVector(camdir2);
+		System.out.println("camdirnorm: "+camdirnorm[0].dx+" "+camdirnorm[0].dy+" "+camdirnorm[0].dz);
+		for (int i=0;i<camdir2norm.length;i++) {System.out.println("camdir2norm: "+camdir2norm[i].dx+" "+camdir2norm[i].dy+" "+camdir2norm[i].dz);}
 		Plane[] tplane=new Plane[1]; tplane[0]=new Plane(1.0f,0.0f,0.0f,-2.0f);
 		Plane[] tplane2=new Plane[3]; tplane2[0]=new Plane(1.0f,0.0f,0.0f,-2.0f);tplane2[1]=new Plane(1.0f,0.0f,0.0f,-2.0f);tplane2[2]=new Plane(1.0f,0.0f,0.0f,-2.0f);
-		double[][] cpdist = MathLib.rayPlaneDistance(campos, camdir, tplane);
-		double[][] cpdist2 = MathLib.rayPlaneDistance(campos, camdir2, tplane2);
+		double[][] cpdist = MathLib.rayPlaneDistance(campos, camdirnorm, tplane);
+		double[][] cpdist2 = MathLib.rayPlaneDistance(campos, camdir2norm, tplane2);
 		System.out.println("cpdist["+cpdist.length+"]["+cpdist[0].length+"]: "+cpdist[0][0]);
 		System.out.println("cpdist2["+cpdist2.length+"]["+cpdist2[0].length+"]: "+cpdist2[0][0]);
 		for (int i=0;i<cpdist2.length;i++) {for (int j=0;j<cpdist2[i].length;j++) {System.out.println("cpdist2["+i+"]["+j+"]: "+cpdist2[i][j]);}}
-		Plane[] pplane = MathLib.planeFromNormalAtPoint(campos2, camdir2);
+		Plane[] pplane = MathLib.planeFromNormalAtPoint(campos2, camdir2norm);
 		for (int i=0;i<pplane.length;i++) {System.out.println("pplane: "+pplane[i].a+" "+pplane[i].b+" "+pplane[i].c+" "+pplane[i].d);}
 		double[] camdirang = MathLib.vectorAngle(camdir2, camdir3);
 		for (int i=0;i<camdirang.length;i++) {System.out.println("camdirang: "+camdirang[i]);}
