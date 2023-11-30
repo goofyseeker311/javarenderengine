@@ -282,42 +282,42 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			this.drawcolorhsb[0] += 0.01f;
 			if (this.drawcolorhsb[0]>1.0f) {this.drawcolorhsb[0] = 0.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
-			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[4]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		}
 		if (e.getKeyCode()==KeyEvent.VK_DELETE) {
 			this.drawcolorhsb[0] -= 0.01f;
 			if (this.drawcolorhsb[0]<0.0f) {this.drawcolorhsb[0] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
-			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[4]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		}
 		if (e.getKeyCode()==KeyEvent.VK_HOME) {
 			this.drawcolorhsb[1] += 0.01f;
 			if (this.drawcolorhsb[1]>1.0f) {this.drawcolorhsb[1] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
-			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[4]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		}
 		if (e.getKeyCode()==KeyEvent.VK_END) {
 			this.drawcolorhsb[1] -= 0.01f;
 			if (this.drawcolorhsb[1]<0.0f) {this.drawcolorhsb[1] = 0.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
-			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[4]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		}
 		if (e.getKeyCode()==KeyEvent.VK_PAGE_UP) {
 			this.drawcolorhsb[2] += 0.01f;
 			if (this.drawcolorhsb[2]>1.0f) {this.drawcolorhsb[2] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
-			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[4]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		}
 		if (e.getKeyCode()==KeyEvent.VK_PAGE_DOWN) {
 			this.drawcolorhsb[2] -= 0.01f;
 			if (this.drawcolorhsb[2]<0.0f) {this.drawcolorhsb[2] = 0.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
-			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[4]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		}
 		if (e.getKeyCode()==KeyEvent.VK_ADD) {
@@ -338,13 +338,13 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		if (e.getKeyCode()==KeyEvent.VK_DECIMAL) {
 			this.penciltransparency += 0.01f;
 			if (this.penciltransparency>1.0f) {this.penciltransparency = 1.0f;}
-			float[] colorvalues = this.drawcolor.getRGBColorComponents(new float[4]);
+			float[] colorvalues = this.drawcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		}
 		if (e.getKeyCode()==KeyEvent.VK_NUMPAD0) {
 			this.penciltransparency -= 0.01f;
 			if (this.penciltransparency<0.0f) {this.penciltransparency = 0.0f;}
-			float[] colorvalues = this.drawcolor.getRGBColorComponents(new float[4]);
+			float[] colorvalues = this.drawcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		}
 		if (e.getKeyCode()==KeyEvent.VK_F1) {
@@ -412,9 +412,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			int pencilwidth = (int)Math.ceil((double)(this.pencilsize-1)/2.0f);
 			Graphics2D renderbuffergfx = (Graphics2D)renderbufferhandle.getGraphics();
 		    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
-		    int offmask1 = 0;
+		    int offmask1 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
-		    int offmask3 = 0;
+		    int offmask3 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    boolean mouse1down = ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1);
 		    boolean mouse3down = ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3);
 		    if (mouse1down||mouse3down) {
@@ -441,16 +441,26 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 				}
 			}			
 		    int onmask2 = MouseEvent.BUTTON2_DOWN_MASK;
-		    int offmask2 = MouseEvent.SHIFT_DOWN_MASK;
+		    int offmask2 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    boolean mouse2down = ((e.getModifiersEx() & (onmask2 | offmask2)) == onmask2);
 		    if (mouse2down) {
 		    	this.pencilshape += 1;
 		    	if (this.pencilshape>6) {this.pencilshape = 1;}
 		    }
-		    int onmask4 = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
+		    int onmask4 = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    int offmask4 = 0;
 		    if ((e.getModifiersEx() & (onmask4 | offmask4)) == onmask4) {
 		    	//TODO zoom into canvas
+		    }
+		    int onmask1a = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
+		    int offmask1a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+		    boolean mouse1shiftdown = ((e.getModifiersEx() & (onmask1a | offmask1a)) == onmask1a);
+		    if (mouse1shiftdown) {
+				int colorvalue = renderbufferhandle.getRGB(e.getX(), e.getY());
+				Color pickeddrawcolor = new Color(colorvalue);
+				this.drawcolorhsb = Color.RGBtoHSB(pickeddrawcolor.getRed(), pickeddrawcolor.getGreen(), pickeddrawcolor.getBlue(), new float[3]);
+				float[] colorvalues = pickeddrawcolor.getRGBColorComponents(new float[3]);
+				this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		    }
 		}
 	}
