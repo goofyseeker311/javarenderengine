@@ -1,8 +1,12 @@
 package fi.jkauppa.javarenderengine;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.TexturePaint;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -40,8 +44,10 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private boolean windowedmode = false;
 	private Color drawcolor = Color.BLACK;
 	private float[] drawcolorhsb = {0.0f, 1.0f, 0.0f};
+	private Color erasecolor = new Color(1.0f,1.0f,1.0f,0.0f);
 	private int pencilsize = 1;
 	private int pencilshape = 1;
+	private float penciltransparency = 1.0f;
 	private BufferedImage loadimage = null;
 	private JFileChooser filechooser = new JFileChooser();
 	private ImageFileFilters.PNGFileFilter pngfilefilter = new ImageFileFilters.PNGFileFilter();
@@ -156,7 +162,16 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		private final Timer timer = new Timer(fpstargetdelay,this);
 		private long lastupdate = System.currentTimeMillis();
 		private BufferedImage renderbuffer = null;
+		private TexturePaint bgpattern = null;
 		public RenderPanel() {
+			BufferedImage bgpatternimage = new BufferedImage(64, 64, BufferedImage.TYPE_INT_RGB);
+			Graphics2D pgfx = (Graphics2D)bgpatternimage.getGraphics();
+			pgfx.setColor(Color.WHITE);
+			pgfx.fillRect(0, 0, bgpatternimage.getWidth(), bgpatternimage.getHeight());
+			pgfx.setColor(Color.BLACK);
+			pgfx.drawLine(31, 0, 31, 63);
+			pgfx.drawLine(0, 31, 63, 31);
+			bgpattern = new TexturePaint(bgpatternimage,new Rectangle(0, 0, 64, 64));
 			this.addComponentListener(this);
 			timer.start();
 		}
@@ -168,6 +183,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			lastupdate = newupdate; 
 			Graphics2D g2 = (Graphics2D)g;
 			if (renderbuffer!=null) {
+				g2.setPaint(bgpattern);
+				g2.fillRect(0, 0, this.getWidth(), this.getHeight());
+				g2.setPaint(null);
 				g2.drawImage(renderbuffer, 0, 0, null);
 			}
 		}
@@ -188,9 +206,11 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			BufferedImage oldimage = this.renderbuffer; 
 			this.renderbuffer = new BufferedImage(this.getWidth(),this.getHeight(),BufferedImage.TYPE_INT_ARGB);
 			Graphics2D gfx = (Graphics2D)this.renderbuffer.getGraphics();
-			gfx.setColor(Color.WHITE);
+			gfx.setComposite(AlphaComposite.Src);
+			gfx.setColor(JavaRenderEngine.this.erasecolor);
 			gfx.fillRect(0, 0, this.renderbuffer.getWidth(), this.renderbuffer.getHeight());
 			if (oldimage!=null) {
+				gfx.setComposite(AlphaComposite.SrcOver);
 				gfx.drawImage(oldimage, 0, 0, null);
 			}
 		}
@@ -253,39 +273,79 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			BufferedImage renderbufferhandle = renderpanel.getRenderBuffer();
 			if (renderbufferhandle!=null) {
 				Graphics2D gfx = (Graphics2D)renderbufferhandle.getGraphics();
-				gfx.setColor(Color.WHITE);
+				gfx.setComposite(AlphaComposite.Src);
+				gfx.setColor(this.erasecolor);
 				gfx.fillRect(0, 0, renderbufferhandle.getWidth(), renderbufferhandle.getHeight());
 			}
 		}
 		if (e.getKeyCode()==KeyEvent.VK_INSERT) {
 			this.drawcolorhsb[0] += 0.01f;
 			if (this.drawcolorhsb[0]>1.0f) {this.drawcolorhsb[0] = 0.0f;}
-			this.drawcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[4]);
+			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		}
 		if (e.getKeyCode()==KeyEvent.VK_DELETE) {
 			this.drawcolorhsb[0] -= 0.01f;
 			if (this.drawcolorhsb[0]<0.0f) {this.drawcolorhsb[0] = 1.0f;}
-			this.drawcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[4]);
+			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		}
 		if (e.getKeyCode()==KeyEvent.VK_HOME) {
 			this.drawcolorhsb[1] += 0.01f;
 			if (this.drawcolorhsb[1]>1.0f) {this.drawcolorhsb[1] = 1.0f;}
-			this.drawcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[4]);
+			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		}
 		if (e.getKeyCode()==KeyEvent.VK_END) {
 			this.drawcolorhsb[1] -= 0.01f;
 			if (this.drawcolorhsb[1]<0.0f) {this.drawcolorhsb[1] = 0.0f;}
-			this.drawcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[4]);
+			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		}
 		if (e.getKeyCode()==KeyEvent.VK_PAGE_UP) {
 			this.drawcolorhsb[2] += 0.01f;
 			if (this.drawcolorhsb[2]>1.0f) {this.drawcolorhsb[2] = 1.0f;}
-			this.drawcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[4]);
+			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		}
 		if (e.getKeyCode()==KeyEvent.VK_PAGE_DOWN) {
 			this.drawcolorhsb[2] -= 0.01f;
 			if (this.drawcolorhsb[2]<0.0f) {this.drawcolorhsb[2] = 0.0f;}
-			this.drawcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[4]);
+			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+		}
+		if (e.getKeyCode()==KeyEvent.VK_ADD) {
+			this.pencilsize += 1;
+		}
+		if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
+			this.pencilsize -= 1;
+			if (this.pencilsize<1) {this.pencilsize = 1;}
+		}
+		if (e.getKeyCode()==KeyEvent.VK_DIVIDE) {
+	    	this.pencilshape -= 1;
+	    	if (this.pencilshape<1) {this.pencilshape = 6;}
+		}
+		if (e.getKeyCode()==KeyEvent.VK_MULTIPLY) {
+	    	this.pencilshape += 1;
+	    	if (this.pencilshape>6) {this.pencilshape = 1;}
+		}
+		if (e.getKeyCode()==KeyEvent.VK_DECIMAL) {
+			this.penciltransparency += 0.01f;
+			if (this.penciltransparency>1.0f) {this.penciltransparency = 1.0f;}
+			float[] colorvalues = this.drawcolor.getRGBColorComponents(new float[4]);
+			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+		}
+		if (e.getKeyCode()==KeyEvent.VK_NUMPAD0) {
+			this.penciltransparency -= 0.01f;
+			if (this.penciltransparency<0.0f) {this.penciltransparency = 0.0f;}
+			float[] colorvalues = this.drawcolor.getRGBColorComponents(new float[4]);
+			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		}
 		if (e.getKeyCode()==KeyEvent.VK_F1) {
 			//TODO help pop-up window
@@ -341,18 +401,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		if (e.getKeyCode()==KeyEvent.VK_F9) {
 			//TODO Game run mode
 		}
-		if (e.getKeyCode()==KeyEvent.VK_ADD) {
-			this.pencilsize += 1;
-			if (this.pencilsize<1) {
-				this.pencilsize = 1;
-			}
-		}
-		if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
-			this.pencilsize -= 1;
-			if (this.pencilsize<1) {
-				this.pencilsize = 1;
-			}
-		}
 	}
 
 	@Override public void mousePressed(MouseEvent e) {mouseDragged(e);}
@@ -371,17 +419,22 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    boolean mouse3down = ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3);
 		    if (mouse1down||mouse3down) {
 		    	if (mouse3down) {
-					renderbuffergfx.setColor(Color.WHITE);
+		    		renderbuffergfx.setComposite(AlphaComposite.Src);
+		    		renderbuffergfx.setColor(this.erasecolor);
 		    	} else {
 					renderbuffergfx.setColor(this.drawcolor);
 		    	}
 				if (this.pencilshape==1) {
 					renderbuffergfx.fillRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
 				} else if (this.pencilshape==2) {
-					renderbuffergfx.fillOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+					renderbuffergfx.fillRoundRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize, 5, 5);
 				} else if (this.pencilshape==3) {
-					renderbuffergfx.drawRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+					renderbuffergfx.fillOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
 				} else if (this.pencilshape==4) {
+					renderbuffergfx.drawRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
+				} else if (this.pencilshape==5) {
+					renderbuffergfx.drawRoundRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize, 5, 5);
+				} else if (this.pencilshape==6) {
 					renderbuffergfx.drawOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
 				}else {
 					renderbuffergfx.fillRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
@@ -392,9 +445,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    boolean mouse2down = ((e.getModifiersEx() & (onmask2 | offmask2)) == onmask2);
 		    if (mouse2down) {
 		    	this.pencilshape += 1;
-		    	if (this.pencilshape>4) {
-		    		this.pencilshape = 1;
-		    	}
+		    	if (this.pencilshape>6) {this.pencilshape = 1;}
 		    }
 		    int onmask4 = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 		    int offmask4 = 0;
