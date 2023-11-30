@@ -6,27 +6,28 @@ Shows a black grid on white canvas image behind the drawing canvas image as the 
 
 ```
 Keys:
-ESC            -- exits the program
-ALT-ENTER      -- toggles between windowed and full screen mode
-BACKSPACE      -- erases the whole window canvas to white.
-MOUSE1(left)   -- black/hsb-color drag paint
-MOUSE2(center) -- pencil type change (looping)
-MOUSE2/(wheel) -- pencil width change (minmax)
-MOUSE3/(right) -- transparent drag paint eraser
-INSERT         -- hue positive change (looping)
-DELETE         -- hue negative change (looping)
-HOME           -- saturation positive change (minmax)
-END            -- saturation negative change (minmax)
-PGUP           -- brightness positive change (minmax)
-PGDOWN         -- brightness negative change (minmax)
-NUMPAD(+)      -- pencil width larger (minmax)
-NUMPAD(-)      -- pencil width smaller (minmax)
-NUMPAD(*)      -- pencil type change next (looping)
-NUMPAD(/)      -- pencil type change previous (looping)
-NUMPAD(,)      -- pencil transparency positive (minmax)
-NUMPAD(0)      -- pencil transparency negative (minmax)
-F2             -- save file dialog
-F3             -- load file dialog
+ESC                -- exits the program
+ALT-ENTER          -- toggles between windowed and full screen mode
+BACKSPACE          -- erases the whole window canvas to white.
+DRAG-MOUSE1(left)  -- black/hsb-color drag paint
+SHIFT-MOUSE1(left) -- rgb-color picker at cursor
+MOUSE2(center)     -- pencil type change (looping)
+MOUSE2/(wheel)     -- pencil width change (minmax)
+MOUSE3/(right)     -- transparent drag paint eraser
+INSERT             -- hue positive change (looping)
+DELETE             -- hue negative change (looping)
+HOME               -- saturation positive change (minmax)
+END                -- saturation negative change (minmax)
+PGUP               -- brightness positive change (minmax)
+PGDOWN             -- brightness negative change (minmax)
+NUMPAD(+)          -- pencil width larger (minmax)
+NUMPAD(-)          -- pencil width smaller (minmax)
+NUMPAD(*)          -- pencil type change next (looping)
+NUMPAD(/)          -- pencil type change previous (looping)
+NUMPAD(,)          -- pencil transparency positive (minmax)
+NUMPAD(0)          -- pencil transparency negative (minmax)
+F2                 -- save file dialog
+F3                 -- load file dialog
 ```
 
 ![viivapiirto](https://github.com/goofyseeker311/javarenderengine/assets/19920254/f82d1071-42be-4af9-ab54-2a7216c31c86)
