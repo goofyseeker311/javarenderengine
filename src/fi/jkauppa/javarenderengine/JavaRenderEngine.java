@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.TexturePaint;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -23,10 +24,12 @@ import java.io.File;
 import java.nio.file.Paths;
 
 import javax.imageio.ImageIO;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
+import javax.swing.TransferHandler;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
 
@@ -55,6 +58,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private ImageFileFilters.GIFFileFilter giffilefilter = new ImageFileFilters.GIFFileFilter();
 	private ImageFileFilters.BMPFileFilter bmpfilefilter = new ImageFileFilters.BMPFileFilter();
 	private ImageFileFilters.WBMPFileFilter wbmpfilefilter = new ImageFileFilters.WBMPFileFilter();
+	private DragAndDropClipBoardHandler dndcbhandler = new DragAndDropClipBoardHandler();
 	
 	public JavaRenderEngine() {
 		this.filechooser.addChoosableFileFilter(this.pngfilefilter);
@@ -63,11 +67,11 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		this.filechooser.addChoosableFileFilter(this.bmpfilefilter);
 		this.filechooser.addChoosableFileFilter(this.wbmpfilefilter);
 		this.filechooser.setFileFilter(pngfilefilter);
-		
 		this.addKeyListener(this);
 		this.renderpanel.addMouseListener(this);
 		this.renderpanel.addMouseMotionListener(this);
 		this.renderpanel.addMouseWheelListener(this);
+		this.setTransferHandler(dndcbhandler);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setExtendedState(this.getExtendedState()|JFrame.MAXIMIZED_BOTH);
 		this.setUndecorated(true);
@@ -216,7 +220,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		}
 	}
 	
-	public class ImageFileFilters  {
+	private class ImageFileFilters  {
 		public static class PNGFileFilter extends FileFilter {
 			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".png"));}
 			@Override public String getDescription() {return "PNG Image file";}
@@ -237,6 +241,14 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".wbmp"));}
 			@Override public String getDescription() {return "WBMP Image file";}
 		}
+	}
+	
+	private class DragAndDropClipBoardHandler extends TransferHandler {
+		private static final long serialVersionUID = 1L;
+        public boolean canImport(TransferHandler.TransferSupport info) {return false;}
+        public boolean importData(TransferHandler.TransferSupport info) {return false;}
+        public int getSourceActions(JComponent c) {return COPY;}
+        protected Transferable createTransferable(JComponent c) {return null;}
 	}
 
 	@Override public void keyTyped(KeyEvent e) {}
