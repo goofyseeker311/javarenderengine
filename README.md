@@ -12,8 +12,8 @@ BACKSPACE         -- erases the whole window canvas to white.
 DRAG-MOUSE1(LMB)  -- black/hsb-color drag paint
 SHIFT-MOUSE1(LMB) -- rgb-color picker at cursor
 MOUSE2(CMB)       -- pencil type change (looping)
-MOUSE2(WHEEL)     -- pencil width change (minmax)
-MOUSE3(RMB)       -- transparent drag paint eraser
+MOUSE2(MWHEEL)    -- pencil width change (minmax)
+DRAG-MOUSE3(RMB)  -- transparent drag paint eraser
 INSERT            -- hue positive change (looping)
 DELETE            -- hue negative change (looping)
 HOME              -- saturation positive change (minmax)
