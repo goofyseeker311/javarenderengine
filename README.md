@@ -37,19 +37,7 @@ https://www.eclipse.org/downloads/packages/release/2023-09/r/eclipse-ide-java-de
 Install JAVA JDK 21 or later at, and double click on the downloaded release javarenderengine.jar to run it directly:
 https://www.oracle.com/java/technologies/downloads/#java21
 
-# Example images
+# Example Images
 
-![viivapiirto](https://github.com/goofyseeker311/javarenderengine/assets/19920254/f82d1071-42be-4af9-ab54-2a7216c31c86)
-![ovaldrawing](https://github.com/goofyseeker311/javarenderengine/assets/19920254/aedb60dc-6c53-467f-9ffa-824b9616a508)
-![filledcircledrawing](https://github.com/goofyseeker311/javarenderengine/assets/19920254/8522493d-b6b2-4421-8e5f-82c9ad95faba)
-![filledcircledrawing2](https://github.com/goofyseeker311/javarenderengine/assets/19920254/b02039d7-1221-40bd-9e36-b2296774a615)
-![filledshapedrawing](https://github.com/goofyseeker311/javarenderengine/assets/19920254/8340c11a-2f61-481a-b44f-c3f2ac5995d8)
-![filledshapedrawing2](https://github.com/goofyseeker311/javarenderengine/assets/19920254/b44dfd6c-cb1b-4839-86a7-c900dc5dea29)
-![filledshapedrawing3](https://github.com/goofyseeker311/javarenderengine/assets/19920254/bda1ee27-8295-46b6-86bd-e74bf86f494c)
-![transparentdrawing](https://github.com/goofyseeker311/javarenderengine/assets/19920254/4f844390-ecb5-49f4-8e8c-7c0f53110eae)
-![transparentdrawing2](https://github.com/goofyseeker311/javarenderengine/assets/19920254/1ff98915-7124-41dc-8f77-e92bf165cbc8)
-![transparentdrawing2a](https://github.com/goofyseeker311/javarenderengine/assets/19920254/0edb3743-7345-43b6-9d30-6103263f6519)
-![transparentdrawing3](https://github.com/goofyseeker311/javarenderengine/assets/19920254/8ed9f858-d782-4ba3-b111-d6d049558466)
-![transparentdrawing3a](https://github.com/goofyseeker311/javarenderengine/assets/19920254/b164a375-ad63-4f2a-ae2a-8743e36008f9)
-![transparentdrawing4](https://github.com/goofyseeker311/javarenderengine/assets/19920254/a6241665-1a4f-4e36-8ff6-1dd71edd9711)
-![transparentdrawing4a](https://github.com/goofyseeker311/javarenderengine/assets/19920254/154baf6d-8b2b-4229-b0fd-e4460046451b)
+![loga6](https://github.com/goofyseeker311/javarenderengine/assets/19920254/daac4f16-6d89-461f-bc01-a6f30ec012a3)
+![loga6b](https://github.com/goofyseeker311/javarenderengine/assets/19920254/a9b2a3c1-9162-4f36-a109-e3c0146ae6eb)
