@@ -5,23 +5,27 @@ Starts in undecorated full screen JFrame window, with a child component JPanel u
 
 ```
 Keys:
-ESC           -- exits the program
-ALT-ENTER     -- toggles between windowed and full screen mode
-BACKSPACE     -- erases the whole window canvas to white.
-MOUSE1/left   -- black/hsb-color drag paint
-MOUSE2/center -- pencil type change
-MOUSE2/wheel  -- pencil width change
-MOUSE3/right  -- white drag paint eraser
-INSERT        -- hue positive change (looping)
-DELETE        -- hue negative change (looping)
-HOME          -- saturation positive change (minmax)
-END           -- saturation negative change (minmax)
-PGUP          -- brightness positive change (minmax)
-PGDOWN        -- brightness negative change (minmax)
-NUMPAD/+      -- pencil width larger (minmax)
-NUMPAD/-      -- pencil width smaller (minmax)
-F2            -- save file dialog
-F3            -- load file dialog
+ESC            -- exits the program
+ALT-ENTER      -- toggles between windowed and full screen mode
+BACKSPACE      -- erases the whole window canvas to white.
+MOUSE1(left)   -- black/hsb-color drag paint
+MOUSE2(center) -- pencil type change (looping)
+MOUSE2/(wheel) -- pencil width change (minmax)
+MOUSE3/(right) -- transparent drag paint eraser
+INSERT         -- hue positive change (looping)
+DELETE         -- hue negative change (looping)
+HOME           -- saturation positive change (minmax)
+END            -- saturation negative change (minmax)
+PGUP           -- brightness positive change (minmax)
+PGDOWN         -- brightness negative change (minmax)
+NUMPAD(+)      -- pencil width larger (minmax)
+NUMPAD(-)      -- pencil width smaller (minmax)
+NUMPAD(*)      -- pencil type change next (looping)
+NUMPAD(/)      -- pencil type change previous (looping)
+NUMPAD(,)      -- pencil transparency positive (minmax)
+NUMPAD(0)      -- pencil transparency negative (minmax)
+F2             -- save file dialog
+F3             -- load file dialog
 ```
 
 ![viivapiirto](https://github.com/goofyseeker311/javarenderengine/assets/19920254/f82d1071-42be-4af9-ab54-2a7216c31c86)
@@ -31,3 +35,10 @@ F3            -- load file dialog
 ![filledshapedrawing](https://github.com/goofyseeker311/javarenderengine/assets/19920254/8340c11a-2f61-481a-b44f-c3f2ac5995d8)
 ![filledshapedrawing2](https://github.com/goofyseeker311/javarenderengine/assets/19920254/b44dfd6c-cb1b-4839-86a7-c900dc5dea29)
 ![filledshapedrawing3](https://github.com/goofyseeker311/javarenderengine/assets/19920254/bda1ee27-8295-46b6-86bd-e74bf86f494c)
+![transparentdrawing](https://github.com/goofyseeker311/javarenderengine/assets/19920254/4f844390-ecb5-49f4-8e8c-7c0f53110eae)
+![transparentdrawing2](https://github.com/goofyseeker311/javarenderengine/assets/19920254/1ff98915-7124-41dc-8f77-e92bf165cbc8)
+![transparentdrawing2a](https://github.com/goofyseeker311/javarenderengine/assets/19920254/0edb3743-7345-43b6-9d30-6103263f6519)
+![transparentdrawing3](https://github.com/goofyseeker311/javarenderengine/assets/19920254/8ed9f858-d782-4ba3-b111-d6d049558466)
+![transparentdrawing3a](https://github.com/goofyseeker311/javarenderengine/assets/19920254/b164a375-ad63-4f2a-ae2a-8743e36008f9)
+![transparentdrawing4](https://github.com/goofyseeker311/javarenderengine/assets/19920254/a6241665-1a4f-4e36-8ff6-1dd71edd9711)
+![transparentdrawing4a](https://github.com/goofyseeker311/javarenderengine/assets/19920254/154baf6d-8b2b-4229-b0fd-e4460046451b)
