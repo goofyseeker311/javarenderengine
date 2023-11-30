@@ -39,5 +39,5 @@ https://www.oracle.com/java/technologies/downloads/#java21
 
 # Example Images
 
-![loga6](https://github.com/goofyseeker311/javarenderengine/assets/19920254/daac4f16-6d89-461f-bc01-a6f30ec012a3)
-![loga6b](https://github.com/goofyseeker311/javarenderengine/assets/19920254/a9b2a3c1-9162-4f36-a109-e3c0146ae6eb)
+![loga7](https://github.com/goofyseeker311/javarenderengine/assets/19920254/986350a3-11a3-49ec-a325-fbac8eae7b25)
+![loga7a](https://github.com/goofyseeker311/javarenderengine/assets/19920254/f75e6fbe-1dde-42ea-b4d4-dc12c2203ab4)
