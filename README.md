@@ -20,6 +20,8 @@ PGUP          -- brightness positive change (minmax)
 PGDOWN        -- brightness negative change (minmax)
 NUMPAD/+      -- pencil width larger (minmax)
 NUMPAD/-      -- pencil width smaller (minmax)
+F2            -- save file dialog
+F3            -- load file dialog
 ```
 
 ![viivapiirto](https://github.com/goofyseeker311/javarenderengine/assets/19920254/f82d1071-42be-4af9-ab54-2a7216c31c86)
