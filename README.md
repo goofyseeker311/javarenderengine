@@ -29,6 +29,15 @@ NUMPAD(0)         -- pencil transparency negative (minmax)
 F2                -- save file dialog
 F3                -- load file dialog
 ```
+# Installing and Running
+
+Install Eclipse IDE for Java Developers 2023‑09 (or later) and load the repository as a java project into the IDE:
+https://www.eclipse.org/downloads/packages/release/2023-09/r/eclipse-ide-java-developers
+
+Install JAVA JDK 21 or later at, and double click on the downloaded release javarenderengine.jar to run it directly:
+https://www.oracle.com/java/technologies/downloads/#java21
+
+# Example images
 
 ![viivapiirto](https://github.com/goofyseeker311/javarenderengine/assets/19920254/f82d1071-42be-4af9-ab54-2a7216c31c86)
 ![ovaldrawing](https://github.com/goofyseeker311/javarenderengine/assets/19920254/aedb60dc-6c53-467f-9ffa-824b9616a508)
