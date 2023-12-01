@@ -456,13 +456,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    int offmask2 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    boolean mouse2down = ((e.getModifiersEx() & (onmask2 | offmask2)) == onmask2);
 		    if (mouse2down) {
-		    	this.pencilshape += 1;
-		    	if (this.pencilshape>6) {this.pencilshape = 1;}
-		    }
-		    int onmask4 = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-		    int offmask4 = 0;
-		    if ((e.getModifiersEx() & (onmask4 | offmask4)) == onmask4) {
-		    	//TODO zoom into canvas
+		    	//TODO drag canvas view around
 		    }
 		    int onmask1a = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 		    int offmask1a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
@@ -474,14 +468,37 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 				float[] colorvalues = pickeddrawcolor.getRGBColorComponents(new float[3]);
 				this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		    }
+		    int onmask1b = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+		    int offmask1b = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+		    boolean mouse1controldown = ((e.getModifiersEx() & (onmask1b | offmask1b)) == onmask1b);
+		    if (mouse1controldown) {
+		    	//TODO select canvas region
+		    }
+		    int onmask1c = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+		    int offmask1c = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+		    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1c | offmask1c)) == onmask1c);
+		    if (mouse1altdown) {
+		    	//TODO vector line draw
+		    }
 		}
 	}
 	
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
-		this.pencilsize += e.getWheelRotation();
-		if (this.pencilsize<1) {
-			this.pencilsize = 1;
-		}
+	    int onmask4 = 0;
+	    int offmask4 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    boolean mousewheeldown = ((e.getModifiersEx() & (onmask4 | offmask4)) == onmask4);
+	    if (mousewheeldown) {
+			this.pencilsize += e.getWheelRotation();
+			if (this.pencilsize<1) {
+				this.pencilsize = 1;
+			}
+	    }
+	    int onmask4a = MouseEvent.SHIFT_DOWN_MASK;
+	    int offmask4a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    boolean mousewheelshiftdown = ((e.getModifiersEx() & (onmask4a | offmask4a)) == onmask4a);
+	    if (mousewheelshiftdown) {
+	    	//TODO zoom into canvas
+	    }
 	}
 }
