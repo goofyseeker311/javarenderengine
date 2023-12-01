@@ -452,12 +452,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 					renderbuffergfx.fillRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
 				}
 			}			
-		    int onmask2 = MouseEvent.BUTTON2_DOWN_MASK;
-		    int offmask2 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-		    boolean mouse2down = ((e.getModifiersEx() & (onmask2 | offmask2)) == onmask2);
-		    if (mouse2down) {
-		    	//TODO drag canvas view around
-		    }
 		    int onmask1a = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 		    int offmask1a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    boolean mouse1shiftdown = ((e.getModifiersEx() & (onmask1a | offmask1a)) == onmask1a);
@@ -479,6 +473,19 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1c | offmask1c)) == onmask1c);
 		    if (mouse1altdown) {
 		    	//TODO vector line draw
+		    }
+		    int onmask2 = MouseEvent.BUTTON2_DOWN_MASK;
+		    int offmask2 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+		    boolean mouse2down = ((e.getModifiersEx() & (onmask2 | offmask2)) == onmask2);
+		    if (mouse2down) {
+		    	this.pencilshape += 1;
+		    	if (this.pencilshape>6) {this.pencilshape = 1;}
+		    }
+		    int onmask2a = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
+		    int offmask2a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+		    boolean mouse2shiftdown = ((e.getModifiersEx() & (onmask2a | offmask2a)) == onmask2a);
+		    if (mouse2shiftdown) {
+		    	//TODO drag canvas view
 		    }
 		}
 	}
