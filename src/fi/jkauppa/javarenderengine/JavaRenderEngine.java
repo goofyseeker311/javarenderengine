@@ -2,12 +2,14 @@ package fi.jkauppa.javarenderengine;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
-import java.awt.Composite;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.TexturePaint;
 import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -28,6 +30,8 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
 import javax.swing.Timer;
 import javax.swing.TransferHandler;
 import javax.swing.UIManager;
@@ -43,8 +47,11 @@ import fi.jkauppa.javarenderengine.ModelLib.Model;
 
 public class JavaRenderEngine extends JFrame implements KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 	private static final long serialVersionUID = 1L;
-	private RenderPanel renderpanel = new RenderPanel();
-	private boolean windowedmode = false;
+	private int imagecanvaswidth = 1024;
+	private int imagecanvasheight= 768;
+	private Dimension imagecanvasdimension = new Dimension(imagecanvaswidth,imagecanvasheight);
+	private RenderPanel renderpanel = new RenderPanel(imagecanvaswidth,imagecanvasheight);
+	private boolean windowedmode = true;
 	private Color drawcolor = Color.BLACK;
 	private float[] drawcolorhsb = {0.0f, 1.0f, 0.0f};
 	private Color erasecolor = new Color(1.0f,1.0f,1.0f,0.0f);
@@ -59,23 +66,40 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private ImageFileFilters.BMPFileFilter bmpfilefilter = new ImageFileFilters.BMPFileFilter();
 	private ImageFileFilters.WBMPFileFilter wbmpfilefilter = new ImageFileFilters.WBMPFileFilter();
 	private DragAndDropClipBoardHandler dndcbhandler = new DragAndDropClipBoardHandler();
+	private DropTargetHandler droptargethandler = new DropTargetHandler();
 	
 	public JavaRenderEngine() {
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		if (!windowedmode) {
+			this.setUndecorated(true);
+			this.setExtendedState(this.getExtendedState()|JFrame.MAXIMIZED_BOTH);
+		}else {
+			this.setLocationByPlatform(true);
+		}
 		this.filechooser.addChoosableFileFilter(this.pngfilefilter);
 		this.filechooser.addChoosableFileFilter(this.jpgfilefilter);
 		this.filechooser.addChoosableFileFilter(this.giffilefilter);
 		this.filechooser.addChoosableFileFilter(this.bmpfilefilter);
 		this.filechooser.addChoosableFileFilter(this.wbmpfilefilter);
-		this.filechooser.setFileFilter(pngfilefilter);
 		this.addKeyListener(this);
 		this.renderpanel.addMouseListener(this);
 		this.renderpanel.addMouseMotionListener(this);
 		this.renderpanel.addMouseWheelListener(this);
-		this.setTransferHandler(dndcbhandler);
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setExtendedState(this.getExtendedState()|JFrame.MAXIMIZED_BOTH);
-		this.setUndecorated(true);
-		this.setContentPane(this.renderpanel);
+		this.filechooser.setFileFilter(pngfilefilter);
+		this.renderpanel.setTransferHandler(dndcbhandler);
+		this.renderpanel.setDropTarget(droptargethandler);
+		this.renderpanel.setSize(this.imagecanvasdimension);
+		this.renderpanel.setPreferredSize(this.imagecanvasdimension);
+		JScrollPane scrollpane = new JScrollPane(); 
+		scrollpane.setWheelScrollingEnabled(false);
+		JViewport viewport = new JViewport();
+		viewport.add(renderpanel);
+		scrollpane.setViewport(viewport);
+		this.setContentPane(scrollpane);
+		this.pack();
+		Dimension scrollpanedimension = new Dimension((int)this.imagecanvasdimension.getWidth()+scrollpane.getVerticalScrollBar().getWidth(),(int)this.imagecanvasdimension.getHeight()+scrollpane.getHorizontalScrollBar().getHeight());
+		scrollpane.setSize(scrollpanedimension);
+		scrollpane.setPreferredSize(scrollpanedimension);
 		this.setVisible(true);
 	}
 
@@ -167,7 +191,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		private long lastupdate = System.currentTimeMillis();
 		private BufferedImage renderbuffer = null;
 		private TexturePaint bgpattern = null;
-		public RenderPanel() {
+		public RenderPanel(int imagewidth, int imageheight) {
+			renderbuffer = new BufferedImage(imagewidth, imageheight, BufferedImage.TYPE_INT_ARGB);
 			BufferedImage bgpatternimage = new BufferedImage(64, 64, BufferedImage.TYPE_INT_RGB);
 			Graphics2D pgfx = (Graphics2D)bgpatternimage.getGraphics();
 			pgfx.setColor(Color.WHITE);
@@ -181,6 +206,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		}
 		@Override
 		public void paintComponent(Graphics g) {
+			super.paintComponent(g);
 			long newupdate = System.currentTimeMillis();
 			long ticktime = newupdate-lastupdate;
 			double ticktimefps = 1000.0f/(double)ticktime;
@@ -188,7 +214,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			Graphics2D g2 = (Graphics2D)g;
 			if (renderbuffer!=null) {
 				g2.setPaint(bgpattern);
-				g2.fillRect(0, 0, this.getWidth(), this.getHeight());
+				g2.fillRect(0, 0, renderbuffer.getWidth(), renderbuffer.getHeight());
 				g2.setPaint(null);
 				g2.drawImage(renderbuffer, 0, 0, null);
 			}
@@ -204,20 +230,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		@Override public void componentMoved(ComponentEvent e) {}
 		@Override public void componentShown(ComponentEvent e) {}
 		@Override public void componentHidden(ComponentEvent e) {}
-		
-		@Override
-		public void componentResized(ComponentEvent e) {
-			BufferedImage oldimage = this.renderbuffer; 
-			this.renderbuffer = new BufferedImage(this.getWidth(),this.getHeight(),BufferedImage.TYPE_INT_ARGB);
-			Graphics2D gfx = (Graphics2D)this.renderbuffer.getGraphics();
-			gfx.setComposite(AlphaComposite.Src);
-			gfx.setColor(JavaRenderEngine.this.erasecolor);
-			gfx.fillRect(0, 0, this.renderbuffer.getWidth(), this.renderbuffer.getHeight());
-			if (oldimage!=null) {
-				gfx.setComposite(AlphaComposite.SrcOver);
-				gfx.drawImage(oldimage, 0, 0, null);
-			}
-		}
+		@Override public void componentResized(ComponentEvent e) {}
 	}
 	
 	private class ImageFileFilters  {
@@ -242,13 +255,16 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			@Override public String getDescription() {return "WBMP Image file";}
 		}
 	}
-	
 	private class DragAndDropClipBoardHandler extends TransferHandler {
 		private static final long serialVersionUID = 1L;
-        public boolean canImport(TransferHandler.TransferSupport info) {return false;}
-        public boolean importData(TransferHandler.TransferSupport info) {return false;}
-        public int getSourceActions(JComponent c) {return COPY;}
-        protected Transferable createTransferable(JComponent c) {return null;}
+        public boolean canImport(TransferHandler.TransferSupport info) {System.out.println("canImport");return false;}
+        public boolean importData(TransferHandler.TransferSupport info) {System.out.println("importData");return false;}
+        public int getSourceActions(JComponent c) {System.out.println("getSourceActions");return COPY;}
+        protected Transferable createTransferable(JComponent c) {System.out.println("createTransferable");return null;}
+	}
+	private class DropTargetHandler extends DropTarget {
+		private static final long serialVersionUID = 1L;
+		@Override public synchronized void drop(DropTargetDropEvent dtde) {System.out.println("drop");dtde.rejectDrop();}
 	}
 
 	@Override public void keyTyped(KeyEvent e) {}
@@ -408,10 +424,19 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			//TODO CAD 3D edit mode
 		}
 		if (e.getKeyCode()==KeyEvent.VK_F8) {
-			//TODO Game edit mode
+			//TODO Java code edit mode
 		}
 		if (e.getKeyCode()==KeyEvent.VK_F9) {
 			//TODO Game run mode
+		}
+		if (e.getKeyCode()==KeyEvent.VK_F10) {
+			//TODO <tbd>
+		}
+		if (e.getKeyCode()==KeyEvent.VK_F11) {
+			//TODO <tbd>
+		}
+		if (e.getKeyCode()==KeyEvent.VK_F12) {
+			//TODO Save screen shot
 		}
 	}
 
