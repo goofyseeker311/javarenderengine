@@ -232,7 +232,17 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		@Override public void componentMoved(ComponentEvent e) {}
 		@Override public void componentShown(ComponentEvent e) {}
 		@Override public void componentHidden(ComponentEvent e) {}
-		@Override public void componentResized(ComponentEvent e) {}
+		@Override public void componentResized(ComponentEvent e) {
+			BufferedImage oldimage = this.renderbuffer; 
+			this.renderbuffer = new BufferedImage(this.getWidth(),this.getHeight(),BufferedImage.TYPE_INT_ARGB);
+			Graphics2D gfx = (Graphics2D)this.renderbuffer.getGraphics();
+			gfx.setPaint(bgpattern);
+			gfx.fillRect(0, 0, this.renderbuffer.getWidth(), this.renderbuffer.getHeight());
+			if (oldimage!=null) {
+				gfx.setPaint(null);
+				gfx.drawImage(oldimage, 0, 0, null);
+			}
+		}
 	}
 	
 	private class ImageFileFilters  {
@@ -292,6 +302,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    		windowedmode = true;
 		    		JavaRenderEngine.this.setExtendedState(JavaRenderEngine.this.getExtendedState()&~JFrame.MAXIMIZED_BOTH);
 		    		JavaRenderEngine.this.setUndecorated(false);
+					this.renderpanel.setSize(this.renderpanel.getRenderBuffer().getWidth(),this.renderpanel.getRenderBuffer().getHeight());
+					this.renderpanel.setPreferredSize(new Dimension(this.renderpanel.getRenderBuffer().getWidth(),this.renderpanel.getRenderBuffer().getHeight()));
+					this.pack();
 		    	}else {
 		    		windowedmode = false;
 		    		JavaRenderEngine.this.setExtendedState(JavaRenderEngine.this.getExtendedState()|JFrame.MAXIMIZED_BOTH);
@@ -418,9 +431,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 				try {loadimage=ImageIO.read(loadfile);} catch (Exception ex) {ex.printStackTrace();}
 				if (loadimage!=null) {
 					this.renderpanel.setRenderBuffer(loadimage);
-					Dimension renderpaneldimension = new Dimension(loadimage.getWidth(),loadimage.getHeight());
-					this.renderpanel.setSize(renderpaneldimension);
-					this.renderpanel.setPreferredSize(renderpaneldimension);
+					this.renderpanel.setSize(loadimage.getWidth(),loadimage.getHeight());
+					this.renderpanel.setPreferredSize(new Dimension(loadimage.getWidth(),loadimage.getHeight()));
 					this.pack();
 				}
 			}
