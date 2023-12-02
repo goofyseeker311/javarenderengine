@@ -60,7 +60,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private int pencilshape = 1;
 	private int pencilmode = 1;
 	private float penciltransparency = 1.0f;
-	private BufferedImage loadimage = null;
 	private JFileChooser filechooser = new JFileChooser();
 	private ImageFileFilters.PNGFileFilter pngfilefilter = new ImageFileFilters.PNGFileFilter();
 	private ImageFileFilters.JPGFileFilter jpgfilefilter = new ImageFileFilters.JPGFileFilter();
@@ -226,6 +225,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		}
 		public BufferedImage getRenderBuffer() {
 			return renderbuffer;
+		}
+		public void setRenderBuffer(BufferedImage renderbufferi) {
+			this.renderbuffer = renderbufferi;
 		}
 		
 		@Override public void componentMoved(ComponentEvent e) {}
@@ -413,11 +415,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			this.filechooser.setApproveButtonText("Load");
 			if (this.filechooser.showOpenDialog(this)==JFileChooser.APPROVE_OPTION) {
 				File loadfile = this.filechooser.getSelectedFile() ;
-				try {loadimage = ImageIO.read(loadfile);} catch (Exception ex) {ex.printStackTrace();}
-				if (loadimage!=null) {
-					Graphics2D gfx = (Graphics2D)renderpanel.getRenderBuffer().getGraphics();
-					gfx.drawImage(loadimage, 0, 0, null);
-				}
+				try {this.renderpanel.setRenderBuffer(ImageIO.read(loadfile));} catch (Exception ex) {ex.printStackTrace();}
 			}
 		}
 		if (e.getKeyCode()==KeyEvent.VK_F4) {
