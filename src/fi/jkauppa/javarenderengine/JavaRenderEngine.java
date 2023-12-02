@@ -47,16 +47,18 @@ import fi.jkauppa.javarenderengine.ModelLib.Model;
 
 public class JavaRenderEngine extends JFrame implements KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 	private static final long serialVersionUID = 1L;
-	private int imagecanvaswidth = 1024;
-	private int imagecanvasheight= 768;
+	private int imagecanvaswidth = 1920;
+	private int imagecanvasheight= 1080;
 	private Dimension imagecanvasdimension = new Dimension(imagecanvaswidth,imagecanvasheight);
 	private RenderPanel renderpanel = new RenderPanel(imagecanvaswidth,imagecanvasheight);
+	private JScrollPane scrollpane = new JScrollPane();
 	private boolean windowedmode = true;
 	private Color drawcolor = Color.BLACK;
 	private float[] drawcolorhsb = {0.0f, 1.0f, 0.0f};
 	private Color erasecolor = new Color(1.0f,1.0f,1.0f,0.0f);
 	private int pencilsize = 1;
 	private int pencilshape = 1;
+	private int pencilmode = 1;
 	private float penciltransparency = 1.0f;
 	private BufferedImage loadimage = null;
 	private JFileChooser filechooser = new JFileChooser();
@@ -81,20 +83,19 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		this.filechooser.addChoosableFileFilter(this.giffilefilter);
 		this.filechooser.addChoosableFileFilter(this.bmpfilefilter);
 		this.filechooser.addChoosableFileFilter(this.wbmpfilefilter);
+		this.filechooser.setFileFilter(pngfilefilter);
 		this.addKeyListener(this);
 		this.renderpanel.addMouseListener(this);
 		this.renderpanel.addMouseMotionListener(this);
 		this.renderpanel.addMouseWheelListener(this);
-		this.filechooser.setFileFilter(pngfilefilter);
 		this.renderpanel.setTransferHandler(dndcbhandler);
 		this.renderpanel.setDropTarget(droptargethandler);
 		this.renderpanel.setSize(this.imagecanvasdimension);
 		this.renderpanel.setPreferredSize(this.imagecanvasdimension);
-		JScrollPane scrollpane = new JScrollPane(); 
-		scrollpane.setWheelScrollingEnabled(false);
-		JViewport viewport = new JViewport();
-		viewport.add(renderpanel);
-		scrollpane.setViewport(viewport);
+		this.scrollpane.getViewport().add(renderpanel);
+		this.scrollpane.setAutoscrolls(true);
+		this.scrollpane.getVerticalScrollBar().setUnitIncrement(10);
+		this.scrollpane.getHorizontalScrollBar().setUnitIncrement(10);
 		this.setContentPane(scrollpane);
 		this.pack();
 		Dimension scrollpanedimension = new Dimension((int)this.imagecanvasdimension.getWidth()+scrollpane.getVerticalScrollBar().getWidth(),(int)this.imagecanvasdimension.getHeight()+scrollpane.getHorizontalScrollBar().getHeight());
@@ -239,7 +240,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			@Override public String getDescription() {return "PNG Image file";}
 		}
 		public static class JPGFileFilter extends FileFilter {
-			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".jpg"));}
+			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".jpg"))||(f.getName().endsWith(".jpeg"));}
 			@Override public String getDescription() {return "JPG Image file";}
 		}
 		public static class GIFFileFilter extends FileFilter {
@@ -282,8 +283,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		}
 		if (e.getKeyCode()==KeyEvent.VK_ENTER) {
 		    int onmask = KeyEvent.ALT_DOWN_MASK;
-		    int offmask = 0;
-		    if ((e.getModifiersEx() & (onmask | offmask)) == onmask) {
+		    int offmask = KeyEvent.SHIFT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
+		    boolean enteraltdown = (e.getModifiersEx() & (onmask | offmask)) == onmask;
+		    if (enteraltdown) {
 		    	JavaRenderEngine.this.dispose();
 		    	if (!windowedmode) {
 		    		windowedmode = true;
@@ -295,6 +297,13 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    		JavaRenderEngine.this.setUndecorated(true);
 		    	}
 		    	JavaRenderEngine.this.setVisible(true);
+		    }
+		    int onmaska = 0;
+		    int offmaska = KeyEvent.ALT_DOWN_MASK|KeyEvent.SHIFT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
+		    boolean enterdown = (e.getModifiersEx() & (onmaska | offmaska)) == onmaska;
+		    if(enterdown) {
+		    	this.pencilmode += 1;
+		    	if (this.pencilmode>2) {this.pencilmode = 1;}
 		    }
 		}
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
@@ -459,7 +468,10 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    		renderbuffergfx.setComposite(AlphaComposite.Src);
 		    		renderbuffergfx.setColor(this.erasecolor);
 		    	} else {
-					renderbuffergfx.setColor(this.drawcolor);
+		    		if (this.pencilmode==2) {
+			    		renderbuffergfx.setComposite(AlphaComposite.Src);
+		    		}
+	    			renderbuffergfx.setColor(this.drawcolor);
 		    	}
 				if (this.pencilshape==1) {
 					renderbuffergfx.fillRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
@@ -511,6 +523,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    boolean mouse2shiftdown = ((e.getModifiersEx() & (onmask2a | offmask2a)) == onmask2a);
 		    if (mouse2shiftdown) {
 		    	//TODO drag canvas view
+		    	Rectangle r = new Rectangle(e.getX(),e.getY(),1,1);
+		    	this.renderpanel.scrollRectToVisible(r);
 		    }
 		}
 	}
@@ -526,9 +540,42 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 				this.pencilsize = 1;
 			}
 	    }
-	    int onmask4a = MouseEvent.SHIFT_DOWN_MASK;
-	    int offmask4a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    boolean mousewheelshiftdown = ((e.getModifiersEx() & (onmask4a | offmask4a)) == onmask4a);
+	    int onmask4a = MouseEvent.CTRL_DOWN_MASK;
+	    int offmask4a = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    boolean mousewheelctrldown = ((e.getModifiersEx() & (onmask4a | offmask4a)) == onmask4a);
+	    if (mousewheelctrldown) {
+	    	this.drawcolorhsb[0] += 0.01f*e.getWheelRotation();
+	    	if (this.drawcolorhsb[0]>1.0f) {this.drawcolorhsb[0] = 0.0f;}
+	    	else if (this.drawcolorhsb[0]<0.0f) {this.drawcolorhsb[0] = 1.0f;}
+	    	Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+	    	float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
+	    	this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+	    }
+	    int onmask4b = MouseEvent.ALT_DOWN_MASK;
+	    int offmask4b = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+	    boolean mousewheelaltdown = ((e.getModifiersEx() & (onmask4b | offmask4b)) == onmask4b);
+	    if (mousewheelaltdown) {
+	    	this.drawcolorhsb[2] += 0.01f*e.getWheelRotation();
+	    	if (this.drawcolorhsb[2]>1.0f) {this.drawcolorhsb[2] = 1.0f;}
+	    	else if (this.drawcolorhsb[2]<0.0f) {this.drawcolorhsb[2] = 0.0f;}
+	    	Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+	    	float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
+	    	this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+	    }
+	    int onmask4c = MouseEvent.ALT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+	    int offmask4c = MouseEvent.SHIFT_DOWN_MASK;
+	    boolean mousewheelctrlaltdown = ((e.getModifiersEx() & (onmask4c | offmask4c)) == onmask4c);
+	    if (mousewheelctrlaltdown) {
+	    	this.drawcolorhsb[1] += 0.01f*e.getWheelRotation();
+	    	if (this.drawcolorhsb[1]>1.0f) {this.drawcolorhsb[1] = 1.0f;}
+	    	else if (this.drawcolorhsb[1]<0.0f) {this.drawcolorhsb[1] = 0.0f;}
+	    	Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+	    	float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
+	    	this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+	    }
+	    int onmask4d = MouseEvent.SHIFT_DOWN_MASK;
+	    int offmask4d = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    boolean mousewheelshiftdown = ((e.getModifiersEx() & (onmask4d | offmask4d)) == onmask4d);
 	    if (mousewheelshiftdown) {
 	    	//TODO zoom into canvas
 	    }
