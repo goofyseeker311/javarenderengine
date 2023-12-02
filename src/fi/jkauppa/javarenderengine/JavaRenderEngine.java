@@ -50,8 +50,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private int imagecanvaswidth = 1920;
 	private int imagecanvasheight= 1080;
 	private RenderPanel renderpanel = new RenderPanel(imagecanvaswidth,imagecanvasheight);
-	private JScrollPane scrollpane = new JScrollPane();
-	private int scrollbarwidth = 10;
+	//private JScrollPane scrollpane = new JScrollPane();
+	//private int scrollbarwidth = 10;
 	private boolean windowedmode = true;
 	private Color drawcolor = Color.BLACK;
 	private float[] drawcolorhsb = {0.0f, 1.0f, 0.0f};
@@ -91,13 +91,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		this.renderpanel.setDropTarget(droptargethandler);
 		this.renderpanel.setSize(this.imagecanvaswidth,this.imagecanvasheight);
 		this.renderpanel.setPreferredSize(new Dimension(this.imagecanvaswidth,this.imagecanvasheight));
-		this.scrollpane.getViewport().add(renderpanel);
-		this.scrollpane.setAutoscrolls(true);
-		this.scrollpane.getVerticalScrollBar().setUnitIncrement(10);
-		this.scrollpane.getHorizontalScrollBar().setUnitIncrement(10);
-		this.scrollpane.getVerticalScrollBar().setPreferredSize(new Dimension(this.scrollbarwidth,0));
-		this.scrollpane.getHorizontalScrollBar().setPreferredSize(new Dimension(0,this.scrollbarwidth));
-		this.setContentPane(scrollpane);
+		this.setContentPane(renderpanel);
 		this.pack();
 		this.setVisible(true);
 	}
@@ -539,9 +533,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    int offmask2a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    boolean mouse2shiftdown = ((e.getModifiersEx() & (onmask2a | offmask2a)) == onmask2a);
 		    if (mouse2shiftdown) {
-		    	//TODO drag canvas view
-		    	//Rectangle r = new Rectangle(e.getX(),e.getY(),1,1);
-		    	//this.renderpanel.scrollRectToVisible(r);
+		    	//TODO <tbd>
 		    }
 		}
 	}
@@ -594,7 +586,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	    int offmask4d = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mousewheelshiftdown = ((e.getModifiersEx() & (onmask4d | offmask4d)) == onmask4d);
 	    if (mousewheelshiftdown) {
-	    	//TODO zoom into canvas
+	    	//TODO <tbd>
 	    }
 	}
 }
