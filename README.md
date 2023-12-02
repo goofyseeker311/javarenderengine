@@ -30,8 +30,9 @@ NUMPAD(*)         -- pencil type change next (looping)
 NUMPAD(/)         -- pencil type change previous (looping)
 NUMPAD(,)         -- pencil transparency positive (minmax)
 NUMPAD(0)         -- pencil transparency negative (minmax)
-F2                -- save file dialog
-F3                -- load file dialog
+F2                -- save image file dialog
+F3                -- load image file dialog
+SHIFT-F3          -- load image file as pencil brush dialog
 ```
 # Installing and Running
 
