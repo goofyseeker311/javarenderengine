@@ -50,8 +50,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private int imagecanvaswidth = 1920;
 	private int imagecanvasheight= 1080;
 	private RenderPanel renderpanel = new RenderPanel(imagecanvaswidth,imagecanvasheight);
-	//private JScrollPane scrollpane = new JScrollPane();
-	//private int scrollbarwidth = 10;
 	private boolean windowedmode = true;
 	private Color drawcolor = Color.BLACK;
 	private float[] drawcolorhsb = {0.0f, 1.0f, 0.0f};
@@ -296,9 +294,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    		windowedmode = true;
 		    		JavaRenderEngine.this.setExtendedState(JavaRenderEngine.this.getExtendedState()&~JFrame.MAXIMIZED_BOTH);
 		    		JavaRenderEngine.this.setUndecorated(false);
-					this.renderpanel.setSize(this.renderpanel.getRenderBuffer().getWidth(),this.renderpanel.getRenderBuffer().getHeight());
-					this.renderpanel.setPreferredSize(new Dimension(this.renderpanel.getRenderBuffer().getWidth(),this.renderpanel.getRenderBuffer().getHeight()));
-					this.pack();
 		    	}else {
 		    		windowedmode = false;
 		    		JavaRenderEngine.this.setExtendedState(JavaRenderEngine.this.getExtendedState()|JFrame.MAXIMIZED_BOTH);
