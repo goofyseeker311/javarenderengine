@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.TexturePaint;
 import java.awt.datatransfer.Transferable;
@@ -28,13 +27,9 @@ import java.nio.file.Paths;
 
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JMenuBar;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JViewport;
 import javax.swing.Timer;
 import javax.swing.TransferHandler;
 import javax.swing.UIManager;
@@ -62,6 +57,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private int pencilmode = 1;
 	private float penciltransparency = 1.0f;
 	private BufferedImage pencilbuffer = null;
+	private int oldpencilsize = 1;
 	private JFileChooser filechooser = new JFileChooser();
 	private ImageFileFilters.PNGFileFilter pngfilefilter = new ImageFileFilters.PNGFileFilter();
 	private ImageFileFilters.JPGFileFilter jpgfilefilter = new ImageFileFilters.JPGFileFilter();
@@ -91,8 +87,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		this.renderpanel.addMouseWheelListener(this);
 		this.renderpanel.setTransferHandler(dndcbhandler);
 		this.renderpanel.setDropTarget(droptargethandler);
-		this.renderpanel.setSize(this.imagecanvaswidth,this.imagecanvasheight);
 		this.renderpanel.setPreferredSize(new Dimension(this.imagecanvaswidth,this.imagecanvasheight));
+		this.renderpanel.setSize(this.imagecanvaswidth,this.imagecanvasheight);
 		this.setContentPane(renderpanel);
 		this.pack();
 		this.setVisible(true);
@@ -214,14 +210,15 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 				g2.setPaint(null);
 				g2.drawImage(renderbuffer, 0, 0, null);
 				if (JavaRenderEngine.this.pencilbuffer!=null) {
+		    		double pencilsizescalefactor = ((double)JavaRenderEngine.this.pencilsize)/((double)JavaRenderEngine.this.pencilbuffer.getWidth());
 		    		if (JavaRenderEngine.this.pencilmode==2) {
 		    			g2.setComposite(AlphaComposite.Src);
 		    			g2.setPaint(this.bgpattern);
-						g2.fillRect(mouselocationx-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getWidth()/2.0f), mouselocationy-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getHeight()/2.0f),JavaRenderEngine.this.pencilbuffer.getWidth(),JavaRenderEngine.this.pencilbuffer.getHeight());
+						g2.fillRect(mouselocationx-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f), mouselocationy-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor));
 		    			g2.setComposite(AlphaComposite.SrcOver);
 		    			g2.setPaint(null);
 		    		}
-		    		g2.drawImage(JavaRenderEngine.this.pencilbuffer,mouselocationx-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getWidth()/2.0f), mouselocationy-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getHeight()/2.0f), null);
+		    		g2.drawImage(JavaRenderEngine.this.pencilbuffer, mouselocationx-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f), mouselocationy-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor),null);
 				}
 			}
 		}
@@ -244,10 +241,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			BufferedImage oldimage = this.renderbuffer; 
 			this.renderbuffer = new BufferedImage(this.getWidth(),this.getHeight(),BufferedImage.TYPE_INT_ARGB);
 			Graphics2D gfx = (Graphics2D)this.renderbuffer.getGraphics();
-			gfx.setPaint(bgpattern);
-			gfx.fillRect(0, 0, this.renderbuffer.getWidth(), this.renderbuffer.getHeight());
+			gfx.setComposite(AlphaComposite.Src);
+			gfx.setPaint(null);
 			if (oldimage!=null) {
-				gfx.setPaint(null);
 				gfx.drawImage(oldimage, 0, 0, null);
 			}
 		}
@@ -387,12 +383,18 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		if (e.getKeyCode()==KeyEvent.VK_DIVIDE) {
 	    	this.pencilshape -= 1;
 	    	if (this.pencilshape<1) {this.pencilshape = 6;}
-			this.setPencilBuffer(null);
+	    	if (this.pencilbuffer!=null) {
+	    		this.setPencilBuffer(null);
+	    		this.pencilsize = this.oldpencilsize;
+	    	}
 		}
 		if (e.getKeyCode()==KeyEvent.VK_MULTIPLY) {
 	    	this.pencilshape += 1;
 	    	if (this.pencilshape>6) {this.pencilshape = 1;}
-			this.setPencilBuffer(null);
+	    	if (this.pencilbuffer!=null) {
+	    		this.setPencilBuffer(null);
+	    		this.pencilsize = this.oldpencilsize;
+	    	}
 		}
 		if (e.getKeyCode()==KeyEvent.VK_DECIMAL) {
 			this.penciltransparency += 0.01f;
@@ -442,14 +444,16 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 				    int offmask = KeyEvent.ALT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
 				    boolean f3shiftdown = (e.getModifiersEx() & (onmask | offmask)) == onmask;
 				    if (f3shiftdown) {
+				    	this.oldpencilsize = this.pencilsize;
+						this.pencilsize = loadimage.getWidth();
 				    	this.setPencilBuffer(loadimage);
 				    }else{
 						Graphics2D gfx = (Graphics2D)this.renderpanel.getRenderBuffer().getGraphics();
 						gfx.setComposite(AlphaComposite.Src);
 						gfx.drawImage(loadimage, 0, 0, null);
 						if (this.windowedmode) {
-							this.renderpanel.setSize(loadimage.getWidth(),loadimage.getHeight());
 							this.renderpanel.setPreferredSize(new Dimension(loadimage.getWidth(),loadimage.getHeight()));
+							this.renderpanel.setSize(loadimage.getWidth(),loadimage.getHeight());
 							this.pack();
 						}
 				    }
@@ -495,6 +499,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	
 	@Override
 	public void mouseDragged(MouseEvent e) {
+		this.renderpanel.setMouseLocation(e.getX(), e.getY());
 		BufferedImage renderbufferhandle = renderpanel.getRenderBuffer();
 		if (renderbufferhandle!=null) {
 			int pencilwidth = (int)Math.ceil((double)(this.pencilsize-1)/2.0f);
@@ -507,10 +512,15 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    boolean mouse3down = ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3);
 		    if (mouse1down||mouse3down) {
 		    	if (this.pencilbuffer!=null) {
-		    		if (this.pencilmode==2) {
-		    			renderbuffergfx.setComposite(AlphaComposite.Src);
-		    		}
-		    		renderbuffergfx.drawImage(pencilbuffer,e.getX()-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getWidth()/2.0f), e.getY()-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getHeight()/2.0f), null);
+			    	if (mouse3down) {
+		    			renderbuffergfx.setComposite(AlphaComposite.DstOut);
+			    	} else {
+			    		if (this.pencilmode==2) {
+			    			renderbuffergfx.setComposite(AlphaComposite.Src);
+			    		}
+			    	}
+		    		double pencilsizescalefactor = ((double)this.pencilsize)/((double)this.pencilbuffer.getWidth());
+		    		renderbuffergfx.drawImage(JavaRenderEngine.this.pencilbuffer, e.getX()-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f), e.getY()-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor),null);
 		    	}else {
 			    	if (mouse3down) {
 			    		renderbuffergfx.setComposite(AlphaComposite.Src);
@@ -564,9 +574,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    int offmask2 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    boolean mouse2down = ((e.getModifiersEx() & (onmask2 | offmask2)) == onmask2);
 		    if (mouse2down) {
-		    	this.pencilshape += 1;
-		    	if (this.pencilshape>6) {this.pencilshape = 1;}
-				this.setPencilBuffer(null);
+		    	//TODO drag image content
 		    }
 		    int onmask2a = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 		    int offmask2a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
