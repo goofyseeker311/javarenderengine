@@ -419,10 +419,14 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 				BufferedImage loadimage = null;
 				try {loadimage=ImageIO.read(loadfile);} catch (Exception ex) {ex.printStackTrace();}
 				if (loadimage!=null) {
-					this.renderpanel.setRenderBuffer(loadimage);
-					this.renderpanel.setSize(loadimage.getWidth(),loadimage.getHeight());
-					this.renderpanel.setPreferredSize(new Dimension(loadimage.getWidth(),loadimage.getHeight()));
-					this.pack();
+					Graphics2D gfx = (Graphics2D)this.renderpanel.getRenderBuffer().getGraphics();
+					gfx.setComposite(AlphaComposite.Src);
+					gfx.drawImage(loadimage, 0, 0, null);
+					if (this.windowedmode) {
+						this.renderpanel.setSize(loadimage.getWidth(),loadimage.getHeight());
+						this.renderpanel.setPreferredSize(new Dimension(loadimage.getWidth(),loadimage.getHeight()));
+						this.pack();
+					}
 				}
 			}
 		}
