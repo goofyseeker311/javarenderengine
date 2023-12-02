@@ -49,9 +49,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private static final long serialVersionUID = 1L;
 	private int imagecanvaswidth = 1920;
 	private int imagecanvasheight= 1080;
-	private Dimension imagecanvasdimension = new Dimension(imagecanvaswidth,imagecanvasheight);
 	private RenderPanel renderpanel = new RenderPanel(imagecanvaswidth,imagecanvasheight);
 	private JScrollPane scrollpane = new JScrollPane();
+	private int scrollbarwidth = 10;
 	private boolean windowedmode = true;
 	private Color drawcolor = Color.BLACK;
 	private float[] drawcolorhsb = {0.0f, 1.0f, 0.0f};
@@ -89,17 +89,16 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		this.renderpanel.addMouseWheelListener(this);
 		this.renderpanel.setTransferHandler(dndcbhandler);
 		this.renderpanel.setDropTarget(droptargethandler);
-		this.renderpanel.setSize(this.imagecanvasdimension);
-		this.renderpanel.setPreferredSize(this.imagecanvasdimension);
+		this.renderpanel.setSize(this.imagecanvaswidth,this.imagecanvasheight);
+		this.renderpanel.setPreferredSize(new Dimension(this.imagecanvaswidth,this.imagecanvasheight));
 		this.scrollpane.getViewport().add(renderpanel);
 		this.scrollpane.setAutoscrolls(true);
 		this.scrollpane.getVerticalScrollBar().setUnitIncrement(10);
 		this.scrollpane.getHorizontalScrollBar().setUnitIncrement(10);
+		this.scrollpane.getVerticalScrollBar().setPreferredSize(new Dimension(this.scrollbarwidth,0));
+		this.scrollpane.getHorizontalScrollBar().setPreferredSize(new Dimension(0,this.scrollbarwidth));
 		this.setContentPane(scrollpane);
 		this.pack();
-		Dimension scrollpanedimension = new Dimension((int)this.imagecanvasdimension.getWidth()+scrollpane.getVerticalScrollBar().getWidth(),(int)this.imagecanvasdimension.getHeight()+scrollpane.getHorizontalScrollBar().getHeight());
-		scrollpane.setSize(scrollpanedimension);
-		scrollpane.setPreferredSize(scrollpanedimension);
 		this.setVisible(true);
 	}
 
@@ -415,7 +414,15 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			this.filechooser.setApproveButtonText("Load");
 			if (this.filechooser.showOpenDialog(this)==JFileChooser.APPROVE_OPTION) {
 				File loadfile = this.filechooser.getSelectedFile() ;
-				try {this.renderpanel.setRenderBuffer(ImageIO.read(loadfile));} catch (Exception ex) {ex.printStackTrace();}
+				BufferedImage loadimage = null;
+				try {loadimage=ImageIO.read(loadfile);} catch (Exception ex) {ex.printStackTrace();}
+				if (loadimage!=null) {
+					this.renderpanel.setRenderBuffer(loadimage);
+					Dimension renderpaneldimension = new Dimension(loadimage.getWidth(),loadimage.getHeight());
+					this.renderpanel.setSize(renderpaneldimension);
+					this.renderpanel.setPreferredSize(renderpaneldimension);
+					this.pack();
+				}
 			}
 		}
 		if (e.getKeyCode()==KeyEvent.VK_F4) {
@@ -521,8 +528,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    boolean mouse2shiftdown = ((e.getModifiersEx() & (onmask2a | offmask2a)) == onmask2a);
 		    if (mouse2shiftdown) {
 		    	//TODO drag canvas view
-		    	Rectangle r = new Rectangle(e.getX(),e.getY(),1,1);
-		    	this.renderpanel.scrollRectToVisible(r);
+		    	//Rectangle r = new Rectangle(e.getX(),e.getY(),1,1);
+		    	//this.renderpanel.scrollRectToVisible(r);
 		    }
 		}
 	}
