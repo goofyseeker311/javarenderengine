@@ -213,10 +213,16 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 				g2.fillRect(0, 0, renderbuffer.getWidth(), renderbuffer.getHeight());
 				g2.setPaint(null);
 				g2.drawImage(renderbuffer, 0, 0, null);
+	    		if ((JavaRenderEngine.this.penciloverridemode)&&(JavaRenderEngine.this.pencilbuffer!=null)) {
+	        		double pencilsizescalefactor = ((double)JavaRenderEngine.this.pencilsize)/((double)JavaRenderEngine.this.pencilbuffer.getWidth());
+	    			g2.setComposite(AlphaComposite.Src);
+					g2.setPaint(this.bgpattern);
+					g2.fillRect(JavaRenderEngine.this.mouselocationx-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f), JavaRenderEngine.this.mouselocationy-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor));
+	    		}
     			if (JavaRenderEngine.this.drawlinemode) {
-    				JavaRenderEngine.this.drawPencilLine(g2, JavaRenderEngine.this.mousestartlocationx, JavaRenderEngine.this.mousestartlocationy, JavaRenderEngine.this.mouselocationx, JavaRenderEngine.this.mouselocationy, false, JavaRenderEngine.this.penciloverridemode);
+    				JavaRenderEngine.this.drawPencilLine(g2, JavaRenderEngine.this.mousestartlocationx, JavaRenderEngine.this.mousestartlocationy, JavaRenderEngine.this.mouselocationx, JavaRenderEngine.this.mouselocationy, false, false);
     			} else {
-    				JavaRenderEngine.this.drawPencil(g2, JavaRenderEngine.this.mouselocationx, JavaRenderEngine.this.mouselocationy, false, JavaRenderEngine.this.penciloverridemode);
+    				JavaRenderEngine.this.drawPencil(g2, JavaRenderEngine.this.mouselocationx, JavaRenderEngine.this.mouselocationy, false, false);
 				}
 			}
 		}
@@ -276,24 +282,25 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	}
 
 	private void drawPencil(Graphics2D g, int mousex, int mousey, boolean erasemode, boolean overridemode) {
+		g.setComposite(AlphaComposite.SrcOver);
+		g.setPaint(null);
+		g.setColor(null);
 		int pencilwidth = (int)Math.ceil((double)(this.pencilsize-1)/2.0f);
     	if (this.pencilbuffer!=null) {
-    		double pencilsizescalefactor = ((double)this.pencilsize)/((double)this.pencilbuffer.getWidth());
-    		if (overridemode) {
-    			g.setComposite(AlphaComposite.Src);
-    			g.setPaint(this.renderpanel.getBGPattern());
-				g.fillRect(JavaRenderEngine.this.mouselocationx-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f), JavaRenderEngine.this.mouselocationy-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor));
-    			g.setComposite(AlphaComposite.SrcOver);
-    		}
 	    	if (erasemode) {
-    			g.setComposite(AlphaComposite.DstOut);
+	    		if (overridemode) {
+	    			g.setComposite(AlphaComposite.Clear);
+	    		} else {
+	    			g.setComposite(AlphaComposite.DstOut);
+	    		}
 	    	} else {
 	    		if (overridemode) {
 	    			g.setComposite(AlphaComposite.Src);
 	    		}
     		}
+    		double pencilsizescalefactor = ((double)this.pencilsize)/((double)this.pencilbuffer.getWidth());
     		g.drawImage(JavaRenderEngine.this.pencilbuffer, mousex-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f), mousey-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor),null);
-    	}else {
+    	} else {
 	    	if (erasemode) {
 	    		g.setComposite(AlphaComposite.Src);
 	    		g.setColor(this.erasecolor);
