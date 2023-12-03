@@ -1,7 +1,7 @@
 # Java Render Engine
 Java Render Engine, file structure is for Eclipse IDE for Java.
 
-Starts in undecorated full screen JFrame window, with a child component JPanel updating at chosen frames per second.
+Starts in JFrame windowed mode, with a child component JPanel updating at chosen frames per second.
 Shows a black grid on white canvas image behind the drawing canvas image as the transparency image regions indicator.
 
 ```
