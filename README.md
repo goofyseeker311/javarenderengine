@@ -12,6 +12,7 @@ ENTER             -- toggles between alpha/src composite pencil draw mode
 BACKSPACE         -- erases the whole window canvas to white.
 DRAG-MOUSE1(LMB)  -- black/hsb-color drag paint
 SHIFT-MOUSE1(LMB) -- rgb-color picker at cursor
+SHIFT-MOUSE2(CMB) -- drag image contents on image canvas
 MOUSE2(MWHEEL)    -- pencil width change (minmax)
 CTRL-MWHEEL       -- hue positive change (looping)
 ALT-MWHEEL        -- brightness positive change (minmax)
