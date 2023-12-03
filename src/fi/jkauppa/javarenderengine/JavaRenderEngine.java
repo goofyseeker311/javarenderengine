@@ -224,12 +224,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			}
 		}
 		@Override
-		public void actionPerformed(ActionEvent e) {
-			this.repaint();
-		}
-		public BufferedImage getRenderBuffer() {
-			return renderbuffer;
-		}
+		public void actionPerformed(ActionEvent e) {this.repaint();}
+		public BufferedImage getRenderBuffer() {return renderbuffer;}
+		public void setRenderBuffer(BufferedImage renderbufferi) {this.renderbuffer=renderbufferi;}
 		
 		@Override public void componentMoved(ComponentEvent e) {}
 		@Override public void componentShown(ComponentEvent e) {}
@@ -393,13 +390,13 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	    		this.pencilsize = this.oldpencilsize;
 	    	}
 		}
-		if (e.getKeyCode()==KeyEvent.VK_DECIMAL) {
+		if (e.getKeyCode()==KeyEvent.VK_NUMPAD9) {
 			this.penciltransparency += 0.01f;
 			if (this.penciltransparency>1.0f) {this.penciltransparency = 1.0f;}
 			float[] colorvalues = this.drawcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		}
-		if (e.getKeyCode()==KeyEvent.VK_NUMPAD0) {
+		if (e.getKeyCode()==KeyEvent.VK_NUMPAD8) {
 			this.penciltransparency -= 0.01f;
 			if (this.penciltransparency<0.0f) {this.penciltransparency = 0.0f;}
 			float[] colorvalues = this.drawcolor.getRGBColorComponents(new float[3]);
@@ -445,13 +442,16 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 						this.pencilsize = loadimage.getWidth();
 				    	this.setPencilBuffer(loadimage);
 				    }else{
-						Graphics2D gfx = (Graphics2D)this.renderpanel.getRenderBuffer().getGraphics();
-						gfx.setComposite(AlphaComposite.Src);
-						gfx.drawImage(loadimage, 0, 0, null);
 						if (this.windowedmode) {
+					    	this.renderpanel.setRenderBuffer(loadimage);
 							this.renderpanel.setPreferredSize(new Dimension(loadimage.getWidth(),loadimage.getHeight()));
 							this.renderpanel.setSize(loadimage.getWidth(),loadimage.getHeight());
 							this.pack();
+						}else {
+							BufferedImage newimage = new BufferedImage(this.renderpanel.getWidth(),this.renderpanel.getHeight(),loadimage.getType());
+							Graphics2D newimagegfx = newimage.createGraphics(); 
+							newimagegfx.drawImage(loadimage, 0, 0, null);
+					    	this.renderpanel.setRenderBuffer(newimage);
 						}
 				    }
 				}
