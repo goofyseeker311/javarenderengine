@@ -1,6 +1,7 @@
 package fi.jkauppa.javarenderengine;
 
 import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -59,7 +60,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private BufferedImage pencilbuffer = null;
 	private int oldpencilsize = 1;
 	private int mousestartlocationx = -1, mousestartlocationy = -1;  
-	private int mouselocationx = -1, mouselocationy = -1;  
+	private int mouselastlocationx = -1, mouselastlocationy = -1;  
+	private int mouselocationx = -1, mouselocationy = -1;
+	private boolean drawlinemode = false;
 	private JFileChooser filechooser = new JFileChooser();
 	private ImageFileFilters.PNGFileFilter pngfilefilter = new ImageFileFilters.PNGFileFilter();
 	private ImageFileFilters.JPGFileFilter jpgfilefilter = new ImageFileFilters.JPGFileFilter();
@@ -206,20 +209,38 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			lastupdate = newupdate; 
 			Graphics2D g2 = (Graphics2D)g;
 			if (renderbuffer!=null) {
+				int pencilwidth = (int)Math.ceil((double)(JavaRenderEngine.this.pencilsize-1)/2.0f);
 				g2.setPaint(this.bgpattern);
 				g2.fillRect(0, 0, renderbuffer.getWidth(), renderbuffer.getHeight());
 				g2.setPaint(null);
 				g2.drawImage(renderbuffer, 0, 0, null);
+    			g2.setColor(JavaRenderEngine.this.drawcolor);
 				if (JavaRenderEngine.this.pencilbuffer!=null) {
 		    		double pencilsizescalefactor = ((double)JavaRenderEngine.this.pencilsize)/((double)JavaRenderEngine.this.pencilbuffer.getWidth());
 		    		if (JavaRenderEngine.this.pencilmode==2) {
-		    			g2.setComposite(AlphaComposite.Src);
 		    			g2.setPaint(this.bgpattern);
-						g2.fillRect(mouselocationx-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f), mouselocationy-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor));
+						g2.fillRect(JavaRenderEngine.this.mouselocationx-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f), JavaRenderEngine.this.mouselocationy-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor));
 		    			g2.setComposite(AlphaComposite.SrcOver);
 		    			g2.setPaint(null);
 		    		}
-		    		g2.drawImage(JavaRenderEngine.this.pencilbuffer, mouselocationx-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f), mouselocationy-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor),null);
+		    		g2.drawImage(JavaRenderEngine.this.pencilbuffer, JavaRenderEngine.this.mouselocationx-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f), JavaRenderEngine.this.mouselocationy-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor),null);
+				} else if (JavaRenderEngine.this.drawlinemode) {
+					g2.setStroke(new BasicStroke(JavaRenderEngine.this.pencilsize));
+					g2.drawLine(JavaRenderEngine.this.mousestartlocationx, JavaRenderEngine.this.mousestartlocationy, JavaRenderEngine.this.mouselocationx, JavaRenderEngine.this.mouselocationy);
+				} else {
+					if (JavaRenderEngine.this.pencilshape==2) {
+						g2.fillRoundRect(JavaRenderEngine.this.mouselocationx-pencilwidth, JavaRenderEngine.this.mouselocationy-pencilwidth, JavaRenderEngine.this.pencilsize, JavaRenderEngine.this.pencilsize, 5, 5);
+					} else if (JavaRenderEngine.this.pencilshape==3) {
+						g2.fillOval(JavaRenderEngine.this.mouselocationx-pencilwidth, JavaRenderEngine.this.mouselocationy-pencilwidth, JavaRenderEngine.this.pencilsize, JavaRenderEngine.this.pencilsize);
+					} else if (JavaRenderEngine.this.pencilshape==4) {
+						g2.drawRect(JavaRenderEngine.this.mouselocationx-pencilwidth, JavaRenderEngine.this.mouselocationy-pencilwidth, JavaRenderEngine.this.pencilsize, JavaRenderEngine.this.pencilsize);
+					} else if (JavaRenderEngine.this.pencilshape==5) {
+						g2.drawRoundRect(JavaRenderEngine.this.mouselocationx-pencilwidth, JavaRenderEngine.this.mouselocationy-pencilwidth, JavaRenderEngine.this.pencilsize, JavaRenderEngine.this.pencilsize, 5, 5);
+					} else if (JavaRenderEngine.this.pencilshape==6) {
+						g2.drawOval(JavaRenderEngine.this.mouselocationx-pencilwidth, JavaRenderEngine.this.mouselocationy-pencilwidth, JavaRenderEngine.this.pencilsize, JavaRenderEngine.this.pencilsize);
+					}else {
+						g2.fillRect(JavaRenderEngine.this.mouselocationx-pencilwidth, JavaRenderEngine.this.mouselocationy-pencilwidth, JavaRenderEngine.this.pencilsize, JavaRenderEngine.this.pencilsize);
+					}
 				}
 			}
 		}
@@ -487,19 +508,38 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	}
 
 	@Override public void mouseClicked(MouseEvent e) {}
-	@Override public void mouseReleased(MouseEvent e) {}
 	@Override public void mouseEntered(MouseEvent e) {}
 	@Override public void mouseExited(MouseEvent e) {}
 	
 	@Override public void mouseMoved(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();}
-	@Override public void mousePressed(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();mouseDragged(e);}
+	@Override public void mousePressed(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();this.mousestartlocationx=this.mouselocationx;this.mousestartlocationy=this.mouselocationy;mouseDragged(e);}
+	@Override public void mouseReleased(MouseEvent e) {
+		BufferedImage renderbufferhandle = renderpanel.getRenderBuffer();
+		if (renderbufferhandle!=null) {
+			int pencilwidth = (int)Math.ceil((double)(this.pencilsize-1)/2.0f);
+			Graphics2D renderbuffergfx = (Graphics2D)renderbufferhandle.getGraphics();
+			renderbuffergfx.setColor(JavaRenderEngine.this.drawcolor);
+		    boolean mouse1up = e.getButton()==MouseEvent.BUTTON1;
+		    boolean mouse3up = e.getButton()==MouseEvent.BUTTON3;
+			if (mouse1up||mouse3up) {
+				if (this.drawlinemode) {
+					this.drawlinemode=false;
+					renderbuffergfx.setStroke(new BasicStroke(this.pencilsize));
+					if (mouse3up) {
+		    			renderbuffergfx.setComposite(AlphaComposite.DstOut);
+					}
+					renderbuffergfx.drawLine(this.mousestartlocationx, this.mousestartlocationy, this.mouselocationx, this.mouselocationy);
+				}
+			}
+		}
+	}
 	
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		this.mousestartlocationx=this.mouselocationx;this.mousestartlocationy=this.mouselocationy;
+		this.mouselastlocationx=this.mouselocationx;this.mouselastlocationy=this.mouselocationy;
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
-    	int mousedeltax = this.mouselocationx - this.mousestartlocationx; 
-    	int mousedeltay = this.mouselocationy - this.mousestartlocationy;
+    	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
+    	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
 		BufferedImage renderbufferhandle = renderpanel.getRenderBuffer();
 		if (renderbufferhandle!=null) {
 			int pencilwidth = (int)Math.ceil((double)(this.pencilsize-1)/2.0f);
@@ -531,9 +571,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			    		}
 		    			renderbuffergfx.setColor(this.drawcolor);
 			    	}
-					if (this.pencilshape==1) {
-						renderbuffergfx.fillRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
-					} else if (this.pencilshape==2) {
+					if (this.pencilshape==2) {
 						renderbuffergfx.fillRoundRect(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize, 5, 5);
 					} else if (this.pencilshape==3) {
 						renderbuffergfx.fillOval(e.getX()-pencilwidth, e.getY()-pencilwidth, this.pencilsize, this.pencilsize);
@@ -548,6 +586,15 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 					}
 		    	}
 			}			
+		    int onmask1c = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+		    int offmask1c = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+		    int onmask3c = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+		    int offmask3c = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+		    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1c | offmask1c)) == onmask1c);
+		    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3c | offmask3c)) == onmask3c);
+		    if (mouse1altdown||mouse3altdown) {
+		    	this.drawlinemode = true;
+		    }
 		    int onmask1a = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 		    int offmask1a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    boolean mouse1shiftdown = ((e.getModifiersEx() & (onmask1a | offmask1a)) == onmask1a);
@@ -563,12 +610,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    boolean mouse1controldown = ((e.getModifiersEx() & (onmask1b | offmask1b)) == onmask1b);
 		    if (mouse1controldown) {
 		    	//TODO select canvas region
-		    }
-		    int onmask1c = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-		    int offmask1c = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
-		    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1c | offmask1c)) == onmask1c);
-		    if (mouse1altdown) {
-		    	//TODO vector line draw
 		    }
 		    int onmask2 = MouseEvent.BUTTON2_DOWN_MASK;
 		    int offmask2 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
