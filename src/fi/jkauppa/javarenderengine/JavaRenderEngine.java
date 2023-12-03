@@ -58,6 +58,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private float penciltransparency = 1.0f;
 	private BufferedImage pencilbuffer = null;
 	private int oldpencilsize = 1;
+	private int mousestartlocationx = -1, mousestartlocationy = -1;  
+	private int mouselocationx = -1, mouselocationy = -1;  
 	private JFileChooser filechooser = new JFileChooser();
 	private ImageFileFilters.PNGFileFilter pngfilefilter = new ImageFileFilters.PNGFileFilter();
 	private ImageFileFilters.JPGFileFilter jpgfilefilter = new ImageFileFilters.JPGFileFilter();
@@ -181,7 +183,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		private final Timer timer = new Timer(fpstargetdelay,this);
 		private long lastupdate = System.currentTimeMillis();
 		private BufferedImage renderbuffer = null;
-		private int mouselocationx = -1, mouselocationy = -1;  
 		private TexturePaint bgpattern = null;
 		public RenderPanel(int imagewidth, int imageheight) {
 			renderbuffer = new BufferedImage(imagewidth, imageheight, BufferedImage.TYPE_INT_ARGB);
@@ -228,10 +229,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		}
 		public BufferedImage getRenderBuffer() {
 			return renderbuffer;
-		}
-		public void setMouseLocation(int mousexi, int mouseyi) {
-			this.mouselocationx = mousexi;
-			this.mouselocationy = mouseyi;
 		}
 		
 		@Override public void componentMoved(ComponentEvent e) {}
@@ -494,12 +491,15 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	@Override public void mouseEntered(MouseEvent e) {}
 	@Override public void mouseExited(MouseEvent e) {}
 	
-	@Override public void mouseMoved(MouseEvent e) {this.renderpanel.setMouseLocation(e.getX(), e.getY());}
-	@Override public void mousePressed(MouseEvent e) {mouseDragged(e);}
+	@Override public void mouseMoved(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();}
+	@Override public void mousePressed(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();mouseDragged(e);}
 	
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		this.renderpanel.setMouseLocation(e.getX(), e.getY());
+		this.mousestartlocationx=this.mouselocationx;this.mousestartlocationy=this.mouselocationy;
+		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
+    	int mousedeltax = this.mouselocationx - this.mousestartlocationx; 
+    	int mousedeltay = this.mouselocationy - this.mousestartlocationy;
 		BufferedImage renderbufferhandle = renderpanel.getRenderBuffer();
 		if (renderbufferhandle!=null) {
 			int pencilwidth = (int)Math.ceil((double)(this.pencilsize-1)/2.0f);
@@ -574,13 +574,18 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    int offmask2 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    boolean mouse2down = ((e.getModifiersEx() & (onmask2 | offmask2)) == onmask2);
 		    if (mouse2down) {
-		    	//TODO drag image content
+		    	//TODO <tbd>
 		    }
 		    int onmask2a = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 		    int offmask2a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    boolean mouse2shiftdown = ((e.getModifiersEx() & (onmask2a | offmask2a)) == onmask2a);
 		    if (mouse2shiftdown) {
-		    	//TODO <tbd>
+		    	BufferedImage dragimage = new BufferedImage(renderbufferhandle.getWidth(),renderbufferhandle.getHeight(),renderbufferhandle.getType());
+		    	Graphics2D dragimagegfx = dragimage.createGraphics();
+		    	dragimagegfx.setComposite(AlphaComposite.Src);
+		    	renderbuffergfx.setComposite(AlphaComposite.Src);
+		    	dragimagegfx.drawImage(renderbufferhandle, mousedeltax, mousedeltay, null);
+		    	renderbuffergfx.drawImage(dragimage, 0, 0, null);
 		    }
 		}
 	}
