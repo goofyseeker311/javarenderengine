@@ -10,26 +10,28 @@ ESC               -- exits the program
 ALT-ENTER         -- toggles between windowed and full screen mode
 ENTER             -- toggles between alpha/src composite pencil draw mode
 BACKSPACE         -- erases the whole window canvas to white.
-DRAG-MOUSE1(LMB)  -- black/hsb-color drag paint
-SHIFT-MOUSE1(LMB) -- rgb-color picker at cursor
-SHIFT-MOUSE2(CMB) -- drag image contents on image canvas
-MOUSE2(MWHEEL)    -- pencil width change (minmax)
-CTRL-MWHEEL       -- hue positive change (looping)
-ALT-MWHEEL        -- brightness positive change (minmax)
-CTRL-ALT-MWHEEL   -- saturation positive change (minmax)
-DRAG-MOUSE3(RMB)  -- transparent drag paint eraser
+DRAG-LMB          -- black/hsb-color drag paint
+SHIFT-LMB         -- rgb-color picker at cursor
+ALT-LMB           -- black/hsb-color line drag paint
+SHIFT-CMB         -- drag image contents on image canvas
+MWHEEL            -- pencil width change (minmax)
+CTRL-MWH          -- hue positive change (looping)
+ALT-MWH           -- brightness positive change (minmax)
+CTRL-ALT-MWH      -- saturation positive change (minmax)
+DRAG-RMB          -- transparent drag paint eraser
+ALT-DRAG-RMB      -- transparent line drag paint eraser
 INSERT            -- hue positive change (looping)
 DELETE            -- hue negative change (looping)
 HOME              -- saturation positive change (minmax)
 END               -- saturation negative change (minmax)
 PGUP              -- brightness positive change (minmax)
 PGDOWN            -- brightness negative change (minmax)
-NUMPAD(+)         -- pencil width larger (minmax)
-NUMPAD(-)         -- pencil width smaller (minmax)
-NUMPAD(*)         -- pencil type change next (looping)
-NUMPAD(/)         -- pencil type change previous (looping)
-NUMPAD(9)         -- pencil transparency positive (minmax)
-NUMPAD(8)         -- pencil transparency negative (minmax)
+NUMPAD+           -- pencil width larger (minmax)
+NUMPAD-           -- pencil width smaller (minmax)
+NUMPAD*           -- pencil type change next (looping)
+NUMPAD/           -- pencil type change previous (looping)
+NUMPAD9           -- pencil transparency positive (minmax)
+NUMPAD8           -- pencil transparency negative (minmax)
 F2                -- save image file dialog
 F3                -- load image file dialog
 SHIFT-F3          -- load image file as pencil brush dialog
