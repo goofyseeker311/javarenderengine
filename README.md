@@ -28,8 +28,8 @@ NUMPAD(+)         -- pencil width larger (minmax)
 NUMPAD(-)         -- pencil width smaller (minmax)
 NUMPAD(*)         -- pencil type change next (looping)
 NUMPAD(/)         -- pencil type change previous (looping)
-NUMPAD(,)         -- pencil transparency positive (minmax)
-NUMPAD(0)         -- pencil transparency negative (minmax)
+NUMPAD(9)         -- pencil transparency positive (minmax)
+NUMPAD(8)         -- pencil transparency negative (minmax)
 F2                -- save image file dialog
 F3                -- load image file dialog
 SHIFT-F3          -- load image file as pencil brush dialog
