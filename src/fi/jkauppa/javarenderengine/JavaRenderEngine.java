@@ -1,7 +1,6 @@
 package fi.jkauppa.javarenderengine;
 
 import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -46,6 +45,7 @@ import fi.jkauppa.javarenderengine.ModelLib.Model;
 
 public class JavaRenderEngine extends JFrame implements KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 	private static final long serialVersionUID = 1L;
+	private AppHandler activeapp = null;
 	private int imagecanvaswidth = 1920;
 	private int imagecanvasheight= 1080;
 	private RenderPanel renderpanel = new RenderPanel(imagecanvaswidth,imagecanvasheight);
@@ -73,6 +73,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private DropTargetHandler droptargethandler = new DropTargetHandler();
 	
 	public JavaRenderEngine() {
+		this.setActiveApp(new DrawApp());
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		if (!windowedmode) {
 			this.setUndecorated(true);
@@ -230,7 +231,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		public void actionPerformed(ActionEvent e) {this.repaint();}
 		public BufferedImage getRenderBuffer() {return renderbuffer;}
 		public void setRenderBuffer(BufferedImage renderbufferi) {this.renderbuffer=renderbufferi;}
-		public TexturePaint getBGPattern() {return this.bgpattern;};
 		
 		@Override public void componentMoved(ComponentEvent e) {}
 		@Override public void componentShown(ComponentEvent e) {}
@@ -244,6 +244,76 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			if (oldimage!=null) {
 				gfx.drawImage(oldimage, 0, 0, null);
 			}
+		}
+	}
+	
+	private void setActiveApp(AppHandler activeappi) {this.activeapp = activeappi;}
+	
+	private interface AppHandler extends ActionListener,ComponentListener,KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {}
+	private class DrawApp implements AppHandler {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+		}
+
+		@Override
+		public void componentResized(ComponentEvent e) {
+		}
+
+		@Override
+		public void componentMoved(ComponentEvent e) {
+		}
+
+		@Override
+		public void componentShown(ComponentEvent e) {
+		}
+
+		@Override
+		public void componentHidden(ComponentEvent e) {
+		}
+
+		@Override
+		public void keyTyped(KeyEvent e) {
+		}
+
+		@Override
+		public void keyPressed(KeyEvent e) {
+		}
+
+		@Override
+		public void keyReleased(KeyEvent e) {
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+		}
+
+		@Override
+		public void mouseDragged(MouseEvent e) {
+		}
+
+		@Override
+		public void mouseMoved(MouseEvent e) {
+		}
+
+		@Override
+		public void mouseWheelMoved(MouseWheelEvent e) {
 		}
 	}
 	
@@ -556,7 +626,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			if (mouse1up||mouse3up) {
 				if (this.drawlinemode) {
 					this.drawlinemode=false;
-					renderbuffergfx.setStroke(new BasicStroke(this.pencilsize));
 					drawPencilLine(renderbuffergfx, this.mousestartlocationx, this.mousestartlocationy, this.mouselocationx, this.mouselocationy, mouse3up, this.penciloverridemode);
 				}
 			}
