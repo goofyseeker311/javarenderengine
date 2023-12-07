@@ -5,8 +5,12 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.TexturePaint;
+import java.awt.Transparency;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
@@ -22,6 +26,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
+import java.awt.image.VolatileImage;
 import java.io.File;
 import java.nio.file.Paths;
 
@@ -46,6 +51,13 @@ import fi.jkauppa.javarenderengine.ModelLib.Model;
 public class JavaRenderEngine extends JFrame implements KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 	private static final long serialVersionUID = 1L;
 	private AppHandler activeapp = null;
+	private String userlocalpath = Paths.get("").toAbsolutePath().toString();
+	private String userlocaldir = System.getProperty("user.dir");
+	private String[] writeformatnames = ImageIO.getWriterFormatNames();
+	private String[] readformatnames = ImageIO.getReaderFormatNames();
+	private GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
+	private GraphicsDevice gd = ge.getDefaultScreenDevice ();
+	private GraphicsConfiguration gc = gd.getDefaultConfiguration ();
 	private int imagecanvaswidth = 1920;
 	private int imagecanvasheight= 1080;
 	private RenderPanel renderpanel = new RenderPanel(imagecanvaswidth,imagecanvasheight);
@@ -57,7 +69,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private int pencilshape = 1;
 	private boolean penciloverridemode = false;
 	private float penciltransparency = 1.0f;
-	private BufferedImage pencilbuffer = null;
+	private VolatileImage pencilbuffer = null;
 	private int oldpencilsize = 1;
 	private int mousestartlocationx = -1, mousestartlocationy = -1;  
 	private int mouselastlocationx = -1, mouselastlocationy = -1;  
@@ -101,11 +113,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	}
 
 	public static void main(String[] args) {
+		System.setProperty("sun.java2d.opengl", "true");
 		try {UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());} catch (Exception ex) {}
-		String userlocalpath = Paths.get("").toAbsolutePath().toString();
-		String userlocaldir = System.getProperty("user.dir");
-		String[] writeformatnames = ImageIO.getWriterFormatNames();
-		String[] readformatnames = ImageIO.getReaderFormatNames();
 		
 		Position campos=new Position(0.0f,0.0f,0.0f);
 		Position[] camposa=new Position[1]; camposa[0]=campos;
@@ -186,17 +195,18 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		private final int fpstargetdelay = (int)Math.floor(1000.0f/(2.0f*(double)fpstarget));
 		private final Timer timer = new Timer(fpstargetdelay,this);
 		private long lastupdate = System.currentTimeMillis();
-		private BufferedImage renderbuffer = null;
+		private VolatileImage renderbuffer = null;
 		private TexturePaint bgpattern = null;
 		public RenderPanel(int imagewidth, int imageheight) {
-			renderbuffer = new BufferedImage(imagewidth, imageheight, BufferedImage.TYPE_INT_ARGB);
-			BufferedImage bgpatternimage = new BufferedImage(64, 64, BufferedImage.TYPE_INT_RGB);
-			Graphics2D pgfx = (Graphics2D)bgpatternimage.getGraphics();
+			this.renderbuffer = gc.createCompatibleVolatileImage(imagewidth, imageheight, Transparency.TRANSLUCENT);
+			BufferedImage bgpatternimage = gc.createCompatibleImage(64, 64, Transparency.OPAQUE);
+			Graphics2D pgfx = bgpatternimage.createGraphics();
 			pgfx.setColor(Color.WHITE);
 			pgfx.fillRect(0, 0, bgpatternimage.getWidth(), bgpatternimage.getHeight());
 			pgfx.setColor(Color.BLACK);
 			pgfx.drawLine(31, 0, 31, 63);
 			pgfx.drawLine(0, 31, 63, 31);
+			pgfx.dispose();
 			this.bgpattern = new TexturePaint(bgpatternimage,new Rectangle(0, 0, 64, 64));
 			this.addComponentListener(this);
 			timer.start();
@@ -207,7 +217,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			long newupdate = System.currentTimeMillis();
 			long ticktime = newupdate-lastupdate;
 			double ticktimefps = 1000.0f/(double)ticktime;
-			lastupdate = newupdate; 
+			lastupdate = newupdate;
 			Graphics2D g2 = (Graphics2D)g;
 			if (renderbuffer!=null) {
 				g2.setPaint(this.bgpattern);
@@ -229,21 +239,22 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		}
 		@Override
 		public void actionPerformed(ActionEvent e) {this.repaint();}
-		public BufferedImage getRenderBuffer() {return renderbuffer;}
-		public void setRenderBuffer(BufferedImage renderbufferi) {this.renderbuffer=renderbufferi;}
+		public VolatileImage getRenderBuffer() {return renderbuffer;}
+		public void setRenderBuffer(VolatileImage renderbufferi) {this.renderbuffer=renderbufferi;}
 		
 		@Override public void componentMoved(ComponentEvent e) {}
 		@Override public void componentShown(ComponentEvent e) {}
 		@Override public void componentHidden(ComponentEvent e) {}
 		@Override public void componentResized(ComponentEvent e) {
-			BufferedImage oldimage = this.renderbuffer; 
-			this.renderbuffer = new BufferedImage(this.getWidth(),this.getHeight(),BufferedImage.TYPE_INT_ARGB);
-			Graphics2D gfx = (Graphics2D)this.renderbuffer.getGraphics();
-			gfx.setComposite(AlphaComposite.Src);
-			gfx.setPaint(null);
+			VolatileImage oldimage = this.renderbuffer;
+			this.renderbuffer = gc.createCompatibleVolatileImage(this.getWidth(),this.getHeight(), Transparency.TRANSLUCENT);
+			Graphics2D gfx = this.renderbuffer.createGraphics();
 			if (oldimage!=null) {
+				gfx.setComposite(AlphaComposite.Src);
+				gfx.setPaint(null);
 				gfx.drawImage(oldimage, 0, 0, null);
 			}
+			gfx.dispose();
 		}
 	}
 	
@@ -441,12 +452,13 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    }
 		}
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
-			BufferedImage renderbufferhandle = renderpanel.getRenderBuffer();
+			VolatileImage renderbufferhandle = renderpanel.getRenderBuffer();
 			if (renderbufferhandle!=null) {
-				Graphics2D gfx = (Graphics2D)renderbufferhandle.getGraphics();
+				Graphics2D gfx = renderbufferhandle.createGraphics();
 				gfx.setComposite(AlphaComposite.Src);
 				gfx.setColor(this.erasecolor);
 				gfx.fillRect(0, 0, renderbufferhandle.getWidth(), renderbufferhandle.getHeight());
+				gfx.dispose();
 			}
 		}
 		if (e.getKeyCode()==KeyEvent.VK_INSERT) {
@@ -535,18 +547,16 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			if (this.filechooser.showOpenDialog(this)==JFileChooser.APPROVE_OPTION) {
 				File savefile = this.filechooser.getSelectedFile();
 				FileFilter savefileformat = this.filechooser.getFileFilter();
-				if (savefileformat.equals(this.pngfilefilter)) {
-					try {ImageIO.write(renderpanel.getRenderBuffer(), "PNG", savefile);} catch (Exception ex) {ex.printStackTrace();}
-				} else if (savefileformat.equals(this.jpgfilefilter)) {
-					try {ImageIO.write(renderpanel.getRenderBuffer(), "JPG", savefile);} catch (Exception ex) {ex.printStackTrace();}
+				if (savefileformat.equals(this.jpgfilefilter)) {
+					try {ImageIO.write(renderpanel.getRenderBuffer().getSnapshot(), "JPG", savefile);} catch (Exception ex) {ex.printStackTrace();}
 				} else if (savefileformat.equals(this.giffilefilter)) {
-					try {ImageIO.write(renderpanel.getRenderBuffer(), "GIF", savefile);} catch (Exception ex) {ex.printStackTrace();}
+					try {ImageIO.write(renderpanel.getRenderBuffer().getSnapshot(), "GIF", savefile);} catch (Exception ex) {ex.printStackTrace();}
 				} else if (savefileformat.equals(this.bmpfilefilter)) {
-					try {ImageIO.write(renderpanel.getRenderBuffer(), "BMP", savefile);} catch (Exception ex) {ex.printStackTrace();}
+					try {ImageIO.write(renderpanel.getRenderBuffer().getSnapshot(), "BMP", savefile);} catch (Exception ex) {ex.printStackTrace();}
 				} else if (savefileformat.equals(this.wbmpfilefilter)) {
-					try {ImageIO.write(renderpanel.getRenderBuffer(), "WBMP", savefile);} catch (Exception ex) {ex.printStackTrace();}
+					try {ImageIO.write(renderpanel.getRenderBuffer().getSnapshot(), "WBMP", savefile);} catch (Exception ex) {ex.printStackTrace();}
 				} else {
-					try {ImageIO.write(renderpanel.getRenderBuffer(), "PNG", savefile);} catch (Exception ex) {ex.printStackTrace();}
+					try {ImageIO.write(renderpanel.getRenderBuffer().getSnapshot(), "PNG", savefile);} catch (Exception ex) {ex.printStackTrace();}
 				}
 			}
 		}
@@ -564,18 +574,29 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 				    if (f3shiftdown) {
 				    	this.oldpencilsize = this.pencilsize;
 						this.pencilsize = loadimage.getWidth();
-				    	this.pencilbuffer = loadimage;
+						VolatileImage loadimagevolatile = gc.createCompatibleVolatileImage(loadimage.getWidth(), loadimage.getHeight(), Transparency.TRANSLUCENT);
+						Graphics2D loadimagevolatilegfx = loadimagevolatile.createGraphics();
+						loadimagevolatilegfx.setComposite(AlphaComposite.Src);
+						loadimagevolatilegfx.drawImage(loadimage, 0, 0, null);
+						loadimagevolatilegfx.dispose();
+				    	this.pencilbuffer = loadimagevolatile;
+				    	this.pencilbuffer.setAccelerationPriority(1.0f);
 				    }else{
 						if (this.windowedmode) {
-					    	this.renderpanel.setRenderBuffer(loadimage);
+							VolatileImage loadimagevolatile = gc.createCompatibleVolatileImage(loadimage.getWidth(), loadimage.getHeight(), Transparency.TRANSLUCENT);
+							Graphics2D loadimagevolatilegfx = loadimagevolatile.createGraphics();
+							loadimagevolatilegfx.drawImage(loadimage, 0, 0, null);
+							loadimagevolatilegfx.dispose();
+					    	this.renderpanel.setRenderBuffer(loadimagevolatile);
 							this.renderpanel.setPreferredSize(new Dimension(loadimage.getWidth(),loadimage.getHeight()));
 							this.renderpanel.setSize(loadimage.getWidth(),loadimage.getHeight());
 							this.pack();
 						}else {
-							BufferedImage newimage = new BufferedImage(this.renderpanel.getWidth(),this.renderpanel.getHeight(),loadimage.getType());
-							Graphics2D newimagegfx = newimage.createGraphics(); 
-							newimagegfx.drawImage(loadimage, 0, 0, null);
-					    	this.renderpanel.setRenderBuffer(newimage);
+							VolatileImage loadimagevolatile = gc.createCompatibleVolatileImage(this.renderpanel.getWidth(), this.renderpanel.getHeight(), Transparency.TRANSLUCENT);
+							Graphics2D loadimagevolatilegfx = loadimagevolatile.createGraphics();
+							loadimagevolatilegfx.drawImage(loadimage, 0, 0, null);
+							loadimagevolatilegfx.dispose();
+					    	this.renderpanel.setRenderBuffer(loadimagevolatile);
 						}
 				    }
 				}
@@ -617,9 +638,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	@Override public void mouseMoved(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();}
 	@Override public void mousePressed(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();this.mousestartlocationx=this.mouselocationx;this.mousestartlocationy=this.mouselocationy;mouseDragged(e);}
 	@Override public void mouseReleased(MouseEvent e) {
-		BufferedImage renderbufferhandle = renderpanel.getRenderBuffer();
+		VolatileImage renderbufferhandle = this.renderpanel.getRenderBuffer();
 		if (renderbufferhandle!=null) {
-			Graphics2D renderbuffergfx = (Graphics2D)renderbufferhandle.getGraphics();
+			Graphics2D renderbuffergfx = renderbufferhandle.createGraphics();
 			renderbuffergfx.setColor(JavaRenderEngine.this.drawcolor);
 		    boolean mouse1up = e.getButton()==MouseEvent.BUTTON1;
 		    boolean mouse3up = e.getButton()==MouseEvent.BUTTON3;
@@ -627,8 +648,10 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 				if (this.drawlinemode) {
 					this.drawlinemode=false;
 					drawPencilLine(renderbuffergfx, this.mousestartlocationx, this.mousestartlocationy, this.mouselocationx, this.mouselocationy, mouse3up, this.penciloverridemode);
+			    	renderbufferhandle.contentsLost();
 				}
 			}
+			renderbuffergfx.dispose();
 		}
 	}
 	
@@ -638,9 +661,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
     	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
     	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-		BufferedImage renderbufferhandle = renderpanel.getRenderBuffer();
+		VolatileImage renderbufferhandle = renderpanel.getRenderBuffer();
 		if (renderbufferhandle!=null) {
-			Graphics2D renderbuffergfx = (Graphics2D)renderbufferhandle.getGraphics();
+			Graphics2D renderbuffergfx = renderbufferhandle.createGraphics();
 		    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
 		    int offmask1 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
@@ -649,6 +672,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    boolean mouse3down = ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3);
 		    if (mouse1down||mouse3down) {
 		    	this.drawPencil(renderbuffergfx, e.getX(), e.getY(), mouse3down, this.penciloverridemode);
+		    	renderbufferhandle.contentsLost();
 			}			
 		    int onmask1c = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    int offmask1c = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
@@ -663,7 +687,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    int offmask1a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    boolean mouse1shiftdown = ((e.getModifiersEx() & (onmask1a | offmask1a)) == onmask1a);
 		    if (mouse1shiftdown) {
-				int colorvalue = renderbufferhandle.getRGB(e.getX(), e.getY());
+				int colorvalue = renderbufferhandle.getSnapshot().getRGB(e.getX(), e.getY());
 				Color pickeddrawcolor = new Color(colorvalue);
 				this.drawcolorhsb = Color.RGBtoHSB(pickeddrawcolor.getRed(), pickeddrawcolor.getGreen(), pickeddrawcolor.getBlue(), new float[3]);
 				float[] colorvalues = pickeddrawcolor.getRGBColorComponents(new float[3]);
@@ -685,13 +709,15 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    int offmask2a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    boolean mouse2shiftdown = ((e.getModifiersEx() & (onmask2a | offmask2a)) == onmask2a);
 		    if (mouse2shiftdown) {
-		    	BufferedImage dragimage = new BufferedImage(renderbufferhandle.getWidth(),renderbufferhandle.getHeight(),renderbufferhandle.getType());
+		    	VolatileImage dragimage = gc.createCompatibleVolatileImage(renderbufferhandle.getWidth(),renderbufferhandle.getHeight(),Transparency.TRANSLUCENT);
 		    	Graphics2D dragimagegfx = dragimage.createGraphics();
 		    	dragimagegfx.setComposite(AlphaComposite.Src);
 		    	renderbuffergfx.setComposite(AlphaComposite.Src);
 		    	dragimagegfx.drawImage(renderbufferhandle, mousedeltax, mousedeltay, null);
 		    	renderbuffergfx.drawImage(dragimage, 0, 0, null);
+		    	renderbufferhandle.contentsLost();
 		    }
+	    	renderbuffergfx.dispose();
 		}
 	}
 	
