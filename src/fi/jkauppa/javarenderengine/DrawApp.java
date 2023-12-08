@@ -10,6 +10,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.TexturePaint;
 import java.awt.Transparency;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
@@ -77,58 +78,41 @@ public class DrawApp implements AppHandler {
 	}
 	
 	@Override
-	public void renderWindow(Graphics2D g2, int renderwidth, int renderheight, boolean resizing, double deltatimesec, double deltatimefps) {
-		if (renderbuffer!=null) {
-			if (resizing) {
-				resizing = false;
-				VolatileImage oldimage = this.renderbuffer;
-				this.renderbuffer = gc.createCompatibleVolatileImage(renderwidth,renderheight, Transparency.TRANSLUCENT);
-				this.dragbuffer = gc.createCompatibleVolatileImage(renderwidth,renderheight, Transparency.TRANSLUCENT);
-				Graphics2D gfx = this.renderbuffer.createGraphics();
-				gfx.setComposite(AlphaComposite.Clear);
-				gfx.fillRect(0, 0, renderwidth,renderheight);
-				if (oldimage!=null) {
-					gfx.setComposite(AlphaComposite.Src);
-					gfx.drawImage(oldimage, 0, 0, null);
-				}
-			g2.setPaint(this.bgpattern);
-			g2.fillRect(0, 0, renderbuffer.getWidth(), renderbuffer.getHeight());
-			g2.setPaint(null);
-			g2.drawImage(renderbuffer, 0, 0, null);
-    		if ((JavaRenderEngine.this.penciloverridemode)&&(JavaRenderEngine.this.pencilbuffer!=null)) {
-        		double pencilsizescalefactor = ((double)JavaRenderEngine.this.pencilsize)/((double)JavaRenderEngine.this.pencilbuffer.getWidth());
-    			g2.setComposite(AlphaComposite.Src);
-				g2.setPaint(this.bgpattern);
-				g2.fillRect(JavaRenderEngine.this.mouselocationx-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f), JavaRenderEngine.this.mouselocationy-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor));
-    		}
-			if (JavaRenderEngine.this.drawlinemode) {
-				JavaRenderEngine.this.drawPencilLine(g2, JavaRenderEngine.this.mousestartlocationx, JavaRenderEngine.this.mousestartlocationy, JavaRenderEngine.this.mouselocationx, JavaRenderEngine.this.mouselocationy, false, false);
-			} else {
-				JavaRenderEngine.this.drawPencil(g2, JavaRenderEngine.this.mouselocationx, JavaRenderEngine.this.mouselocationy, false, false);
+	public void renderWindow(Graphics2D g2, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
+		if ((renderbuffer==null)||((renderbuffer.getWidth()!=renderwidth)&&(renderbuffer.getHeight()!=renderheight))) {
+			this.renderbuffer = gc.createCompatibleVolatileImage(renderwidth,renderheight, Transparency.TRANSLUCENT);
+			this.dragbuffer = gc.createCompatibleVolatileImage(renderwidth,renderheight, Transparency.TRANSLUCENT);
+			VolatileImage oldimage = this.renderbuffer;
+			Graphics2D gfx = this.renderbuffer.createGraphics();
+			gfx.setComposite(AlphaComposite.Clear);
+			gfx.fillRect(0, 0, renderwidth,renderheight);
+			if (oldimage!=null) {
+				gfx.setComposite(AlphaComposite.Src);
+				gfx.drawImage(oldimage, 0, 0, null);
 			}
+		}
+		g2.setPaint(this.bgpattern);
+		g2.fillRect(0, 0, renderbuffer.getWidth(), renderbuffer.getHeight());
+		g2.setPaint(null);
+		g2.drawImage(renderbuffer, 0, 0, null);
+		if ((JavaRenderEngine.this.penciloverridemode)&&(JavaRenderEngine.this.pencilbuffer!=null)) {
+    		double pencilsizescalefactor = ((double)JavaRenderEngine.this.pencilsize)/((double)JavaRenderEngine.this.pencilbuffer.getWidth());
+			g2.setComposite(AlphaComposite.Src);
+			g2.setPaint(this.bgpattern);
+			g2.fillRect(JavaRenderEngine.this.mouselocationx-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f), JavaRenderEngine.this.mouselocationy-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor));
+		}
+		if (JavaRenderEngine.this.drawlinemode) {
+			JavaRenderEngine.this.drawPencilLine(g2, JavaRenderEngine.this.mousestartlocationx, JavaRenderEngine.this.mousestartlocationy, JavaRenderEngine.this.mouselocationx, JavaRenderEngine.this.mouselocationy, false, false);
+		} else {
+			JavaRenderEngine.this.drawPencil(g2, JavaRenderEngine.this.mouselocationx, JavaRenderEngine.this.mouselocationy, false, false);
 		}
 	}
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
-	}
-
-	@Override
-	public void componentResized(ComponentEvent e) {
-	}
-
-	@Override
-	public void componentMoved(ComponentEvent e) {
-	}
-
-	@Override
-	public void componentShown(ComponentEvent e) {
-	}
-
-	@Override
-	public void componentHidden(ComponentEvent e) {
-	}
-
+	@Override public void actionPerformed(ActionEvent e) {}
+	@Override public void componentResized(ComponentEvent e) {}
+	@Override public void componentMoved(ComponentEvent e) {}
+	@Override public void componentShown(ComponentEvent e) {}
+	@Override public void componentHidden(ComponentEvent e) {}
 	@Override public void keyTyped(KeyEvent e) {}
 	@Override public void keyReleased(KeyEvent e) {}
 	
@@ -303,18 +287,6 @@ public class DrawApp implements AppHandler {
 		if (e.getKeyCode()==KeyEvent.VK_F4) {
 			//TODO tools/color pop-up window
 		}
-		if (e.getKeyCode()==KeyEvent.VK_F5) {
-			//TODO 2D image edit mode
-		}
-		if (e.getKeyCode()==KeyEvent.VK_F6) {
-			//TODO CAD 2D edit mode
-		}
-		if (e.getKeyCode()==KeyEvent.VK_F7) {
-			//TODO CAD 3D edit mode
-		}
-		if (e.getKeyCode()==KeyEvent.VK_F8) {
-			//TODO Java code edit mode
-		}
 		if (e.getKeyCode()==KeyEvent.VK_F9) {
 			//TODO Game run mode
 		}
@@ -475,6 +447,8 @@ public class DrawApp implements AppHandler {
 	    	//TODO <tbd>
 	    }
 	}
+
+	@Override public void drop(DropTargetDropEvent dtde) {}
 	
 	private class ImageFileFilters  {
 		public static class PNGFileFilter extends FileFilter {

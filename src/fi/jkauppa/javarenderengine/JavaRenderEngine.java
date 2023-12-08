@@ -44,7 +44,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private GraphicsConfiguration gc = gd.getDefaultConfiguration ();
 	private int imagecanvaswidth = 1920;
 	private int imagecanvasheight= 1080;
-	private boolean resizing = true;
 	private RenderPanel renderpanel = new RenderPanel();
 	private boolean windowedmode = true;
 	private DropTargetHandler droptargethandler = new DropTargetHandler();
@@ -166,8 +165,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			double ticktimesec = (double)ticktime / 1000.0f;
 			double ticktimefps = 1000.0f/(double)ticktime;
 			lastupdate = newupdate;
-			if ((doublebuffer==null)||((JavaRenderEngine.this.resizing)&&(doublebuffer.getWidth()!=this.getWidth())&&(doublebuffer.getHeight()!=this.getHeight()))) {
-				JavaRenderEngine.this.resizing = false;
+			if ((doublebuffer==null)||((doublebuffer.getWidth()!=this.getWidth())&&(doublebuffer.getHeight()!=this.getHeight()))) {
 				System.out.println("Window: Resolution "+this.getWidth()+"x"+this.getHeight());
 				VolatileImage oldimage = this.doublebuffer;
 				this.doublebuffer = gc.createCompatibleVolatileImage(this.getWidth(),this.getHeight(), Transparency.OPAQUE);
@@ -183,34 +181,30 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			if (this.doublebuffer!=null) {
 				Graphics2D doublebuffergfx = this.doublebuffer.createGraphics();
 				if (JavaRenderEngine.this.activeapp!=null) {
-					JavaRenderEngine.this.activeapp.renderWindow(doublebuffergfx, doublebuffer.getWidth(), doublebuffer.getHeight(), JavaRenderEngine.this.resizing, ticktimesec, ticktimefps);
+					JavaRenderEngine.this.activeapp.renderWindow(doublebuffergfx, doublebuffer.getWidth(), doublebuffer.getHeight(), ticktimesec, ticktimefps);
 				}
 				Graphics2D g2 = (Graphics2D)g;
 				g2.drawImage(this.doublebuffer,0,0,null);
 			}
 		}
-		@Override
-		public void actionPerformed(ActionEvent e) {this.repaint();}
-		
-		@Override public void componentMoved(ComponentEvent e) {}
-		@Override public void componentShown(ComponentEvent e) {}
-		@Override public void componentHidden(ComponentEvent e) {}
-		@Override public void componentResized(ComponentEvent e) {
-			JavaRenderEngine.this.resizing = true;
-			System.out.println("Window: Resizing");
-		}
+		@Override public void actionPerformed(ActionEvent e) {this.repaint();if (JavaRenderEngine.this.activeapp!=null) {JavaRenderEngine.this.activeapp.actionPerformed(e);}}
+		@Override public void componentMoved(ComponentEvent e) {System.out.println("Window: Moved");if (JavaRenderEngine.this.activeapp!=null) {JavaRenderEngine.this.activeapp.componentMoved(e);}}
+		@Override public void componentShown(ComponentEvent e) {System.out.println("Window: Shown");if (JavaRenderEngine.this.activeapp!=null) {JavaRenderEngine.this.activeapp.componentShown(e);}}
+		@Override public void componentHidden(ComponentEvent e) {System.out.println("Window: Hidden");if (JavaRenderEngine.this.activeapp!=null) {JavaRenderEngine.this.activeapp.componentHidden(e);}}
+		@Override public void componentResized(ComponentEvent e) {System.out.println("Window: Resizing");if (JavaRenderEngine.this.activeapp!=null) {JavaRenderEngine.this.activeapp.componentResized(e);}}
 	}
 	
 	private class DropTargetHandler extends DropTarget {
 		private static final long serialVersionUID = 1L;
-		@Override public synchronized void drop(DropTargetDropEvent dtde) {System.out.println("drop");dtde.rejectDrop();}
+		@Override public synchronized void drop(DropTargetDropEvent dtde) {System.out.println("DropTarget: drop");if (JavaRenderEngine.this.activeapp!=null) {JavaRenderEngine.this.activeapp.drop(dtde);}}
 	}
 
 	private void setActiveApp(AppHandler activeappi) {
 		//this.activeapp = activeappi;
 	}
 	public interface AppHandler extends ActionListener,ComponentListener,KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
-		public void renderWindow(Graphics2D g, int renderwidth, int renderheight, boolean resizing, double deltatimesec, double deltatimefps);
+		public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps);
+		public void drop(DropTargetDropEvent dtde);
 	}
 
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {if (this.activeapp!=null) {this.activeapp.mouseWheelMoved(e);}}
