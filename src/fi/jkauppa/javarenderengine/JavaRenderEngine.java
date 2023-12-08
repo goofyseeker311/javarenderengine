@@ -196,9 +196,14 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		private final Timer timer = new Timer(fpstargetdelay,this);
 		private long lastupdate = System.currentTimeMillis();
 		private VolatileImage renderbuffer = null;
+		private VolatileImage dragbuffer = null;
 		private TexturePaint bgpattern = null;
 		public RenderPanel(int imagewidth, int imageheight) {
 			this.renderbuffer = gc.createCompatibleVolatileImage(imagewidth, imageheight, Transparency.TRANSLUCENT);
+			this.dragbuffer = gc.createCompatibleVolatileImage(imagewidth,imageheight,Transparency.TRANSLUCENT);
+			Graphics2D gfx = this.renderbuffer.createGraphics();
+			gfx.setComposite(AlphaComposite.Clear);
+			gfx.fillRect(0, 0, imagewidth, imageheight);
 			BufferedImage bgpatternimage = gc.createCompatibleImage(64, 64, Transparency.OPAQUE);
 			Graphics2D pgfx = bgpatternimage.createGraphics();
 			pgfx.setColor(Color.WHITE);
@@ -240,6 +245,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		@Override
 		public void actionPerformed(ActionEvent e) {this.repaint();}
 		public VolatileImage getRenderBuffer() {return renderbuffer;}
+		public VolatileImage getDragBuffer() {return dragbuffer;}
 		public void setRenderBuffer(VolatileImage renderbufferi) {this.renderbuffer=renderbufferi;}
 		
 		@Override public void componentMoved(ComponentEvent e) {}
@@ -248,10 +254,12 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		@Override public void componentResized(ComponentEvent e) {
 			VolatileImage oldimage = this.renderbuffer;
 			this.renderbuffer = gc.createCompatibleVolatileImage(this.getWidth(),this.getHeight(), Transparency.TRANSLUCENT);
+			this.dragbuffer = gc.createCompatibleVolatileImage(this.getWidth(),this.getHeight(), Transparency.TRANSLUCENT);
 			Graphics2D gfx = this.renderbuffer.createGraphics();
+			gfx.setComposite(AlphaComposite.Clear);
+			gfx.fillRect(0, 0, this.getWidth(),this.getHeight());
 			if (oldimage!=null) {
 				gfx.setComposite(AlphaComposite.Src);
-				gfx.setPaint(null);
 				gfx.drawImage(oldimage, 0, 0, null);
 			}
 			gfx.dispose();
@@ -585,6 +593,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 						if (this.windowedmode) {
 							VolatileImage loadimagevolatile = gc.createCompatibleVolatileImage(loadimage.getWidth(), loadimage.getHeight(), Transparency.TRANSLUCENT);
 							Graphics2D loadimagevolatilegfx = loadimagevolatile.createGraphics();
+							loadimagevolatilegfx.setComposite(AlphaComposite.Src);
 							loadimagevolatilegfx.drawImage(loadimage, 0, 0, null);
 							loadimagevolatilegfx.dispose();
 					    	this.renderpanel.setRenderBuffer(loadimagevolatile);
@@ -709,11 +718,16 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		    int offmask2a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    boolean mouse2shiftdown = ((e.getModifiersEx() & (onmask2a | offmask2a)) == onmask2a);
 		    if (mouse2shiftdown) {
-		    	VolatileImage dragimage = gc.createCompatibleVolatileImage(renderbufferhandle.getWidth(),renderbufferhandle.getHeight(),Transparency.TRANSLUCENT);
+		    	VolatileImage dragimage = JavaRenderEngine.this.renderpanel.getDragBuffer();
 		    	Graphics2D dragimagegfx = dragimage.createGraphics();
+		    	dragimagegfx.setComposite(AlphaComposite.Clear);
+		    	dragimagegfx.fillRect(0, 0, renderbufferhandle.getWidth(), renderbufferhandle.getHeight());
 		    	dragimagegfx.setComposite(AlphaComposite.Src);
-		    	renderbuffergfx.setComposite(AlphaComposite.Src);
 		    	dragimagegfx.drawImage(renderbufferhandle, mousedeltax, mousedeltay, null);
+		    	dragimagegfx.dispose();
+		    	renderbuffergfx.setComposite(AlphaComposite.Clear);
+		    	renderbuffergfx.fillRect(0, 0, renderbufferhandle.getWidth(), renderbufferhandle.getHeight());
+		    	renderbuffergfx.setComposite(AlphaComposite.Src);
 		    	renderbuffergfx.drawImage(dragimage, 0, 0, null);
 		    	renderbufferhandle.contentsLost();
 		    }
