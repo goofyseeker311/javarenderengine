@@ -2,9 +2,11 @@ package fi.jkauppa.javarenderengine;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
@@ -49,7 +51,7 @@ public class ModelLib {
 			BufferedReader modelobjfile = null;
 			try {
 				File loadobjfile = new File(filename);
-				modelobjfile = new BufferedReader(new FileReader(loadobjfile));
+				modelobjfile = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream(loadobjfile.getPath().replace(File.separatorChar, '/'))));
 				if (modelobjfile!=null) {
 					k = new Model(filename);
 					ArrayList<ModelObject> modelobjects = new ArrayList<ModelObject>();
@@ -111,7 +113,7 @@ public class ModelLib {
 			BufferedReader modelmtlfile = null;
 			try {
 				File loadmtlfile = new File(filename);
-				modelmtlfile = new BufferedReader(new FileReader(loadmtlfile));
+				modelmtlfile = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream(loadmtlfile.getPath().replace(File.separatorChar, '/'))));
 				if (modelmtlfile!=null) {
 					ArrayList<Material> modelmaterials = new ArrayList<Material>();
 					String fline = null;
@@ -125,7 +127,7 @@ public class ModelLib {
 					    	String farg = fline.substring(7).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
 					    	modelmaterials.get(modelmaterials.size()-1).filename = farg; 
-					    	modelmaterials.get(modelmaterials.size()-1).fileimage = ImageIO.read(loadimgfile); 
+					    	modelmaterials.get(modelmaterials.size()-1).fileimage = ImageIO.read(new BufferedInputStream(ClassLoader.getSystemClassLoader().getResourceAsStream(loadimgfile.getPath().replace(File.separatorChar, '/'))));
 					    }else if (fline.toLowerCase().startsWith("kd ")) {
 					    	String farg = fline.substring(3).trim();
 					    	String[] fargsplit = farg.split(" ");
