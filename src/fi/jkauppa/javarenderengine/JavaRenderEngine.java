@@ -603,6 +603,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 						}else {
 							VolatileImage loadimagevolatile = gc.createCompatibleVolatileImage(this.renderpanel.getWidth(), this.renderpanel.getHeight(), Transparency.TRANSLUCENT);
 							Graphics2D loadimagevolatilegfx = loadimagevolatile.createGraphics();
+							loadimagevolatilegfx.setComposite(AlphaComposite.Clear);
+							loadimagevolatilegfx.fillRect(0, 0, this.renderpanel.getWidth(), this.renderpanel.getHeight());
+							loadimagevolatilegfx.setComposite(AlphaComposite.Src);
 							loadimagevolatilegfx.drawImage(loadimage, 0, 0, null);
 							loadimagevolatilegfx.dispose();
 					    	this.renderpanel.setRenderBuffer(loadimagevolatile);
