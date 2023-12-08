@@ -50,7 +50,8 @@ import fi.jkauppa.javarenderengine.ModelLib.Model;
 
 public class JavaRenderEngine extends JFrame implements KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 	private static final long serialVersionUID = 1L;
-	private AppHandler activeapp = null;
+	private DrawApp drawapp = new DrawApp();
+	private AppHandler activeapp = drawapp;
 	private String userlocalpath = Paths.get("").toAbsolutePath().toString();
 	private String userlocaldir = System.getProperty("user.dir");
 	private String[] writeformatnames = ImageIO.getWriterFormatNames();
@@ -60,6 +61,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private GraphicsConfiguration gc = gd.getDefaultConfiguration ();
 	private int imagecanvaswidth = 1920;
 	private int imagecanvasheight= 1080;
+	private int resizewidth = this.imagecanvaswidth;
+	private int resizeheight = this.imagecanvasheight;
+	private boolean resizing = false;
 	private RenderPanel renderpanel = new RenderPanel(imagecanvaswidth,imagecanvasheight);
 	private boolean windowedmode = true;
 	private Color drawcolor = Color.BLACK;
@@ -85,7 +89,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private DropTargetHandler droptargethandler = new DropTargetHandler();
 	
 	public JavaRenderEngine() {
-		this.setActiveApp(new DrawApp());
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		if (!windowedmode) {
 			this.setUndecorated(true);
@@ -223,6 +226,20 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			long ticktime = newupdate-lastupdate;
 			double ticktimefps = 1000.0f/(double)ticktime;
 			lastupdate = newupdate;
+			if (JavaRenderEngine.this.resizing) {
+				JavaRenderEngine.this.resizing = false;
+				VolatileImage oldimage = this.renderbuffer;
+				this.renderbuffer = gc.createCompatibleVolatileImage(this.getWidth(),this.getHeight(), Transparency.TRANSLUCENT);
+				this.dragbuffer = gc.createCompatibleVolatileImage(this.getWidth(),this.getHeight(), Transparency.TRANSLUCENT);
+				Graphics2D gfx = this.renderbuffer.createGraphics();
+				gfx.setComposite(AlphaComposite.Clear);
+				gfx.fillRect(0, 0, this.getWidth(),this.getHeight());
+				if (oldimage!=null) {
+					gfx.setComposite(AlphaComposite.Src);
+					gfx.drawImage(oldimage, 0, 0, null);
+				}
+				gfx.dispose();
+			}
 			Graphics2D g2 = (Graphics2D)g;
 			if (renderbuffer!=null) {
 				g2.setPaint(this.bgpattern);
@@ -252,17 +269,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		@Override public void componentShown(ComponentEvent e) {}
 		@Override public void componentHidden(ComponentEvent e) {}
 		@Override public void componentResized(ComponentEvent e) {
-			VolatileImage oldimage = this.renderbuffer;
-			this.renderbuffer = gc.createCompatibleVolatileImage(this.getWidth(),this.getHeight(), Transparency.TRANSLUCENT);
-			this.dragbuffer = gc.createCompatibleVolatileImage(this.getWidth(),this.getHeight(), Transparency.TRANSLUCENT);
-			Graphics2D gfx = this.renderbuffer.createGraphics();
-			gfx.setComposite(AlphaComposite.Clear);
-			gfx.fillRect(0, 0, this.getWidth(),this.getHeight());
-			if (oldimage!=null) {
-				gfx.setComposite(AlphaComposite.Src);
-				gfx.drawImage(oldimage, 0, 0, null);
-			}
-			gfx.dispose();
+			JavaRenderEngine.this.resizewidth = this.getWidth();
+			JavaRenderEngine.this.resizeheight = this.getHeight();
+			JavaRenderEngine.this.resizing = true;
 		}
 	}
 	
