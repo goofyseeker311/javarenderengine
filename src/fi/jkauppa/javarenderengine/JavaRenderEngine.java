@@ -224,10 +224,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	    int altoffmask = KeyEvent.SHIFT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
 	    boolean altdownmask = (e.getModifiersEx() & (altonmask | altoffmask)) == altonmask;
 	    
-		if (e.getKeyCode()==KeyEvent.VK_ESCAPE) {
-			System.out.println("keyPressed: VK_ESCAPE");
-			System.exit(0);
-		}else if ((e.getKeyCode()==KeyEvent.VK_ALT)) {
+		if ((e.getKeyCode()==KeyEvent.VK_ALT)) {
 			if (this.activeapp!=null) {this.activeapp.keyPressed(e);}
 			e.consume();
 		}else if ((e.getKeyCode()==KeyEvent.VK_ENTER)&&(altdownmask)) {

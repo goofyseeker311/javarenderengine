@@ -116,7 +116,7 @@ public class DrawApp implements AppHandler {
 	@Override
 	public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_ESCAPE) {
-			System.exit(0);
+			//TODO options menu
 		}
 		if (e.getKeyCode()==KeyEvent.VK_ENTER) {
 		    int onmaska = 0;
