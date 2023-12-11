@@ -331,7 +331,7 @@ public class DrawApp implements AppHandler {
 		    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1c | offmask1c)) == onmask1c);
 		    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3c | offmask3c)) == onmask3c);
 		    if (mouse1altdown||mouse3altdown) {
-		    	this.drawlinemode = true;
+			    this.drawlinemode = true;
 		    }
 		    int onmask1a = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 		    int offmask1a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
