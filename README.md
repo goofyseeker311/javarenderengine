@@ -5,7 +5,11 @@ Starts in JFrame windowed mode, with a child component JPanel updating at chosen
 Shows a black grid on white canvas image behind the drawing canvas image as the transparency image regions indicator.
 
 ```
-Keys:
+App Keys:
+F5                -- Draw App
+F6                -- CAD App
+
+Draw App Keys:
 ESC               -- exits the program
 ALT-ENTER         -- toggles between windowed and full screen mode
 ENTER             -- toggles between alpha/src composite pencil draw mode
