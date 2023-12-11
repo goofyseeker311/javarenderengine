@@ -38,6 +38,7 @@ import fi.jkauppa.javarenderengine.ModelLib.Model;
 public class JavaRenderEngine extends JFrame implements KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 	private static final long serialVersionUID = 1L;
 	private DrawApp drawapp = new DrawApp();
+	private CADApp cadapp = new CADApp();
 	private AppHandler activeapp = null;
 	private GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
 	private GraphicsDevice gd = ge.getDefaultScreenDevice ();
@@ -245,6 +246,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			this.setActiveApp(drawapp);
 		}else if (e.getKeyCode()==KeyEvent.VK_F6) {
 			System.out.println("keyPressed: VK_F6");
+			this.setActiveApp(cadapp);
 		}else if (e.getKeyCode()==KeyEvent.VK_F7) {
 			System.out.println("keyPressed: VK_F7");
 		}else if (e.getKeyCode()==KeyEvent.VK_F8) {
