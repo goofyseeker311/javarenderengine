@@ -16,8 +16,8 @@ ALT-LMB           -- black/hsb-color line drag paint
 SHIFT-CMB         -- drag image contents on image canvas
 MWHEEL            -- pencil width change (minmax)
 CTRL-MWH          -- hue positive change (looping)
-ALT-MWH           -- brightness positive change (minmax)
 CTRL-ALT-MWH      -- saturation positive change (minmax)
+ALT-MWH           -- brightness positive change (minmax)
 DRAG-RMB          -- transparent drag paint eraser
 ALT-DRAG-RMB      -- transparent line drag paint eraser
 INSERT            -- hue positive change (looping)
