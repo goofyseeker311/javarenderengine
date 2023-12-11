@@ -19,6 +19,7 @@ SHIFT-LMB         -- rgb-color picker at cursor
 ALT-LMB           -- black/hsb-color line drag paint
 SHIFT-CMB         -- drag image contents on image canvas
 MWHEEL            -- pencil width change (minmax)
+SHIFT-MWH         -- pencil brush image rotation angle change (looping)
 CTRL-MWH          -- hue positive change (looping)
 CTRL-ALT-MWH      -- saturation positive change (minmax)
 ALT-MWH           -- brightness positive change (minmax)
@@ -36,10 +37,13 @@ NUMPAD*           -- pencil type change next (looping)
 NUMPAD/           -- pencil type change previous (looping)
 NUMPAD9           -- pencil transparency positive (minmax)
 NUMPAD8           -- pencil transparency negative (minmax)
+NUMPAD6           -- pencil brush image rotation angle change positive (looping)
+NUMPAD5           -- pencil brush image rotation angle change negative (looping)
 F2                -- save image file dialog
 F3                -- load image file dialog
 SHIFT-F3          -- load image file as pencil brush dialog
 ```
+
 # Installing and Running
 
 Install Eclipse IDE for Java Developers 2023‑09 (or later) and load the repository as a java project into the IDE:
