@@ -2,7 +2,6 @@ package fi.jkauppa.javarenderengine;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -19,11 +18,9 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.io.File;
-import java.nio.file.Paths;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.filechooser.FileFilter;
 
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
@@ -32,10 +29,6 @@ public class DrawApp implements AppHandler {
 	private GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
 	private GraphicsDevice gd = ge.getDefaultScreenDevice ();
 	private GraphicsConfiguration gc = gd.getDefaultConfiguration ();
-	private String userlocalpath = Paths.get("").toAbsolutePath().toString();
-	private String userlocaldir = System.getProperty("user.dir");
-	private String[] writeformatnames = ImageIO.getWriterFormatNames();
-	private String[] readformatnames = ImageIO.getReaderFormatNames();
 	private VolatileImage renderbuffer = null;
 	private VolatileImage dragbuffer = null;
 	private TexturePaint bgpattern = null;
@@ -80,9 +73,9 @@ public class DrawApp implements AppHandler {
 	@Override
 	public void renderWindow(Graphics2D g2, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
 		if ((renderbuffer==null)||((renderbuffer.getWidth()!=renderwidth)&&(renderbuffer.getHeight()!=renderheight))) {
+			VolatileImage oldimage = this.renderbuffer;
 			this.renderbuffer = gc.createCompatibleVolatileImage(renderwidth,renderheight, Transparency.TRANSLUCENT);
 			this.dragbuffer = gc.createCompatibleVolatileImage(renderwidth,renderheight, Transparency.TRANSLUCENT);
-			VolatileImage oldimage = this.renderbuffer;
 			Graphics2D gfx = this.renderbuffer.createGraphics();
 			gfx.setComposite(AlphaComposite.Clear);
 			gfx.fillRect(0, 0, renderwidth,renderheight);
@@ -95,16 +88,20 @@ public class DrawApp implements AppHandler {
 		g2.fillRect(0, 0, renderbuffer.getWidth(), renderbuffer.getHeight());
 		g2.setPaint(null);
 		g2.drawImage(renderbuffer, 0, 0, null);
-		if ((JavaRenderEngine.this.penciloverridemode)&&(JavaRenderEngine.this.pencilbuffer!=null)) {
-    		double pencilsizescalefactor = ((double)JavaRenderEngine.this.pencilsize)/((double)JavaRenderEngine.this.pencilbuffer.getWidth());
+		if ((this.penciloverridemode)&&(this.pencilbuffer!=null)) {
+    		double pencilsizescalefactor = ((double)this.pencilsize)/((double)this.pencilbuffer.getWidth());
 			g2.setComposite(AlphaComposite.Src);
 			g2.setPaint(this.bgpattern);
-			g2.fillRect(JavaRenderEngine.this.mouselocationx-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f), JavaRenderEngine.this.mouselocationy-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor));
+			int drawlocationx = this.mouselocationx-(int)Math.round((double)this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f);
+			int drawlocationy = this.mouselocationy-(int)Math.round((double)this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f);
+			int drawwidth = (int)Math.round(this.pencilbuffer.getWidth()*pencilsizescalefactor);
+			int drawheight = (int)Math.round(this.pencilbuffer.getHeight()*pencilsizescalefactor);
+			g2.fillRect(drawlocationx, drawlocationy, drawwidth, drawheight);
 		}
-		if (JavaRenderEngine.this.drawlinemode) {
-			JavaRenderEngine.this.drawPencilLine(g2, JavaRenderEngine.this.mousestartlocationx, JavaRenderEngine.this.mousestartlocationy, JavaRenderEngine.this.mouselocationx, JavaRenderEngine.this.mouselocationy, false, false);
+		if (this.drawlinemode) {
+			this.drawPencilLine(g2, this.mousestartlocationx, this.mousestartlocationy, this.mouselocationx, this.mouselocationy, false, false);
 		} else {
-			JavaRenderEngine.this.drawPencil(g2, JavaRenderEngine.this.mouselocationx, JavaRenderEngine.this.mouselocationy, false, false);
+			this.drawPencil(g2, this.mouselocationx, this.mouselocationy, false, false);
 		}
 	}
 
@@ -130,12 +127,11 @@ public class DrawApp implements AppHandler {
 		    }
 		}
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
-			VolatileImage renderbufferhandle = renderpanel.getRenderBuffer();
-			if (renderbufferhandle!=null) {
-				Graphics2D gfx = renderbufferhandle.createGraphics();
+			if (this.renderbuffer!=null) {
+				Graphics2D gfx = this.renderbuffer.createGraphics();
 				gfx.setComposite(AlphaComposite.Src);
 				gfx.setColor(this.erasecolor);
-				gfx.fillRect(0, 0, renderbufferhandle.getWidth(), renderbufferhandle.getHeight());
+				gfx.fillRect(0, 0, this.renderbuffer.getWidth(), this.renderbuffer.getHeight());
 				gfx.dispose();
 			}
 		}
@@ -222,26 +218,26 @@ public class DrawApp implements AppHandler {
 		if (e.getKeyCode()==KeyEvent.VK_F2) {
 			this.filechooser.setDialogTitle("Save File");
 			this.filechooser.setApproveButtonText("Save");
-			if (this.filechooser.showOpenDialog(this)==JFileChooser.APPROVE_OPTION) {
+			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File savefile = this.filechooser.getSelectedFile();
 				FileFilter savefileformat = this.filechooser.getFileFilter();
 				if (savefileformat.equals(this.jpgfilefilter)) {
-					try {ImageIO.write(renderpanel.getRenderBuffer().getSnapshot(), "JPG", savefile);} catch (Exception ex) {ex.printStackTrace();}
+					try {ImageIO.write(this.renderbuffer.getSnapshot(), "JPG", savefile);} catch (Exception ex) {ex.printStackTrace();}
 				} else if (savefileformat.equals(this.giffilefilter)) {
-					try {ImageIO.write(renderpanel.getRenderBuffer().getSnapshot(), "GIF", savefile);} catch (Exception ex) {ex.printStackTrace();}
+					try {ImageIO.write(this.renderbuffer.getSnapshot(), "GIF", savefile);} catch (Exception ex) {ex.printStackTrace();}
 				} else if (savefileformat.equals(this.bmpfilefilter)) {
-					try {ImageIO.write(renderpanel.getRenderBuffer().getSnapshot(), "BMP", savefile);} catch (Exception ex) {ex.printStackTrace();}
+					try {ImageIO.write(this.renderbuffer.getSnapshot(), "BMP", savefile);} catch (Exception ex) {ex.printStackTrace();}
 				} else if (savefileformat.equals(this.wbmpfilefilter)) {
-					try {ImageIO.write(renderpanel.getRenderBuffer().getSnapshot(), "WBMP", savefile);} catch (Exception ex) {ex.printStackTrace();}
+					try {ImageIO.write(this.renderbuffer.getSnapshot(), "WBMP", savefile);} catch (Exception ex) {ex.printStackTrace();}
 				} else {
-					try {ImageIO.write(renderpanel.getRenderBuffer().getSnapshot(), "PNG", savefile);} catch (Exception ex) {ex.printStackTrace();}
+					try {ImageIO.write(this.renderbuffer.getSnapshot(), "PNG", savefile);} catch (Exception ex) {ex.printStackTrace();}
 				}
 			}
 		}
 		if (e.getKeyCode()==KeyEvent.VK_F3) {
 			this.filechooser.setDialogTitle("Load File");
 			this.filechooser.setApproveButtonText("Load");
-			if (this.filechooser.showOpenDialog(this)==JFileChooser.APPROVE_OPTION) {
+			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File loadfile = this.filechooser.getSelectedFile();
 				BufferedImage loadimage = null;
 				try {loadimage=ImageIO.read(loadfile);} catch (Exception ex) {ex.printStackTrace();}
@@ -260,26 +256,12 @@ public class DrawApp implements AppHandler {
 				    	this.pencilbuffer = loadimagevolatile;
 				    	this.pencilbuffer.setAccelerationPriority(1.0f);
 				    }else{
-						if (this.windowedmode) {
-							VolatileImage loadimagevolatile = gc.createCompatibleVolatileImage(loadimage.getWidth(), loadimage.getHeight(), Transparency.TRANSLUCENT);
-							Graphics2D loadimagevolatilegfx = loadimagevolatile.createGraphics();
-							loadimagevolatilegfx.setComposite(AlphaComposite.Src);
-							loadimagevolatilegfx.drawImage(loadimage, 0, 0, null);
-							loadimagevolatilegfx.dispose();
-					    	this.renderpanel.setRenderBuffer(loadimagevolatile);
-							this.renderpanel.setPreferredSize(new Dimension(loadimage.getWidth(),loadimage.getHeight()));
-							this.renderpanel.setSize(loadimage.getWidth(),loadimage.getHeight());
-							this.pack();
-						}else {
-							VolatileImage loadimagevolatile = gc.createCompatibleVolatileImage(this.renderpanel.getWidth(), this.renderpanel.getHeight(), Transparency.TRANSLUCENT);
-							Graphics2D loadimagevolatilegfx = loadimagevolatile.createGraphics();
-							loadimagevolatilegfx.setComposite(AlphaComposite.Clear);
-							loadimagevolatilegfx.fillRect(0, 0, this.renderpanel.getWidth(), this.renderpanel.getHeight());
-							loadimagevolatilegfx.setComposite(AlphaComposite.Src);
-							loadimagevolatilegfx.drawImage(loadimage, 0, 0, null);
-							loadimagevolatilegfx.dispose();
-					    	this.renderpanel.setRenderBuffer(loadimagevolatile);
-						}
+				    	Graphics2D dragimagegfx = this.renderbuffer.createGraphics();
+				    	dragimagegfx.setComposite(AlphaComposite.Clear);
+				    	dragimagegfx.fillRect(0, 0, this.renderbuffer.getWidth(), this.renderbuffer.getHeight());
+				    	dragimagegfx.setComposite(AlphaComposite.Src);
+				    	dragimagegfx.drawImage(loadimage, 0, 0, null);
+				    	dragimagegfx.dispose();
 				    }
 				}
 			}
@@ -308,17 +290,16 @@ public class DrawApp implements AppHandler {
 	@Override public void mouseMoved(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();}
 	@Override public void mousePressed(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();this.mousestartlocationx=this.mouselocationx;this.mousestartlocationy=this.mouselocationy;mouseDragged(e);}
 	@Override public void mouseReleased(MouseEvent e) {
-		VolatileImage renderbufferhandle = this.renderpanel.getRenderBuffer();
-		if (renderbufferhandle!=null) {
-			Graphics2D renderbuffergfx = renderbufferhandle.createGraphics();
-			renderbuffergfx.setColor(JavaRenderEngine.this.drawcolor);
+		if (this.renderbuffer!=null) {
+			Graphics2D renderbuffergfx = this.renderbuffer.createGraphics();
+			renderbuffergfx.setColor(this.drawcolor);
 		    boolean mouse1up = e.getButton()==MouseEvent.BUTTON1;
 		    boolean mouse3up = e.getButton()==MouseEvent.BUTTON3;
 			if (mouse1up||mouse3up) {
 				if (this.drawlinemode) {
 					this.drawlinemode=false;
 					drawPencilLine(renderbuffergfx, this.mousestartlocationx, this.mousestartlocationy, this.mouselocationx, this.mouselocationy, mouse3up, this.penciloverridemode);
-			    	renderbufferhandle.contentsLost();
+					this.renderbuffer.contentsLost();
 				}
 			}
 			renderbuffergfx.dispose();
@@ -331,9 +312,8 @@ public class DrawApp implements AppHandler {
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
     	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
     	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-		VolatileImage renderbufferhandle = renderpanel.getRenderBuffer();
-		if (renderbufferhandle!=null) {
-			Graphics2D renderbuffergfx = renderbufferhandle.createGraphics();
+		if (this.renderbuffer!=null) {
+			Graphics2D renderbuffergfx = this.renderbuffer.createGraphics();
 		    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
 		    int offmask1 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
@@ -342,7 +322,7 @@ public class DrawApp implements AppHandler {
 		    boolean mouse3down = ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3);
 		    if (mouse1down||mouse3down) {
 		    	this.drawPencil(renderbuffergfx, e.getX(), e.getY(), mouse3down, this.penciloverridemode);
-		    	renderbufferhandle.contentsLost();
+		    	this.renderbuffer.contentsLost();
 			}			
 		    int onmask1c = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    int offmask1c = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
@@ -357,7 +337,7 @@ public class DrawApp implements AppHandler {
 		    int offmask1a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    boolean mouse1shiftdown = ((e.getModifiersEx() & (onmask1a | offmask1a)) == onmask1a);
 		    if (mouse1shiftdown) {
-				int colorvalue = renderbufferhandle.getSnapshot().getRGB(e.getX(), e.getY());
+				int colorvalue = this.renderbuffer.getSnapshot().getRGB(e.getX(), e.getY());
 				Color pickeddrawcolor = new Color(colorvalue);
 				this.drawcolorhsb = Color.RGBtoHSB(pickeddrawcolor.getRed(), pickeddrawcolor.getGreen(), pickeddrawcolor.getBlue(), new float[3]);
 				float[] colorvalues = pickeddrawcolor.getRGBColorComponents(new float[3]);
@@ -379,18 +359,17 @@ public class DrawApp implements AppHandler {
 		    int offmask2a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    boolean mouse2shiftdown = ((e.getModifiersEx() & (onmask2a | offmask2a)) == onmask2a);
 		    if (mouse2shiftdown) {
-		    	VolatileImage dragimage = JavaRenderEngine.this.renderpanel.getDragBuffer();
-		    	Graphics2D dragimagegfx = dragimage.createGraphics();
+		    	Graphics2D dragimagegfx = this.dragbuffer.createGraphics();
 		    	dragimagegfx.setComposite(AlphaComposite.Clear);
-		    	dragimagegfx.fillRect(0, 0, renderbufferhandle.getWidth(), renderbufferhandle.getHeight());
+		    	dragimagegfx.fillRect(0, 0, this.renderbuffer.getWidth(), this.renderbuffer.getHeight());
 		    	dragimagegfx.setComposite(AlphaComposite.Src);
-		    	dragimagegfx.drawImage(renderbufferhandle, mousedeltax, mousedeltay, null);
+		    	dragimagegfx.drawImage(this.renderbuffer, mousedeltax, mousedeltay, null);
 		    	dragimagegfx.dispose();
 		    	renderbuffergfx.setComposite(AlphaComposite.Clear);
-		    	renderbuffergfx.fillRect(0, 0, renderbufferhandle.getWidth(), renderbufferhandle.getHeight());
+		    	renderbuffergfx.fillRect(0, 0, this.renderbuffer.getWidth(), this.renderbuffer.getHeight());
 		    	renderbuffergfx.setComposite(AlphaComposite.Src);
-		    	renderbuffergfx.drawImage(dragimage, 0, 0, null);
-		    	renderbufferhandle.contentsLost();
+		    	renderbuffergfx.drawImage(dragbuffer, 0, 0, null);
+		    	this.renderbuffer.contentsLost();
 		    }
 	    	renderbuffergfx.dispose();
 		}
@@ -444,7 +423,7 @@ public class DrawApp implements AppHandler {
 	    int offmask4d = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mousewheelshiftdown = ((e.getModifiersEx() & (onmask4d | offmask4d)) == onmask4d);
 	    if (mousewheelshiftdown) {
-	    	//TODO <tbd>
+	    	//TODO rotate pencil
 	    }
 	}
 
@@ -490,7 +469,11 @@ public class DrawApp implements AppHandler {
 	    		}
     		}
     		double pencilsizescalefactor = ((double)this.pencilsize)/((double)this.pencilbuffer.getWidth());
-    		g.drawImage(JavaRenderEngine.this.pencilbuffer, mousex-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f), mousey-(int)Math.round((double)JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getWidth()*pencilsizescalefactor),(int)Math.round(JavaRenderEngine.this.pencilbuffer.getHeight()*pencilsizescalefactor),null);
+    		int drawlocationx = mousex-(int)Math.round((double)this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f);
+    		int drawlocationy = mousey-(int)Math.round((double)this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f);
+    		int drawwidth = (int)Math.round(this.pencilbuffer.getWidth()*pencilsizescalefactor);
+    		int drawheight = (int)Math.round(this.pencilbuffer.getHeight()*pencilsizescalefactor);
+    		g.drawImage(this.pencilbuffer, drawlocationx, drawlocationy, drawwidth, drawheight,null);
     	} else {
 	    	if (erasemode) {
 	    		g.setComposite(AlphaComposite.Src);

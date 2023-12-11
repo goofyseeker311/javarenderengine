@@ -50,6 +50,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	
 	public JavaRenderEngine() {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setJMenuBar(null);
 		if (!windowedmode) {
 			this.setUndecorated(true);
 			this.setExtendedState(this.getExtendedState()|JFrame.MAXIMIZED_BOTH);
@@ -72,7 +73,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	public static void main(String[] args) {
 		System.setProperty("sun.java2d.opengl", "true");
 		try {UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());} catch (Exception ex) {}
-		
+        
 		Position campos=new Position(0.0f,0.0f,0.0f);
 		Position[] camposa=new Position[1]; camposa[0]=campos;
 		Position[] campos2=new Position[2]; campos2[0]=new Position(1.0f,2.0f,3.0f); campos2[1]=new Position(1.0f,2.0f,3.0f);
@@ -200,7 +201,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	}
 
 	private void setActiveApp(AppHandler activeappi) {
-		//this.activeapp = activeappi;
+		this.activeapp = activeappi;
 	}
 	public interface AppHandler extends ActionListener,ComponentListener,KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 		public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps);
@@ -226,6 +227,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		if (e.getKeyCode()==KeyEvent.VK_ESCAPE) {
 			System.out.println("keyPressed: VK_ESCAPE");
 			System.exit(0);
+		}else if ((e.getKeyCode()==KeyEvent.VK_ALT)) {
+			if (this.activeapp!=null) {this.activeapp.keyPressed(e);}
+			e.consume();
 		}else if ((e.getKeyCode()==KeyEvent.VK_ENTER)&&(altdownmask)) {
 			System.out.println("keyPressed: ALT+VK_ENTER");
 	    	JavaRenderEngine.this.dispose();
