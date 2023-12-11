@@ -1,6 +1,5 @@
 package fi.jkauppa.javarenderengine;
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
@@ -11,13 +10,8 @@ import java.awt.event.MouseWheelEvent;
 
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
 
-public class CADApp implements AppHandler {
-	@Override
-	public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
-		g.setColor(Color.WHITE);
-		g.fillRect(0, 0, renderwidth, renderheight);
-	}
-
+public class TemplateApp implements AppHandler {
+	@Override public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {}
 	@Override public void actionPerformed(ActionEvent e) {}
 	@Override public void componentResized(ComponentEvent e) {}
 	@Override public void componentMoved(ComponentEvent e) {}
@@ -35,5 +29,4 @@ public class CADApp implements AppHandler {
 	@Override public void mouseMoved(MouseEvent e) {}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
 	@Override public void drop(DropTargetDropEvent dtde) {}
-
 }
