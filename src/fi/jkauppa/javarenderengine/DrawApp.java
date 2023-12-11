@@ -15,6 +15,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.io.File;
@@ -37,6 +38,7 @@ public class DrawApp implements AppHandler {
 	private Color erasecolor = new Color(1.0f,1.0f,1.0f,0.0f);
 	private int pencilsize = 1;
 	private int pencilshape = 1;
+	private double pencilangle = 0;
 	private boolean penciloverridemode = false;
 	private float penciltransparency = 1.0f;
 	private VolatileImage pencilbuffer = null;
@@ -211,6 +213,14 @@ public class DrawApp implements AppHandler {
 			if (this.penciltransparency<0.0f) {this.penciltransparency = 0.0f;}
 			float[] colorvalues = this.drawcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+		}
+		if (e.getKeyCode()==KeyEvent.VK_NUMPAD6) {
+			this.pencilangle += 0.01f;
+			if (this.pencilangle>(2.0f*Math.PI)) {this.pencilangle = 0.0f;}
+		}
+		if (e.getKeyCode()==KeyEvent.VK_NUMPAD5) {
+			this.pencilangle -= 0.01f;
+			if (this.pencilangle<0.0f) {this.pencilangle = 2.0f*Math.PI;}
 		}
 		if (e.getKeyCode()==KeyEvent.VK_F1) {
 			//TODO help pop-up window
@@ -423,7 +433,12 @@ public class DrawApp implements AppHandler {
 	    int offmask4d = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mousewheelshiftdown = ((e.getModifiersEx() & (onmask4d | offmask4d)) == onmask4d);
 	    if (mousewheelshiftdown) {
-	    	//TODO rotate pencil
+			this.pencilangle += 0.01f*e.getWheelRotation();
+			if (this.pencilangle>(2.0f*Math.PI)) {
+				this.pencilangle = 0.0f;
+			} else if (this.pencilangle<0.0f) {
+				this.pencilangle = 2.0f*Math.PI;
+			}
 	    }
 	}
 
@@ -469,11 +484,15 @@ public class DrawApp implements AppHandler {
 	    		}
     		}
     		double pencilsizescalefactor = ((double)this.pencilsize)/((double)this.pencilbuffer.getWidth());
-    		int drawlocationx = mousex-(int)Math.round((double)this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f);
-    		int drawlocationy = mousey-(int)Math.round((double)this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f);
-    		int drawwidth = (int)Math.round(this.pencilbuffer.getWidth()*pencilsizescalefactor);
-    		int drawheight = (int)Math.round(this.pencilbuffer.getHeight()*pencilsizescalefactor);
-    		g.drawImage(this.pencilbuffer, drawlocationx, drawlocationy, drawwidth, drawheight,null);
+    		int halfwidth = (int)Math.round((double)this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f);
+    		int halfheight = (int)Math.round((double)this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f);
+    		int drawlocationx = mousex - halfwidth;
+    		int drawlocationy = mousey - halfheight;
+    		AffineTransform penciltransform = new AffineTransform();
+    		penciltransform.translate(drawlocationx, drawlocationy);
+    		penciltransform.rotate(this.pencilangle,halfwidth,halfheight);
+    		penciltransform.scale(pencilsizescalefactor, pencilsizescalefactor);
+    		g.drawImage(this.pencilbuffer, penciltransform, null);
     	} else {
 	    	if (erasemode) {
 	    		g.setComposite(AlphaComposite.Src);
