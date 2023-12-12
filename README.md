@@ -41,10 +41,10 @@ NUMPAD5           -- pencil brush image rotation angle change negative (looping)
 F2                -- save image file dialog
 F3                -- load image file dialog
 SHIFT-F3          -- load image file as pencil brush dialog
-```
+
 Draw App Keys:
 ALT-DRAG-LMB      -- vector line drag draw
-
+```
 
 # Installing and Running
 
