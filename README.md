@@ -5,18 +5,17 @@ Starts in JFrame windowed mode, with a child component JPanel updating at chosen
 Shows a black grid on white canvas image behind the drawing canvas image as the transparency image regions indicator.
 
 ```
-App Keys:
+Shared Keys:
+ALT-ENTER         -- toggles between windowed and full screen mode
 F5                -- Draw App
 F6                -- CAD App
 
 Draw App Keys:
-ESC               -- exits the program
-ALT-ENTER         -- toggles between windowed and full screen mode
 ENTER             -- toggles between alpha/src composite pencil draw mode
 BACKSPACE         -- erases the whole window canvas to white.
 DRAG-LMB          -- black/hsb-color drag paint
 SHIFT-LMB         -- rgb-color picker at cursor
-ALT-LMB           -- black/hsb-color line drag paint
+ALT-DRAG-LMB      -- black/hsb-color line drag paint
 SHIFT-CMB         -- drag image contents on image canvas
 MWHEEL            -- pencil width change (minmax)
 SHIFT-MWH         -- pencil brush image rotation angle change (looping)
@@ -43,6 +42,9 @@ F2                -- save image file dialog
 F3                -- load image file dialog
 SHIFT-F3          -- load image file as pencil brush dialog
 ```
+Draw App Keys:
+ALT-DRAG-LMB      -- vector line drag draw
+
 
 # Installing and Running
 
