@@ -42,7 +42,7 @@ F2                -- save image file dialog
 F3                -- load image file dialog
 SHIFT-F3          -- load image file as pencil brush dialog
 
-Draw App Keys:
+CAD App Keys:
 ALT-DRAG-LMB      -- vector line drag draw
 ```
 
