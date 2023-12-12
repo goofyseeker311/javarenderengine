@@ -24,6 +24,10 @@ public class CADApp implements AppHandler {
 	private GraphicsDevice gd = ge.getDefaultScreenDevice ();
 	private GraphicsConfiguration gc = gd.getDefaultConfiguration ();
 	private TexturePaint bgpattern = null;
+	private boolean drawlinemode = false;
+	private int mousestartlocationx = -1, mousestartlocationy = -1;  
+	private int mouselastlocationx = -1, mouselastlocationy = -1;  
+	private int mouselocationx = -1, mouselocationy = -1;
 	
 	public CADApp() {
 		BufferedImage bgpatternimage = gc.createCompatibleImage(64, 64, Transparency.OPAQUE);
@@ -44,6 +48,15 @@ public class CADApp implements AppHandler {
 		g.fillRect(0, 0, renderwidth, renderheight);
 	}
 
+	@Override public void mouseMoved(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();}
+	@Override public void mousePressed(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();this.mousestartlocationx=this.mouselocationx;this.mousestartlocationy=this.mouselocationy;mouseDragged(e);}
+	public void mouseDragged(MouseEvent e) {
+		this.mouselastlocationx=this.mouselocationx;this.mouselastlocationy=this.mouselocationy;
+		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
+    	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
+    	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+	}
+	
 	@Override public void actionPerformed(ActionEvent e) {}
 	@Override public void componentResized(ComponentEvent e) {}
 	@Override public void componentMoved(ComponentEvent e) {}
@@ -53,12 +66,9 @@ public class CADApp implements AppHandler {
 	@Override public void keyPressed(KeyEvent e) {}
 	@Override public void keyReleased(KeyEvent e) {}
 	@Override public void mouseClicked(MouseEvent e) {}
-	@Override public void mousePressed(MouseEvent e) {}
 	@Override public void mouseReleased(MouseEvent e) {}
 	@Override public void mouseEntered(MouseEvent e) {}
 	@Override public void mouseExited(MouseEvent e) {}
-	@Override public void mouseDragged(MouseEvent e) {}
-	@Override public void mouseMoved(MouseEvent e) {}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
 	@Override public void drop(DropTargetDropEvent dtde) {}
 
