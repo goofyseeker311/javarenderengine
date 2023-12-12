@@ -1,6 +1,7 @@
 package fi.jkauppa.javarenderengine;
 
 import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
@@ -31,7 +32,9 @@ public class CADApp implements AppHandler {
 	private int mousestartlocationx = -1, mousestartlocationy = -1;  
 	private int mouselastlocationx = -1, mouselastlocationy = -1;  
 	private int mouselocationx = -1, mouselocationy = -1;
-	private final int vertexradius = 2;
+	private final int vertexradius = 5;
+	private final int vertexstroke = 2;
+	private final int linestroke = 5;
 	private ArrayList<Position2> linelist = new ArrayList<Position2>(); 
 	
 	public CADApp() {
@@ -54,20 +57,37 @@ public class CADApp implements AppHandler {
 		g.setPaint(null);
 		for (int i=0;i<linelist.size();i++) {
 			g.setColor(Color.BLACK);
+			g.setStroke(new BasicStroke(this.vertexstroke));
 			g.drawOval((int)Math.round(linelist.get(i).pos1.x-this.vertexradius), (int)Math.round(linelist.get(i).pos1.y-this.vertexradius), this.vertexradius*2, this.vertexradius*2);
 			g.drawOval((int)Math.round(linelist.get(i).pos2.x-this.vertexradius), (int)Math.round(linelist.get(i).pos2.y-this.vertexradius), this.vertexradius*2, this.vertexradius*2);
 			g.setColor(Color.BLUE);
+			g.setStroke(new BasicStroke(this.linestroke));
 			g.drawLine((int)Math.round(linelist.get(i).pos1.x), (int)Math.round(linelist.get(i).pos1.y), (int)Math.round(linelist.get(i).pos2.x), (int)Math.round(linelist.get(i).pos2.y));
 		}
 		if (this.drawlinemode) {
 			g.setColor(Color.BLACK);
-			g.drawOval(this.mousestartlocationx-this.vertexradius, this.mousestartlocationy-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
-			g.drawOval(this.mouselocationx-this.vertexradius, this.mouselocationy-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
+			g.setStroke(new BasicStroke(this.vertexstroke));
+			g.drawOval(this.mousestartlocationx-this.vertexradius, mousestartlocationy-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
+			g.drawOval(this.mouselocationx-this.vertexradius, mouselocationy-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
 			g.setColor(Color.BLUE);
+			g.setStroke(new BasicStroke(this.linestroke));
 			g.drawLine(this.mousestartlocationx, this.mousestartlocationy, this.mouselocationx, this.mouselocationy);
 		}
 	}
-
+	
+	@Override public void actionPerformed(ActionEvent e) {}
+	@Override public void componentResized(ComponentEvent e) {}
+	@Override public void componentMoved(ComponentEvent e) {}
+	@Override public void componentShown(ComponentEvent e) {}
+	@Override public void componentHidden(ComponentEvent e) {}
+	@Override public void keyTyped(KeyEvent e) {}
+	@Override public void keyReleased(KeyEvent e) {}
+	@Override public void keyPressed(KeyEvent e) {
+		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
+			this.linelist.clear();
+		}
+	}
+	
 	@Override public void mouseMoved(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();}
 	@Override public void mousePressed(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();this.mousestartlocationx=this.mouselocationx;this.mousestartlocationy=this.mouselocationy;mouseDragged(e);}
 	@Override public void mouseReleased(MouseEvent e) {
@@ -107,19 +127,10 @@ public class CADApp implements AppHandler {
 	    if (mouse1altdown||mouse3altdown) {
 	    	if (mouse1altdown) {
 	    		this.drawlinemode = true;
-	    		System.out.println("this.drawlinemode="+this.drawlinemode);
 	    	}
 	    }
 	}
 	
-	@Override public void actionPerformed(ActionEvent e) {}
-	@Override public void componentResized(ComponentEvent e) {}
-	@Override public void componentMoved(ComponentEvent e) {}
-	@Override public void componentShown(ComponentEvent e) {}
-	@Override public void componentHidden(ComponentEvent e) {}
-	@Override public void keyTyped(KeyEvent e) {}
-	@Override public void keyPressed(KeyEvent e) {}
-	@Override public void keyReleased(KeyEvent e) {}
 	@Override public void mouseClicked(MouseEvent e) {}
 	@Override public void mouseEntered(MouseEvent e) {}
 	@Override public void mouseExited(MouseEvent e) {}

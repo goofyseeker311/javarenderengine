@@ -12,7 +12,7 @@ F6                -- CAD App
 
 Draw App Keys:
 ENTER             -- toggles between alpha/src composite pencil draw mode
-BACKSPACE         -- erases the whole window canvas to white.
+BACKSPACE         -- erases the whole window canvas to white
 DRAG-LMB          -- black/hsb-color drag paint
 SHIFT-LMB         -- rgb-color picker at cursor
 ALT-DRAG-LMB      -- black/hsb-color line drag paint
@@ -43,6 +43,7 @@ F3                -- load image file dialog
 SHIFT-F3          -- load image file as pencil brush dialog
 
 CAD App Keys:
+BACKSPACE         -- removes all vector lines
 ALT-DRAG-LMB      -- vector line drag draw
 ```
 
