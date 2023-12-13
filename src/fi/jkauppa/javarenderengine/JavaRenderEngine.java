@@ -39,6 +39,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private static final long serialVersionUID = 1L;
 	private DrawApp drawapp = new DrawApp();
 	private CADApp cadapp = new CADApp();
+	private ModelApp modelapp = new ModelApp();
+	private EditorApp editorapp = new EditorApp();
 	private AppHandler activeapp = null;
 	private GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
 	private GraphicsDevice gd = ge.getDefaultScreenDevice ();
@@ -148,7 +150,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		JavaRenderEngine app = new JavaRenderEngine();
 	}
 	
-	private class RenderPanel extends JPanel implements ActionListener,ComponentListener {
+	private class RenderPanel extends JPanel implements ActionListener {
 		private static final long serialVersionUID = 1L;
 		private final int fpstarget = 60;
 		private final int fpstargetdelay = (int)Math.floor(1000.0f/(2.0f*(double)fpstarget));
@@ -156,7 +158,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		private long lastupdate = System.currentTimeMillis();
 		private VolatileImage doublebuffer = null;
 		public RenderPanel() {
-			this.addComponentListener(this);
 			timer.start();
 		}
 		@Override
@@ -190,10 +191,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			}
 		}
 		@Override public void actionPerformed(ActionEvent e) {this.repaint();if (JavaRenderEngine.this.activeapp!=null) {JavaRenderEngine.this.activeapp.actionPerformed(e);}}
-		@Override public void componentMoved(ComponentEvent e) {System.out.println("Window: Moved");if (JavaRenderEngine.this.activeapp!=null) {JavaRenderEngine.this.activeapp.componentMoved(e);}}
-		@Override public void componentShown(ComponentEvent e) {System.out.println("Window: Shown");if (JavaRenderEngine.this.activeapp!=null) {JavaRenderEngine.this.activeapp.componentShown(e);}}
-		@Override public void componentHidden(ComponentEvent e) {System.out.println("Window: Hidden");if (JavaRenderEngine.this.activeapp!=null) {JavaRenderEngine.this.activeapp.componentHidden(e);}}
-		@Override public void componentResized(ComponentEvent e) {System.out.println("Window: Resizing");if (JavaRenderEngine.this.activeapp!=null) {JavaRenderEngine.this.activeapp.componentResized(e);}}
 	}
 	
 	private class DropTargetHandler extends DropTarget {
@@ -204,7 +201,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private void setActiveApp(AppHandler activeappi) {
 		this.activeapp = activeappi;
 	}
-	public interface AppHandler extends ActionListener,ComponentListener,KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
+	public interface AppHandler extends ActionListener,KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 		public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps);
 		public void drop(DropTargetDropEvent dtde);
 	}
@@ -249,8 +246,10 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			this.setActiveApp(cadapp);
 		}else if (e.getKeyCode()==KeyEvent.VK_F7) {
 			System.out.println("keyPressed: VK_F7");
+			this.setActiveApp(modelapp);
 		}else if (e.getKeyCode()==KeyEvent.VK_F8) {
 			System.out.println("keyPressed: VK_F8");
+			this.setActiveApp(editorapp);
 		}else {
 			if (this.activeapp!=null) {this.activeapp.keyPressed(e);}
 		}
