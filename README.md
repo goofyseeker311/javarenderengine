@@ -9,6 +9,8 @@ Shared Keys:
 ALT-ENTER         -- toggles between windowed and full screen mode
 F5                -- Draw App
 F6                -- CAD App
+F7                -- Model App
+F8                -- Editor App
 
 Draw App Keys:
 ENTER             -- toggles between alpha/src composite pencil draw mode
@@ -45,6 +47,12 @@ SHIFT-F3          -- load image file as pencil brush dialog
 CAD App Keys:
 BACKSPACE         -- removes all vector lines
 ALT-DRAG-LMB      -- vector line drag draw
+
+Model App Keys:
+-- none --        -- placeholder key binding
+
+Editor App Keys:
+-- none --        -- placeholder key binding
 ```
 
 # Installing and Running
