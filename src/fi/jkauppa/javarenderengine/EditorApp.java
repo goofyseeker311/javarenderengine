@@ -11,10 +11,10 @@ import java.awt.event.MouseWheelEvent;
 
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
 
-public class ModelApp implements AppHandler {
+public class EditorApp implements AppHandler {
 	@Override public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
 		g.setComposite(AlphaComposite.Src);
-		g.setColor(Color.BLUE);
+		g.setColor(Color.GREEN);
 		g.setPaint(null);
 		g.fillRect(0, 0, renderwidth, renderheight);
 	}
