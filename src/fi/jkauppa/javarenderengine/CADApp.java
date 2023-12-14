@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
 import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Position2;
+import fi.jkauppa.javarenderengine.MathLib.Sphere;
 
 public class CADApp implements AppHandler {
 	private GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
@@ -28,6 +29,8 @@ public class CADApp implements AppHandler {
 	private GraphicsConfiguration gc = gd.getDefaultConfiguration ();
 	private TexturePaint bgpattern = null;
 	private boolean drawlinemode = false;
+	private boolean draglinemode = false;
+	private int selecteddragvertex = -1;
 	private int mousestartlocationx = -1, mousestartlocationy = -1;  
 	private int mouselastlocationx = -1, mouselastlocationy = -1;  
 	private int mouselocationx = -1, mouselocationy = -1;
@@ -74,6 +77,25 @@ public class CADApp implements AppHandler {
 		}
 	}
 	
+	private int getVertexAtMouse() {
+		int k = -1;
+		Sphere[] vsphere1 = new Sphere[1]; vsphere1[0] = new Sphere(this.mouselocationx,this.mouselocationy,0,0); 
+		Sphere[] vsphere2 = new Sphere[2*this.linelist.size()];
+		for (int i=0;i<linelist.size();i++) {
+			vsphere2[2*i] = new Sphere(linelist.get(i).pos1.x, linelist.get(i).pos1.y, 0.0f, this.vertexradius);
+			vsphere2[2*i+1] = new Sphere(linelist.get(i).pos2.x, linelist.get(i).pos2.y, 0.0f, this.vertexradius);
+		}
+		boolean[][] ssint = MathLib.sphereSphereIntersection(vsphere1, vsphere2);
+		if (ssint!=null) {
+    		for (int i=0;(!this.draglinemode)&&(i<ssint[0].length);i++) {
+    			if (ssint[0][i]) {
+    				k = i;
+    			}
+    		}
+		}
+		return k;
+	}
+	
 	@Override public void actionPerformed(ActionEvent e) {}
 	@Override public void keyTyped(KeyEvent e) {}
 	@Override public void keyReleased(KeyEvent e) {}
@@ -84,15 +106,44 @@ public class CADApp implements AppHandler {
 	}
 	
 	@Override public void mouseMoved(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();}
-	@Override public void mousePressed(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();this.mousestartlocationx=this.mouselocationx;this.mousestartlocationy=this.mouselocationy;mouseDragged(e);}
+	@Override public void mousePressed(MouseEvent e) {
+		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
+		this.mousestartlocationx=this.mouselocationx;this.mousestartlocationy=this.mouselocationy;
+	    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
+	    int offmask1 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
+	    int offmask3 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    boolean mouse1down = ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1);
+	    boolean mouse3down = ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3);
+	    if (mouse1down||mouse3down) {
+	    	if (mouse1down) {
+	    		int vertexatmouse = getVertexAtMouse();
+    			if (vertexatmouse!=-1) {
+    				this.draglinemode = true;
+    				this.selecteddragvertex = vertexatmouse;
+    			}
+	    	}
+	    	if (mouse3down) {
+	    		int vertexatmouse = getVertexAtMouse();
+    			if (vertexatmouse!=-1) {
+    				int linenum = Math.floorDiv(vertexatmouse,2);
+    				this.linelist.remove(linenum);
+    			}
+	    	}
+		}
+		mouseDragged(e);
+	}
 	@Override public void mouseReleased(MouseEvent e) {
 	    boolean mouse1up = e.getButton()==MouseEvent.BUTTON1;
 	    boolean mouse3up = e.getButton()==MouseEvent.BUTTON3;
 		if (mouse1up||mouse3up) {
 			if (mouse1up) {
 				if (this.drawlinemode) {
-					this.drawlinemode=false;
-					this.linelist.add(new Position2(new Position(this.mousestartlocationx, this.mousestartlocationy,0),new Position(this.mouselocationx, this.mouselocationy,0)));
+					this.drawlinemode = false;
+					this.linelist.add(new Position2(new Position(this.mousestartlocationx, this.mousestartlocationy,0), new Position(this.mouselocationx, this.mouselocationy,0)));
+				}
+				if (this.draglinemode) {
+					this.draglinemode = false;
 				}
 			}
 		}
@@ -111,8 +162,20 @@ public class CADApp implements AppHandler {
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1);
 	    boolean mouse3down = ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3);
 	    if (mouse1down||mouse3down) {
-	    	//TODO select/remove lines/vertices
-		}			
+	    	if (mouse1down) {
+	    		if (this.draglinemode) {
+    				int linenum = Math.floorDiv(this.selecteddragvertex,2);
+    				boolean firstvertex = Math.floorMod(this.selecteddragvertex,2)==0;
+    				if (firstvertex) {
+    					this.linelist.get(linenum).pos1.x = this.mouselocationx;
+    					this.linelist.get(linenum).pos1.y = this.mouselocationy;
+	    			} else {
+    					this.linelist.get(linenum).pos2.x = this.mouselocationx;
+    					this.linelist.get(linenum).pos2.y = this.mouselocationy;
+	    			}
+	    		}
+    		}
+		}
 	    int onmask1c = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    int offmask1c = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    int onmask3c = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;

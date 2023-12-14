@@ -1,5 +1,8 @@
 package fi.jkauppa.javarenderengine;
 
+import java.util.Arrays;
+import java.util.Comparator;
+
 public class MathLib {
 	public static class Position {public double x,y,z; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}}
 	public static class Direction {public double dx,dy,dz; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;}}
@@ -9,6 +12,36 @@ public class MathLib {
 	public static class Position2 {public Position pos1,pos2; public Position2(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}}
 	public static class Triangle {public Position pos1,pos2,pos3; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;}}
 	public static class Matrix {public double a11,a12,a13,a21,a22,a23,a31,a32,a33;public Matrix(double a11i,double a12i,double a13i,double a21i,double a22i,double a23i,double a31i,double a32i,double a33i){this.a11=a11i;this.a12=a12i;this.a13=a13i;this.a21=a21i;this.a22=a22i;this.a23=a23i;this.a31=a31i;this.a32=a32i;this.a33=a33i;}}
+
+	public static int[] indexSort(double[] data) {
+		int[] k = null;
+		if ((data!=null)&&(data.length>0)) {
+			k = new int[data.length];
+			Integer[] idx = new Integer[data.length];
+			for (int i=0;i<data.length;i++) {
+				idx[i] = i; 
+			}
+			Arrays.sort(idx, new Comparator<Integer>() {
+			    @Override public int compare(final Integer o1, final Integer o2) {
+			        return Double.compare(data[o1], data[o2]);
+			    }
+			});
+			for (int i=0;i<data.length;i++) {
+				k[i] = idx[i].intValue(); 
+			}
+		}
+		return k;
+	}
+	public static double[] indexValues(double[] data, int[] idx) {
+		double[] k = null;
+		if ((data!=null)&&(idx!=null)&&(data.length>0)&&(idx.length>0)&&(data.length==idx.length)) {
+			k = new double[data.length];
+			for (int i=0;i<data.length;i++) {
+				k[i] = data[idx[i]];
+			}
+		}
+		return k;
+	}
 	
 	public static double[] vectorDot(Direction[] vdir, Position[] vpoint){double[] k=null; if((vdir!=null)&&(vpoint!=null)&&(vdir.length==vpoint.length)){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vpoint[n].x+vdir[n].dy*vpoint[n].y+vdir[n].dz*vpoint[n].z;}}return k;}
 	public static double[] vectorDot(Direction[] vdir1, Direction[] vdir2){double[] k=null; if((vdir1!=null)&&(vdir2!=null)&&(vdir1.length==vdir2.length)){k=new double[vdir1.length];for(int n=0;n<vdir1.length;n++){k[n] = vdir1[n].dx*vdir2[n].dx+vdir1[n].dy*vdir2[n].dy+vdir1[n].dz*vdir2[n].dz;}}return k;}
@@ -186,6 +219,50 @@ public class MathLib {
 		return k;
 	}
 
+	public static boolean[][] sphereSphereIntersection(Sphere[] vsphere1, Sphere[] vsphere2) {
+		boolean[][] k = null;
+		if ((vsphere1.length>0)&&(vsphere2.length>0)) {
+			k = new boolean[vsphere1.length][vsphere2.length];
+			for (int j=0;j<vsphere1.length;j++) {
+				for (int i=0;i<vsphere2.length;i++) {
+					k[j][i] = Math.sqrt(Math.pow(vsphere2[i].x-vsphere1[j].x,2)+Math.pow(vsphere2[i].y-vsphere1[j].y,2)+Math.pow(vsphere2[i].z-vsphere1[j].z,2))<=(vsphere2[i].r+vsphere1[j].r); 
+				}
+			}
+		}
+		return k;
+	}
+	
+	public static boolean[][] mutualSphereIntersection(Sphere[] vsphere) {
+		boolean[][] k = null;
+		double[] xlist = new double[2*vsphere.length];
+		double[] ylist = new double[2*vsphere.length];
+		double[] zlist = new double[2*vsphere.length];
+		for (int i=0; i<vsphere.length; i++) {
+			xlist[2*i] = vsphere[i].x-vsphere[i].r;
+			xlist[2*i+1] = vsphere[i].x+vsphere[i].r;
+			ylist[2*i] = vsphere[i].y-vsphere[i].r;
+			ylist[2*i+1] = vsphere[i].y+vsphere[i].r;
+			zlist[2*i] = vsphere[i].z-vsphere[i].r;
+			zlist[2*i+1] = vsphere[i].z+vsphere[i].r;
+		}
+		int[] xlistsidx = indexSort(xlist);
+		int[] ylistsidx = indexSort(ylist);
+		int[] zlistsidx = indexSort(zlist);
+		double[] xlistsval = indexValues(xlist,xlistsidx);
+		double[] ylistsval = indexValues(ylist,ylistsidx);
+		double[] zlistsval = indexValues(zlist,zlistsidx);
+		for (int i=0; i<vsphere.length; i++) {
+			int xlistidx1 = Arrays.binarySearch(xlist,xlist[i*2]);
+			int xlistidx2 = Arrays.binarySearch(xlist,xlist[i*2+1]);
+			int ylistidx1 = Arrays.binarySearch(ylist,ylist[i*2]);
+			int ylistidx2 = Arrays.binarySearch(ylist,ylist[i*2+1]);
+			int zlistidx1 = Arrays.binarySearch(zlist,zlist[i*2]);
+			int zlistidx2 = Arrays.binarySearch(zlist,zlist[i*2+1]);
+			//TODO limit sort intersection
+		}
+		return k;
+	}
+	
 	public static Matrix matrixMultiply(Matrix vmat1, Matrix vmat2) {
 		Matrix k = null;
 		if ((vmat1!=null)&&(vmat2!=null)) {
