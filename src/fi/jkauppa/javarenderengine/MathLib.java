@@ -219,6 +219,50 @@ public class MathLib {
 		return k;
 	}
 
+	public static boolean[][] sphereSphereIntersection(Sphere[] vsphere1, Sphere[] vsphere2) {
+		boolean[][] k = null;
+		if ((vsphere1.length>0)&&(vsphere2.length>0)) {
+			k = new boolean[vsphere1.length][vsphere2.length];
+			for (int j=0;j<vsphere1.length;j++) {
+				for (int i=0;i<vsphere2.length;i++) {
+					k[j][i] = Math.sqrt(Math.pow(vsphere2[i].x-vsphere1[j].x,2)+Math.pow(vsphere2[i].y-vsphere1[j].y,2)+Math.pow(vsphere2[i].z-vsphere1[j].z,2))<=(vsphere2[i].r+vsphere1[j].r); 
+				}
+			}
+		}
+		return k;
+	}
+	
+	public static boolean[][] mutualSphereIntersection(Sphere[] vsphere) {
+		boolean[][] k = null;
+		double[] xlist = new double[2*vsphere.length];
+		double[] ylist = new double[2*vsphere.length];
+		double[] zlist = new double[2*vsphere.length];
+		for (int i=0; i<vsphere.length; i++) {
+			xlist[2*i] = vsphere[i].x-vsphere[i].r;
+			xlist[2*i+1] = vsphere[i].x+vsphere[i].r;
+			ylist[2*i] = vsphere[i].y-vsphere[i].r;
+			ylist[2*i+1] = vsphere[i].y+vsphere[i].r;
+			zlist[2*i] = vsphere[i].z-vsphere[i].r;
+			zlist[2*i+1] = vsphere[i].z+vsphere[i].r;
+		}
+		int[] xlistsidx = indexSort(xlist);
+		int[] ylistsidx = indexSort(ylist);
+		int[] zlistsidx = indexSort(zlist);
+		double[] xlistsval = indexValues(xlist,xlistsidx);
+		double[] ylistsval = indexValues(ylist,ylistsidx);
+		double[] zlistsval = indexValues(zlist,zlistsidx);
+		for (int i=0; i<vsphere.length; i++) {
+			int xlistidx1 = Arrays.binarySearch(xlist,xlist[i*2]);
+			int xlistidx2 = Arrays.binarySearch(xlist,xlist[i*2+1]);
+			int ylistidx1 = Arrays.binarySearch(ylist,ylist[i*2]);
+			int ylistidx2 = Arrays.binarySearch(ylist,ylist[i*2+1]);
+			int zlistidx1 = Arrays.binarySearch(zlist,zlist[i*2]);
+			int zlistidx2 = Arrays.binarySearch(zlist,zlist[i*2+1]);
+			//TODO limit sort intersection
+		}
+		return k;
+	}
+	
 	public static Matrix matrixMultiply(Matrix vmat1, Matrix vmat2) {
 		Matrix k = null;
 		if ((vmat1!=null)&&(vmat2!=null)) {
@@ -270,49 +314,6 @@ public class MathLib {
 		Matrix yrot = new Matrix(Math.cos(yaxisrrad),0,Math.sin(yaxisrrad),0,1,0,-Math.sin(yaxisrrad),0,Math.cos(yaxisrrad));
 		Matrix zrot = new Matrix(Math.cos(zaxisrrad),-Math.sin(zaxisrrad),0,Math.sin(zaxisrrad),Math.cos(zaxisrrad),0,0,0,1);
 		k = matrixMultiply(zrot,matrixMultiply(yrot, xrot));
-		return k;
-	}
-
-	public static boolean[][] sphereSphereIntersection(Sphere[] vsphere1, Sphere[] vsphere2) {
-		boolean[][] k = null;
-		if ((vsphere1.length>0)&&(vsphere2.length>0)) {
-			k = new boolean[vsphere1.length][vsphere2.length];
-			for (int j=0;j<vsphere1.length;j++) {
-				for (int i=0;i<vsphere2.length;i++) {
-					k[j][i] = Math.sqrt(Math.pow(vsphere2[i].x-vsphere1[j].x,2)+Math.pow(vsphere2[i].y-vsphere1[j].y,2)+Math.pow(vsphere2[i].z-vsphere1[j].z,2))<=(vsphere2[i].r+vsphere1[j].r); 
-				}
-			}
-		}
-		return k;
-	}
-	
-	public static boolean[][] mutualSphereIntersection(Sphere[] vsphere) {
-		boolean[][] k = null;
-		double[] xlist = new double[2*vsphere.length];
-		double[] ylist = new double[2*vsphere.length];
-		double[] zlist = new double[2*vsphere.length];
-		for (int i=0; i<vsphere.length; i++) {
-			xlist[2*i] = vsphere[i].x-vsphere[i].r;
-			xlist[2*i+1] = vsphere[i].x+vsphere[i].r;
-			ylist[2*i] = vsphere[i].y-vsphere[i].r;
-			ylist[2*i+1] = vsphere[i].y+vsphere[i].r;
-			zlist[2*i] = vsphere[i].z-vsphere[i].r;
-			zlist[2*i+1] = vsphere[i].z+vsphere[i].r;
-		}
-		int[] xlistsidx = indexSort(xlist);
-		int[] ylistsidx = indexSort(ylist);
-		int[] zlistsidx = indexSort(zlist);
-		double[] xlistsval = indexValues(xlist,xlistsidx);
-		double[] ylistsval = indexValues(ylist,ylistsidx);
-		double[] zlistsval = indexValues(zlist,zlistsidx);
-		for (int i=0; i<vsphere.length; i++) {
-			int xlistidx1 = Arrays.binarySearch(xlist,xlist[i*2]);
-			int xlistidx2 = Arrays.binarySearch(xlist,xlist[i*2+1]);
-			int ylistidx1 = Arrays.binarySearch(ylist,ylist[i*2]);
-			int ylistidx2 = Arrays.binarySearch(ylist,ylist[i*2+1]);
-			int zlistidx1 = Arrays.binarySearch(zlist,zlist[i*2]);
-			int zlistidx2 = Arrays.binarySearch(zlist,zlist[i*2+1]);
-		}
 		return k;
 	}
 	
