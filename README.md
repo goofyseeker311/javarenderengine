@@ -50,6 +50,8 @@ ALT-DRAG-LMB      -- vector line drag draw
 ALT-RMB           -- remove line vertex
 DRAG-LMB          -- move line vertex
 SHIFT             -- toggle snap to grid
+F2                -- save model file dialog
+F3                -- load model file dialog
 
 Model App Keys:
 -- none --        -- placeholder key binding
