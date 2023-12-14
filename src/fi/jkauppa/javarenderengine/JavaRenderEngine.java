@@ -30,6 +30,7 @@ import fi.jkauppa.javarenderengine.MathLib.Matrix;
 import fi.jkauppa.javarenderengine.MathLib.Plane;
 import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Position2;
+import fi.jkauppa.javarenderengine.MathLib.Sphere;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
 import fi.jkauppa.javarenderengine.ModelLib.Model;
 
@@ -150,6 +151,10 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		System.out.print("unsortedlist:"); for (int i=0;i<unsortedlist.length;i++) {System.out.print(" "+unsortedlist[i]);} System.out.println();
 		System.out.print("sortedlistidx:"); for (int i=0;i<sortedlistidx.length;i++) {System.out.print(" "+sortedlistidx[i]);} System.out.println();
 		System.out.print("sortedlist:"); for (int i=0;i<sortedlist.length;i++) {System.out.print(" "+sortedlist[i]);} System.out.println();
+		Sphere[] vsphere1 = new Sphere[1]; vsphere1[0] = new Sphere(0,0,0,2); 
+		Sphere[] vsphere2 = new Sphere[3]; vsphere2[0] = new Sphere(0,0,2,2); vsphere2[1] = new Sphere(0,4,0,2); vsphere2[2] = new Sphere(4,4,0,2);
+		boolean[][] ssint = MathLib.sphereSphereIntersection(vsphere1, vsphere2);
+		System.out.println("ssint["+ssint.length+"]["+ssint[0].length+"]="); for (int j=0;j<ssint.length;j++) {for (int i=0;i<ssint[0].length;i++) {System.out.print(" "+ssint[j][i]);}System.out.println();}
 		
 		String modelfilename = "res/models/testcubemodel4.obj";
 		Model loadmodel = ModelLib.loadWaveFrontOBJFile(modelfilename);

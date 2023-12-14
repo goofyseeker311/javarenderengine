@@ -273,17 +273,19 @@ public class MathLib {
 		return k;
 	}
 
-	public static boolean sphereSphereIntersection(Sphere vpoint, Sphere vsphere) {
-		return Math.sqrt(Math.pow(vsphere.x-vpoint.x,2)+Math.pow(vsphere.y-vpoint.y,2)+Math.pow(vsphere.z-vpoint.z,2))<=(vsphere.r+vpoint.r);
-	}
-	
-	public static boolean[] pointSphereIntersection(Sphere vpoint, Sphere[] vsphere) {
-		boolean[] k = new boolean[vsphere.length];
-		for (int i=0;i<vsphere.length;i++) {
-			k[i] = sphereSphereIntersection(vpoint, vsphere[i]); 
+	public static boolean[][] sphereSphereIntersection(Sphere[] vsphere1, Sphere[] vsphere2) {
+		boolean[][] k = null;
+		if ((vsphere1.length>0)&&(vsphere2.length>0)) {
+			k = new boolean[vsphere1.length][vsphere2.length];
+			for (int j=0;j<vsphere1.length;j++) {
+				for (int i=0;i<vsphere2.length;i++) {
+					k[j][i] = Math.sqrt(Math.pow(vsphere2[i].x-vsphere1[j].x,2)+Math.pow(vsphere2[i].y-vsphere1[j].y,2)+Math.pow(vsphere2[i].z-vsphere1[j].z,2))<=(vsphere2[i].r+vsphere1[j].r); 
+				}
+			}
 		}
 		return k;
 	}
+	
 	public static boolean[][] mutualSphereIntersection(Sphere[] vsphere) {
 		boolean[][] k = null;
 		double[] xlist = new double[2*vsphere.length];
