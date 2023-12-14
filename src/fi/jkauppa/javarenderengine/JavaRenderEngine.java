@@ -12,8 +12,6 @@ import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -105,6 +103,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		Direction[] camdir3norm = MathLib.normalizeVector(camdir3);
 		Direction[] camdir4norm = MathLib.normalizeVector(camdir4);
 		System.out.println("camdirnorm: "+camdirnorm[0].dx+" "+camdirnorm[0].dy+" "+camdirnorm[0].dz);
+		System.out.println("camdir2norm: "+camdir2norm[0].dx+" "+camdir2norm[0].dy+" "+camdir2norm[0].dz);
+		System.out.println("camdir3norm: "+camdir3norm[0].dx+" "+camdir3norm[0].dy+" "+camdir3norm[0].dz);
+		System.out.println("camdir4norm: "+camdir4norm[0].dx+" "+camdir4norm[0].dy+" "+camdir4norm[0].dz);
 		for (int i=0;i<camdir2norm.length;i++) {System.out.println("camdir2norm: "+camdir2norm[i].dx+" "+camdir2norm[i].dy+" "+camdir2norm[i].dz);}
 		Plane[] tplane=new Plane[1]; tplane[0]=new Plane(1.0f,0.0f,0.0f,-2.0f);
 		Plane[] tplane2=new Plane[3]; tplane2[0]=new Plane(1.0f,0.0f,0.0f,-2.0f);tplane2[1]=new Plane(1.0f,0.0f,0.0f,-2.0f);tplane2[2]=new Plane(1.0f,0.0f,0.0f,-2.0f);
@@ -143,11 +144,19 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		Matrix matrot2 = MathLib.rotationMatrix(90, 45, 30);
 		System.out.println("matrot1: "+matrot1.a11+" "+matrot1.a12+" "+matrot1.a13); System.out.println("matrot1: "+matrot1.a21+" "+matrot1.a22+" "+matrot1.a23); System.out.println("matrot1: "+matrot1.a31+" "+matrot1.a32+" "+matrot1.a33);
 		System.out.println("matrot2: "+matrot2.a11+" "+matrot2.a12+" "+matrot2.a13); System.out.println("matrot2: "+matrot2.a21+" "+matrot2.a22+" "+matrot2.a23); System.out.println("matrot2: "+matrot2.a31+" "+matrot2.a32+" "+matrot2.a33);
+		double[] unsortedlist = {5, -2, 7, 15, 3, -2, 0, 2, 7};
+		int[] sortedlistidx = MathLib.indexSort(unsortedlist);
+		double[] sortedlist = MathLib.indexValues(unsortedlist,sortedlistidx);
+		System.out.print("unsortedlist:"); for (int i=0;i<unsortedlist.length;i++) {System.out.print(" "+unsortedlist[i]);} System.out.println();
+		System.out.print("sortedlistidx:"); for (int i=0;i<sortedlistidx.length;i++) {System.out.print(" "+sortedlistidx[i]);} System.out.println();
+		System.out.print("sortedlist:"); for (int i=0;i<sortedlist.length;i++) {System.out.print(" "+sortedlist[i]);} System.out.println();
 		
 		String modelfilename = "res/models/testcubemodel4.obj";
 		Model loadmodel = ModelLib.loadWaveFrontOBJFile(modelfilename);
+		loadmodel.getClass();
 		
 		JavaRenderEngine app = new JavaRenderEngine();
+		app.isVisible();
 	}
 	
 	private class RenderPanel extends JPanel implements ActionListener {
