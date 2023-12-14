@@ -16,8 +16,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.ArrayList;
-
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileFilter;
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
 import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Position2;
@@ -42,6 +44,8 @@ public class CADApp implements AppHandler {
 	private final int gridsteph = gridstep/2;
 	private final int griddelta = gridsteph;
 	private ArrayList<Position2> linelist = new ArrayList<Position2>(); 
+	private JFileChooser filechooser = new JFileChooser();
+	private ImageFileFilters.OBJFileFilter objfilefilter = new ImageFileFilters.OBJFileFilter();
 	
 	public CADApp() {
 		BufferedImage bgpatternimage = gc.createCompatibleImage(64, 64, Transparency.OPAQUE);
@@ -53,6 +57,9 @@ public class CADApp implements AppHandler {
 		pgfx.drawLine(0, gridsteph-1, gridstep-1, gridsteph-1);
 		pgfx.dispose();
 		this.bgpattern = new TexturePaint(bgpatternimage,new Rectangle(0, 0, 64, 64));
+		this.filechooser.addChoosableFileFilter(this.objfilefilter);
+		this.filechooser.setFileFilter(this.objfilefilter);
+		this.filechooser.setAcceptAllFileFilterUsed(false);
 	}
 	@Override
 	public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
@@ -126,6 +133,23 @@ public class CADApp implements AppHandler {
 			this.linelist.clear();
 		} else if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
 			this.snaplinemode = true;
+		}
+		if (e.getKeyCode()==KeyEvent.VK_F2) {
+			this.filechooser.setDialogTitle("Save File");
+			this.filechooser.setApproveButtonText("Save");
+			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
+				File savefile = this.filechooser.getSelectedFile();
+				FileFilter savefileformat = this.filechooser.getFileFilter();
+				if (savefileformat.equals(this.objfilefilter)) {
+				}
+			}
+		}
+		if (e.getKeyCode()==KeyEvent.VK_F3) {
+			this.filechooser.setDialogTitle("Load File");
+			this.filechooser.setApproveButtonText("Load");
+			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
+				File loadfile = this.filechooser.getSelectedFile();
+			}
 		}
 	}
 	
@@ -233,4 +257,11 @@ public class CADApp implements AppHandler {
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
 	@Override public void drop(DropTargetDropEvent dtde) {}
 
+	private class ImageFileFilters  {
+		public static class OBJFileFilter extends FileFilter {
+			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".obj"));}
+			@Override public String getDescription() {return "OBJ Model file";}
+		}
+	}
+	
 }

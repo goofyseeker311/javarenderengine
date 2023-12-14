@@ -68,7 +68,7 @@ public class DrawApp implements AppHandler {
 		this.filechooser.addChoosableFileFilter(this.giffilefilter);
 		this.filechooser.addChoosableFileFilter(this.bmpfilefilter);
 		this.filechooser.addChoosableFileFilter(this.wbmpfilefilter);
-		this.filechooser.setFileFilter(pngfilefilter);
+		this.filechooser.setFileFilter(this.pngfilefilter);
 	}
 	
 	@Override
