@@ -30,6 +30,7 @@ public class CADApp implements AppHandler {
 	private TexturePaint bgpattern = null;
 	private boolean drawlinemode = false;
 	private boolean draglinemode = false;
+	private boolean snaplinemode = false;
 	private int selecteddragvertex = -1;
 	private int mousestartlocationx = -1, mousestartlocationy = -1;  
 	private int mouselastlocationx = -1, mouselastlocationy = -1;  
@@ -37,6 +38,9 @@ public class CADApp implements AppHandler {
 	private final int vertexradius = 5;
 	private final int vertexstroke = 2;
 	private final int linestroke = 5;
+	private final int gridstep = 64;
+	private final int gridsteph = gridstep/2;
+	private final int griddelta = gridsteph;
 	private ArrayList<Position2> linelist = new ArrayList<Position2>(); 
 	
 	public CADApp() {
@@ -45,8 +49,8 @@ public class CADApp implements AppHandler {
 		pgfx.setColor(Color.WHITE);
 		pgfx.fillRect(0, 0, bgpatternimage.getWidth(), bgpatternimage.getHeight());
 		pgfx.setColor(Color.BLACK);
-		pgfx.drawLine(31, 0, 31, 63);
-		pgfx.drawLine(0, 31, 63, 31);
+		pgfx.drawLine(gridsteph-1, 0, gridsteph-1, gridstep-1);
+		pgfx.drawLine(0, gridsteph-1, gridstep-1, gridsteph-1);
 		pgfx.dispose();
 		this.bgpattern = new TexturePaint(bgpatternimage,new Rectangle(0, 0, 64, 64));
 	}
@@ -67,14 +71,28 @@ public class CADApp implements AppHandler {
 			g.drawLine((int)Math.round(linelist.get(i).pos1.x), (int)Math.round(linelist.get(i).pos1.y), (int)Math.round(linelist.get(i).pos2.x), (int)Math.round(linelist.get(i).pos2.y));
 		}
 		if (this.drawlinemode) {
+			int drawstartlocationx = this.mousestartlocationx;
+			int drawstartlocationy = this.mousestartlocationy;
+			int drawlocationx = this.mouselocationx;
+			int drawlocationy = this.mouselocationy;
+			if (this.snaplinemode) {
+				drawstartlocationx = snapToGrid(drawstartlocationx);
+				drawstartlocationy = snapToGrid(drawstartlocationy);
+				drawlocationx = snapToGrid(drawlocationx);
+				drawlocationy = snapToGrid(drawlocationy);
+			}
 			g.setColor(Color.BLACK);
 			g.setStroke(new BasicStroke(this.vertexstroke));
-			g.drawOval(this.mousestartlocationx-this.vertexradius, mousestartlocationy-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
-			g.drawOval(this.mouselocationx-this.vertexradius, mouselocationy-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
+			g.drawOval(drawstartlocationx-this.vertexradius, drawstartlocationy-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
+			g.drawOval(drawlocationx-this.vertexradius, drawlocationy-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
 			g.setColor(Color.BLUE);
 			g.setStroke(new BasicStroke(this.linestroke));
-			g.drawLine(this.mousestartlocationx, this.mousestartlocationy, this.mouselocationx, this.mouselocationy);
+			g.drawLine(drawstartlocationx, drawstartlocationy, drawlocationx, drawlocationy);
 		}
+	}
+
+	private int snapToGrid(int coordinate) {
+		return this.gridstep*Math.floorDiv(coordinate, this.gridstep)+this.griddelta;
 	}
 	
 	private int getVertexAtMouse() {
@@ -98,10 +116,16 @@ public class CADApp implements AppHandler {
 	
 	@Override public void actionPerformed(ActionEvent e) {}
 	@Override public void keyTyped(KeyEvent e) {}
-	@Override public void keyReleased(KeyEvent e) {}
+	@Override public void keyReleased(KeyEvent e) {
+		if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
+			this.snaplinemode = false;
+		}
+	}
 	@Override public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
 			this.linelist.clear();
+		} else if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
+			this.snaplinemode = true;
 		}
 	}
 	
@@ -110,7 +134,7 @@ public class CADApp implements AppHandler {
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
 		this.mousestartlocationx=this.mouselocationx;this.mousestartlocationy=this.mouselocationy;
 	    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
-	    int offmask1 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    int offmask1 = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK|
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1);
     	if (mouse1down) {
     		int vertexatmouse = getVertexAtMouse();
@@ -120,7 +144,7 @@ public class CADApp implements AppHandler {
 			}
     	}
 	    int onmask3altdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    int offmask3altdown = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+	    int offmask3altdown = MouseEvent.CTRL_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK|
 	    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3altdown | offmask3altdown)) == onmask3altdown);
     	if (mouse3altdown) {
     		int vertexatmouse = getVertexAtMouse();
@@ -138,7 +162,17 @@ public class CADApp implements AppHandler {
 			if (mouse1up) {
 				if (this.drawlinemode) {
 					this.drawlinemode = false;
-					this.linelist.add(new Position2(new Position(this.mousestartlocationx, this.mousestartlocationy,0), new Position(this.mouselocationx, this.mouselocationy,0)));
+					int drawstartlocationx = this.mousestartlocationx;
+					int drawstartlocationy = this.mousestartlocationy;
+					int drawlocationx = this.mouselocationx;
+					int drawlocationy = this.mouselocationy;
+					if (this.snaplinemode) {
+						drawstartlocationx = snapToGrid(drawstartlocationx);
+						drawstartlocationy = snapToGrid(drawstartlocationy);
+						drawlocationx = snapToGrid(drawlocationx);
+						drawlocationy = snapToGrid(drawlocationy);
+					}
+					this.linelist.add(new Position2(new Position(drawstartlocationx, drawstartlocationy,0), new Position(drawlocationx, drawlocationy,0)));
 				}
 				if (this.draglinemode) {
 					this.draglinemode = false;
@@ -154,9 +188,9 @@ public class CADApp implements AppHandler {
     	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
     	
 	    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
-	    int offmask1 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    int offmask1 = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK|
 	    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
-	    int offmask3 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    int offmask3 = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK|
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1);
 	    boolean mouse3down = ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3);
 	    if (mouse1down||mouse3down) {
@@ -164,20 +198,26 @@ public class CADApp implements AppHandler {
 	    		if (this.draglinemode) {
     				int linenum = Math.floorDiv(this.selecteddragvertex,2);
     				boolean firstvertex = Math.floorMod(this.selecteddragvertex,2)==0;
+    				int drawlocationx = this.mouselocationx;
+    				int drawlocationy = this.mouselocationy;
+    				if (this.snaplinemode) {
+    					drawlocationx = snapToGrid(drawlocationx);
+    					drawlocationy = snapToGrid(drawlocationy);
+    				}
     				if (firstvertex) {
-    					this.linelist.get(linenum).pos1.x = this.mouselocationx;
-    					this.linelist.get(linenum).pos1.y = this.mouselocationy;
+    					this.linelist.get(linenum).pos1.x = drawlocationx;
+    					this.linelist.get(linenum).pos1.y = drawlocationy;
 	    			} else {
-    					this.linelist.get(linenum).pos2.x = this.mouselocationx;
-    					this.linelist.get(linenum).pos2.y = this.mouselocationy;
+    					this.linelist.get(linenum).pos2.x = drawlocationx;
+    					this.linelist.get(linenum).pos2.y = drawlocationy;
 	    			}
 	    		}
     		}
 		}
 	    int onmask1c = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    int offmask1c = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+	    int offmask1c = MouseEvent.CTRL_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK|
 	    int onmask3c = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    int offmask3c = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+	    int offmask3c = MouseEvent.CTRL_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK|
 	    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1c | offmask1c)) == onmask1c);
 	    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3c | offmask3c)) == onmask3c);
 	    if (mouse1altdown||mouse3altdown) {
