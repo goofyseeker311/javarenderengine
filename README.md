@@ -70,4 +70,4 @@ https://www.oracle.com/java/technologies/downloads/#java21
 
 ![loga7](https://github.com/goofyseeker311/javarenderengine/assets/19920254/986350a3-11a3-49ec-a325-fbac8eae7b25)
 ![loga7a](https://github.com/goofyseeker311/javarenderengine/assets/19920254/f75e6fbe-1dde-42ea-b4d4-dc12c2203ab4)
-![caddrawing](https://github.com/goofyseeker311/javarenderengine/assets/19920254/caf65bb3-bbda-45af-97dc-b887d0b0ca11)
+![caddrawing](https://github.com/goofyseeker311/javarenderengine/assets/19920254/0ac36a4a-b066-4859-9c69-854595be54fb)
