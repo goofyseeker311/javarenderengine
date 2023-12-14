@@ -47,7 +47,7 @@ SHIFT-F3          -- load image file as pencil brush dialog
 CAD App Keys:
 BACKSPACE         -- removes all vector lines
 ALT-DRAG-LMB      -- vector line drag draw
-RMB               -- remove line vertex
+ALT-RMB           -- remove line vertex
 DRAG-LMB          -- move line vertex
 
 Model App Keys:

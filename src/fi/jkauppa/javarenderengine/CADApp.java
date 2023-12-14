@@ -111,26 +111,24 @@ public class CADApp implements AppHandler {
 		this.mousestartlocationx=this.mouselocationx;this.mousestartlocationy=this.mouselocationy;
 	    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
 	    int offmask1 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
-	    int offmask3 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1);
-	    boolean mouse3down = ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3);
-	    if (mouse1down||mouse3down) {
-	    	if (mouse1down) {
-	    		int vertexatmouse = getVertexAtMouse();
-    			if (vertexatmouse!=-1) {
-    				this.draglinemode = true;
-    				this.selecteddragvertex = vertexatmouse;
-    			}
-	    	}
-	    	if (mouse3down) {
-	    		int vertexatmouse = getVertexAtMouse();
-    			if (vertexatmouse!=-1) {
-    				int linenum = Math.floorDiv(vertexatmouse,2);
-    				this.linelist.remove(linenum);
-    			}
-	    	}
-		}
+    	if (mouse1down) {
+    		int vertexatmouse = getVertexAtMouse();
+			if (vertexatmouse!=-1) {
+				this.draglinemode = true;
+				this.selecteddragvertex = vertexatmouse;
+			}
+    	}
+	    int onmask3altdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    int offmask3altdown = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+	    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3altdown | offmask3altdown)) == onmask3altdown);
+    	if (mouse3altdown) {
+    		int vertexatmouse = getVertexAtMouse();
+			if (vertexatmouse!=-1) {
+				int linenum = Math.floorDiv(vertexatmouse,2);
+				this.linelist.remove(linenum);
+			}
+    	}
 		mouseDragged(e);
 	}
 	@Override public void mouseReleased(MouseEvent e) {
