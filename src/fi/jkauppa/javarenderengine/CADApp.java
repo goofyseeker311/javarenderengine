@@ -24,6 +24,7 @@ import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
 import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Position2;
 import fi.jkauppa.javarenderengine.MathLib.Sphere;
+import fi.jkauppa.javarenderengine.ModelLib.Model;
 
 public class CADApp implements AppHandler {
 	private GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
@@ -139,9 +140,7 @@ public class CADApp implements AppHandler {
 			this.filechooser.setApproveButtonText("Save");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File savefile = this.filechooser.getSelectedFile();
-				FileFilter savefileformat = this.filechooser.getFileFilter();
-				if (savefileformat.equals(this.objfilefilter)) {
-				}
+				Model savemodel = new Model(savefile.getPath());
 			}
 		}
 		if (e.getKeyCode()==KeyEvent.VK_F3) {
@@ -149,6 +148,7 @@ public class CADApp implements AppHandler {
 			this.filechooser.setApproveButtonText("Load");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File loadfile = this.filechooser.getSelectedFile();
+				Model loadmodel = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
 			}
 		}
 	}
