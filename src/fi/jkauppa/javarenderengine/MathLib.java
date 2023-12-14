@@ -3,6 +3,8 @@ package fi.jkauppa.javarenderengine;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import fi.jkauppa.javarenderengine.MathLib.Sphere;
+
 public class MathLib {
 	public static class Position {public double x,y,z; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}}
 	public static class Direction {public double dx,dy,dz; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;}}
