@@ -77,6 +77,25 @@ public class CADApp implements AppHandler {
 		}
 	}
 	
+	private int getVertexAtMouse() {
+		int k = -1;
+		Sphere[] vsphere1 = new Sphere[1]; vsphere1[0] = new Sphere(this.mouselocationx,this.mouselocationy,0,0); 
+		Sphere[] vsphere2 = new Sphere[2*this.linelist.size()];
+		for (int i=0;i<linelist.size();i++) {
+			vsphere2[2*i] = new Sphere(linelist.get(i).pos1.x, linelist.get(i).pos1.y, 0.0f, this.vertexradius);
+			vsphere2[2*i+1] = new Sphere(linelist.get(i).pos2.x, linelist.get(i).pos2.y, 0.0f, this.vertexradius);
+		}
+		boolean[][] ssint = MathLib.sphereSphereIntersection(vsphere1, vsphere2);
+		if (ssint!=null) {
+    		for (int i=0;(!this.draglinemode)&&(i<ssint[0].length);i++) {
+    			if (ssint[0][i]) {
+    				k = i;
+    			}
+    		}
+		}
+		return k;
+	}
+	
 	@Override public void actionPerformed(ActionEvent e) {}
 	@Override public void keyTyped(KeyEvent e) {}
 	@Override public void keyReleased(KeyEvent e) {}
@@ -98,22 +117,18 @@ public class CADApp implements AppHandler {
 	    boolean mouse3down = ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3);
 	    if (mouse1down||mouse3down) {
 	    	if (mouse1down) {
-	    		Sphere[] vsphere1 = new Sphere[1]; vsphere1[0] = new Sphere(this.mouselocationx,this.mouselocationy,0,0); 
-	    		Sphere[] vsphere2 = new Sphere[2*this.linelist.size()];
-	    		for (int i=0;i<linelist.size();i++) {
-	    			vsphere2[2*i] = new Sphere(linelist.get(i).pos1.x, linelist.get(i).pos1.y, 0.0f, this.vertexradius);
-	    			vsphere2[2*i+1] = new Sphere(linelist.get(i).pos2.x, linelist.get(i).pos2.y, 0.0f, this.vertexradius);
-	    		}
-	    		boolean[][] ssint = MathLib.sphereSphereIntersection(vsphere1, vsphere2);
-	    		if (ssint!=null) {
-		    		for (int i=0;(!this.draglinemode)&&(i<ssint[0].length);i++) {
-		    			if (ssint[0][i]) {
-		    				this.draglinemode = true;
-		    				this.selecteddragvertex = i;
-		    	    		System.out.println("mousePressed: mouse1down: this.selecteddragvertex: "+i);
-		    			}
-		    		}
-	    		}
+	    		int vertexatmouse = getVertexAtMouse();
+    			if (vertexatmouse!=-1) {
+    				this.draglinemode = true;
+    				this.selecteddragvertex = vertexatmouse;
+    			}
+	    	}
+	    	if (mouse3down) {
+	    		int vertexatmouse = getVertexAtMouse();
+    			if (vertexatmouse!=-1) {
+    				int linenum = Math.floorDiv(vertexatmouse,2);
+    				this.linelist.remove(linenum);
+    			}
 	    	}
 		}
 		mouseDragged(e);
