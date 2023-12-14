@@ -1,12 +1,20 @@
 package fi.jkauppa.javarenderengine;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Transparency;
 import java.awt.image.BufferedImage;
+import java.awt.image.VolatileImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.InputStreamReader;
-import java.nio.file.Path;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
@@ -16,17 +24,26 @@ import fi.jkauppa.javarenderengine.MathLib.Direction;
 import fi.jkauppa.javarenderengine.MathLib.Position;
 
 public class ModelLib {
+	private static GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
+	private static GraphicsDevice gd = ge.getDefaultScreenDevice ();
+	private static GraphicsConfiguration gc = gd.getDefaultConfiguration ();
+	
 	public static class Material {
-		public BufferedImage fileimage;
+		public String materialname;
+		public VolatileImage fileimage;
 		public String filename;
 		public Color facecolor;
-		public Material(String filenamei) {this.filename = filenamei;}
+		public Material(String materialnamei) {this.materialname = materialnamei;}
 	}
-	public static class ModelFaceIndex {
+	public static class ModelFaceVertexIndex {
 		public int vertexindex; 
 		public int textureindex; 
 		public int normalindex; 
-		public ModelFaceIndex(int vertexindexi, int textureindexi, int normalindexi) {this.vertexindex = vertexindexi; this.textureindex = textureindexi; this.normalindex = normalindexi;}
+		public ModelFaceVertexIndex(int vertexindexi, int textureindexi, int normalindexi) {this.vertexindex = vertexindexi; this.textureindex = textureindexi; this.normalindex = normalindexi;}
+	}
+	public static class ModelFaceIndex {
+		public ModelFaceVertexIndex[] nodeindex;
+		public ModelFaceIndex(ModelFaceVertexIndex[] nodeindexi){this.nodeindex=nodeindexi;}
 	}
 	public static class ModelObject {
 		public String objectname;
@@ -44,20 +61,137 @@ public class ModelLib {
 		public ModelObject[] objects;
 		public Model(String filenamei) {this.filename = filenamei;}
 	}
+	
+	public static void saveWaveFrontOBJFile(String filename, Model model) {
+		if ((filename!=null)&&(model!=null)) {
+			try {
+				File saveobjfile = new File(filename);
+				BufferedWriter modelobjfile = new BufferedWriter(new FileWriter(saveobjfile, false));
+				modelobjfile.write("mtllib "+model.mtllib);
+				modelobjfile.newLine();
+				for (int k=0;k<model.objects.length;k++) {
+					modelobjfile.write("o "+model.objects[k].objectname);
+					modelobjfile.newLine();
+					int vertexindexmin = Integer.MAX_VALUE; 
+					int vertexindexmax = Integer.MIN_VALUE; 
+					int textureindexmin = Integer.MAX_VALUE; 
+					int textureindexmax = Integer.MIN_VALUE; 
+					int normalindexmin = Integer.MAX_VALUE; 
+					int normalindexmax = Integer.MIN_VALUE; 
+					for (int j=0;j<model.objects[k].faceindex.length;j++) {
+						for (int i=0;i<model.objects[k].faceindex[j].nodeindex.length;i++) {
+							if (model.objects[k].faceindex[j].nodeindex[i].vertexindex<vertexindexmin) {
+								vertexindexmin = model.objects[k].faceindex[j].nodeindex[i].vertexindex;
+							}
+							if (model.objects[k].faceindex[j].nodeindex[i].vertexindex>vertexindexmax) {
+								vertexindexmax = model.objects[k].faceindex[j].nodeindex[i].vertexindex;
+							}
+							if (model.objects[k].faceindex[j].nodeindex[i].textureindex<textureindexmin) {
+								textureindexmin = model.objects[k].faceindex[j].nodeindex[i].textureindex;
+							}
+							if (model.objects[k].faceindex[j].nodeindex[i].textureindex>textureindexmax) {
+								textureindexmax = model.objects[k].faceindex[j].nodeindex[i].textureindex;
+							}
+							if (model.objects[k].faceindex[j].nodeindex[i].normalindex<normalindexmin) {
+								normalindexmin = model.objects[k].faceindex[j].nodeindex[i].normalindex;
+							}
+							if (model.objects[k].faceindex[j].nodeindex[i].normalindex>normalindexmax) {
+								normalindexmax = model.objects[k].faceindex[j].nodeindex[i].normalindex;
+							}
+						}
+					}
+					for (int i=vertexindexmin-1;i<=vertexindexmax-1;i++) {
+						modelobjfile.write("v "+model.vertexlist[i].x+" "+model.vertexlist[i].y+" "+model.vertexlist[i].z);
+						modelobjfile.newLine();
+					}
+					for (int i=normalindexmin-1;i<=normalindexmax-1;i++) {
+						modelobjfile.write("vn "+model.facenormals[i].dx+" "+model.facenormals[i].dy+" "+model.facenormals[i].dz);
+						modelobjfile.newLine();
+					}
+					for (int i=textureindexmin-1;i<=textureindexmax-1;i++) {
+						modelobjfile.write("vt "+model.texturecoords[i].u+" "+model.texturecoords[i].v);
+						modelobjfile.newLine();
+					}
+					modelobjfile.write("s 0");
+					modelobjfile.newLine();
+					modelobjfile.write("usemtl "+model.objects[k].usemtl);
+					modelobjfile.newLine();
+					for (int j=0;j<model.objects[k].faceindex.length;j++) {
+						modelobjfile.write("f ");
+						for (int i=0;i<model.objects[k].faceindex[j].nodeindex.length;i++) {
+							if (i>0) {modelobjfile.write(" ");}
+							modelobjfile.write(""+model.objects[k].faceindex[j].nodeindex[i].vertexindex);
+							modelobjfile.write("/");
+							modelobjfile.write(""+model.objects[k].faceindex[j].nodeindex[i].normalindex);
+							modelobjfile.write("/");
+							modelobjfile.write(""+model.objects[k].faceindex[j].nodeindex[i].textureindex);
+						}
+						modelobjfile.newLine();
+					}
+					modelobjfile.newLine();
+				}
+				modelobjfile.close();
+				saveWaveFrontMTLFile(new File(saveobjfile.getParent(),model.mtllib).getPath(), model);
+			} catch(Exception ex){ex.printStackTrace();}
+		}
+	}
+	
+	public static void saveWaveFrontMTLFile(String filename, Model model) {
+		if ((filename!=null)&&(model!=null)) {
+			try {
+				File savemtlfile = new File(filename);
+				BufferedWriter modelobjfile = new BufferedWriter(new FileWriter(savemtlfile, false));
+				for (int i=0;i<model.materials.length;i++) {
+					modelobjfile.write("newmtl "+model.materials[i].materialname);
+					modelobjfile.newLine();
+					modelobjfile.write("Ns 250.000000");
+					modelobjfile.newLine();
+					modelobjfile.write("Ka 1.000000 1.000000 1.000000");
+					modelobjfile.newLine();
+					if (model.materials[i].facecolor!=null) {
+						float[] rgbcolor = model.materials[i].facecolor.getRGBColorComponents(new float[3]);
+						modelobjfile.write("Kd "+rgbcolor[0]+" "+rgbcolor[1]+" "+rgbcolor[2]);
+						modelobjfile.newLine();
+					}
+					modelobjfile.write("Ks 0.500000 0.500000 0.500000");
+					modelobjfile.newLine();
+					modelobjfile.write("Ke 0.000000 0.000000 0.000000");
+					modelobjfile.newLine();
+					modelobjfile.write("Ni 1.450000");
+					modelobjfile.newLine();
+					modelobjfile.write("d 1.000000");
+					modelobjfile.newLine();
+					modelobjfile.write("illum 2");
+					modelobjfile.newLine();
+					if (model.materials[i].fileimage!=null) {
+						modelobjfile.write("map_Kd "+model.materials[i].filename);
+						modelobjfile.newLine();
+					}
+					modelobjfile.newLine();
+				}
+				modelobjfile.close();
+			} catch(Exception ex){ex.printStackTrace();}
+		}
+	}
 
-	public static Model loadWaveFrontOBJFile(String filename) {
+	public static Model loadWaveFrontOBJFile(String filename, boolean loadresourcefromjar) {
 		Model k = null;
 		if (filename!=null) {
 			BufferedReader modelobjfile = null;
 			try {
 				File loadobjfile = new File(filename);
-				modelobjfile = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream(loadobjfile.getPath().replace(File.separatorChar, '/'))));
+				if (loadresourcefromjar) {
+					modelobjfile = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream(loadobjfile.getPath().replace(File.separatorChar, '/'))));
+				}else {
+					modelobjfile = new BufferedReader(new FileReader(loadobjfile));
+				}
 				if (modelobjfile!=null) {
 					k = new Model(filename);
 					ArrayList<ModelObject> modelobjects = new ArrayList<ModelObject>();
 					ArrayList<Position> modelvertexlist = new ArrayList<Position>();
 					ArrayList<Direction> modelfacenormals = new ArrayList<Direction>();
 					ArrayList<Coordinate> modeltexturecoords = new ArrayList<Coordinate>();
+			    	ArrayList<ModelFaceIndex> modelfaceindex = new ArrayList<ModelFaceIndex>(); 
 					String fline = null;
 					while((fline=modelobjfile.readLine())!=null) {
 						fline = fline.trim();
@@ -66,10 +200,12 @@ public class ModelLib {
 					    	String farg = fline.substring(7).trim();
 					    	File loadmtlfile = new File(loadobjfile.getParent(),farg);
 					    	k.mtllib = farg;
-					    	k.materials = loadWaveFrontMTLFile(loadmtlfile.getPath());
+					    	k.materials = loadWaveFrontMTLFile(loadmtlfile.getPath(), loadresourcefromjar);
 					    }else if (fline.toLowerCase().startsWith("o ")) {
+					    	if (modelobjects.size()>0) {modelobjects.get(modelobjects.size()-1).faceindex = modelfaceindex.toArray(new ModelFaceIndex[modelfaceindex.size()]);}
 					    	String farg = fline.substring(2).trim();
 					    	modelobjects.add(new ModelObject(farg));
+					    	modelfaceindex = new ArrayList<ModelFaceIndex>();
 					    }else if (fline.toLowerCase().startsWith("v ")) {
 					    	String farg = fline.substring(2).trim();
 					    	String[] fargsplit = farg.split(" ");
@@ -88,14 +224,15 @@ public class ModelLib {
 					    }else if (fline.toLowerCase().startsWith("f ")) {
 					    	String farg = fline.substring(2).trim();
 					    	String[] fargsplit = farg.split(" ");
-					    	ArrayList<ModelFaceIndex> modelfaceindex = new ArrayList<ModelFaceIndex>(); 
+					    	ArrayList<ModelFaceVertexIndex> modelfacevertexindex = new ArrayList<ModelFaceVertexIndex>(); 
 					    	for (int i=0;i<fargsplit.length;i++) {
 						    	String[] fargsplit2 = fargsplit[i].split("/");
-						    	modelfaceindex.add(new ModelFaceIndex(Integer.parseInt(fargsplit2[0]),Integer.parseInt(fargsplit2[1]),Integer.parseInt(fargsplit2[2])));
+						    	modelfacevertexindex.add(new ModelFaceVertexIndex(Integer.parseInt(fargsplit2[0]),Integer.parseInt(fargsplit2[1]),Integer.parseInt(fargsplit2[2])));
 					    	}
-					    	modelobjects.get(modelobjects.size()-1).faceindex = modelfaceindex.toArray(new ModelFaceIndex[modelfaceindex.size()]);
+					    	modelfaceindex.add(new ModelFaceIndex(modelfacevertexindex.toArray(new ModelFaceVertexIndex[modelfacevertexindex.size()])));
 					    }
 					}
+			    	if (modelobjects.size()>0) {modelobjects.get(modelobjects.size()-1).faceindex = modelfaceindex.toArray(new ModelFaceIndex[modelfaceindex.size()]);}
 					k.objects = modelobjects.toArray(new ModelObject[modelobjects.size()]);
 					k.vertexlist = modelvertexlist.toArray(new Position[modelvertexlist.size()]);
 					k.facenormals = modelfacenormals.toArray(new Direction[modelfacenormals.size()]);
@@ -107,13 +244,17 @@ public class ModelLib {
 		return k;
 	}
 	
-	public static Material[] loadWaveFrontMTLFile(String filename) {
+	public static Material[] loadWaveFrontMTLFile(String filename, boolean loadresourcefromjar) {
 		Material[] k = null;
 		if (filename!=null) {
 			BufferedReader modelmtlfile = null;
 			try {
 				File loadmtlfile = new File(filename);
-				modelmtlfile = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream(loadmtlfile.getPath().replace(File.separatorChar, '/'))));
+				if (loadresourcefromjar) {
+					modelmtlfile = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream(loadmtlfile.getPath().replace(File.separatorChar, '/'))));
+				}else {
+					modelmtlfile = new BufferedReader(new FileReader(loadmtlfile));
+				}
 				if (modelmtlfile!=null) {
 					ArrayList<Material> modelmaterials = new ArrayList<Material>();
 					String fline = null;
@@ -126,8 +267,17 @@ public class ModelLib {
 					    }else if (fline.toLowerCase().startsWith("map_kd ")) {
 					    	String farg = fline.substring(7).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
-					    	modelmaterials.get(modelmaterials.size()-1).filename = farg; 
-					    	modelmaterials.get(modelmaterials.size()-1).fileimage = ImageIO.read(new BufferedInputStream(ClassLoader.getSystemClassLoader().getResourceAsStream(loadimgfile.getPath().replace(File.separatorChar, '/'))));
+					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
+					    	BufferedImage fileloadimage = null;
+							if (loadresourcefromjar) {
+								fileloadimage = ImageIO.read(new BufferedInputStream(ClassLoader.getSystemClassLoader().getResourceAsStream(loadimgfile.getPath().replace(File.separatorChar, '/'))));
+							}else {
+								fileloadimage = ImageIO.read(loadimgfile);
+							}
+					    	VolatileImage filestoreimage = gc.createCompatibleVolatileImage(fileloadimage.getWidth(),fileloadimage.getHeight(), Transparency.TRANSLUCENT);
+					    	Graphics2D filestoreimagegfx = filestoreimage.createGraphics();
+					    	filestoreimagegfx.drawImage(fileloadimage, 0, 0, null);
+					    	modelmaterials.get(modelmaterials.size()-1).fileimage = filestoreimage;
 					    }else if (fline.toLowerCase().startsWith("kd ")) {
 					    	String farg = fline.substring(3).trim();
 					    	String[] fargsplit = farg.split(" ");

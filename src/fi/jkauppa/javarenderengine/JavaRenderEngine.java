@@ -74,6 +74,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 
 	public static void main(String[] args) {
 		System.setProperty("sun.java2d.opengl", "true");
+		String userdir = System.getProperty("user.dir");
+		System.out.println("userdir="+userdir);
 		try {UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());} catch (Exception ex) {}
         
 		Position campos=new Position(0.0f,0.0f,0.0f);
@@ -157,11 +159,12 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		System.out.println("ssint["+ssint.length+"]["+ssint[0].length+"]="); for (int j=0;j<ssint.length;j++) {for (int i=0;i<ssint[0].length;i++) {System.out.print(" "+ssint[j][i]);}System.out.println();}
 		
 		String modelfilename = "res/models/testcubemodel4.obj";
-		Model loadmodel = ModelLib.loadWaveFrontOBJFile(modelfilename);
-		loadmodel.getClass();
+		Model loadmodel = ModelLib.loadWaveFrontOBJFile(modelfilename,true);
+		//String savemodelfilename = "testcubemodel4.obj";
+		//ModelLib.saveWaveFrontOBJFile(savemodelfilename, loadmodel);
+		//Model saveloadmodel = ModelLib.loadWaveFrontOBJFile(savemodelfilename,false);
 		
 		JavaRenderEngine app = new JavaRenderEngine();
-		app.isVisible();
 	}
 	
 	private class RenderPanel extends JPanel implements ActionListener {
