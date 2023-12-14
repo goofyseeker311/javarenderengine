@@ -49,6 +49,7 @@ BACKSPACE         -- removes all vector lines
 ALT-DRAG-LMB      -- vector line drag draw
 ALT-RMB           -- remove line vertex
 DRAG-LMB          -- move line vertex
+SHIFT             -- toggle snap to grid
 
 Model App Keys:
 -- none --        -- placeholder key binding
