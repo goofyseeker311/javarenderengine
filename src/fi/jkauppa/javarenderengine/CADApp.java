@@ -255,11 +255,13 @@ public class CADApp implements AppHandler {
 	    	}
 	    }
 	}
+	@Override public void mouseWheelMoved(MouseWheelEvent e) {
+		this.drawheight += e.getWheelRotation();
+	}
 	
 	@Override public void mouseClicked(MouseEvent e) {}
 	@Override public void mouseEntered(MouseEvent e) {}
 	@Override public void mouseExited(MouseEvent e) {}
-	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
 	@Override public void drop(DropTargetDropEvent dtde) {}
 
 	private class ImageFileFilters  {
