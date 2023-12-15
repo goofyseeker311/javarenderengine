@@ -50,6 +50,8 @@ ALT-DRAG-LMB      -- vector line drag draw
 ALT-RMB           -- remove line vertex
 DRAG-LMB          -- move line vertex
 SHIFT             -- toggle snap to grid
+NUMPAD+           -- draw height positive (minmax)
+NUMPAD-           -- draw height negative (minmax)
 F2                -- save model file dialog
 F3                -- load model file dialog
 
