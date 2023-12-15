@@ -30,6 +30,8 @@ public class CADApp implements AppHandler {
 	private GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
 	private GraphicsDevice gd = ge.getDefaultScreenDevice ();
 	private GraphicsConfiguration gc = gd.getDefaultConfiguration ();
+	private int lastrenderwidth = 0;
+	private int lastrenderheight = 0;
 	private TexturePaint bgpattern = null;
 	private boolean drawlinemode = false;
 	private boolean draglinemode = false;
@@ -40,7 +42,6 @@ public class CADApp implements AppHandler {
 	private int mouselocationx = -1, mouselocationy = -1;
 	private int drawdepth = 0; 
 	private int origindeltax = 0, origindeltay = 0; 
-	private int scrolldeltax = 0, scrolldeltay = 0;
 	private final int originlinewidth = 100;
 	private final int originlineheight = 100;
 	private final int vertexradius = 5;
@@ -48,21 +49,19 @@ public class CADApp implements AppHandler {
 	private final int linestroke = 5;
 	private final int gridstep = 16;
 	private final int gridsteph = gridstep/2;
-	private final int griddelta = gridsteph;
+	private BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
 	private ArrayList<Position2> linelist = new ArrayList<Position2>(); 
 	private JFileChooser filechooser = new JFileChooser();
 	private ImageFileFilters.OBJFileFilter objfilefilter = new ImageFileFilters.OBJFileFilter();
 	
 	public CADApp() {
-		BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
-		Graphics2D pgfx = bgpatternimage.createGraphics();
+		Graphics2D pgfx = this.bgpatternimage.createGraphics();
 		pgfx.setColor(Color.WHITE);
-		pgfx.fillRect(0, 0, bgpatternimage.getWidth(), bgpatternimage.getHeight());
+		pgfx.fillRect(0, 0, this.bgpatternimage.getWidth(), this.bgpatternimage.getHeight());
 		pgfx.setColor(Color.BLACK);
 		pgfx.drawLine(gridsteph-1, 0, gridsteph-1, gridstep-1);
 		pgfx.drawLine(0, gridsteph-1, gridstep-1, gridsteph-1);
 		pgfx.dispose();
-		this.bgpattern = new TexturePaint(bgpatternimage,new Rectangle(0, 0, gridstep, gridstep));
 		this.filechooser.addChoosableFileFilter(this.objfilefilter);
 		this.filechooser.setFileFilter(this.objfilefilter);
 		this.filechooser.setAcceptAllFileFilterUsed(false);
@@ -71,12 +70,17 @@ public class CADApp implements AppHandler {
 	public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
 		this.origindeltax = (int)Math.floor(((double)renderwidth)/2.0f);
 		this.origindeltay = (int)Math.floor(((double)renderheight)/2.0f);
+		if ((this.lastrenderwidth!=renderwidth)||(this.lastrenderheight!=renderheight)) {
+			this.lastrenderwidth = renderwidth;
+			this.lastrenderheight = renderheight;
+			this.bgpattern = new TexturePaint(this.bgpatternimage,new Rectangle(this.origindeltax, this.origindeltay, gridstep, gridstep));
+		}
 		g.setComposite(AlphaComposite.Src);
 		g.setColor(null);
 		g.setPaint(bgpattern);
-		g.fillRect(0, 0, renderwidth, renderheight);
-		g.setPaint(null);
+		g.fillRect(0, 0, renderwidth*2, renderheight*2);
 		g.setColor(Color.RED);
+		g.setPaint(null);
 		g.setStroke(new BasicStroke(this.vertexstroke));
 		g.drawLine(this.origindeltax, this.origindeltay, this.origindeltax+this.originlinewidth, this.origindeltay);
 		g.setColor(Color.GREEN);
@@ -99,10 +103,10 @@ public class CADApp implements AppHandler {
 			int drawlocationx = this.mouselocationx;
 			int drawlocationy = this.mouselocationy;
 			if (this.snaplinemode) {
-				drawstartlocationx = snapToGrid(drawstartlocationx);
-				drawstartlocationy = snapToGrid(drawstartlocationy);
-				drawlocationx = snapToGrid(drawlocationx);
-				drawlocationy = snapToGrid(drawlocationy);
+				drawstartlocationx = snapToGrid(drawstartlocationx,this.origindeltax);
+				drawstartlocationy = snapToGrid(drawstartlocationy,this.origindeltay);
+				drawlocationx = snapToGrid(drawlocationx,this.origindeltax);
+				drawlocationy = snapToGrid(drawlocationy,this.origindeltay);
 			}
 			g.setColor(Color.BLACK);
 			g.setStroke(new BasicStroke(this.vertexstroke));
@@ -114,13 +118,13 @@ public class CADApp implements AppHandler {
 		}
 	}
 
-	private int snapToGrid(int coordinate) {
-		return this.gridstep*Math.floorDiv(coordinate, this.gridstep)+this.griddelta;
+	private int snapToGrid(int coordinate, int coordinatedelta) {
+		return this.gridstep*Math.floorDiv(coordinate, this.gridstep)+gridsteph+Math.floorMod(coordinatedelta,this.gridstep);
 	}
 	
 	private int getVertexAtMouse() {
 		int k = -1;
-		Sphere[] vsphere1 = new Sphere[1]; vsphere1[0] = new Sphere(this.mouselocationx-this.origindeltax,this.mouselocationy-this.origindeltay,this.drawdepth,0); 
+		Sphere[] vsphere1 = new Sphere[1]; vsphere1[0] = new Sphere(this.mouselocationx-this.origindeltax, this.mouselocationy-this.origindeltay,this.drawdepth,0); 
 		Sphere[] vsphere2 = new Sphere[2*this.linelist.size()];
 		for (int i=0;i<linelist.size();i++) {
 			vsphere2[2*i] = new Sphere(linelist.get(i).pos1.x, linelist.get(i).pos1.y, linelist.get(i).pos1.z, this.vertexradius);
@@ -208,10 +212,10 @@ public class CADApp implements AppHandler {
 					int drawlocationx = this.mouselocationx;
 					int drawlocationy = this.mouselocationy;
 					if (this.snaplinemode) {
-						drawstartlocationx = snapToGrid(drawstartlocationx);
-						drawstartlocationy = snapToGrid(drawstartlocationy);
-						drawlocationx = snapToGrid(drawlocationx);
-						drawlocationy = snapToGrid(drawlocationy);
+						drawstartlocationx = snapToGrid(drawstartlocationx,this.origindeltax);
+						drawstartlocationy = snapToGrid(drawstartlocationy,this.origindeltay);
+						drawlocationx = snapToGrid(drawlocationx,this.origindeltax);
+						drawlocationy = snapToGrid(drawlocationy,this.origindeltay);
 					}
 					this.linelist.add(new Position2(new Position(drawstartlocationx-this.origindeltax, drawstartlocationy-this.origindeltay, this.drawdepth), new Position(drawlocationx-this.origindeltax, drawlocationy-this.origindeltay, this.drawdepth)));
 				}
@@ -242,8 +246,8 @@ public class CADApp implements AppHandler {
     				int drawlocationx = this.mouselocationx;
     				int drawlocationy = this.mouselocationy;
     				if (this.snaplinemode) {
-    					drawlocationx = snapToGrid(drawlocationx);
-    					drawlocationy = snapToGrid(drawlocationy);
+    					drawlocationx = snapToGrid(drawlocationx,this.origindeltax);
+    					drawlocationy = snapToGrid(drawlocationy,this.origindeltay);
     				}
     				if (firstvertex) {
     					this.linelist.get(linenum).pos1.x = drawlocationx-this.origindeltax;
