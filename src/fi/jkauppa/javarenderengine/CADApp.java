@@ -50,7 +50,7 @@ public class CADApp implements AppHandler {
 	private ImageFileFilters.OBJFileFilter objfilefilter = new ImageFileFilters.OBJFileFilter();
 	
 	public CADApp() {
-		BufferedImage bgpatternimage = gc.createCompatibleImage(64, 64, Transparency.OPAQUE);
+		BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
 		Graphics2D pgfx = bgpatternimage.createGraphics();
 		pgfx.setColor(Color.WHITE);
 		pgfx.fillRect(0, 0, bgpatternimage.getWidth(), bgpatternimage.getHeight());
@@ -58,7 +58,7 @@ public class CADApp implements AppHandler {
 		pgfx.drawLine(gridsteph-1, 0, gridsteph-1, gridstep-1);
 		pgfx.drawLine(0, gridsteph-1, gridstep-1, gridsteph-1);
 		pgfx.dispose();
-		this.bgpattern = new TexturePaint(bgpatternimage,new Rectangle(0, 0, 64, 64));
+		this.bgpattern = new TexturePaint(bgpatternimage,new Rectangle(0, 0, gridstep, gridstep));
 		this.filechooser.addChoosableFileFilter(this.objfilefilter);
 		this.filechooser.setFileFilter(this.objfilefilter);
 		this.filechooser.setAcceptAllFileFilterUsed(false);
@@ -145,7 +145,7 @@ public class CADApp implements AppHandler {
 			if (this.snaplinemode) {
 				this.drawheight = snapToGrid(this.drawheight);
 			}
-		}else if (e.getKeyCode()==KeyEvent.VK_F2) {
+		} else if (e.getKeyCode()==KeyEvent.VK_F2) {
 			this.filechooser.setDialogTitle("Save File");
 			this.filechooser.setApproveButtonText("Save");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {

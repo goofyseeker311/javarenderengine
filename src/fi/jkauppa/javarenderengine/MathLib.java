@@ -220,6 +220,26 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static Position[][] planeLineIntersection(Plane[] vplane, Position2[] vline) {
+		Position[][] k = null;
+		if ((vplane!=null)&&(vline!=null)) {
+			k = new Position[vplane.length][vline.length]; 
+			for (int m=0;m<vline.length;m++) {
+				Position[] p1 = new Position[1]; p1[0] = vline[m].pos1;
+				Position[] p2 = new Position[1]; p2[0] = vline[m].pos2;
+				Direction[] vline12 = vectorFromPoints(p1, p2);
+				double[][] ptd1 = rayPlaneDistance(vline[m].pos1, vline12, vplane);
+				for (int n=0;n<vplane.length;n++) {
+					Position[] ptlint1 = new Position[1]; ptlint1[0] = new Position(vline[m].pos1.x+ptd1[0][n]*vline12[0].dx,vline[m].pos1.y+ptd1[0][n]*vline12[0].dy,vline[m].pos1.z+ptd1[0][n]*vline12[0].dz);
+					boolean ptlhit1 = (ptd1[0][n]>=0)&(ptd1[0][n]<=1);
+					if (ptlhit1) {
+						k[n][m] = ptlint1[0];
+					}
+				}
+			}
+		}
+		return k;
+	}
 
 	public static boolean[][] sphereSphereIntersection(Sphere[] vsphere1, Sphere[] vsphere2) {
 		boolean[][] k = null;
