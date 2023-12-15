@@ -42,8 +42,8 @@ public class ModelLib {
 		public ModelFaceVertexIndex(int vertexindexi, int textureindexi, int normalindexi) {this.vertexindex = vertexindexi; this.textureindex = textureindexi; this.normalindex = normalindexi;}
 	}
 	public static class ModelFaceIndex {
-		public ModelFaceVertexIndex[] nodeindex;
-		public ModelFaceIndex(ModelFaceVertexIndex[] nodeindexi){this.nodeindex=nodeindexi;}
+		public ModelFaceVertexIndex[] facevertexindex;
+		public ModelFaceIndex(ModelFaceVertexIndex[] vertexindexi){this.facevertexindex=vertexindexi;}
 	}
 	public static class ModelObject {
 		public String objectname;
@@ -79,24 +79,24 @@ public class ModelLib {
 					int normalindexmin = Integer.MAX_VALUE; 
 					int normalindexmax = Integer.MIN_VALUE; 
 					for (int j=0;j<model.objects[k].faceindex.length;j++) {
-						for (int i=0;i<model.objects[k].faceindex[j].nodeindex.length;i++) {
-							if (model.objects[k].faceindex[j].nodeindex[i].vertexindex<vertexindexmin) {
-								vertexindexmin = model.objects[k].faceindex[j].nodeindex[i].vertexindex;
+						for (int i=0;i<model.objects[k].faceindex[j].facevertexindex.length;i++) {
+							if (model.objects[k].faceindex[j].facevertexindex[i].vertexindex<vertexindexmin) {
+								vertexindexmin = model.objects[k].faceindex[j].facevertexindex[i].vertexindex;
 							}
-							if (model.objects[k].faceindex[j].nodeindex[i].vertexindex>vertexindexmax) {
-								vertexindexmax = model.objects[k].faceindex[j].nodeindex[i].vertexindex;
+							if (model.objects[k].faceindex[j].facevertexindex[i].vertexindex>vertexindexmax) {
+								vertexindexmax = model.objects[k].faceindex[j].facevertexindex[i].vertexindex;
 							}
-							if (model.objects[k].faceindex[j].nodeindex[i].textureindex<textureindexmin) {
-								textureindexmin = model.objects[k].faceindex[j].nodeindex[i].textureindex;
+							if (model.objects[k].faceindex[j].facevertexindex[i].textureindex<textureindexmin) {
+								textureindexmin = model.objects[k].faceindex[j].facevertexindex[i].textureindex;
 							}
-							if (model.objects[k].faceindex[j].nodeindex[i].textureindex>textureindexmax) {
-								textureindexmax = model.objects[k].faceindex[j].nodeindex[i].textureindex;
+							if (model.objects[k].faceindex[j].facevertexindex[i].textureindex>textureindexmax) {
+								textureindexmax = model.objects[k].faceindex[j].facevertexindex[i].textureindex;
 							}
-							if (model.objects[k].faceindex[j].nodeindex[i].normalindex<normalindexmin) {
-								normalindexmin = model.objects[k].faceindex[j].nodeindex[i].normalindex;
+							if (model.objects[k].faceindex[j].facevertexindex[i].normalindex<normalindexmin) {
+								normalindexmin = model.objects[k].faceindex[j].facevertexindex[i].normalindex;
 							}
-							if (model.objects[k].faceindex[j].nodeindex[i].normalindex>normalindexmax) {
-								normalindexmax = model.objects[k].faceindex[j].nodeindex[i].normalindex;
+							if (model.objects[k].faceindex[j].facevertexindex[i].normalindex>normalindexmax) {
+								normalindexmax = model.objects[k].faceindex[j].facevertexindex[i].normalindex;
 							}
 						}
 					}
@@ -118,20 +118,20 @@ public class ModelLib {
 					modelobjfile.newLine();
 					for (int j=0;j<model.objects[k].faceindex.length;j++) {
 						modelobjfile.write("f ");
-						for (int i=0;i<model.objects[k].faceindex[j].nodeindex.length;i++) {
+						for (int i=0;i<model.objects[k].faceindex[j].facevertexindex.length;i++) {
 							if (i>0) {modelobjfile.write(" ");}
-							modelobjfile.write(""+model.objects[k].faceindex[j].nodeindex[i].vertexindex);
+							modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].vertexindex);
 							modelobjfile.write("/");
-							modelobjfile.write(""+model.objects[k].faceindex[j].nodeindex[i].normalindex);
+							modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].normalindex);
 							modelobjfile.write("/");
-							modelobjfile.write(""+model.objects[k].faceindex[j].nodeindex[i].textureindex);
+							modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].textureindex);
 						}
 						modelobjfile.newLine();
 					}
 					modelobjfile.newLine();
 				}
 				modelobjfile.close();
-				saveWaveFrontMTLFile(new File(saveobjfile.getParent(),model.mtllib).getPath(), model);
+				saveWaveFrontMTLFile(new File(saveobjfile.getParent(), model.mtllib).getPath(), model);
 			} catch(Exception ex){ex.printStackTrace();}
 		}
 	}
