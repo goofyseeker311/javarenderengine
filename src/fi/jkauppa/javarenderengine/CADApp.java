@@ -21,10 +21,16 @@ import java.util.ArrayList;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
+import fi.jkauppa.javarenderengine.MathLib.Coordinate;
+import fi.jkauppa.javarenderengine.MathLib.Direction;
 import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Position2;
 import fi.jkauppa.javarenderengine.MathLib.Sphere;
+import fi.jkauppa.javarenderengine.ModelLib.Material;
 import fi.jkauppa.javarenderengine.ModelLib.Model;
+import fi.jkauppa.javarenderengine.ModelLib.ModelFaceIndex;
+import fi.jkauppa.javarenderengine.ModelLib.ModelFaceVertexIndex;
+import fi.jkauppa.javarenderengine.ModelLib.ModelObject;
 
 public class CADApp implements AppHandler {
 	private GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
@@ -177,13 +183,54 @@ public class CADApp implements AppHandler {
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File savefile = this.filechooser.getSelectedFile();
 				Model savemodel = new Model(savefile.getPath());
+				String saveobjfile = savefile.getPath();
+				String savemtlfile = savefile.getName();
+				if (savemtlfile.toLowerCase().endsWith(".obj")) {
+					savemtlfile = savemtlfile.substring(0, savemtlfile.length()-4).concat(".mtl");
+				} else {
+					savemtlfile = savemtlfile.concat(".mtl");
+				}
+				savemodel.mtllib = savemtlfile;
+				savemodel.texturecoords = new Coordinate[1];
+				savemodel.texturecoords[0] = new Coordinate(0, 0);
+				savemodel.facenormals = new Direction[1];
+				savemodel.facenormals[0] = new Direction(0, 0, 0);
+				savemodel.materials = new Material[1];
+				savemodel.materials[0] = new Material("JREMAT");
+				savemodel.materials[0].facecolor = Color.YELLOW;
+				savemodel.objects = new ModelObject[1];
+				savemodel.objects[0] = new ModelObject("JREOBJ");
+				savemodel.objects[0].usemtl = savemodel.materials[0].materialname;
+				savemodel.vertexlist = new Position[this.linelist.size()*2];
+				savemodel.objects[0].faceindex = new ModelFaceIndex[this.linelist.size()];
+				for (int i=0;i<this.linelist.size();i++) {
+					savemodel.vertexlist[i*2] = new Position(linelist.get(i).pos1.x, linelist.get(i).pos1.y, linelist.get(i).pos1.z);
+					savemodel.vertexlist[i*2+1] = new Position(linelist.get(i).pos2.x, linelist.get(i).pos2.y, linelist.get(i).pos2.z);
+					ModelFaceVertexIndex[] linefacevertex = new ModelFaceVertexIndex[2];
+					linefacevertex[0] = new ModelFaceVertexIndex(i*2+1, 1, 1);
+					linefacevertex[1] = new ModelFaceVertexIndex(i*2+2, 1, 1);
+					savemodel.objects[0].faceindex[i] = new ModelFaceIndex(linefacevertex);
+				}
+				ModelLib.saveWaveFrontOBJFile(saveobjfile, savemodel);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
+			this.linelist.clear();
 			this.filechooser.setDialogTitle("Load File");
 			this.filechooser.setApproveButtonText("Load");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File loadfile = this.filechooser.getSelectedFile();
 				Model loadmodel = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
+				for (int k=0;k<loadmodel.objects.length;k++) {
+					for (int j=0;j<loadmodel.objects[k].faceindex.length;j++) {
+						Position[] loadvertex = new Position[loadmodel.objects[k].faceindex[j].facevertexindex.length];
+						for (int i=0;i<loadmodel.objects[k].faceindex[j].facevertexindex.length;i++) {
+							loadvertex[i] = loadmodel.vertexlist[loadmodel.objects[k].faceindex[j].facevertexindex[i].vertexindex-1];
+							if (i>0) {
+								this.linelist.add(new Position2(loadvertex[i-1],loadvertex[i]));
+							}
+						}
+					}
+				}
 			}
 		}
 	}
