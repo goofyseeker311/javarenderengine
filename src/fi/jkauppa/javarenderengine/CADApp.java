@@ -106,11 +106,11 @@ public class CADApp implements AppHandler {
 	
 	private int getVertexAtMouse() {
 		int k = -1;
-		Sphere[] vsphere1 = new Sphere[1]; vsphere1[0] = new Sphere(this.mouselocationx,this.mouselocationy,0,0); 
+		Sphere[] vsphere1 = new Sphere[1]; vsphere1[0] = new Sphere(this.mouselocationx,this.mouselocationy,this.drawheight,0); 
 		Sphere[] vsphere2 = new Sphere[2*this.linelist.size()];
 		for (int i=0;i<linelist.size();i++) {
-			vsphere2[2*i] = new Sphere(linelist.get(i).pos1.x, linelist.get(i).pos1.y, 0.0f, this.vertexradius);
-			vsphere2[2*i+1] = new Sphere(linelist.get(i).pos2.x, linelist.get(i).pos2.y, 0.0f, this.vertexradius);
+			vsphere2[2*i] = new Sphere(linelist.get(i).pos1.x, linelist.get(i).pos1.y, linelist.get(i).pos1.z, this.vertexradius);
+			vsphere2[2*i+1] = new Sphere(linelist.get(i).pos2.x, linelist.get(i).pos2.y, linelist.get(i).pos2.z, this.vertexradius);
 		}
 		boolean[][] ssint = MathLib.sphereSphereIntersection(vsphere1, vsphere2);
 		if (ssint!=null) {
@@ -137,14 +137,8 @@ public class CADApp implements AppHandler {
 			this.snaplinemode = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
 			this.drawheight += 1;
-			if (this.snaplinemode) {
-				this.drawheight = snapToGrid(this.drawheight);
-			}
 		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
 			this.drawheight -= 1;
-			if (this.snaplinemode) {
-				this.drawheight = snapToGrid(this.drawheight);
-			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F2) {
 			this.filechooser.setDialogTitle("Save File");
 			this.filechooser.setApproveButtonText("Save");
@@ -205,7 +199,7 @@ public class CADApp implements AppHandler {
 						drawlocationx = snapToGrid(drawlocationx);
 						drawlocationy = snapToGrid(drawlocationy);
 					}
-					this.linelist.add(new Position2(new Position(drawstartlocationx, drawstartlocationy,0), new Position(drawlocationx, drawlocationy,0)));
+					this.linelist.add(new Position2(new Position(drawstartlocationx, drawstartlocationy,this.drawheight), new Position(drawlocationx, drawlocationy, this.drawheight)));
 				}
 				if (this.draglinemode) {
 					this.draglinemode = false;
@@ -240,9 +234,11 @@ public class CADApp implements AppHandler {
     				if (firstvertex) {
     					this.linelist.get(linenum).pos1.x = drawlocationx;
     					this.linelist.get(linenum).pos1.y = drawlocationy;
+    					this.linelist.get(linenum).pos1.z = this.drawheight;
 	    			} else {
     					this.linelist.get(linenum).pos2.x = drawlocationx;
     					this.linelist.get(linenum).pos2.y = drawlocationy;
+    					this.linelist.get(linenum).pos2.z = this.drawheight;
 	    			}
 	    		}
     		}
@@ -259,11 +255,13 @@ public class CADApp implements AppHandler {
 	    	}
 	    }
 	}
+	@Override public void mouseWheelMoved(MouseWheelEvent e) {
+		this.drawheight += e.getWheelRotation();
+	}
 	
 	@Override public void mouseClicked(MouseEvent e) {}
 	@Override public void mouseEntered(MouseEvent e) {}
 	@Override public void mouseExited(MouseEvent e) {}
-	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
 	@Override public void drop(DropTargetDropEvent dtde) {}
 
 	private class ImageFileFilters  {
