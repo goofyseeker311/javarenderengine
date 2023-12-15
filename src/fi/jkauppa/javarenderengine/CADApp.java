@@ -38,10 +38,11 @@ public class CADApp implements AppHandler {
 	private int mousestartlocationx = -1, mousestartlocationy = -1;  
 	private int mouselastlocationx = -1, mouselastlocationy = -1;  
 	private int mouselocationx = -1, mouselocationy = -1;
+	private int drawheight = 0; 
 	private final int vertexradius = 5;
 	private final int vertexstroke = 2;
 	private final int linestroke = 5;
-	private final int gridstep = 64;
+	private final int gridstep = 16;
 	private final int gridsteph = gridstep/2;
 	private final int griddelta = gridsteph;
 	private ArrayList<Position2> linelist = new ArrayList<Position2>(); 
@@ -49,7 +50,7 @@ public class CADApp implements AppHandler {
 	private ImageFileFilters.OBJFileFilter objfilefilter = new ImageFileFilters.OBJFileFilter();
 	
 	public CADApp() {
-		BufferedImage bgpatternimage = gc.createCompatibleImage(64, 64, Transparency.OPAQUE);
+		BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
 		Graphics2D pgfx = bgpatternimage.createGraphics();
 		pgfx.setColor(Color.WHITE);
 		pgfx.fillRect(0, 0, bgpatternimage.getWidth(), bgpatternimage.getHeight());
@@ -57,7 +58,7 @@ public class CADApp implements AppHandler {
 		pgfx.drawLine(gridsteph-1, 0, gridsteph-1, gridstep-1);
 		pgfx.drawLine(0, gridsteph-1, gridstep-1, gridsteph-1);
 		pgfx.dispose();
-		this.bgpattern = new TexturePaint(bgpatternimage,new Rectangle(0, 0, 64, 64));
+		this.bgpattern = new TexturePaint(bgpatternimage,new Rectangle(0, 0, gridstep, gridstep));
 		this.filechooser.addChoosableFileFilter(this.objfilefilter);
 		this.filechooser.setFileFilter(this.objfilefilter);
 		this.filechooser.setAcceptAllFileFilterUsed(false);
@@ -134,16 +135,24 @@ public class CADApp implements AppHandler {
 			this.linelist.clear();
 		} else if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
 			this.snaplinemode = true;
-		}
-		if (e.getKeyCode()==KeyEvent.VK_F2) {
+		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
+			this.drawheight += 1;
+			if (this.snaplinemode) {
+				this.drawheight = snapToGrid(this.drawheight);
+			}
+		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
+			this.drawheight -= 1;
+			if (this.snaplinemode) {
+				this.drawheight = snapToGrid(this.drawheight);
+			}
+		} else if (e.getKeyCode()==KeyEvent.VK_F2) {
 			this.filechooser.setDialogTitle("Save File");
 			this.filechooser.setApproveButtonText("Save");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File savefile = this.filechooser.getSelectedFile();
 				Model savemodel = new Model(savefile.getPath());
 			}
-		}
-		if (e.getKeyCode()==KeyEvent.VK_F3) {
+		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
 			this.filechooser.setDialogTitle("Load File");
 			this.filechooser.setApproveButtonText("Load");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {

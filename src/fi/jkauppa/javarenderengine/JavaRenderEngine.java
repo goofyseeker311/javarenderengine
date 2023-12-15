@@ -157,6 +157,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		Sphere[] vsphere2 = new Sphere[3]; vsphere2[0] = new Sphere(0,0,2,2); vsphere2[1] = new Sphere(0,4,0,2); vsphere2[2] = new Sphere(4,4,0,2);
 		boolean[][] ssint = MathLib.sphereSphereIntersection(vsphere1, vsphere2);
 		System.out.println("ssint["+ssint.length+"]["+ssint[0].length+"]="); for (int j=0;j<ssint.length;j++) {for (int i=0;i<ssint[0].length;i++) {System.out.print(" "+ssint[j][i]);}System.out.println();}
+		Position2[] pline = new Position2[3]; pline[0]=new Position2(new Position(1,0,-1),new Position(1,0,1)); pline[1]=new Position2(new Position(-1,0,1),new Position(1,0,1)); pline[2]=new Position2(new Position(1,0,1),new Position(1,0,3));
+		Position[][] camplint = MathLib.planeLineIntersection(camplane, pline);
+		for (int i=0;i<camplint.length;i++) {for (int j=0;j<camplint[i].length;j++) {if(camplint[i][j]!=null) {System.out.println("camplint["+i+"]["+j+"]: "+camplint[i][j].x+" "+camplint[i][j].y+" "+camplint[i][j].z);}else{System.out.println("camplint["+i+"]["+j+"]: no hit.");}}}
 		
 		String modelfilename = "res/models/testcubemodel4.obj";
 		Model loadmodel = ModelLib.loadWaveFrontOBJFile(modelfilename,true);
