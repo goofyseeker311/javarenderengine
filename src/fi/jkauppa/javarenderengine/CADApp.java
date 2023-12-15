@@ -90,8 +90,21 @@ public class CADApp implements AppHandler {
 		g.setColor(null);
 		for (int i=0;i<linelist.size();i++) {
 			g.setColor(Color.BLACK);
-			g.setStroke(new BasicStroke(this.vertexstroke));
+			if (linelist.get(i).pos1.z>this.drawdepth) {
+				g.setStroke(new BasicStroke(this.vertexstroke+1));
+			}else if (linelist.get(i).pos1.z<this.drawdepth) {
+				g.setStroke(new BasicStroke(this.vertexstroke-1));
+			}else {
+				g.setStroke(new BasicStroke(this.vertexstroke));
+			}
 			g.drawOval((int)Math.round(linelist.get(i).pos1.x-this.vertexradius)+this.origindeltax, (int)Math.round(linelist.get(i).pos1.y-this.vertexradius)+this.origindeltay, this.vertexradius*2, this.vertexradius*2);
+			if (linelist.get(i).pos2.z>this.drawdepth) {
+				g.setStroke(new BasicStroke(this.vertexstroke+1));
+			}else if (linelist.get(i).pos2.z<this.drawdepth) {
+				g.setStroke(new BasicStroke(this.vertexstroke-1));
+			}else {
+				g.setStroke(new BasicStroke(this.vertexstroke));
+			}
 			g.drawOval((int)Math.round(linelist.get(i).pos2.x-this.vertexradius)+this.origindeltax, (int)Math.round(linelist.get(i).pos2.y-this.vertexradius)+this.origindeltay, this.vertexradius*2, this.vertexradius*2);
 			g.setColor(Color.BLUE);
 			g.setStroke(new BasicStroke(this.linestroke));
@@ -111,6 +124,7 @@ public class CADApp implements AppHandler {
 			g.setColor(Color.BLACK);
 			g.setStroke(new BasicStroke(this.vertexstroke));
 			g.drawOval(drawstartlocationx-this.vertexradius, drawstartlocationy-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
+			g.setStroke(new BasicStroke(this.vertexstroke));
 			g.drawOval(drawlocationx-this.vertexradius, drawlocationy-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
 			g.setColor(Color.BLUE);
 			g.setStroke(new BasicStroke(this.linestroke));
