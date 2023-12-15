@@ -9,48 +9,30 @@ public class MathLib {
 	public static class Position {public double x,y,z; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}}
 	public static class Direction {public double dx,dy,dz; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;}}
 	public static class Coordinate {public double u,v; public Coordinate(double ui,double vi){this.u=ui;this.v=vi;}}
+	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}}
 	public static class Sphere {public double x,y,z,r; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}}
 	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}}
 	public static class Position2 {public Position pos1,pos2; public Position2(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}}
 	public static class Triangle {public Position pos1,pos2,pos3; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;}}
 	public static class Matrix {public double a11,a12,a13,a21,a22,a23,a31,a32,a33;public Matrix(double a11i,double a12i,double a13i,double a21i,double a22i,double a23i,double a31i,double a32i,double a33i){this.a11=a11i;this.a12=a12i;this.a13=a13i;this.a21=a21i;this.a22=a22i;this.a23=a23i;this.a31=a31i;this.a32=a32i;this.a33=a33i;}}
-
-	public static int[] indexSort(double[] data) {
-		int[] k = null;
-		if ((data!=null)&&(data.length>0)) {
-			k = new int[data.length];
-			Integer[] idx = new Integer[data.length];
-			for (int i=0;i<data.length;i++) {
-				idx[i] = i; 
-			}
-			Arrays.sort(idx, new Comparator<Integer>() {
-			    @Override public int compare(final Integer o1, final Integer o2) {
-			        return Double.compare(data[o1], data[o2]);
-			    }
-			});
-			for (int i=0;i<data.length;i++) {
-				k[i] = idx[i].intValue(); 
-			}
-		}
-		return k;
-	}
-	public static double[] indexValues(double[] data, int[] idx) {
-		double[] k = null;
-		if ((data!=null)&&(idx!=null)&&(data.length>0)&&(idx.length>0)&&(data.length==idx.length)) {
-			k = new double[data.length];
-			for (int i=0;i<data.length;i++) {
-				k[i] = data[idx[i]];
-			}
-		}
-		return k;
-	}
 	
+	public static double[] vectorDot(Direction[] vdir, Position vpoint){double[] k=null; if((vdir!=null)&&(vpoint!=null)){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vpoint.x+vdir[n].dy*vpoint.y+vdir[n].dz*vpoint.z;}}return k;}
 	public static double[] vectorDot(Direction[] vdir, Position[] vpoint){double[] k=null; if((vdir!=null)&&(vpoint!=null)&&(vdir.length==vpoint.length)){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vpoint[n].x+vdir[n].dy*vpoint[n].y+vdir[n].dz*vpoint[n].z;}}return k;}
 	public static double[] vectorDot(Direction[] vdir1, Direction[] vdir2){double[] k=null; if((vdir1!=null)&&(vdir2!=null)&&(vdir1.length==vdir2.length)){k=new double[vdir1.length];for(int n=0;n<vdir1.length;n++){k[n] = vdir1[n].dx*vdir2[n].dx+vdir1[n].dy*vdir2[n].dy+vdir1[n].dz*vdir2[n].dz;}}return k;}
 	public static double[] vectorDot(Direction[] vdir){double[] k=null; if(vdir!=null){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vdir[n].dx+vdir[n].dy*vdir[n].dy+vdir[n].dz*vdir[n].dz;}}return k;}
 	public static double[] vectorDot(Plane[] vplane, Position vpoint){double[] k=null; if((vplane!=null)&&(vpoint!=null)){k=new double[vplane.length];for(int n=0;n<vplane.length;n++){k[n] = vplane[n].a*vpoint.x+vplane[n].b*vpoint.y+vplane[n].c*vpoint.z+vplane[n].d;}}return k;}
 	public static double[] vectorDot(Plane[] vplane, Direction vdir){double[] k=null; if((vplane!=null)&&(vdir!=null)){k=new double[vplane.length];for(int n=0;n<vplane.length;n++){k[n] = vplane[n].a*vdir.dx+vplane[n].b*vdir.dy+vplane[n].c*vdir.dz;}}return k;}
 
+	public static Direction[] vectorCross(Direction vdir1, Direction[] vdir2) {
+		Direction[] k=null;
+		if ((vdir1!=null)&&(vdir2!=null)) {
+			k=new Direction[vdir2.length];
+			for (int n=0;n<vdir2.length;n++) {
+				k[n] = new Direction(vdir1.dy*vdir2[n].dz-vdir1.dz*vdir2[n].dy,-(vdir1.dx*vdir2[n].dz-vdir1.dz*vdir2[n].dx),vdir1.dx*vdir2[n].dy-vdir1.dy*vdir2[n].dx);
+			}
+		}
+		return k;
+	}
 	public static Direction[] vectorCross(Direction[] vdir1, Direction[] vdir2) {
 		Direction[] k=null;
 		if ((vdir1!=null)&&(vdir2!=null)&&(vdir1.length==vdir2.length)) {
@@ -92,6 +74,18 @@ public class MathLib {
 			double[] vdirlength =  vectorLength(vdir);
 			for (int n=0;n<vdir.length;n++) {
 				k[n] = new Direction(vdir[n].dx/vdirlength[n], vdir[n].dy/vdirlength[n], vdir[n].dz/vdirlength[n]);
+			}
+		}
+		return k;
+	}
+	public static Plane[] planeFromNormalAtPoint(Position vpoint, Direction[] vnormal) {
+		Plane[] k = null;
+		if ((vpoint!=null)&&(vnormal!=null)) {
+			k = new Plane[vnormal.length];
+			Direction[] nm = normalizeVector(vnormal);
+			double[] dv = vectorDot(nm,vpoint);
+			for (int n=0;n<vnormal.length;n++) {
+				k[n] = new Plane(nm[n].dx,nm[n].dy,nm[n].dz,-dv[n]);
 			}
 		}
 		return k;
@@ -331,11 +325,88 @@ public class MathLib {
 		return k;
 	}
 	public static Matrix rotationMatrix(double xaxisr, double yaxisr, double zaxisr) {
-		Matrix k=null; double xaxisrrad=xaxisr*(Math.PI/180.0f); double yaxisrrad=yaxisr*(Math.PI/180.0f); double zaxisrrad=zaxisr*(Math.PI/180.0f);
+		double xaxisrrad=xaxisr*(Math.PI/180.0f); double yaxisrrad=yaxisr*(Math.PI/180.0f); double zaxisrrad=zaxisr*(Math.PI/180.0f);
 		Matrix xrot = new Matrix(1,0,0,0,Math.cos(xaxisrrad),-Math.sin(xaxisrrad),0,Math.sin(xaxisrrad),Math.cos(xaxisrrad));
 		Matrix yrot = new Matrix(Math.cos(yaxisrrad),0,Math.sin(yaxisrrad),0,1,0,-Math.sin(yaxisrrad),0,Math.cos(yaxisrrad));
 		Matrix zrot = new Matrix(Math.cos(zaxisrrad),-Math.sin(zaxisrrad),0,Math.sin(zaxisrrad),Math.cos(zaxisrrad),0,0,0,1);
-		k = matrixMultiply(zrot,matrixMultiply(yrot, xrot));
+		return matrixMultiply(zrot,matrixMultiply(yrot, xrot));
+	}
+	
+	public static int[] indexSort(double[] data) {
+		int[] k = null;
+		if ((data!=null)&&(data.length>0)) {
+			k = new int[data.length];
+			Integer[] idx = new Integer[data.length];
+			for (int i=0;i<data.length;i++) {
+				idx[i] = i; 
+			}
+			Arrays.sort(idx, new Comparator<Integer>() {
+			    @Override public int compare(final Integer o1, final Integer o2) {
+			        return Double.compare(data[o1], data[o2]);
+			    }
+			});
+			for (int i=0;i<data.length;i++) {
+				k[i] = idx[i].intValue(); 
+			}
+		}
+		return k;
+	}
+	public static double[] indexValues(double[] data, int[] idx) {
+		double[] k = null;
+		if ((data!=null)&&(idx!=null)&&(data.length>0)&&(idx.length>0)&&(data.length==idx.length)) {
+			k = new double[data.length];
+			for (int i=0;i<data.length;i++) {
+				k[i] = data[idx[i]];
+			}
+		}
+		return k;
+	}
+	
+	public static double[] projectedStep(int vres, int vfov) {
+		double[] k = new double[vres];
+		double halfvfov = ((double)vfov)/2.0f;
+		double stepmax = Math.abs(Math.tan(halfvfov*(Math.PI/180.0f)));
+		double stepmin = -stepmax;
+		double step = 2.0f/((double)(vres-1))*stepmax;
+		for (int i=0;i<vres;i++){k[i]=stepmin+step*i;}
+		return k;
+	}
+	public static double[] projectedAngles(int vres, int vfov) {
+		double[] k = new double[vres];
+		double[] hd = projectedStep(vres, vfov);
+		for (int i=0;i<vres;i++){k[i]=(180.0f/Math.PI)*Math.atan(hd[i]);}
+		return k;
+	}
+	public static Direction[] projectedDirections(Rotation vrot) {
+		Direction[] rightdirupvectors = new Direction[3];
+		Direction rightvector = new Direction(0,0,1);
+		Direction dirvector = new Direction(1,0,0);
+		Direction upvector = new Direction(0,1,0);
+		rightdirupvectors[0] = rightvector;
+		rightdirupvectors[1] = dirvector;
+		rightdirupvectors[2] = upvector;
+	    Matrix rotmat = rotationMatrix(vrot.x, vrot.y, vrot.z);
+	    return matrixMultiply(rightdirupvectors, rotmat);
+	}
+	public static Direction[] projectedVectors(int vres, int vfov, Rotation vrot) {
+	    double[] steps = projectedStep(vres,vfov);
+	    Matrix rotmat = rotationMatrix(vrot.x, vrot.y, vrot.z);
+		Direction[] fwdvectors = new Direction[vres];
+	    for (int i=0;i<vres;i++) {
+	    	fwdvectors[i] = new Direction(1, steps[i], 0);
+	    }
+	    return matrixMultiply(fwdvectors, rotmat);
+	}
+	public static Plane[] projectedPlanes(Position vpos, int vres, int vfov, Rotation vrot) {
+		Direction[] fwdvectors = projectedVectors(vres, vfov, vrot);
+		Direction[] rightdirupvectors = projectedDirections(vrot);
+		Direction rightvector = rightdirupvectors[0];
+		Direction[] planenormalvectors = vectorCross(rightvector, fwdvectors);
+		planenormalvectors = normalizeVector(planenormalvectors);
+	    return planeFromNormalAtPoint(vpos, planenormalvectors);
+	}
+	public static Direction[] projectedRays(int vhres, int vvres, int vhfov, int vvfov) {
+		Direction[] k = null;
 		return k;
 	}
 	

@@ -214,7 +214,6 @@ public class CADApp implements AppHandler {
 				ModelLib.saveWaveFrontOBJFile(saveobjfile, savemodel);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
-			this.linelist.clear();
 			this.filechooser.setDialogTitle("Load File");
 			this.filechooser.setApproveButtonText("Load");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
