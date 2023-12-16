@@ -154,8 +154,8 @@ public class CADApp implements AppHandler {
 		}
 		boolean[][] ssint = MathLib.sphereSphereIntersection(vsphere1, vsphere2);
 		if (ssint!=null) {
-    		for (int i=0;(!this.draglinemode)&&(i<ssint[0].length);i++) {
-    			if (ssint[0][i]) {
+    		for (int i=0;i<ssint[0].length;i++) {
+    			if ((ssint[0][i])&&(this.drawdepth==vsphere2[i].z)) {
     				k = i;
     			}
     		}
