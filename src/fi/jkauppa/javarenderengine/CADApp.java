@@ -47,6 +47,8 @@ public class CADApp implements AppHandler {
 	private int mouselastlocationx = -1, mouselastlocationy = -1;  
 	private int mouselocationx = -1, mouselocationy = -1;
 	private int drawdepth = 0; 
+	private int drawstartdepth = 0; 
+	private final double drawdepthscale = 0.01f;
 	private int origindeltax = 0, origindeltay = 0; 
 	private final int originlinewidth = 100;
 	private final int originlineheight = 100;
@@ -85,9 +87,9 @@ public class CADApp implements AppHandler {
 		g.setColor(null);
 		g.setPaint(bgpattern);
 		g.fillRect(0, 0, renderwidth*2, renderheight*2);
-		g.setColor(Color.RED);
 		g.setPaint(null);
 		g.setStroke(new BasicStroke(this.vertexstroke));
+		g.setColor(Color.RED);
 		g.drawLine(this.origindeltax, this.origindeltay, this.origindeltax+this.originlinewidth, this.origindeltay);
 		g.setColor(Color.GREEN);
 		g.drawLine(this.origindeltax, this.origindeltay, this.origindeltax, this.origindeltay+this.originlineheight);
@@ -95,42 +97,42 @@ public class CADApp implements AppHandler {
 		g.fillOval(this.origindeltax-this.vertexradius, this.origindeltay-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
 		g.setColor(null);
 		for (int i=0;i<linelist.size();i++) {
-			g.setColor(Color.BLACK);
-			if (linelist.get(i).pos1.z>this.drawdepth) {
-				g.setStroke(new BasicStroke(this.vertexstroke+1));
-			}else if (linelist.get(i).pos1.z<this.drawdepth) {
-				g.setStroke(new BasicStroke(this.vertexstroke-1));
-			}else {
-				g.setStroke(new BasicStroke(this.vertexstroke));
+			if ((linelist.get(i).pos1.z>=this.drawdepth)||(linelist.get(i).pos2.z>=this.drawdepth)) {
+				double pos1s = (linelist.get(i).pos1.z-this.drawdepth)*this.drawdepthscale+1;
+				int pos1x = (int)Math.round((linelist.get(i).pos1.x/pos1s))+this.origindeltax;
+				int pos1y = (int)Math.round((linelist.get(i).pos1.y/pos1s))+this.origindeltay;
+				double pos2s = (linelist.get(i).pos2.z-this.drawdepth)*this.drawdepthscale+1;
+				int pos2x = (int)Math.round((linelist.get(i).pos2.x/pos2s))+this.origindeltax;
+				int pos2y = (int)Math.round((linelist.get(i).pos2.y/pos2s))+this.origindeltay;
+				g.setColor(Color.BLACK);
+				if (linelist.get(i).pos1.z==this.drawdepth){g.setStroke(new BasicStroke(this.vertexstroke+1));}else{g.setStroke(new BasicStroke(this.vertexstroke));}
+				g.drawOval(pos1x-this.vertexradius, pos1y-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
+				if (linelist.get(i).pos2.z==this.drawdepth){g.setStroke(new BasicStroke(this.vertexstroke+1));}else{g.setStroke(new BasicStroke(this.vertexstroke));}
+				g.drawOval(pos2x-this.vertexradius, pos2y-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
+				g.setColor(Color.BLUE);
+				g.setStroke(new BasicStroke(this.linestroke));
+				g.drawLine(pos1x, pos1y, pos2x, pos2y);
 			}
-			g.drawOval((int)Math.round(linelist.get(i).pos1.x-this.vertexradius)+this.origindeltax, (int)Math.round(linelist.get(i).pos1.y-this.vertexradius)+this.origindeltay, this.vertexradius*2, this.vertexradius*2);
-			if (linelist.get(i).pos2.z>this.drawdepth) {
-				g.setStroke(new BasicStroke(this.vertexstroke+1));
-			}else if (linelist.get(i).pos2.z<this.drawdepth) {
-				g.setStroke(new BasicStroke(this.vertexstroke-1));
-			}else {
-				g.setStroke(new BasicStroke(this.vertexstroke));
-			}
-			g.drawOval((int)Math.round(linelist.get(i).pos2.x-this.vertexradius)+this.origindeltax, (int)Math.round(linelist.get(i).pos2.y-this.vertexradius)+this.origindeltay, this.vertexradius*2, this.vertexradius*2);
-			g.setColor(Color.BLUE);
-			g.setStroke(new BasicStroke(this.linestroke));
-			g.drawLine((int)Math.round(linelist.get(i).pos1.x)+this.origindeltax, (int)Math.round(linelist.get(i).pos1.y)+this.origindeltay, (int)Math.round(linelist.get(i).pos2.x)+this.origindeltax, (int)Math.round(linelist.get(i).pos2.y)+this.origindeltay);
 		}
 		if (this.drawlinemode) {
-			int drawstartlocationx = this.mousestartlocationx;
-			int drawstartlocationy = this.mousestartlocationy;
-			int drawlocationx = this.mouselocationx;
-			int drawlocationy = this.mouselocationy;
+			int drawstartlocationx = this.mousestartlocationx-this.origindeltax;
+			int drawstartlocationy = this.mousestartlocationy-this.origindeltay;
+			int drawlocationx = this.mouselocationx-this.origindeltax;
+			int drawlocationy = this.mouselocationy-this.origindeltay;
 			if (this.snaplinemode) {
 				drawstartlocationx = snapToGrid(drawstartlocationx,this.origindeltax);
 				drawstartlocationy = snapToGrid(drawstartlocationy,this.origindeltay);
 				drawlocationx = snapToGrid(drawlocationx,this.origindeltax);
 				drawlocationy = snapToGrid(drawlocationy,this.origindeltay);
 			}
+			double drawstartposs = (this.drawstartdepth-this.drawdepth)*this.drawdepthscale+1;
+			drawstartlocationx = (int)Math.round(drawstartlocationx/drawstartposs)+this.origindeltax;
+			drawstartlocationy = (int)Math.round(drawstartlocationy/drawstartposs)+this.origindeltay;
+			drawlocationx = drawlocationx+this.origindeltax;
+			drawlocationy = drawlocationy+this.origindeltay;
 			g.setColor(Color.BLACK);
 			g.setStroke(new BasicStroke(this.vertexstroke));
 			g.drawOval(drawstartlocationx-this.vertexradius, drawstartlocationy-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
-			g.setStroke(new BasicStroke(this.vertexstroke));
 			g.drawOval(drawlocationx-this.vertexradius, drawlocationy-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
 			g.setColor(Color.BLUE);
 			g.setStroke(new BasicStroke(this.linestroke));
@@ -139,7 +141,7 @@ public class CADApp implements AppHandler {
 	}
 
 	private int snapToGrid(int coordinate, int coordinatedelta) {
-		return this.gridstep*Math.floorDiv(coordinate, this.gridstep)+gridsteph+Math.floorMod(coordinatedelta,this.gridstep);
+		return this.gridstep*Math.floorDiv(coordinate,this.gridstep)+this.gridsteph+Math.floorMod(coordinatedelta,this.gridstep);
 	}
 	
 	private int getVertexAtMouse() {
@@ -238,6 +240,7 @@ public class CADApp implements AppHandler {
 	@Override public void mousePressed(MouseEvent e) {
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
 		this.mousestartlocationx=this.mouselocationx;this.mousestartlocationy=this.mouselocationy;
+		this.drawstartdepth = this.drawdepth;
 	    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
 	    int offmask1 = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK|
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1);
@@ -277,7 +280,7 @@ public class CADApp implements AppHandler {
 						drawlocationx = snapToGrid(drawlocationx,this.origindeltax);
 						drawlocationy = snapToGrid(drawlocationy,this.origindeltay);
 					}
-					this.linelist.add(new Position2(new Position(drawstartlocationx-this.origindeltax, drawstartlocationy-this.origindeltay, this.drawdepth), new Position(drawlocationx-this.origindeltax, drawlocationy-this.origindeltay, this.drawdepth)));
+					this.linelist.add(new Position2(new Position(drawstartlocationx-this.origindeltax, drawstartlocationy-this.origindeltay, this.drawstartdepth), new Position(drawlocationx-this.origindeltax, drawlocationy-this.origindeltay, this.drawdepth)));
 				}
 				if (this.draglinemode) {
 					this.draglinemode = false;
