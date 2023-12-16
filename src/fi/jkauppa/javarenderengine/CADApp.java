@@ -56,9 +56,9 @@ public class CADApp implements AppHandler {
 	private int origindeltax = 0, origindeltay = 0; 
 	private final int originlinewidth = 100;
 	private final int originlineheight = 100;
-	private final int vertexradius = 5;
+	private final int vertexradius = 2;
 	private final int vertexstroke = 2;
-	private final int linestroke = 5;
+	private final int linestroke = 2;
 	private final int gridstep = 20;
 	private BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
 	private ArrayList<Position2> linelist = new ArrayList<Position2>(); 
