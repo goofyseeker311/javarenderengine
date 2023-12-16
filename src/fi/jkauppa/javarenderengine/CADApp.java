@@ -142,20 +142,6 @@ public class CADApp implements AppHandler {
 		return k;
 	}
 	
-	private Position[] generateVertexList() {
-		TreeSet<Position> uniquevertexlist = new TreeSet<Position>();
-		for (int i=0;i<linelist.size();i++) {
-			uniquevertexlist.add(linelist.get(i).pos1);
-			uniquevertexlist.add(linelist.get(i).pos2);
-		}
-		return uniquevertexlist.toArray(new Position[uniquevertexlist.size()]);
-	}
-	private Polyangle[] generatePolygonList() {
-		Position[] vertexlist = generateVertexList();
-		ArrayList<Polyangle> uniquepolygonlist = new ArrayList<Polyangle>();
-		return uniquepolygonlist.toArray(new Polyangle[uniquepolygonlist.size()]);
-	}
-	
 	@Override public void actionPerformed(ActionEvent e) {}
 	@Override public void keyTyped(KeyEvent e) {}
 	@Override public void keyReleased(KeyEvent e) {
@@ -210,9 +196,9 @@ public class CADApp implements AppHandler {
 				savemodel.objects[0] = new ModelObject("JREOBJ");
 				savemodel.objects[0].usemtl = savemodel.materials[0].materialname;
 				savemodel.objects[0].faceindex = new ModelFaceIndex[this.linelist.size()];
-				savemodel.vertexlist = generateVertexList();
+				savemodel.vertexlist = MathLib.generateVertexList(this.linelist.toArray(new Position2[this.linelist.size()]));
 				System.out.println("vertexlist.length="+savemodel.vertexlist.length);
-				Polyangle[] polygonlist = generatePolygonList();
+				Polyangle[] polygonlist = MathLib.generatePolygonList(this.linelist.toArray(new Position2[this.linelist.size()]));
 				System.out.println("polygonlist.length="+polygonlist.length);
 				for (int j=0;j<polygonlist.length;j++) {
 					ModelFaceVertexIndex[] linefacevertex = new ModelFaceVertexIndex[polygonlist[j].poslist.length];

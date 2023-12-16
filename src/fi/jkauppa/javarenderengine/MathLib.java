@@ -1,7 +1,12 @@
 package fi.jkauppa.javarenderengine;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.TreeSet;
+
+import fi.jkauppa.javarenderengine.MathLib.Polyangle;
+import fi.jkauppa.javarenderengine.MathLib.Position;
 
 public class MathLib {
 	public static class Position implements Comparable<Position> {public double x,y,z; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;} @Override public int compareTo(Position o){int k=-1;if(this.x==o.x){if(this.y==o.y){if(this.z==o.z){k=0;}else if(this.z>o.z){k=1;}}else if(this.y>o.y){k=1;}}else if(this.x>o.x){k=1;}return k;}}
@@ -359,6 +364,25 @@ public class MathLib {
 			}
 		}
 		return k;
+	}
+	
+	public static Position[] generateVertexList(Position[] vertexlist) {
+		TreeSet<Position> uniquevertexlist = new TreeSet<Position>(Arrays.asList(vertexlist));
+		return uniquevertexlist.toArray(new Position[uniquevertexlist.size()]);
+	}
+	public static Position[] generateVertexList(Position2[] linelist) {
+		ArrayList<Position> arrayvertexlist = new ArrayList<Position>(); 
+		for (int i=0;i<linelist.length;i++) {
+			arrayvertexlist.add(linelist[i].pos1);
+			arrayvertexlist.add(linelist[i].pos2);
+		}
+		TreeSet<Position> uniquevertexlist = new TreeSet<Position>(arrayvertexlist);
+		return uniquevertexlist.toArray(new Position[uniquevertexlist.size()]);
+	}
+	public static Polyangle[] generatePolygonList(Position2[] linelist) {
+		Position[] vertexlist = generateVertexList(linelist);
+		ArrayList<Polyangle> uniquepolygonlist = new ArrayList<Polyangle>();
+		return uniquepolygonlist.toArray(new Polyangle[uniquepolygonlist.size()]);
 	}
 	
 	public static double[] projectedStep(int vres, int vfov) {
