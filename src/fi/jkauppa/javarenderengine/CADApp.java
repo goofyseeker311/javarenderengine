@@ -19,6 +19,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.TreeSet;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
@@ -213,17 +214,14 @@ public class CADApp implements AppHandler {
 				System.out.println("vertexlist.length="+savemodel.vertexlist.length);
 				Polyangle[] polygonlist = generatePolygonList();
 				System.out.println("polygonlist.length="+polygonlist.length);
-				/*
-				savemodel.vertexlist = new Position[this.linelist.size()*2];
-				for (int i=0;i<this.linelist.size();i++) {
-					savemodel.vertexlist[i*2] = new Position(linelist.get(i).pos1.x, linelist.get(i).pos1.y, linelist.get(i).pos1.z);
-					savemodel.vertexlist[i*2+1] = new Position(linelist.get(i).pos2.x, linelist.get(i).pos2.y, linelist.get(i).pos2.z);
-					ModelFaceVertexIndex[] linefacevertex = new ModelFaceVertexIndex[2];
-					linefacevertex[0] = new ModelFaceVertexIndex(i*2+1, 1, 1);
-					linefacevertex[1] = new ModelFaceVertexIndex(i*2+2, 1, 1);
-					savemodel.objects[0].faceindex[i] = new ModelFaceIndex(linefacevertex);
+				for (int j=0;j<polygonlist.length;j++) {
+					ModelFaceVertexIndex[] linefacevertex = new ModelFaceVertexIndex[polygonlist[j].poslist.length];
+					for (int i=0;i<polygonlist[j].poslist.length;i++) {
+						int vertexindex = Arrays.binarySearch(savemodel.vertexlist, polygonlist[j].poslist[i]);
+						linefacevertex[i] = new ModelFaceVertexIndex(vertexindex,1,1);
+					}
+					savemodel.objects[0].faceindex[j] = new ModelFaceIndex(linefacevertex);
 				}
-				*/
 				ModelLib.saveWaveFrontOBJFile(saveobjfile, savemodel);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
