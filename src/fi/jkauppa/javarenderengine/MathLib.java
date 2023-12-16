@@ -380,10 +380,16 @@ public class MathLib {
 		Position[] vertexlist = generateVertexList(linelist);
 		ArrayList<Polyangle> uniquepolygonlist = new ArrayList<Polyangle>();
 		for (int i=0;i<linelist.length;i++) {
-			Position[] linevertexlist = new Position[2];
-			linevertexlist[0] = linelist[i].pos1;
-			linevertexlist[1] = linelist[i].pos2;
-			uniquepolygonlist.add(new Polyangle(linevertexlist));
+			if (linelist[i].pos1.compareTo(linelist[i].pos2)==0) {
+				Position[] linevertexlist = new Position[1];
+				linevertexlist[0] = linelist[i].pos1;
+				uniquepolygonlist.add(new Polyangle(linevertexlist));
+			} else {
+				Position[] linevertexlist = new Position[2];
+				linevertexlist[0] = linelist[i].pos1;
+				linevertexlist[1] = linelist[i].pos2;
+				uniquepolygonlist.add(new Polyangle(linevertexlist));
+			}
 		}
 		return uniquepolygonlist.toArray(new Polyangle[uniquepolygonlist.size()]);
 	}
