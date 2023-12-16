@@ -79,4 +79,4 @@ Draw App:
 
 CAD App:
 
-![caddrawing2](https://github.com/goofyseeker311/javarenderengine/assets/19920254/b7a13a9a-00b8-41ff-bda2-895f9180a779)
+![caddrawing3](https://github.com/goofyseeker311/javarenderengine/assets/19920254/985a8822-ca04-4a61-84ad-4a9523d7e662)
