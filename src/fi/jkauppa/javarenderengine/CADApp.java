@@ -197,13 +197,11 @@ public class CADApp implements AppHandler {
 				savemodel.objects[0].usemtl = savemodel.materials[0].materialname;
 				savemodel.objects[0].faceindex = new ModelFaceIndex[this.linelist.size()];
 				savemodel.vertexlist = MathLib.generateVertexList(this.linelist.toArray(new Position2[this.linelist.size()]));
-				System.out.println("vertexlist.length="+savemodel.vertexlist.length);
 				Polyangle[] polygonlist = MathLib.generatePolygonList(this.linelist.toArray(new Position2[this.linelist.size()]));
-				System.out.println("polygonlist.length="+polygonlist.length);
 				for (int j=0;j<polygonlist.length;j++) {
 					ModelFaceVertexIndex[] linefacevertex = new ModelFaceVertexIndex[polygonlist[j].poslist.length];
 					for (int i=0;i<polygonlist[j].poslist.length;i++) {
-						int vertexindex = Arrays.binarySearch(savemodel.vertexlist, polygonlist[j].poslist[i]);
+						int vertexindex = Arrays.binarySearch(savemodel.vertexlist, polygonlist[j].poslist[i])+1;
 						linefacevertex[i] = new ModelFaceVertexIndex(vertexindex,1,1);
 					}
 					savemodel.objects[0].faceindex[j] = new ModelFaceIndex(linefacevertex);
@@ -224,6 +222,9 @@ public class CADApp implements AppHandler {
 							if (i>0) {
 								this.linelist.add(new Position2(loadvertex[i-1],loadvertex[i]));
 							}
+						}
+						if (loadmodel.objects[k].faceindex[j].facevertexindex.length>2) {
+							this.linelist.add(new Position2(loadvertex[loadmodel.objects[k].faceindex[j].facevertexindex.length-1],loadvertex[0]));
 						}
 					}
 				}
