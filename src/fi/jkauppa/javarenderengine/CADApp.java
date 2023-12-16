@@ -220,11 +220,13 @@ public class CADApp implements AppHandler {
 						for (int i=0;i<loadmodel.objects[k].faceindex[j].facevertexindex.length;i++) {
 							loadvertex[i] = loadmodel.vertexlist[loadmodel.objects[k].faceindex[j].facevertexindex[i].vertexindex-1];
 							if (i>0) {
-								this.linelist.add(new Position2(loadvertex[i-1],loadvertex[i]));
+								this.linelist.add(new Position2(loadvertex[i-1].copy(),loadvertex[i].copy()));
 							}
 						}
 						if (loadmodel.objects[k].faceindex[j].facevertexindex.length>2) {
-							this.linelist.add(new Position2(loadvertex[loadmodel.objects[k].faceindex[j].facevertexindex.length-1],loadvertex[0]));
+							this.linelist.add(new Position2(loadvertex[loadmodel.objects[k].faceindex[j].facevertexindex.length-1].copy(),loadvertex[0].copy()));
+						} else if (loadmodel.objects[k].faceindex[j].facevertexindex.length==1) {
+							this.linelist.add(new Position2(loadvertex[0].copy(),loadvertex[0].copy()));
 						}
 					}
 				}
