@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.TexturePaint;
 import java.awt.Transparency;
@@ -18,11 +19,13 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.TreeSet;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
 import fi.jkauppa.javarenderengine.MathLib.Coordinate;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
+import fi.jkauppa.javarenderengine.MathLib.Polyangle;
 import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Position2;
 import fi.jkauppa.javarenderengine.MathLib.Sphere;
@@ -41,6 +44,7 @@ public class CADApp implements AppHandler {
 	private TexturePaint bgpattern = null;
 	private boolean draglinemode = false;
 	private boolean snaplinemode = false;
+	private int polygonfillmode = 1;
 	private int selecteddragvertex = -1;
 	private int mousestartlocationx = -1, mousestartlocationy = -1;  
 	private int mouselastlocationx = -1, mouselastlocationy = -1;  
@@ -137,6 +141,20 @@ public class CADApp implements AppHandler {
 		return k;
 	}
 	
+	private Position[] generateVertexList() {
+		TreeSet<Position> uniquevertexlist = new TreeSet<Position>();
+		for (int i=0;i<linelist.size();i++) {
+			uniquevertexlist.add(linelist.get(i).pos1);
+			uniquevertexlist.add(linelist.get(i).pos2);
+		}
+		return uniquevertexlist.toArray(new Position[uniquevertexlist.size()]);
+	}
+	private Polyangle[] generatePolygonList() {
+		Position[] vertexlist = generateVertexList();
+		ArrayList<Polyangle> uniquepolygonlist = new ArrayList<Polyangle>();
+		return uniquepolygonlist.toArray(new Polyangle[uniquepolygonlist.size()]);
+	}
+	
 	@Override public void actionPerformed(ActionEvent e) {}
 	@Override public void keyTyped(KeyEvent e) {}
 	@Override public void keyReleased(KeyEvent e) {
@@ -147,6 +165,11 @@ public class CADApp implements AppHandler {
 	@Override public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
 			this.linelist.clear();
+		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
+			this.polygonfillmode += 1;
+			if (this.polygonfillmode>3) {
+				this.polygonfillmode = 1;
+			}
 		} else if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
 			this.snaplinemode = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
@@ -185,8 +208,13 @@ public class CADApp implements AppHandler {
 				savemodel.objects = new ModelObject[1];
 				savemodel.objects[0] = new ModelObject("JREOBJ");
 				savemodel.objects[0].usemtl = savemodel.materials[0].materialname;
-				savemodel.vertexlist = new Position[this.linelist.size()*2];
 				savemodel.objects[0].faceindex = new ModelFaceIndex[this.linelist.size()];
+				savemodel.vertexlist = generateVertexList();
+				System.out.println("vertexlist.length="+savemodel.vertexlist.length);
+				Polyangle[] polygonlist = generatePolygonList();
+				System.out.println("polygonlist.length="+polygonlist.length);
+				/*
+				savemodel.vertexlist = new Position[this.linelist.size()*2];
 				for (int i=0;i<this.linelist.size();i++) {
 					savemodel.vertexlist[i*2] = new Position(linelist.get(i).pos1.x, linelist.get(i).pos1.y, linelist.get(i).pos1.z);
 					savemodel.vertexlist[i*2+1] = new Position(linelist.get(i).pos2.x, linelist.get(i).pos2.y, linelist.get(i).pos2.z);
@@ -195,6 +223,7 @@ public class CADApp implements AppHandler {
 					linefacevertex[1] = new ModelFaceVertexIndex(i*2+2, 1, 1);
 					savemodel.objects[0].faceindex[i] = new ModelFaceIndex(linefacevertex);
 				}
+				*/
 				ModelLib.saveWaveFrontOBJFile(saveobjfile, savemodel);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
