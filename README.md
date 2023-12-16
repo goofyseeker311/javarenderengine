@@ -74,12 +74,7 @@ https://www.oracle.com/java/technologies/downloads/#java21
 # Example Images
 
 Draw App:
-
-![loga7](https://github.com/goofyseeker311/javarenderengine/assets/19920254/986350a3-11a3-49ec-a325-fbac8eae7b25)
 ![loga7a](https://github.com/goofyseeker311/javarenderengine/assets/19920254/f75e6fbe-1dde-42ea-b4d4-dc12c2203ab4)
 
-
 CAD App:
-
-![caddrawing](https://github.com/goofyseeker311/javarenderengine/assets/19920254/0ac36a4a-b066-4859-9c69-854595be54fb)
 ![caddrawing2](https://github.com/goofyseeker311/javarenderengine/assets/19920254/b7a13a9a-00b8-41ff-bda2-895f9180a779)
