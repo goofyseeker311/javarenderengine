@@ -120,7 +120,7 @@ public class CADApp implements AppHandler {
 	}
 
 	private int snapToGrid(int coordinate) {
-		return this.gridstep*Math.floorDiv(coordinate, this.gridstep);
+		return this.gridstep*(int)Math.round(((double)coordinate)/((double)this.gridstep));
 	}
 	
 	private int getVertexAtMouse() {
