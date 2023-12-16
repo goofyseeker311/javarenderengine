@@ -39,7 +39,6 @@ public class CADApp implements AppHandler {
 	private int lastrenderwidth = 0;
 	private int lastrenderheight = 0;
 	private TexturePaint bgpattern = null;
-	private boolean drawlinemode = false;
 	private boolean draglinemode = false;
 	private boolean snaplinemode = false;
 	private int selecteddragvertex = -1;
@@ -48,15 +47,14 @@ public class CADApp implements AppHandler {
 	private int mouselocationx = -1, mouselocationy = -1;
 	private int drawdepth = 0; 
 	private int drawstartdepth = 0; 
-	private final double drawdepthscale = 0.01f;
+	private final double drawdepthscale = 0.001f;
 	private int origindeltax = 0, origindeltay = 0; 
 	private final int originlinewidth = 100;
 	private final int originlineheight = 100;
 	private final int vertexradius = 5;
 	private final int vertexstroke = 2;
 	private final int linestroke = 5;
-	private final int gridstep = 16;
-	private final int gridsteph = gridstep/2;
+	private final int gridstep = 20;
 	private BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
 	private ArrayList<Position2> linelist = new ArrayList<Position2>(); 
 	private JFileChooser filechooser = new JFileChooser();
@@ -67,8 +65,8 @@ public class CADApp implements AppHandler {
 		pgfx.setColor(Color.WHITE);
 		pgfx.fillRect(0, 0, this.bgpatternimage.getWidth(), this.bgpatternimage.getHeight());
 		pgfx.setColor(Color.BLACK);
-		pgfx.drawLine(gridsteph-1, 0, gridsteph-1, gridstep-1);
-		pgfx.drawLine(0, gridsteph-1, gridstep-1, gridsteph-1);
+		pgfx.drawLine(0, 0, 0, gridstep-1);
+		pgfx.drawLine(0, 0, gridstep-1, 0);
 		pgfx.dispose();
 		this.filechooser.addChoosableFileFilter(this.objfilefilter);
 		this.filechooser.setFileFilter(this.objfilefilter);
@@ -99,11 +97,11 @@ public class CADApp implements AppHandler {
 		for (int i=0;i<linelist.size();i++) {
 			if ((linelist.get(i).pos1.z>=this.drawdepth)||(linelist.get(i).pos2.z>=this.drawdepth)) {
 				double pos1s = (linelist.get(i).pos1.z-this.drawdepth)*this.drawdepthscale+1;
-				int pos1x = (int)Math.round((linelist.get(i).pos1.x/pos1s))+this.origindeltax;
-				int pos1y = (int)Math.round((linelist.get(i).pos1.y/pos1s))+this.origindeltay;
+				int pos1x = (int)Math.round(linelist.get(i).pos1.x/pos1s)+this.origindeltax;
+				int pos1y = (int)Math.round(linelist.get(i).pos1.y/pos1s)+this.origindeltay;
 				double pos2s = (linelist.get(i).pos2.z-this.drawdepth)*this.drawdepthscale+1;
-				int pos2x = (int)Math.round((linelist.get(i).pos2.x/pos2s))+this.origindeltax;
-				int pos2y = (int)Math.round((linelist.get(i).pos2.y/pos2s))+this.origindeltay;
+				int pos2x = (int)Math.round(linelist.get(i).pos2.x/pos2s)+this.origindeltax;
+				int pos2y = (int)Math.round(linelist.get(i).pos2.y/pos2s)+this.origindeltay;
 				g.setColor(Color.BLACK);
 				if (linelist.get(i).pos1.z==this.drawdepth){g.setStroke(new BasicStroke(this.vertexstroke+1));}else{g.setStroke(new BasicStroke(this.vertexstroke));}
 				g.drawOval(pos1x-this.vertexradius, pos1y-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
@@ -114,39 +112,15 @@ public class CADApp implements AppHandler {
 				g.drawLine(pos1x, pos1y, pos2x, pos2y);
 			}
 		}
-		if (this.drawlinemode) {
-			int drawstartlocationx = this.mousestartlocationx-this.origindeltax;
-			int drawstartlocationy = this.mousestartlocationy-this.origindeltay;
-			int drawlocationx = this.mouselocationx-this.origindeltax;
-			int drawlocationy = this.mouselocationy-this.origindeltay;
-			if (this.snaplinemode) {
-				drawstartlocationx = snapToGrid(drawstartlocationx,this.origindeltax);
-				drawstartlocationy = snapToGrid(drawstartlocationy,this.origindeltay);
-				drawlocationx = snapToGrid(drawlocationx,this.origindeltax);
-				drawlocationy = snapToGrid(drawlocationy,this.origindeltay);
-			}
-			double drawstartposs = (this.drawstartdepth-this.drawdepth)*this.drawdepthscale+1;
-			drawstartlocationx = (int)Math.round(drawstartlocationx/drawstartposs)+this.origindeltax;
-			drawstartlocationy = (int)Math.round(drawstartlocationy/drawstartposs)+this.origindeltay;
-			drawlocationx = drawlocationx+this.origindeltax;
-			drawlocationy = drawlocationy+this.origindeltay;
-			g.setColor(Color.BLACK);
-			g.setStroke(new BasicStroke(this.vertexstroke));
-			g.drawOval(drawstartlocationx-this.vertexradius, drawstartlocationy-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
-			g.drawOval(drawlocationx-this.vertexradius, drawlocationy-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
-			g.setColor(Color.BLUE);
-			g.setStroke(new BasicStroke(this.linestroke));
-			g.drawLine(drawstartlocationx, drawstartlocationy, drawlocationx, drawlocationy);
-		}
 	}
 
-	private int snapToGrid(int coordinate, int coordinatedelta) {
-		return this.gridstep*Math.floorDiv(coordinate,this.gridstep)+this.gridsteph+Math.floorMod(coordinatedelta,this.gridstep);
+	private int snapToGrid(int coordinate) {
+		return this.gridstep*Math.floorDiv(coordinate, this.gridstep);
 	}
 	
 	private int getVertexAtMouse() {
 		int k = -1;
-		Sphere[] vsphere1 = new Sphere[1]; vsphere1[0] = new Sphere(this.mouselocationx-this.origindeltax, this.mouselocationy-this.origindeltay,this.drawdepth,0); 
+		Sphere[] vsphere1 = new Sphere[1]; vsphere1[0] = new Sphere(this.mouselocationx-this.origindeltax, this.mouselocationy-this.origindeltay, this.drawdepth, 0); 
 		Sphere[] vsphere2 = new Sphere[2*this.linelist.size()];
 		for (int i=0;i<linelist.size();i++) {
 			vsphere2[2*i] = new Sphere(linelist.get(i).pos1.x, linelist.get(i).pos1.y, linelist.get(i).pos1.z, this.vertexradius);
@@ -155,7 +129,7 @@ public class CADApp implements AppHandler {
 		boolean[][] ssint = MathLib.sphereSphereIntersection(vsphere1, vsphere2);
 		if (ssint!=null) {
     		for (int i=0;i<ssint[0].length;i++) {
-    			if ((ssint[0][i])&&(this.drawdepth==vsphere2[i].z)) {
+    			if ((ssint[0][i])&&(vsphere2[i].z==this.drawdepth)) {
     				k = i;
     			}
     		}
@@ -176,9 +150,17 @@ public class CADApp implements AppHandler {
 		} else if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
 			this.snaplinemode = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
-			this.drawdepth += 1;
+			if (this.snaplinemode) {
+				this.drawdepth = snapToGrid(this.drawdepth+this.gridstep);
+			} else {
+				this.drawdepth += 1;
+			}
 		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
-			this.drawdepth -= 1;
+			if (this.snaplinemode) {
+				this.drawdepth = snapToGrid(this.drawdepth-this.gridstep);
+			} else {
+				this.drawdepth -= 1;
+			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F2) {
 			this.filechooser.setDialogTitle("Save File");
 			this.filechooser.setApproveButtonText("Save");
@@ -251,6 +233,24 @@ public class CADApp implements AppHandler {
 				this.selecteddragvertex = vertexatmouse;
 			}
     	}
+	    int onmask1alt = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    int offmask1alt = MouseEvent.CTRL_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK|
+	    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1alt | offmask1alt)) == onmask1alt);
+    	if (mouse1altdown) {
+			int drawstartlocationx = this.mousestartlocationx-this.origindeltax;
+			int drawstartlocationy = this.mousestartlocationy-this.origindeltay;
+			int drawlocationx = this.mouselocationx-this.origindeltax;
+			int drawlocationy = this.mouselocationy-this.origindeltay;
+			if (this.snaplinemode) {
+				drawstartlocationx = snapToGrid(drawstartlocationx);
+				drawstartlocationy = snapToGrid(drawstartlocationy);
+				drawlocationx = snapToGrid(drawlocationx);
+				drawlocationy = snapToGrid(drawlocationy);
+			}
+			this.linelist.add(new Position2(new Position(drawstartlocationx, drawstartlocationy, this.drawstartdepth), new Position(drawlocationx, drawlocationy, this.drawdepth)));
+			this.draglinemode = true;
+			this.selecteddragvertex = (this.linelist.size()-1)*2+1;
+    	}
 	    int onmask3altdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    int offmask3altdown = MouseEvent.CTRL_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK|
 	    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3altdown | offmask3altdown)) == onmask3altdown);
@@ -268,20 +268,6 @@ public class CADApp implements AppHandler {
 	    boolean mouse3up = e.getButton()==MouseEvent.BUTTON3;
 		if (mouse1up||mouse3up) {
 			if (mouse1up) {
-				if (this.drawlinemode) {
-					this.drawlinemode = false;
-					int drawstartlocationx = this.mousestartlocationx;
-					int drawstartlocationy = this.mousestartlocationy;
-					int drawlocationx = this.mouselocationx;
-					int drawlocationy = this.mouselocationy;
-					if (this.snaplinemode) {
-						drawstartlocationx = snapToGrid(drawstartlocationx,this.origindeltax);
-						drawstartlocationy = snapToGrid(drawstartlocationy,this.origindeltay);
-						drawlocationx = snapToGrid(drawlocationx,this.origindeltax);
-						drawlocationy = snapToGrid(drawlocationy,this.origindeltay);
-					}
-					this.linelist.add(new Position2(new Position(drawstartlocationx-this.origindeltax, drawstartlocationy-this.origindeltay, this.drawstartdepth), new Position(drawlocationx-this.origindeltax, drawlocationy-this.origindeltay, this.drawdepth)));
-				}
 				if (this.draglinemode) {
 					this.draglinemode = false;
 				}
@@ -296,7 +282,7 @@ public class CADApp implements AppHandler {
     	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
     	
 	    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
-	    int offmask1 = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK|
+	    int offmask1 = MouseEvent.CTRL_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK| //|MouseEvent.ALT_DOWN_MASK
 	    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
 	    int offmask3 = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK|
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1);
@@ -306,38 +292,31 @@ public class CADApp implements AppHandler {
 	    		if (this.draglinemode) {
     				int linenum = Math.floorDiv(this.selecteddragvertex,2);
     				boolean firstvertex = Math.floorMod(this.selecteddragvertex,2)==0;
-    				int drawlocationx = this.mouselocationx;
-    				int drawlocationy = this.mouselocationy;
+    				int drawlocationx = this.mouselocationx-this.origindeltax;
+    				int drawlocationy = this.mouselocationy-this.origindeltay;
     				if (this.snaplinemode) {
-    					drawlocationx = snapToGrid(drawlocationx,this.origindeltax);
-    					drawlocationy = snapToGrid(drawlocationy,this.origindeltay);
+    					drawlocationx = snapToGrid(drawlocationx);
+    					drawlocationy = snapToGrid(drawlocationy);
     				}
     				if (firstvertex) {
-    					this.linelist.get(linenum).pos1.x = drawlocationx-this.origindeltax;
-    					this.linelist.get(linenum).pos1.y = drawlocationy-this.origindeltay;
+    					this.linelist.get(linenum).pos1.x = drawlocationx;
+    					this.linelist.get(linenum).pos1.y = drawlocationy;
     					this.linelist.get(linenum).pos1.z = this.drawdepth;
 	    			} else {
-    					this.linelist.get(linenum).pos2.x = drawlocationx-this.origindeltax;
-    					this.linelist.get(linenum).pos2.y = drawlocationy-this.origindeltay;
+    					this.linelist.get(linenum).pos2.x = drawlocationx;
+    					this.linelist.get(linenum).pos2.y = drawlocationy;
     					this.linelist.get(linenum).pos2.z = this.drawdepth;
 	    			}
 	    		}
     		}
 		}
-	    int onmask1c = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    int offmask1c = MouseEvent.CTRL_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK|
-	    int onmask3c = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    int offmask3c = MouseEvent.CTRL_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK|
-	    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1c | offmask1c)) == onmask1c);
-	    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3c | offmask3c)) == onmask3c);
-	    if (mouse1altdown||mouse3altdown) {
-	    	if (mouse1altdown) {
-	    		this.drawlinemode = true;
-	    	}
-	    }
 	}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {
-		this.drawdepth += e.getWheelRotation();
+		if (this.snaplinemode) {
+			this.drawdepth = snapToGrid(this.drawdepth+this.gridstep*e.getWheelRotation());
+		} else {
+			this.drawdepth += e.getWheelRotation();
+		}
 	}
 	
 	@Override public void mouseClicked(MouseEvent e) {}
