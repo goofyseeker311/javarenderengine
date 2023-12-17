@@ -169,24 +169,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		for (int i=0;i<prjplane.length;i++) {System.out.println("prjplane["+i+"]: "+prjplane[i].a+" "+prjplane[i].b+" "+prjplane[i].c+" "+prjplane[i].d);}
 		for (int i=0;i<prjplane2.length;i++) {System.out.println("prjplane2["+i+"]: "+prjplane2[i].a+" "+prjplane2[i].b+" "+prjplane2[i].c+" "+prjplane2[i].d);}
 		
-		Position pos1 = new Position(-1,0,3); //-1,0,3
-		Position pos2 = new Position(1,2,6); //1,2,6
-		Position pos3 = new Position(4,5,7); //4,5,7
-		Position2[] tpos = new Position2[6]; 
-		tpos[0] = new Position2(pos1,pos1);
-		tpos[1] = new Position2(pos1,pos2);
-		tpos[2] = new Position2(pos2,pos1);
-		tpos[3] = new Position2(pos2,pos3);
-		tpos[4] = new Position2(pos1,pos3);
-		tpos[5] = new Position2(pos3,pos1);
-		for (int i=0;i<tpos.length;i++) {
-			System.out.println("tpos["+i+"]="+tpos[i].pos1.x+","+tpos[i].pos1.y+","+tpos[i].pos1.z+" "+tpos[i].pos2.x+","+tpos[i].pos2.y+","+tpos[i].pos2.z);
-		}
-		for (int i=1;i<tpos.length;i++) {
-			int tposcomp = tpos[i-1].compareTo(tpos[i]);
-			System.out.println("tposcomp["+i+"]="+tposcomp);
-		}
-		
 		String modelfilename = "res/models/testcubemodel4.obj";
 		Model loadmodel = ModelLib.loadWaveFrontOBJFile(modelfilename,true);
 		//String savemodelfilename = "testcubemodel4.obj";
