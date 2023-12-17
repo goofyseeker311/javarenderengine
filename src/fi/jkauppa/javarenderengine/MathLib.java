@@ -12,7 +12,7 @@ public class MathLib {
 	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}}
 	public static class Sphere {public double x,y,z,r; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}}
 	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}}
-	public static class Position2 {public Position pos1,pos2; public Position2(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}}
+	public static class Position2 implements Comparable<Position2> {public Position pos1,pos2; public Position2(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;} @Override public int compareTo(Position2 o){int k=-1;Position2 ts=this.sort();Position2 os=o.sort();if(ts.pos1.x>os.pos1.x){k=1;}else if(ts.pos1.x==os.pos1.x){if(ts.pos1.y>os.pos1.y){k=1;}else if(ts.pos1.y==os.pos1.y){if(ts.pos1.z>os.pos1.z){k=1;}else if(ts.pos1.z==os.pos1.z){if(ts.pos2.x>os.pos2.x){k=1;}else if(ts.pos2.x==os.pos2.x){if(ts.pos2.y>os.pos2.y){k=1;}else if(ts.pos2.y==os.pos2.y){if(ts.pos2.z>os.pos2.z){k=1;}else if(ts.pos2.z==os.pos2.z){k=0;}}}}}}return k;} public Position2 copy(){return new Position2(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z));} public Position2 swap(){return new Position2(this.pos2,this.pos1);} public Position2 sort(){Position2 k=this;boolean keeporder=true;if(this.pos1.x>this.pos2.x){keeporder=false;}else if(this.pos1.x==this.pos2.x){if(this.pos1.y>this.pos2.y){keeporder=false;}else if (this.pos1.y==this.pos2.y){if(this.pos1.z>this.pos2.z){keeporder=false;}}}if(!keeporder){k=this.swap();}return k;}}
 	public static class Triangle {public Position pos1,pos2,pos3; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;}}
 	public static class Polyangle {public Position[] poslist; public Polyangle(Position[] poslisti){this.poslist=poslisti;}}
 	public static class Matrix {public double a11,a12,a13,a21,a22,a23,a31,a32,a33;public Matrix(double a11i,double a12i,double a13i,double a21i,double a22i,double a23i,double a31i,double a32i,double a33i){this.a11=a11i;this.a12=a12i;this.a13=a13i;this.a21=a21i;this.a22=a22i;this.a23=a23i;this.a31=a31i;this.a32=a32i;this.a33=a33i;}}
@@ -377,19 +377,57 @@ public class MathLib {
 		return uniquevertexlist.toArray(new Position[uniquevertexlist.size()]);
 	}
 	public static Polyangle[] generatePolygonList(Position2[] linelist) {
-		Position[] vertexlist = generateVertexList(linelist);
+		TreeSet<Position2> uniquelinetree = new TreeSet<Position2>(Arrays.asList(linelist));
+		Position2[] uniquelinelist = uniquelinetree.toArray(new Position2[uniquelinetree.size()]);
+		TreeSet<Position2> trianglelinetree = new TreeSet<Position2>();
 		ArrayList<Polyangle> uniquepolygonlist = new ArrayList<Polyangle>();
-		for (int j=0;j<linelist.length;j++) {
-			if (linelist[j].pos1.compareTo(linelist[j].pos2)==0) {
+		for (int k=0;k<uniquelinelist.length;k++) {
+			Position2 kline = uniquelinelist[k];
+			if (uniquelinelist[k].pos1.compareTo(uniquelinelist[k].pos2)==0) {
 				Position[] linevertexlist = new Position[1];
-				linevertexlist[0] = linelist[j].pos1;
+				linevertexlist[0] = uniquelinelist[k].pos1;
 				uniquepolygonlist.add(new Polyangle(linevertexlist));
 			} else {
-				Position[] linevertexlist = new Position[2];
-				linevertexlist[0] = linelist[j].pos1;
-				linevertexlist[1] = linelist[j].pos2;
-				uniquepolygonlist.add(new Polyangle(linevertexlist));
+				for (int j=k+1;j<uniquelinelist.length;j++) {
+					Position2 jline = uniquelinelist[j];
+					boolean kjlineconnected11 = kline.pos1.compareTo(jline.pos1)==0;
+					boolean kjlineconnected12 = kline.pos1.compareTo(jline.pos2)==0;
+					boolean kjlineconnected21 = kline.pos2.compareTo(jline.pos1)==0;
+					boolean kjlineconnected22 = kline.pos2.compareTo(jline.pos2)==0;
+					boolean kjlineconnected = kjlineconnected11||kjlineconnected12||kjlineconnected21||kjlineconnected22;
+					if (kjlineconnected) {
+						boolean klinefirst = (kjlineconnected11||kjlineconnected12)?true:false;
+						boolean jlinefirst = (kjlineconnected11||kjlineconnected21)?true:false;
+						for (int i=j+1;i<uniquelinelist.length;i++) {
+							Position2 iline = uniquelinelist[i];
+							Position klinefreevertex = klinefirst?kline.pos2:kline.pos1;
+							Position jlinefreevertex = jlinefirst?jline.pos2:jline.pos1;
+							Position connectedvertex = klinefirst?kline.pos1:kline.pos2;
+							boolean ilinecoonnected = (klinefreevertex.compareTo(iline.pos1)==0)&&(jlinefreevertex.compareTo(iline.pos2)==0);
+							boolean ilinecoonnectedr = (klinefreevertex.compareTo(iline.pos2)==0)&&(jlinefreevertex.compareTo(iline.pos1)==0);
+							if (ilinecoonnected||ilinecoonnectedr) {
+								Position[] linevertexlist = new Position[3];
+								linevertexlist[0] = connectedvertex;
+								linevertexlist[1] = klinefreevertex;
+								linevertexlist[2] = jlinefreevertex;
+								uniquepolygonlist.add(new Polyangle(linevertexlist));
+								trianglelinetree.add(kline);
+								trianglelinetree.add(jline);
+								trianglelinetree.add(iline);
+							}
+						}
+					}
+				}
 			}
+		}
+		TreeSet<Position2> nontrianglelinetree = new TreeSet<Position2>(Arrays.asList(linelist));
+		nontrianglelinetree.removeAll(trianglelinetree);  
+		Position2[] nontrianglelinelist = nontrianglelinetree.toArray(new Position2[nontrianglelinetree.size()]);
+		for (int k=0;k<nontrianglelinelist.length;k++) {
+			Position[] linevertexlist = new Position[2];
+			linevertexlist[0] = nontrianglelinelist[k].pos1;
+			linevertexlist[1] = nontrianglelinelist[k].pos2;
+			uniquepolygonlist.add(new Polyangle(linevertexlist));
 		}
 		return uniquepolygonlist.toArray(new Polyangle[uniquepolygonlist.size()]);
 	}

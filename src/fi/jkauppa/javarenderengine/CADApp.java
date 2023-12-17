@@ -195,9 +195,9 @@ public class CADApp implements AppHandler {
 				savemodel.objects = new ModelObject[1];
 				savemodel.objects[0] = new ModelObject("JREOBJ");
 				savemodel.objects[0].usemtl = savemodel.materials[0].materialname;
-				savemodel.objects[0].faceindex = new ModelFaceIndex[this.linelist.size()];
 				savemodel.vertexlist = MathLib.generateVertexList(this.linelist.toArray(new Position2[this.linelist.size()]));
 				Polyangle[] polygonlist = MathLib.generatePolygonList(this.linelist.toArray(new Position2[this.linelist.size()]));
+				savemodel.objects[0].faceindex = new ModelFaceIndex[polygonlist.length];
 				for (int j=0;j<polygonlist.length;j++) {
 					ModelFaceVertexIndex[] linefacevertex = new ModelFaceVertexIndex[polygonlist[j].poslist.length];
 					for (int i=0;i<polygonlist[j].poslist.length;i++) {
