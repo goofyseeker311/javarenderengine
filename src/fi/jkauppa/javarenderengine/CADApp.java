@@ -34,6 +34,7 @@ import fi.jkauppa.javarenderengine.ModelLib.Material;
 import fi.jkauppa.javarenderengine.ModelLib.Model;
 import fi.jkauppa.javarenderengine.ModelLib.ModelFaceIndex;
 import fi.jkauppa.javarenderengine.ModelLib.ModelFaceVertexIndex;
+import fi.jkauppa.javarenderengine.ModelLib.ModelLineIndex;
 import fi.jkauppa.javarenderengine.ModelLib.ModelObject;
 
 public class CADApp implements AppHandler {
@@ -197,15 +198,27 @@ public class CADApp implements AppHandler {
 				savemodel.objects[0].usemtl = savemodel.materials[0].materialname;
 				savemodel.vertexlist = MathLib.generateVertexList(this.linelist.toArray(new Position2[this.linelist.size()]));
 				Polyangle[] polygonlist = MathLib.generatePolygonList(this.linelist.toArray(new Position2[this.linelist.size()]));
-				savemodel.objects[0].faceindex = new ModelFaceIndex[polygonlist.length];
+				ArrayList<ModelFaceIndex> faceindexarray = new ArrayList<ModelFaceIndex>();
+				ArrayList<ModelLineIndex> lineindexarray = new ArrayList<ModelLineIndex>();
 				for (int j=0;j<polygonlist.length;j++) {
-					ModelFaceVertexIndex[] linefacevertex = new ModelFaceVertexIndex[polygonlist[j].poslist.length];
-					for (int i=0;i<polygonlist[j].poslist.length;i++) {
-						int vertexindex = Arrays.binarySearch(savemodel.vertexlist, polygonlist[j].poslist[i])+1;
-						linefacevertex[i] = new ModelFaceVertexIndex(vertexindex,1,1);
+					if (polygonlist[j].poslist.length>=3) {
+						ModelFaceVertexIndex[] trianglevertex = new ModelFaceVertexIndex[polygonlist[j].poslist.length];
+						for (int i=0;i<polygonlist[j].poslist.length;i++) {
+							int vertexindex = Arrays.binarySearch(savemodel.vertexlist, polygonlist[j].poslist[i])+1;
+							trianglevertex[i] = new ModelFaceVertexIndex(vertexindex,1,1);
+						}
+						faceindexarray.add(new ModelFaceIndex(trianglevertex));
+					} else {
+						int[] linevertex = new int[polygonlist[j].poslist.length];
+						for (int i=0;i<polygonlist[j].poslist.length;i++) {
+							int vertexindex = Arrays.binarySearch(savemodel.vertexlist, polygonlist[j].poslist[i])+1;
+							linevertex[i] = vertexindex;
+						}
+						lineindexarray.add(new ModelLineIndex(linevertex));
 					}
-					savemodel.objects[0].faceindex[j] = new ModelFaceIndex(linefacevertex);
 				}
+				savemodel.objects[0].faceindex = faceindexarray.toArray(new ModelFaceIndex[faceindexarray.size()]);
+				savemodel.objects[0].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
 				ModelLib.saveWaveFrontOBJFile(saveobjfile, savemodel);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
@@ -226,6 +239,18 @@ public class CADApp implements AppHandler {
 						if (loadmodel.objects[k].faceindex[j].facevertexindex.length>2) {
 							this.linelist.add(new Position2(loadvertex[loadmodel.objects[k].faceindex[j].facevertexindex.length-1].copy(),loadvertex[0].copy()));
 						} else if (loadmodel.objects[k].faceindex[j].facevertexindex.length==1) {
+							this.linelist.add(new Position2(loadvertex[0].copy(),loadvertex[0].copy()));
+						}
+					}
+					for (int j=0;j<loadmodel.objects[k].lineindex.length;j++) {
+						Position[] loadvertex = new Position[loadmodel.objects[k].lineindex[j].linevertexindex.length];
+						for (int i=0;i<loadmodel.objects[k].lineindex[j].linevertexindex.length;i++) {
+							loadvertex[i] = loadmodel.vertexlist[loadmodel.objects[k].lineindex[j].linevertexindex[i]-1];
+							if (i>0) {
+								this.linelist.add(new Position2(loadvertex[i-1].copy(),loadvertex[i].copy()));
+							}
+						}
+						if (loadmodel.objects[k].lineindex[j].linevertexindex.length==1) {
 							this.linelist.add(new Position2(loadvertex[0].copy(),loadvertex[0].copy()));
 						}
 					}
