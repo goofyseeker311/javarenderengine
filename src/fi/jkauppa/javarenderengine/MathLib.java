@@ -383,38 +383,32 @@ public class MathLib {
 		ArrayList<Polyangle> uniquepolygonlist = new ArrayList<Polyangle>();
 		for (int k=0;k<uniquelinelist.length;k++) {
 			Position2 kline = uniquelinelist[k];
-			if (uniquelinelist[k].pos1.compareTo(uniquelinelist[k].pos2)==0) {
-				Position[] linevertexlist = new Position[1];
-				linevertexlist[0] = uniquelinelist[k].pos1;
-				uniquepolygonlist.add(new Polyangle(linevertexlist));
-			} else {
-				for (int j=k+1;j<uniquelinelist.length;j++) {
-					Position2 jline = uniquelinelist[j];
-					boolean kjlineconnected11 = kline.pos1.compareTo(jline.pos1)==0;
-					boolean kjlineconnected12 = kline.pos1.compareTo(jline.pos2)==0;
-					boolean kjlineconnected21 = kline.pos2.compareTo(jline.pos1)==0;
-					boolean kjlineconnected22 = kline.pos2.compareTo(jline.pos2)==0;
-					boolean kjlineconnected = kjlineconnected11||kjlineconnected12||kjlineconnected21||kjlineconnected22;
-					if (kjlineconnected) {
-						boolean klinefirst = (kjlineconnected11||kjlineconnected12)?true:false;
-						boolean jlinefirst = (kjlineconnected11||kjlineconnected21)?true:false;
-						for (int i=j+1;i<uniquelinelist.length;i++) {
-							Position2 iline = uniquelinelist[i];
-							Position klinefreevertex = klinefirst?kline.pos2:kline.pos1;
-							Position jlinefreevertex = jlinefirst?jline.pos2:jline.pos1;
-							Position connectedvertex = klinefirst?kline.pos1:kline.pos2;
-							boolean ilinecoonnected = (klinefreevertex.compareTo(iline.pos1)==0)&&(jlinefreevertex.compareTo(iline.pos2)==0);
-							boolean ilinecoonnectedr = (klinefreevertex.compareTo(iline.pos2)==0)&&(jlinefreevertex.compareTo(iline.pos1)==0);
-							if (ilinecoonnected||ilinecoonnectedr) {
-								Position[] linevertexlist = new Position[3];
-								linevertexlist[0] = connectedvertex;
-								linevertexlist[1] = klinefreevertex;
-								linevertexlist[2] = jlinefreevertex;
-								uniquepolygonlist.add(new Polyangle(linevertexlist));
-								trianglelinetree.add(kline);
-								trianglelinetree.add(jline);
-								trianglelinetree.add(iline);
-							}
+			for (int j=k+1;j<uniquelinelist.length;j++) {
+				Position2 jline = uniquelinelist[j];
+				boolean kjlineconnected11 = kline.pos1.compareTo(jline.pos1)==0;
+				boolean kjlineconnected12 = kline.pos1.compareTo(jline.pos2)==0;
+				boolean kjlineconnected21 = kline.pos2.compareTo(jline.pos1)==0;
+				boolean kjlineconnected22 = kline.pos2.compareTo(jline.pos2)==0;
+				boolean kjlineconnected = kjlineconnected11||kjlineconnected12||kjlineconnected21||kjlineconnected22;
+				if (kjlineconnected) {
+					boolean klinefirst = (kjlineconnected11||kjlineconnected12)?true:false;
+					boolean jlinefirst = (kjlineconnected11||kjlineconnected21)?true:false;
+					for (int i=j+1;i<uniquelinelist.length;i++) {
+						Position2 iline = uniquelinelist[i];
+						Position klinefreevertex = klinefirst?kline.pos2:kline.pos1;
+						Position jlinefreevertex = jlinefirst?jline.pos2:jline.pos1;
+						Position connectedvertex = klinefirst?kline.pos1:kline.pos2;
+						boolean ilinecoonnected = (klinefreevertex.compareTo(iline.pos1)==0)&&(jlinefreevertex.compareTo(iline.pos2)==0);
+						boolean ilinecoonnectedr = (klinefreevertex.compareTo(iline.pos2)==0)&&(jlinefreevertex.compareTo(iline.pos1)==0);
+						if (ilinecoonnected||ilinecoonnectedr) {
+							Position[] linevertexlist = new Position[3];
+							linevertexlist[0] = connectedvertex;
+							linevertexlist[1] = klinefreevertex;
+							linevertexlist[2] = jlinefreevertex;
+							uniquepolygonlist.add(new Polyangle(linevertexlist));
+							trianglelinetree.add(kline);
+							trianglelinetree.add(jline);
+							trianglelinetree.add(iline);
 						}
 					}
 				}
@@ -424,10 +418,16 @@ public class MathLib {
 		nontrianglelinetree.removeAll(trianglelinetree);  
 		Position2[] nontrianglelinelist = nontrianglelinetree.toArray(new Position2[nontrianglelinetree.size()]);
 		for (int k=0;k<nontrianglelinelist.length;k++) {
-			Position[] linevertexlist = new Position[2];
-			linevertexlist[0] = nontrianglelinelist[k].pos1;
-			linevertexlist[1] = nontrianglelinelist[k].pos2;
-			uniquepolygonlist.add(new Polyangle(linevertexlist));
+			if (nontrianglelinelist[k].pos1.compareTo(nontrianglelinelist[k].pos2)==0) {
+				Position[] linevertexlist = new Position[1];
+				linevertexlist[0] = nontrianglelinelist[k].pos1;
+				uniquepolygonlist.add(new Polyangle(linevertexlist));
+			} else {
+				Position[] linevertexlist = new Position[2];
+				linevertexlist[0] = nontrianglelinelist[k].pos1;
+				linevertexlist[1] = nontrianglelinelist[k].pos2;
+				uniquepolygonlist.add(new Polyangle(linevertexlist));
+			}
 		}
 		return uniquepolygonlist.toArray(new Polyangle[uniquepolygonlist.size()]);
 	}
