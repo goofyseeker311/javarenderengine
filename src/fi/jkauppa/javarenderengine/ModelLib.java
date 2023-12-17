@@ -43,12 +43,17 @@ public class ModelLib {
 	}
 	public static class ModelFaceIndex {
 		public ModelFaceVertexIndex[] facevertexindex;
-		public ModelFaceIndex(ModelFaceVertexIndex[] vertexindexi){this.facevertexindex=vertexindexi;}
+		public ModelFaceIndex(ModelFaceVertexIndex[] facevertexindexi){this.facevertexindex=facevertexindexi;}
+	}
+	public static class ModelLineIndex {
+		public int[] linevertexindex;
+		public ModelLineIndex(int[] linevertexindexi){this.linevertexindex=linevertexindexi;}
 	}
 	public static class ModelObject {
 		public String objectname;
 		public String usemtl;
 		public ModelFaceIndex[] faceindex;
+		public ModelLineIndex[] lineindex;
 		public ModelObject(String objectnamei) {this.objectname = objectnamei;}
 	}
 	public static class Model {
@@ -100,6 +105,16 @@ public class ModelLib {
 							}
 						}
 					}
+					for (int j=0;j<model.objects[k].lineindex.length;j++) {
+						for (int i=0;i<model.objects[k].lineindex[j].linevertexindex.length;i++) {
+							if (model.objects[k].lineindex[j].linevertexindex[i]<vertexindexmin) {
+								vertexindexmin = model.objects[k].lineindex[j].linevertexindex[i];
+							}
+							if (model.objects[k].lineindex[j].linevertexindex[i]>vertexindexmax) {
+								vertexindexmax = model.objects[k].lineindex[j].linevertexindex[i];
+							}
+						}
+					}
 					for (int i=vertexindexmin-1;i<=vertexindexmax-1;i++) {
 						modelobjfile.write("v "+model.vertexlist[i].x+" "+model.vertexlist[i].y+" "+model.vertexlist[i].z);
 						modelobjfile.newLine();
@@ -116,17 +131,28 @@ public class ModelLib {
 					modelobjfile.newLine();
 					modelobjfile.write("usemtl "+model.objects[k].usemtl);
 					modelobjfile.newLine();
-					for (int j=0;j<model.objects[k].faceindex.length;j++) {
-						modelobjfile.write("f ");
-						for (int i=0;i<model.objects[k].faceindex[j].facevertexindex.length;i++) {
-							if (i>0) {modelobjfile.write(" ");}
-							modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].vertexindex);
-							modelobjfile.write("/");
-							modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].normalindex);
-							modelobjfile.write("/");
-							modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].textureindex);
+					if ((model.objects[k].faceindex!=null)&&(model.objects[k].faceindex.length>0)) {
+						for (int j=0;j<model.objects[k].faceindex.length;j++) {
+							modelobjfile.write("f ");
+							for (int i=0;i<model.objects[k].faceindex[j].facevertexindex.length;i++) {
+								if (i>0) {modelobjfile.write(" ");}
+								modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].vertexindex);
+								modelobjfile.write("/");
+								modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].normalindex);
+								modelobjfile.write("/");
+								modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].textureindex);
+							}
+							modelobjfile.newLine();
 						}
-						modelobjfile.newLine();
+					}
+					if ((model.objects[k].lineindex!=null)&&(model.objects[k].lineindex.length>0)) {
+						for (int j=0;j<model.objects[k].lineindex.length;j++) {
+							modelobjfile.write("l ");
+							for (int i=0;i<model.objects[k].lineindex[j].linevertexindex.length;i++) {
+								modelobjfile.write(" "+model.objects[k].lineindex[j].linevertexindex[i]);
+							}
+							modelobjfile.newLine();
+						}
 					}
 					modelobjfile.newLine();
 				}
@@ -192,6 +218,7 @@ public class ModelLib {
 					ArrayList<Direction> modelfacenormals = new ArrayList<Direction>();
 					ArrayList<Coordinate> modeltexturecoords = new ArrayList<Coordinate>();
 			    	ArrayList<ModelFaceIndex> modelfaceindex = new ArrayList<ModelFaceIndex>(); 
+			    	ArrayList<ModelLineIndex> modellineindex = new ArrayList<ModelLineIndex>(); 
 					String fline = null;
 					while((fline=modelobjfile.readLine())!=null) {
 						fline = fline.trim();
@@ -202,10 +229,14 @@ public class ModelLib {
 					    	k.mtllib = farg;
 					    	k.materials = loadWaveFrontMTLFile(loadmtlfile.getPath(), loadresourcefromjar);
 					    }else if (fline.toLowerCase().startsWith("o ")) {
-					    	if (modelobjects.size()>0) {modelobjects.get(modelobjects.size()-1).faceindex = modelfaceindex.toArray(new ModelFaceIndex[modelfaceindex.size()]);}
+					    	if (modelobjects.size()>0) {
+					    		modelobjects.get(modelobjects.size()-1).faceindex = modelfaceindex.toArray(new ModelFaceIndex[modelfaceindex.size()]);
+					    		modelobjects.get(modelobjects.size()-1).lineindex = modellineindex.toArray(new ModelLineIndex[modellineindex.size()]);
+					    	}
 					    	String farg = fline.substring(2).trim();
 					    	modelobjects.add(new ModelObject(farg));
 					    	modelfaceindex = new ArrayList<ModelFaceIndex>();
+					    	modellineindex = new ArrayList<ModelLineIndex>();
 					    }else if (fline.toLowerCase().startsWith("v ")) {
 					    	String farg = fline.substring(2).trim();
 					    	String[] fargsplit = farg.split(" ");
@@ -221,6 +252,14 @@ public class ModelLib {
 					    }else if (fline.toLowerCase().startsWith("usemtl ")) {
 					    	String farg = fline.substring(7).trim();
 					    	modelobjects.get(modelobjects.size()-1).usemtl = farg;
+					    }else if (fline.toLowerCase().startsWith("l ")) {
+					    	String farg = fline.substring(2).trim();
+					    	String[] fargsplit = farg.split(" ");
+					    	int[] modellinevertexindex = new int[fargsplit.length]; 
+					    	for (int i=0;i<fargsplit.length;i++) {
+					    		modellinevertexindex[i] = Integer.parseInt(fargsplit[i]);
+					    	}
+					    	modellineindex.add(new ModelLineIndex(modellinevertexindex));
 					    }else if (fline.toLowerCase().startsWith("f ")) {
 					    	String farg = fline.substring(2).trim();
 					    	String[] fargsplit = farg.split(" ");
@@ -232,7 +271,10 @@ public class ModelLib {
 					    	modelfaceindex.add(new ModelFaceIndex(modelfacevertexindex.toArray(new ModelFaceVertexIndex[modelfacevertexindex.size()])));
 					    }
 					}
-			    	if (modelobjects.size()>0) {modelobjects.get(modelobjects.size()-1).faceindex = modelfaceindex.toArray(new ModelFaceIndex[modelfaceindex.size()]);}
+			    	if (modelobjects.size()>0) {
+			    		modelobjects.get(modelobjects.size()-1).faceindex = modelfaceindex.toArray(new ModelFaceIndex[modelfaceindex.size()]);
+			    		modelobjects.get(modelobjects.size()-1).lineindex = modellineindex.toArray(new ModelLineIndex[modellineindex.size()]);
+			    	}
 					k.objects = modelobjects.toArray(new ModelObject[modelobjects.size()]);
 					k.vertexlist = modelvertexlist.toArray(new Position[modelvertexlist.size()]);
 					k.facenormals = modelfacenormals.toArray(new Direction[modelfacenormals.size()]);
