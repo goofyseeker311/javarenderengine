@@ -376,6 +376,38 @@ public class MathLib {
 		TreeSet<Position> uniquevertexlist = new TreeSet<Position>(arrayvertexlist);
 		return uniquevertexlist.toArray(new Position[uniquevertexlist.size()]);
 	}
+	public static Triangle[] generateTriangleList(Position2[] linelist) {
+		TreeSet<Position2> uniquelinetree = new TreeSet<Position2>(Arrays.asList(linelist));
+		Position2[] uniquelinelist = uniquelinetree.toArray(new Position2[uniquelinetree.size()]);
+		ArrayList<Triangle> trianglelist = new ArrayList<Triangle>();
+		for (int k=0;k<uniquelinelist.length;k++) {
+			Position2 kline = uniquelinelist[k];
+			for (int j=k+1;j<uniquelinelist.length;j++) {
+				Position2 jline = uniquelinelist[j];
+				boolean kjlineconnected11 = kline.pos1.compareTo(jline.pos1)==0;
+				boolean kjlineconnected12 = kline.pos1.compareTo(jline.pos2)==0;
+				boolean kjlineconnected21 = kline.pos2.compareTo(jline.pos1)==0;
+				boolean kjlineconnected22 = kline.pos2.compareTo(jline.pos2)==0;
+				boolean kjlineconnected = kjlineconnected11||kjlineconnected12||kjlineconnected21||kjlineconnected22;
+				if (kjlineconnected) {
+					boolean klinefirst = (kjlineconnected11||kjlineconnected12)?true:false;
+					boolean jlinefirst = (kjlineconnected11||kjlineconnected21)?true:false;
+					for (int i=j+1;i<uniquelinelist.length;i++) {
+						Position2 iline = uniquelinelist[i];
+						Position klinefreevertex = klinefirst?kline.pos2:kline.pos1;
+						Position jlinefreevertex = jlinefirst?jline.pos2:jline.pos1;
+						Position connectedvertex = klinefirst?kline.pos1:kline.pos2;
+						boolean ilinecoonnected = (klinefreevertex.compareTo(iline.pos1)==0)&&(jlinefreevertex.compareTo(iline.pos2)==0);
+						boolean ilinecoonnectedr = (klinefreevertex.compareTo(iline.pos2)==0)&&(jlinefreevertex.compareTo(iline.pos1)==0);
+						if (ilinecoonnected||ilinecoonnectedr) {
+							trianglelist.add(new Triangle(connectedvertex,klinefreevertex,jlinefreevertex));
+						}
+					}
+				}
+			}
+		}
+		return trianglelist.toArray(new Triangle[trianglelist.size()]);
+	}
 	public static Polyangle[] generatePolygonList(Position2[] linelist) {
 		TreeSet<Position2> uniquelinetree = new TreeSet<Position2>(Arrays.asList(linelist));
 		Position2[] uniquelinelist = uniquelinetree.toArray(new Position2[uniquelinetree.size()]);

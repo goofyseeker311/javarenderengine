@@ -30,6 +30,7 @@ import fi.jkauppa.javarenderengine.MathLib.Polyangle;
 import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Position2;
 import fi.jkauppa.javarenderengine.MathLib.Sphere;
+import fi.jkauppa.javarenderengine.MathLib.Triangle;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
 import fi.jkauppa.javarenderengine.ModelLib.Model;
 import fi.jkauppa.javarenderengine.ModelLib.ModelFaceIndex;
@@ -62,7 +63,8 @@ public class CADApp implements AppHandler {
 	private final int linestroke = 2;
 	private final int gridstep = 20;
 	private BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
-	private ArrayList<Position2> linelist = new ArrayList<Position2>(); 
+	private ArrayList<Position2> linelist = new ArrayList<Position2>();
+	private Triangle[] trianglelist = null;
 	private JFileChooser filechooser = new JFileChooser();
 	private ImageFileFilters.OBJFileFilter objfilefilter = new ImageFileFilters.OBJFileFilter();
 	
@@ -123,7 +125,6 @@ public class CADApp implements AppHandler {
 	private int snapToGrid(int coordinate) {
 		return this.gridstep*(int)Math.round(((double)coordinate)/((double)this.gridstep));
 	}
-	
 	private int getVertexAtMouse() {
 		int k = -1;
 		Sphere[] vsphere1 = new Sphere[1]; vsphere1[0] = new Sphere(this.mouselocationx-this.origindeltax, this.mouselocationy-this.origindeltay, this.drawdepth, 0); 
@@ -142,6 +143,9 @@ public class CADApp implements AppHandler {
 		}
 		return k;
 	}
+	private void updateTriangleList() {
+		this.trianglelist = MathLib.generateTriangleList(linelist.toArray(new Position2[linelist.size()]));
+	}
 	
 	@Override public void actionPerformed(ActionEvent e) {}
 	@Override public void keyTyped(KeyEvent e) {}
@@ -153,6 +157,7 @@ public class CADApp implements AppHandler {
 	@Override public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
 			this.linelist.clear();
+			updateTriangleList();
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
 			this.polygonfillmode += 1;
 			if (this.polygonfillmode>3) {
@@ -255,6 +260,7 @@ public class CADApp implements AppHandler {
 						}
 					}
 				}
+				updateTriangleList();
 			}
 		}
 	}
@@ -265,7 +271,7 @@ public class CADApp implements AppHandler {
 		this.mousestartlocationx=this.mouselocationx;this.mousestartlocationy=this.mouselocationy;
 		this.drawstartdepth = this.drawdepth;
 	    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
-	    int offmask1 = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK|
+	    int offmask1 = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1);
     	if (mouse1down) {
     		int vertexatmouse = getVertexAtMouse();
@@ -275,7 +281,7 @@ public class CADApp implements AppHandler {
 			}
     	}
 	    int onmask1alt = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    int offmask1alt = MouseEvent.CTRL_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK|
+	    int offmask1alt = MouseEvent.CTRL_DOWN_MASK;
 	    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1alt | offmask1alt)) == onmask1alt);
     	if (mouse1altdown) {
 			int drawstartlocationx = this.mousestartlocationx-this.origindeltax;
@@ -287,19 +293,33 @@ public class CADApp implements AppHandler {
 				drawstartlocationy = snapToGrid(drawstartlocationy);
 				drawlocationx = snapToGrid(drawlocationx);
 				drawlocationy = snapToGrid(drawlocationy);
+				int snaptovertex = getVertexAtMouse();
+				if (snaptovertex!=-1) {
+    				int snaptovertexlinenum = Math.floorDiv(snaptovertex,2);
+    				boolean snaptovertexfirstvertex = Math.floorMod(snaptovertex,2)==0;
+    				if (snaptovertexfirstvertex) {
+    					drawstartlocationx = (int)this.linelist.get(snaptovertexlinenum).pos1.x;
+    					drawstartlocationy = (int)this.linelist.get(snaptovertexlinenum).pos1.y;
+	    			} else {
+	    				drawstartlocationx = (int)this.linelist.get(snaptovertexlinenum).pos2.x;
+	    				drawstartlocationy = (int)this.linelist.get(snaptovertexlinenum).pos2.y;
+	    			}
+				}
 			}
 			this.linelist.add(new Position2(new Position(drawstartlocationx, drawstartlocationy, this.drawstartdepth), new Position(drawlocationx, drawlocationy, this.drawdepth)));
 			this.draglinemode = true;
 			this.selecteddragvertex = (this.linelist.size()-1)*2+1;
+			updateTriangleList();
     	}
 	    int onmask3altdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    int offmask3altdown = MouseEvent.CTRL_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK|
+	    int offmask3altdown = MouseEvent.CTRL_DOWN_MASK;
 	    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3altdown | offmask3altdown)) == onmask3altdown);
     	if (mouse3altdown) {
     		int vertexatmouse = getVertexAtMouse();
 			if (vertexatmouse!=-1) {
 				int linenum = Math.floorDiv(vertexatmouse,2);
 				this.linelist.remove(linenum);
+				updateTriangleList();
 			}
     	}
 		mouseDragged(e);
@@ -323,32 +343,40 @@ public class CADApp implements AppHandler {
     	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
     	
 	    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
-	    int offmask1 = MouseEvent.CTRL_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK| //|MouseEvent.ALT_DOWN_MASK
-	    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
-	    int offmask3 = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK; //MouseEvent.SHIFT_DOWN_MASK|
+	    int offmask1 = MouseEvent.CTRL_DOWN_MASK;
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1);
-	    boolean mouse3down = ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3);
-	    if (mouse1down||mouse3down) {
-	    	if (mouse1down) {
-	    		if (this.draglinemode) {
-    				int linenum = Math.floorDiv(this.selecteddragvertex,2);
-    				boolean firstvertex = Math.floorMod(this.selecteddragvertex,2)==0;
-    				int drawlocationx = this.mouselocationx-this.origindeltax;
-    				int drawlocationy = this.mouselocationy-this.origindeltay;
-    				if (this.snaplinemode) {
-    					drawlocationx = snapToGrid(drawlocationx);
-    					drawlocationy = snapToGrid(drawlocationy);
-    				}
-    				if (firstvertex) {
-    					this.linelist.get(linenum).pos1.x = drawlocationx;
-    					this.linelist.get(linenum).pos1.y = drawlocationy;
-    					this.linelist.get(linenum).pos1.z = this.drawdepth;
-	    			} else {
-    					this.linelist.get(linenum).pos2.x = drawlocationx;
-    					this.linelist.get(linenum).pos2.y = drawlocationy;
-    					this.linelist.get(linenum).pos2.z = this.drawdepth;
-	    			}
-	    		}
+    	if (mouse1down) {
+    		if (this.draglinemode) {
+				int linenum = Math.floorDiv(this.selecteddragvertex,2);
+				boolean firstvertex = Math.floorMod(this.selecteddragvertex,2)==0;
+				int drawlocationx = this.mouselocationx-this.origindeltax;
+				int drawlocationy = this.mouselocationy-this.origindeltay;
+				if (this.snaplinemode) {
+					drawlocationx = snapToGrid(drawlocationx);
+					drawlocationy = snapToGrid(drawlocationy);
+					int snaptovertex = getVertexAtMouse();
+					if (snaptovertex!=-1) {
+	    				int snaptovertexlinenum = Math.floorDiv(snaptovertex,2);
+	    				boolean snaptovertexfirstvertex = Math.floorMod(snaptovertex,2)==0;
+	    				if (snaptovertexfirstvertex) {
+	    					drawlocationx = (int)this.linelist.get(snaptovertexlinenum).pos1.x;
+	    					drawlocationy = (int)this.linelist.get(snaptovertexlinenum).pos1.y;
+		    			} else {
+		    				drawlocationx = (int)this.linelist.get(snaptovertexlinenum).pos2.x;
+		    				drawlocationy = (int)this.linelist.get(snaptovertexlinenum).pos2.y;
+		    			}
+					}
+				}
+				if (firstvertex) {
+					this.linelist.get(linenum).pos1.x = drawlocationx;
+					this.linelist.get(linenum).pos1.y = drawlocationy;
+					this.linelist.get(linenum).pos1.z = this.drawdepth;
+    			} else {
+					this.linelist.get(linenum).pos2.x = drawlocationx;
+					this.linelist.get(linenum).pos2.y = drawlocationy;
+					this.linelist.get(linenum).pos2.z = this.drawdepth;
+    			}
+				updateTriangleList();
     		}
 		}
 	}
