@@ -26,6 +26,7 @@ import javax.swing.filechooser.FileFilter;
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
 import fi.jkauppa.javarenderengine.MathLib.Coordinate;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
+import fi.jkauppa.javarenderengine.MathLib.Plane;
 import fi.jkauppa.javarenderengine.MathLib.Polyangle;
 import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Position2;
@@ -44,6 +45,7 @@ public class CADApp implements AppHandler {
 	private GraphicsConfiguration gc = gd.getDefaultConfiguration ();
 	private int lastrenderwidth = 0;
 	private int lastrenderheight = 0;
+	private Direction lookdir = new Direction(0,0,-1);
 	private TexturePaint bgpattern = null;
 	private boolean draglinemode = false;
 	private boolean snaplinemode = false;
@@ -60,7 +62,9 @@ public class CADApp implements AppHandler {
 	private final int originlineheight = 100;
 	private final int vertexradius = 2;
 	private final int vertexstroke = 2;
+	private final int vertexfocus = 5;
 	private final int linestroke = 2;
+	private final int flatstroke = 1;
 	private final int gridstep = 20;
 	private BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
 	private ArrayList<Position2> linelist = new ArrayList<Position2>();
@@ -102,22 +106,54 @@ public class CADApp implements AppHandler {
 		g.setColor(Color.BLACK);
 		g.fillOval(this.origindeltax-this.vertexradius, this.origindeltay-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
 		g.setColor(null);
-		for (int i=0;i<linelist.size();i++) {
-			if ((linelist.get(i).pos1.z>=this.drawdepth)||(linelist.get(i).pos2.z>=this.drawdepth)) {
-				double pos1s = (linelist.get(i).pos1.z-this.drawdepth)*this.drawdepthscale+1;
-				int pos1x = (int)Math.round(linelist.get(i).pos1.x/pos1s)+this.origindeltax;
-				int pos1y = (int)Math.round(linelist.get(i).pos1.y/pos1s)+this.origindeltay;
-				double pos2s = (linelist.get(i).pos2.z-this.drawdepth)*this.drawdepthscale+1;
-				int pos2x = (int)Math.round(linelist.get(i).pos2.x/pos2s)+this.origindeltax;
-				int pos2y = (int)Math.round(linelist.get(i).pos2.y/pos2s)+this.origindeltay;
-				g.setColor(Color.BLACK);
-				if (linelist.get(i).pos1.z==this.drawdepth){g.setStroke(new BasicStroke(this.vertexstroke+1));}else{g.setStroke(new BasicStroke(this.vertexstroke));}
-				g.drawOval(pos1x-this.vertexradius, pos1y-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
-				if (linelist.get(i).pos2.z==this.drawdepth){g.setStroke(new BasicStroke(this.vertexstroke+1));}else{g.setStroke(new BasicStroke(this.vertexstroke));}
-				g.drawOval(pos2x-this.vertexradius, pos2y-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
-				g.setColor(Color.BLUE);
-				g.setStroke(new BasicStroke(this.linestroke));
-				g.drawLine(pos1x, pos1y, pos2x, pos2y);
+		if (this.polygonfillmode==2) {
+			if (this.trianglelist!=null) {
+				Plane[] triangleplanes = MathLib.planeFromPoints(this.trianglelist);
+				Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
+				double[] triangleviewangles = MathLib.vectorAngle(lookdir, trianglenormals);
+				for (int i=0;i<this.trianglelist.length;i++) {
+					if ((this.trianglelist[i].pos1.z>=this.drawdepth)||(this.trianglelist[i].pos2.z>=this.drawdepth)||(this.trianglelist[i].pos3.z>=this.drawdepth)) {
+						double pos1s = (this.trianglelist[i].pos1.z-this.drawdepth)*this.drawdepthscale+1;
+						int pos1x = (int)Math.round(this.trianglelist[i].pos1.x/pos1s)+this.origindeltax;
+						int pos1y = (int)Math.round(this.trianglelist[i].pos1.y/pos1s)+this.origindeltay;
+						double pos2s = (this.trianglelist[i].pos2.z-this.drawdepth)*this.drawdepthscale+1;
+						int pos2x = (int)Math.round(this.trianglelist[i].pos2.x/pos2s)+this.origindeltax;
+						int pos2y = (int)Math.round(this.trianglelist[i].pos2.y/pos2s)+this.origindeltay;
+						double pos3s = (this.trianglelist[i].pos3.z-this.drawdepth)*this.drawdepthscale+1;
+						int pos3x = (int)Math.round(this.trianglelist[i].pos3.x/pos3s)+this.origindeltax;
+						int pos3y = (int)Math.round(this.trianglelist[i].pos3.y/pos3s)+this.origindeltay;
+						Polygon trianglepolygon = new Polygon();
+						trianglepolygon.addPoint(pos1x, pos1y);
+						trianglepolygon.addPoint(pos2x, pos2y);
+						trianglepolygon.addPoint(pos3x, pos3y);
+						double triangleviewangle = triangleviewangles[i];
+						if (triangleviewangle>90.0f) {
+							triangleviewangle = 180-triangleviewangle;
+						}
+						float shadingmultiplier = (90.0f-((float)triangleviewangle))/90.0f;
+						g.setColor(new Color(shadingmultiplier,shadingmultiplier,shadingmultiplier));
+						g.fill(trianglepolygon);
+					}
+				}
+			}
+		} else {
+			for (int i=0;i<linelist.size();i++) {
+				if ((linelist.get(i).pos1.z>=this.drawdepth)||(linelist.get(i).pos2.z>=this.drawdepth)) {
+					double pos1s = (linelist.get(i).pos1.z-this.drawdepth)*this.drawdepthscale+1;
+					int pos1x = (int)Math.round(linelist.get(i).pos1.x/pos1s)+this.origindeltax;
+					int pos1y = (int)Math.round(linelist.get(i).pos1.y/pos1s)+this.origindeltay;
+					double pos2s = (linelist.get(i).pos2.z-this.drawdepth)*this.drawdepthscale+1;
+					int pos2x = (int)Math.round(linelist.get(i).pos2.x/pos2s)+this.origindeltax;
+					int pos2y = (int)Math.round(linelist.get(i).pos2.y/pos2s)+this.origindeltay;
+					g.setColor(Color.BLACK);
+					if (linelist.get(i).pos1.z==this.drawdepth){g.setStroke(new BasicStroke(this.vertexstroke+this.vertexfocus));}else{g.setStroke(new BasicStroke(this.vertexstroke));}
+					g.drawOval(pos1x-this.vertexradius, pos1y-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
+					if (linelist.get(i).pos2.z==this.drawdepth){g.setStroke(new BasicStroke(this.vertexstroke+this.vertexfocus));}else{g.setStroke(new BasicStroke(this.vertexstroke));}
+					g.drawOval(pos2x-this.vertexradius, pos2y-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
+					g.setColor(Color.BLUE);
+					g.setStroke(new BasicStroke(this.linestroke));
+					g.drawLine(pos1x, pos1y, pos2x, pos2y);
+				}
 			}
 		}
 	}
@@ -157,10 +193,11 @@ public class CADApp implements AppHandler {
 	@Override public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
 			this.linelist.clear();
+			this.drawdepth = 0;
 			updateTriangleList();
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
 			this.polygonfillmode += 1;
-			if (this.polygonfillmode>3) {
+			if (this.polygonfillmode>2) {
 				this.polygonfillmode = 1;
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
