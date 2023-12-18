@@ -20,6 +20,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.TreeSet;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
@@ -101,55 +102,45 @@ public class CADApp implements AppHandler {
 		g.setPaint(null);
 		g.setColor(null);
 		if (this.polygonfillmode==2) {
-			if (this.trianglelist!=null) {
-				Plane[] triangleplanes = MathLib.planeFromPoints(this.trianglelist);
-				Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
-				double[] triangleviewangles = MathLib.vectorAngle(lookdir, trianglenormals);
-				for (int i=0;i<this.trianglelist.length;i++) {
-					if ((this.trianglelist[i].pos1.z>=this.drawdepth)||(this.trianglelist[i].pos2.z>=this.drawdepth)||(this.trianglelist[i].pos3.z>=this.drawdepth)) {
-						double pos1s = (this.trianglelist[i].pos1.z-this.drawdepth)*this.drawdepthscale+1;
-						int pos1x = (int)Math.round(this.trianglelist[i].pos1.x/pos1s)+this.origindeltax;
-						int pos1y = (int)Math.round(this.trianglelist[i].pos1.y/pos1s)+this.origindeltay;
-						double pos2s = (this.trianglelist[i].pos2.z-this.drawdepth)*this.drawdepthscale+1;
-						int pos2x = (int)Math.round(this.trianglelist[i].pos2.x/pos2s)+this.origindeltax;
-						int pos2y = (int)Math.round(this.trianglelist[i].pos2.y/pos2s)+this.origindeltay;
-						double pos3s = (this.trianglelist[i].pos3.z-this.drawdepth)*this.drawdepthscale+1;
-						int pos3x = (int)Math.round(this.trianglelist[i].pos3.x/pos3s)+this.origindeltax;
-						int pos3y = (int)Math.round(this.trianglelist[i].pos3.y/pos3s)+this.origindeltay;
-						Polygon trianglepolygon = new Polygon();
-						trianglepolygon.addPoint(pos1x, pos1y);
-						trianglepolygon.addPoint(pos2x, pos2y);
-						trianglepolygon.addPoint(pos3x, pos3y);
-						double triangleviewangle = triangleviewangles[i];
-						if (triangleviewangle>90.0f) {
-							triangleviewangle = 180-triangleviewangle;
-						}
-						float shadingmultiplier = (90.0f-((float)triangleviewangle))/90.0f;
-						g.setColor(new Color(shadingmultiplier,shadingmultiplier,shadingmultiplier));
-						g.fill(trianglepolygon);
+			Plane[] triangleplanes = MathLib.planeFromPoints(trianglelist);
+			Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
+			double[] triangleviewangles = MathLib.vectorAngle(lookdir, trianglenormals);
+			for (int i=0;i<trianglelist.length;i++) {
+				if ((trianglelist[i].pos1.z<=this.drawdepth)||(trianglelist[i].pos2.z<=this.drawdepth)||(trianglelist[i].pos3.z<=this.drawdepth)) {
+					double pos1s = (this.drawdepth-trianglelist[i].pos1.z)*this.drawdepthscale+1;
+					int pos1x = (int)Math.round(trianglelist[i].pos1.x/pos1s)+this.origindeltax;
+					int pos1y = (int)Math.round(trianglelist[i].pos1.y/pos1s)+this.origindeltay;
+					double pos2s = (this.drawdepth-trianglelist[i].pos2.z)*this.drawdepthscale+1;
+					int pos2x = (int)Math.round(trianglelist[i].pos2.x/pos2s)+this.origindeltax;
+					int pos2y = (int)Math.round(trianglelist[i].pos2.y/pos2s)+this.origindeltay;
+					double pos3s = (this.drawdepth-trianglelist[i].pos3.z)*this.drawdepthscale+1;
+					int pos3x = (int)Math.round(trianglelist[i].pos3.x/pos3s)+this.origindeltax;
+					int pos3y = (int)Math.round(trianglelist[i].pos3.y/pos3s)+this.origindeltay;
+					Polygon trianglepolygon = new Polygon();
+					trianglepolygon.addPoint(pos1x, pos1y);
+					trianglepolygon.addPoint(pos2x, pos2y);
+					trianglepolygon.addPoint(pos3x, pos3y);
+					double triangleviewangle = triangleviewangles[i];
+					if (triangleviewangle>90.0f) {
+						triangleviewangle = 180-triangleviewangle;
 					}
-				}
-			}
-			for (int i=0;i<linelist.size();i++) {
-				if ((linelist.get(i).pos1.z>=this.drawdepth)||(linelist.get(i).pos2.z>=this.drawdepth)) {
-					double pos1s = (linelist.get(i).pos1.z-this.drawdepth)*this.drawdepthscale+1;
-					int pos1x = (int)Math.round(linelist.get(i).pos1.x/pos1s)+this.origindeltax;
-					int pos1y = (int)Math.round(linelist.get(i).pos1.y/pos1s)+this.origindeltay;
-					double pos2s = (linelist.get(i).pos2.z-this.drawdepth)*this.drawdepthscale+1;
-					int pos2x = (int)Math.round(linelist.get(i).pos2.x/pos2s)+this.origindeltax;
-					int pos2y = (int)Math.round(linelist.get(i).pos2.y/pos2s)+this.origindeltay;
+					float shadingmultiplier = (90.0f-((float)triangleviewangle))/90.0f;
+					g.setColor(new Color(shadingmultiplier,shadingmultiplier,shadingmultiplier));
+					g.fill(trianglepolygon);
 					g.setColor(Color.BLACK);
 					g.setStroke(new BasicStroke(this.flatlinestroke));
 					g.drawLine(pos1x, pos1y, pos2x, pos2y);
+					g.drawLine(pos1x, pos1y, pos3x, pos3y);
+					g.drawLine(pos2x, pos2y, pos3x, pos3y);
 				}
 			}
 		} else {
 			for (int i=0;i<linelist.size();i++) {
-				if ((linelist.get(i).pos1.z>=this.drawdepth)||(linelist.get(i).pos2.z>=this.drawdepth)) {
-					double pos1s = (linelist.get(i).pos1.z-this.drawdepth)*this.drawdepthscale+1;
+				if ((linelist.get(i).pos1.z<=this.drawdepth)||(linelist.get(i).pos2.z<=this.drawdepth)) {
+					double pos1s = (this.drawdepth-linelist.get(i).pos1.z)*this.drawdepthscale+1;
 					int pos1x = (int)Math.round(linelist.get(i).pos1.x/pos1s)+this.origindeltax;
 					int pos1y = (int)Math.round(linelist.get(i).pos1.y/pos1s)+this.origindeltay;
-					double pos2s = (linelist.get(i).pos2.z-this.drawdepth)*this.drawdepthscale+1;
+					double pos2s = (this.drawdepth-linelist.get(i).pos2.z)*this.drawdepthscale+1;
 					int pos2x = (int)Math.round(linelist.get(i).pos2.x/pos2s)+this.origindeltax;
 					int pos2y = (int)Math.round(linelist.get(i).pos2.y/pos2s)+this.origindeltay;
 					g.setColor(Color.BLACK);
@@ -195,6 +186,7 @@ public class CADApp implements AppHandler {
 	}
 	private void updateTriangleList() {
 		this.trianglelist = MathLib.generateTriangleList(linelist.toArray(new Position2[linelist.size()]));
+		Arrays.sort(this.trianglelist);
 	}
 	
 	@Override public void actionPerformed(ActionEvent e) {}

@@ -77,12 +77,12 @@ public class ModelLib {
 				for (int k=0;k<model.objects.length;k++) {
 					modelobjfile.write("o "+model.objects[k].objectname);
 					modelobjfile.newLine();
-					int vertexindexmin = Integer.MAX_VALUE; 
-					int vertexindexmax = Integer.MIN_VALUE; 
-					int textureindexmin = Integer.MAX_VALUE; 
-					int textureindexmax = Integer.MIN_VALUE; 
-					int normalindexmin = Integer.MAX_VALUE; 
-					int normalindexmax = Integer.MIN_VALUE; 
+					int vertexindexmin = Integer.MAX_VALUE-1; 
+					int vertexindexmax = Integer.MIN_VALUE+1; 
+					int textureindexmin = Integer.MAX_VALUE-1; 
+					int textureindexmax = Integer.MIN_VALUE+1; 
+					int normalindexmin = Integer.MAX_VALUE-1; 
+					int normalindexmax = Integer.MIN_VALUE+1; 
 					for (int j=0;j<model.objects[k].faceindex.length;j++) {
 						for (int i=0;i<model.objects[k].faceindex[j].facevertexindex.length;i++) {
 							if (model.objects[k].faceindex[j].facevertexindex[i].vertexindex<vertexindexmin) {
