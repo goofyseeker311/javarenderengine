@@ -45,6 +45,7 @@ F3                -- load image file dialog
 SHIFT-F3          -- load image file as pencil brush dialog
 
 CAD App Keys:
+ENTER             -- changes between polygon flat/textured/none fill modes (looping)
 BACKSPACE         -- removes all vector lines
 ALT-DRAG-LMB      -- vector line drag draw
 ALT-RMB           -- remove line vertex
