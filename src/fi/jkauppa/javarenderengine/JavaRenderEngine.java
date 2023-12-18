@@ -20,7 +20,6 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.VolatileImage;
-import java.util.Arrays;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -170,12 +169,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		Plane[] prjplane2 = MathLib.projectedPlanes(campos2[0], 64, 70, new Rotation(90,45,30));
 		for (int i=0;i<prjplane.length;i++) {System.out.println("prjplane["+i+"]: "+prjplane[i].a+" "+prjplane[i].b+" "+prjplane[i].c+" "+prjplane[i].d);}
 		for (int i=0;i<prjplane2.length;i++) {System.out.println("prjplane2["+i+"]: "+prjplane2[i].a+" "+prjplane2[i].b+" "+prjplane2[i].c+" "+prjplane2[i].d);}
-		
-		String modelfilename = "res/models/testcubemodel4.obj";
-		Model loadmodel = ModelLib.loadWaveFrontOBJFile(modelfilename,true);
-		//String savemodelfilename = "testcubemodel4.obj";
-		//ModelLib.saveWaveFrontOBJFile(savemodelfilename, loadmodel);
-		//Model saveloadmodel = ModelLib.loadWaveFrontOBJFile(savemodelfilename,false);
 		
 		JavaRenderEngine app = new JavaRenderEngine();
 	}
