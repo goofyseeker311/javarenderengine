@@ -19,6 +19,7 @@ public class MathLib {
 	
 	public static double[] vectorDot(Direction[] vdir, Position vpoint){double[] k=null; if((vdir!=null)&&(vpoint!=null)){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vpoint.x+vdir[n].dy*vpoint.y+vdir[n].dz*vpoint.z;}}return k;}
 	public static double[] vectorDot(Direction[] vdir, Position[] vpoint){double[] k=null; if((vdir!=null)&&(vpoint!=null)&&(vdir.length==vpoint.length)){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vpoint[n].x+vdir[n].dy*vpoint[n].y+vdir[n].dz*vpoint[n].z;}}return k;}
+	public static double[] vectorDot(Direction vdir1, Direction[] vdir2){double[] k=null; if((vdir1!=null)&&(vdir2!=null)){k=new double[vdir2.length];for(int n=0;n<vdir2.length;n++){k[n] = vdir1.dx*vdir2[n].dx+vdir1.dy*vdir2[n].dy+vdir1.dz*vdir2[n].dz;}}return k;}
 	public static double[] vectorDot(Direction[] vdir1, Direction[] vdir2){double[] k=null; if((vdir1!=null)&&(vdir2!=null)&&(vdir1.length==vdir2.length)){k=new double[vdir1.length];for(int n=0;n<vdir1.length;n++){k[n] = vdir1[n].dx*vdir2[n].dx+vdir1[n].dy*vdir2[n].dy+vdir1[n].dz*vdir2[n].dz;}}return k;}
 	public static double[] vectorDot(Direction[] vdir){double[] k=null; if(vdir!=null){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vdir[n].dx+vdir[n].dy*vdir[n].dy+vdir[n].dz*vdir[n].dz;}}return k;}
 	public static double[] vectorDot(Plane[] vplane, Position vpoint){double[] k=null; if((vplane!=null)&&(vpoint!=null)){k=new double[vplane.length];for(int n=0;n<vplane.length;n++){k[n] = vplane[n].a*vpoint.x+vplane[n].b*vpoint.y+vplane[n].c*vpoint.z+vplane[n].d;}}return k;}
@@ -55,6 +56,20 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static double[] vectorAngle(Direction vdir1, Direction[] vdir2) {
+		double[] k = null;
+		if ((vdir1!=null)&&(vdir2!=null)) {
+			k = new double[vdir2.length];
+			Direction[] vdir1ar = new Direction[1]; vdir1ar[0] = vdir1; 
+			double[] vdir1length = vectorLength(vdir1ar);
+			double[] vdir2length = vectorLength(vdir2);
+			double[] vdir12dot = vectorDot(vdir1,vdir2);
+			for (int n=0;n<vdir2.length;n++) {
+				k[n] = (180.0f/Math.PI)*Math.acos(vdir12dot[n]/(vdir1length[0]*vdir2length[n]));
+			}
+		}
+		return k;
+	}
 	public static double[] vectorAngle(Direction[] vdir1, Direction[] vdir2) {
 		double[] k = null;
 		if ((vdir1!=null)&&(vdir2!=null)&&(vdir1.length==vdir2.length)) {
@@ -76,6 +91,17 @@ public class MathLib {
 			for (int n=0;n<vdir.length;n++) {
 				k[n] = new Direction(vdir[n].dx/vdirlength[n], vdir[n].dy/vdirlength[n], vdir[n].dz/vdirlength[n]);
 			}
+		}
+		return k;
+	}
+	public static Direction[] planeNormals(Plane[] vplane) {
+		Direction[] k = null;
+		if (vplane!=null) {
+			k = new Direction[vplane.length];
+			for (int n=0;n<vplane.length;n++) {
+				k[n] = new Direction(vplane[n].a,vplane[n].b,vplane[n].c);
+			}
+			k = normalizeVector(k);
 		}
 		return k;
 	}
