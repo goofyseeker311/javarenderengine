@@ -61,10 +61,11 @@ public class CADApp implements AppHandler {
 	private final int originlinewidth = 100;
 	private final int originlineheight = 100;
 	private final int vertexradius = 2;
+	private final int axisstroke = 2;
 	private final int vertexstroke = 2;
-	private final int vertexfocus = 5;
-	private final int linestroke = 2;
-	private final int flatstroke = 1;
+	private final int vertexfocus = 3;
+	private final int sketchlinestroke = 2;
+	private final int flatlinestroke = 1;
 	private final int gridstep = 20;
 	private BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
 	private ArrayList<Position2> linelist = new ArrayList<Position2>();
@@ -98,13 +99,6 @@ public class CADApp implements AppHandler {
 		g.setPaint(bgpattern);
 		g.fillRect(0, 0, renderwidth*2, renderheight*2);
 		g.setPaint(null);
-		g.setStroke(new BasicStroke(this.vertexstroke));
-		g.setColor(Color.RED);
-		g.drawLine(this.origindeltax, this.origindeltay, this.origindeltax+this.originlinewidth, this.origindeltay);
-		g.setColor(Color.GREEN);
-		g.drawLine(this.origindeltax, this.origindeltay, this.origindeltax, this.origindeltay+this.originlineheight);
-		g.setColor(Color.BLACK);
-		g.fillOval(this.origindeltax-this.vertexradius, this.origindeltay-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
 		g.setColor(null);
 		if (this.polygonfillmode==2) {
 			if (this.trianglelist!=null) {
@@ -136,6 +130,19 @@ public class CADApp implements AppHandler {
 					}
 				}
 			}
+			for (int i=0;i<linelist.size();i++) {
+				if ((linelist.get(i).pos1.z>=this.drawdepth)||(linelist.get(i).pos2.z>=this.drawdepth)) {
+					double pos1s = (linelist.get(i).pos1.z-this.drawdepth)*this.drawdepthscale+1;
+					int pos1x = (int)Math.round(linelist.get(i).pos1.x/pos1s)+this.origindeltax;
+					int pos1y = (int)Math.round(linelist.get(i).pos1.y/pos1s)+this.origindeltay;
+					double pos2s = (linelist.get(i).pos2.z-this.drawdepth)*this.drawdepthscale+1;
+					int pos2x = (int)Math.round(linelist.get(i).pos2.x/pos2s)+this.origindeltax;
+					int pos2y = (int)Math.round(linelist.get(i).pos2.y/pos2s)+this.origindeltay;
+					g.setColor(Color.BLACK);
+					g.setStroke(new BasicStroke(this.flatlinestroke));
+					g.drawLine(pos1x, pos1y, pos2x, pos2y);
+				}
+			}
 		} else {
 			for (int i=0;i<linelist.size();i++) {
 				if ((linelist.get(i).pos1.z>=this.drawdepth)||(linelist.get(i).pos2.z>=this.drawdepth)) {
@@ -151,11 +158,18 @@ public class CADApp implements AppHandler {
 					if (linelist.get(i).pos2.z==this.drawdepth){g.setStroke(new BasicStroke(this.vertexstroke+this.vertexfocus));}else{g.setStroke(new BasicStroke(this.vertexstroke));}
 					g.drawOval(pos2x-this.vertexradius, pos2y-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
 					g.setColor(Color.BLUE);
-					g.setStroke(new BasicStroke(this.linestroke));
+					g.setStroke(new BasicStroke(this.sketchlinestroke));
 					g.drawLine(pos1x, pos1y, pos2x, pos2y);
 				}
 			}
 		}
+		g.setStroke(new BasicStroke(this.axisstroke));
+		g.setColor(Color.RED);
+		g.drawLine(this.origindeltax, this.origindeltay, this.origindeltax+this.originlinewidth, this.origindeltay);
+		g.setColor(Color.GREEN);
+		g.drawLine(this.origindeltax, this.origindeltay, this.origindeltax, this.origindeltay+this.originlineheight);
+		g.setColor(Color.BLACK);
+		g.fillOval(this.origindeltax-this.vertexradius, this.origindeltay-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
 	}
 
 	private int snapToGrid(int coordinate) {
@@ -267,6 +281,7 @@ public class CADApp implements AppHandler {
 			this.filechooser.setDialogTitle("Load File");
 			this.filechooser.setApproveButtonText("Load");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
+				TreeSet<Position2> uniquelinetree = new TreeSet<Position2>();
 				File loadfile = this.filechooser.getSelectedFile();
 				Model loadmodel = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
 				for (int k=0;k<loadmodel.objects.length;k++) {
@@ -275,13 +290,13 @@ public class CADApp implements AppHandler {
 						for (int i=0;i<loadmodel.objects[k].faceindex[j].facevertexindex.length;i++) {
 							loadvertex[i] = loadmodel.vertexlist[loadmodel.objects[k].faceindex[j].facevertexindex[i].vertexindex-1];
 							if (i>0) {
-								this.linelist.add(new Position2(loadvertex[i-1].copy(),loadvertex[i].copy()));
+								uniquelinetree.add(new Position2(loadvertex[i-1].copy(),loadvertex[i].copy()));
 							}
 						}
 						if (loadmodel.objects[k].faceindex[j].facevertexindex.length>2) {
-							this.linelist.add(new Position2(loadvertex[loadmodel.objects[k].faceindex[j].facevertexindex.length-1].copy(),loadvertex[0].copy()));
+							uniquelinetree.add(new Position2(loadvertex[loadmodel.objects[k].faceindex[j].facevertexindex.length-1].copy(),loadvertex[0].copy()));
 						} else if (loadmodel.objects[k].faceindex[j].facevertexindex.length==1) {
-							this.linelist.add(new Position2(loadvertex[0].copy(),loadvertex[0].copy()));
+							uniquelinetree.add(new Position2(loadvertex[0].copy(),loadvertex[0].copy()));
 						}
 					}
 					for (int j=0;j<loadmodel.objects[k].lineindex.length;j++) {
@@ -289,14 +304,15 @@ public class CADApp implements AppHandler {
 						for (int i=0;i<loadmodel.objects[k].lineindex[j].linevertexindex.length;i++) {
 							loadvertex[i] = loadmodel.vertexlist[loadmodel.objects[k].lineindex[j].linevertexindex[i]-1];
 							if (i>0) {
-								this.linelist.add(new Position2(loadvertex[i-1].copy(),loadvertex[i].copy()));
+								uniquelinetree.add(new Position2(loadvertex[i-1].copy(),loadvertex[i].copy()));
 							}
 						}
 						if (loadmodel.objects[k].lineindex[j].linevertexindex.length==1) {
-							this.linelist.add(new Position2(loadvertex[0].copy(),loadvertex[0].copy()));
+							uniquelinetree.add(new Position2(loadvertex[0].copy(),loadvertex[0].copy()));
 						}
 					}
 				}
+				linelist.addAll(uniquelinetree);
 				updateTriangleList();
 			}
 		}
