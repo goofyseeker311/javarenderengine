@@ -20,12 +20,10 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.VolatileImage;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.UIManager;
-
 import fi.jkauppa.javarenderengine.MathLib.Direction;
 import fi.jkauppa.javarenderengine.MathLib.Matrix;
 import fi.jkauppa.javarenderengine.MathLib.Plane;
@@ -34,7 +32,6 @@ import fi.jkauppa.javarenderengine.MathLib.Position2;
 import fi.jkauppa.javarenderengine.MathLib.Rotation;
 import fi.jkauppa.javarenderengine.MathLib.Sphere;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
-import fi.jkauppa.javarenderengine.ModelLib.Model;
 
 public class JavaRenderEngine extends JFrame implements KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 	private static final long serialVersionUID = 1L;
@@ -51,6 +48,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private RenderPanel renderpanel = new RenderPanel();
 	private boolean windowedmode = true;
 	private DropTargetHandler droptargethandler = new DropTargetHandler();
+	private final int fpstarget = 120;
+	private final int fpstargetdelay = (int)Math.floor(1000.0f/(2.0f*(double)fpstarget));
 	
 	public JavaRenderEngine() {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -175,9 +174,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	
 	private class RenderPanel extends JPanel implements ActionListener {
 		private static final long serialVersionUID = 1L;
-		private final int fpstarget = 60;
-		private final int fpstargetdelay = (int)Math.floor(1000.0f/(2.0f*(double)fpstarget));
-		private final Timer timer = new Timer(fpstargetdelay,this);
+		private final Timer timer = new Timer(JavaRenderEngine.this.fpstargetdelay,this);
 		private long lastupdate = System.currentTimeMillis();
 		private VolatileImage doublebuffer = null;
 		public RenderPanel() {

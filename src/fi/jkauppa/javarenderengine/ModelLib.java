@@ -28,12 +28,13 @@ public class ModelLib {
 	private static GraphicsDevice gd = ge.getDefaultScreenDevice ();
 	private static GraphicsConfiguration gc = gd.getDefaultConfiguration ();
 	
-	public static class Material {
+	public static class Material implements Comparable<Material> {
 		public String materialname;
 		public VolatileImage fileimage;
 		public String filename;
 		public Color facecolor;
-		public Material(String materialnamei) {this.materialname = materialnamei;}
+		public int mind;
+		public Material(String materialnamei) {this.materialname = materialnamei;} @Override public int compareTo(Material o) {return this.materialname.compareTo(o.materialname);}
 	}
 	public static class ModelFaceVertexIndex {
 		public int vertexindex; 
