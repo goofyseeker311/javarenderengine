@@ -13,7 +13,7 @@ public class MathLib {
 	public static class Sphere {public double x,y,z,r; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}}
 	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}}
 	public static class Position2 implements Comparable<Position2> {public Position pos1,pos2; public Position2(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;} @Override public int compareTo(Position2 o){int k=-1;Position2 ts=this.sort();Position2 os=o.sort();if(ts.pos1.x>os.pos1.x){k=1;}else if(ts.pos1.x==os.pos1.x){if(ts.pos1.y>os.pos1.y){k=1;}else if(ts.pos1.y==os.pos1.y){if(ts.pos1.z>os.pos1.z){k=1;}else if(ts.pos1.z==os.pos1.z){if(ts.pos2.x>os.pos2.x){k=1;}else if(ts.pos2.x==os.pos2.x){if(ts.pos2.y>os.pos2.y){k=1;}else if(ts.pos2.y==os.pos2.y){if(ts.pos2.z>os.pos2.z){k=1;}else if(ts.pos2.z==os.pos2.z){k=0;}}}}}}return k;} public Position2 copy(){return new Position2(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z));} public Position2 swap(){return new Position2(this.pos2,this.pos1);} public Position2 sort(){Position2 k=this;boolean keeporder=true;if(this.pos1.x>this.pos2.x){keeporder=false;}else if(this.pos1.x==this.pos2.x){if(this.pos1.y>this.pos2.y){keeporder=false;}else if (this.pos1.y==this.pos2.y){if(this.pos1.z>this.pos2.z){keeporder=false;}}}if(!keeporder){k=this.swap();}return k;}}
-	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public int oind,tind,mind; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;}
+	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public int oind,tind,mind; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;} public Triangle copy(){Triangle k=new Triangle(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z),new Position(this.pos3.x,this.pos3.y,this.pos3.z));k.oind=this.oind;k.tind=this.tind;k.mind=this.mind; return k;}
 	@Override public int compareTo(Triangle o) {
 		int k = -1;
 		Position[] tposarray = {this.pos1,this.pos2,this.pos3};
@@ -364,6 +364,44 @@ public class MathLib {
 						vdir[n].dx*vmat.a12+vdir[n].dy*vmat.a22+vdir[n].dz*vmat.a32,
 						vdir[n].dx*vmat.a13+vdir[n].dy*vmat.a23+vdir[n].dz*vmat.a33
 						);
+			}
+		}
+		return k;
+	}
+	public static Triangle[] matrixMultiply(Triangle[] vtri, Matrix vmat) {
+		Triangle[] k = null;
+		if ((vtri!=null)&&(vmat!=null)) {
+			k = new Triangle[vtri.length];
+			for (int n=0;n<vtri.length;n++) {
+				k[n] = vtri[n].copy();
+				k[n].pos1.x = k[n].pos1.x*vmat.a11+k[n].pos1.y*vmat.a21+k[n].pos1.z*vmat.a31;
+				k[n].pos1.y = k[n].pos1.x*vmat.a12+k[n].pos1.y*vmat.a22+k[n].pos1.z*vmat.a32;
+				k[n].pos1.z = k[n].pos1.x*vmat.a13+k[n].pos1.y*vmat.a23+k[n].pos1.z*vmat.a33;
+				k[n].pos2.x = k[n].pos2.x*vmat.a11+k[n].pos2.y*vmat.a21+k[n].pos2.z*vmat.a31;
+				k[n].pos2.y = k[n].pos2.x*vmat.a12+k[n].pos2.y*vmat.a22+k[n].pos2.z*vmat.a32;
+				k[n].pos2.z = k[n].pos2.x*vmat.a13+k[n].pos2.y*vmat.a23+k[n].pos2.z*vmat.a33;
+				k[n].pos3.x = k[n].pos3.x*vmat.a11+k[n].pos3.y*vmat.a21+k[n].pos3.z*vmat.a31;
+				k[n].pos3.y = k[n].pos3.x*vmat.a12+k[n].pos3.y*vmat.a22+k[n].pos3.z*vmat.a32;
+				k[n].pos3.z = k[n].pos3.x*vmat.a13+k[n].pos3.y*vmat.a23+k[n].pos3.z*vmat.a33;
+			}
+		}
+		return k;
+	}
+	public static Triangle[] translate(Triangle[] vtri, Position vpos) {
+		Triangle[] k = null;
+		if ((vtri!=null)&&(vpos!=null)) {
+			k = new Triangle[vtri.length];
+			for (int n=0;n<vtri.length;n++) {
+				k[n] = vtri[n].copy();
+				k[n].pos1.x = k[n].pos1.x+vpos.x;
+				k[n].pos1.y = k[n].pos1.y+vpos.y;
+				k[n].pos1.z = k[n].pos1.z+vpos.z;
+				k[n].pos2.x = k[n].pos2.x+vpos.x;
+				k[n].pos2.y = k[n].pos2.y+vpos.y;
+				k[n].pos2.z = k[n].pos2.z+vpos.z;
+				k[n].pos3.x = k[n].pos3.x+vpos.x;
+				k[n].pos3.y = k[n].pos3.y+vpos.y;
+				k[n].pos3.z = k[n].pos3.z+vpos.z;
 			}
 		}
 		return k;

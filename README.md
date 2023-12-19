@@ -20,10 +20,10 @@ SHIFT-LMB         -- rgb-color picker at cursor
 ALT-DRAG-LMB      -- black/hsb-color line drag paint
 SHIFT-CMB         -- drag image contents on image canvas
 MWHEEL            -- pencil width change (minmax)
-SHIFT-MWH         -- pencil brush image rotation angle change (looping)
-CTRL-MWH          -- hue positive change (looping)
-CTRL-ALT-MWH      -- saturation positive change (minmax)
-ALT-MWH           -- brightness positive change (minmax)
+SHIFT-MWHEEL      -- pencil brush image rotation angle change (looping)
+CTRL-MWHEEL       -- hue positive change (looping)
+CTRL-ALT-MWHEEL   -- saturation positive change (minmax)
+ALT-MWHEEL        -- brightness positive change (minmax)
 DRAG-RMB          -- transparent drag paint eraser
 ALT-DRAG-RMB      -- transparent line drag paint eraser
 INSERT            -- hue positive change (looping)
@@ -51,13 +51,18 @@ ALT-DRAG-LMB      -- vector line drag draw
 ALT-RMB           -- remove line vertex
 DRAG-LMB          -- move line vertex
 SHIFT             -- toggle snap to grid
-MWH               -- draw height change (minmax)
+MWHEEL            -- draw height change (minmax)
 NUMPAD+           -- draw height positive (minmax)
 NUMPAD-           -- draw height negative (minmax)
 F2                -- save model file dialog
 F3                -- load model file dialog
 
 Model App Keys:
+BACKSPACE         -- remove loaded model and reset camera location
+WASD              -- camera location change up/left/down/right (minmax)
+MWHEEL            -- camera location depth change (minmax)
+NUMPAD+           -- camera location depth positive (minmax)
+NUMPAD-           -- camera location depth negative (minmax)
 F3                -- load model file dialog
 
 Editor App Keys:
