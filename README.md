@@ -58,7 +58,7 @@ F2                -- save model file dialog
 F3                -- load model file dialog
 
 Model App Keys:
--- none --        -- placeholder key binding
+F3                -- load model file dialog
 
 Editor App Keys:
 -- none --        -- placeholder key binding
@@ -81,3 +81,7 @@ Draw App:
 CAD App:
 
 ![caddrawing4](https://github.com/goofyseeker311/javarenderengine/assets/19920254/19f1a3ce-23e7-43c0-8dfe-c5ff7c5e83f0)
+
+Model App:
+
+![modelrender](https://github.com/goofyseeker311/javarenderengine/assets/19920254/ae8251b3-419f-4578-83af-0bd4474a9231)
