@@ -346,9 +346,9 @@ public class MathLib {
 			k = new Position[vpoint.length];
 			for (int n=0;n<vpoint.length;n++) {
 				k[n] = new Position(
-						vpoint[n].x*vmat.a11+vpoint[n].y*vmat.a21+vpoint[n].z*vmat.a31,
-						vpoint[n].x*vmat.a12+vpoint[n].y*vmat.a22+vpoint[n].z*vmat.a32,
-						vpoint[n].x*vmat.a13+vpoint[n].y*vmat.a23+vpoint[n].z*vmat.a33
+						vpoint[n].x*vmat.a11+vpoint[n].y*vmat.a12+vpoint[n].z*vmat.a13,
+						vpoint[n].x*vmat.a21+vpoint[n].y*vmat.a22+vpoint[n].z*vmat.a23,
+						vpoint[n].x*vmat.a31+vpoint[n].y*vmat.a32+vpoint[n].z*vmat.a33
 						);
 			}
 		}
@@ -360,9 +360,9 @@ public class MathLib {
 			k = new Direction[vdir.length];
 			for (int n=0;n<vdir.length;n++) {
 				k[n] = new Direction(
-						vdir[n].dx*vmat.a11+vdir[n].dy*vmat.a21+vdir[n].dz*vmat.a31,
-						vdir[n].dx*vmat.a12+vdir[n].dy*vmat.a22+vdir[n].dz*vmat.a32,
-						vdir[n].dx*vmat.a13+vdir[n].dy*vmat.a23+vdir[n].dz*vmat.a33
+						vdir[n].dx*vmat.a11+vdir[n].dy*vmat.a12+vdir[n].dz*vmat.a13,
+						vdir[n].dx*vmat.a21+vdir[n].dy*vmat.a22+vdir[n].dz*vmat.a23,
+						vdir[n].dx*vmat.a31+vdir[n].dy*vmat.a32+vdir[n].dz*vmat.a33
 						);
 			}
 		}
@@ -374,15 +374,15 @@ public class MathLib {
 			k = new Triangle[vtri.length];
 			for (int n=0;n<vtri.length;n++) {
 				k[n] = vtri[n].copy();
-				k[n].pos1.x = k[n].pos1.x*vmat.a11+k[n].pos1.y*vmat.a21+k[n].pos1.z*vmat.a31;
-				k[n].pos1.y = k[n].pos1.x*vmat.a12+k[n].pos1.y*vmat.a22+k[n].pos1.z*vmat.a32;
-				k[n].pos1.z = k[n].pos1.x*vmat.a13+k[n].pos1.y*vmat.a23+k[n].pos1.z*vmat.a33;
-				k[n].pos2.x = k[n].pos2.x*vmat.a11+k[n].pos2.y*vmat.a21+k[n].pos2.z*vmat.a31;
-				k[n].pos2.y = k[n].pos2.x*vmat.a12+k[n].pos2.y*vmat.a22+k[n].pos2.z*vmat.a32;
-				k[n].pos2.z = k[n].pos2.x*vmat.a13+k[n].pos2.y*vmat.a23+k[n].pos2.z*vmat.a33;
-				k[n].pos3.x = k[n].pos3.x*vmat.a11+k[n].pos3.y*vmat.a21+k[n].pos3.z*vmat.a31;
-				k[n].pos3.y = k[n].pos3.x*vmat.a12+k[n].pos3.y*vmat.a22+k[n].pos3.z*vmat.a32;
-				k[n].pos3.z = k[n].pos3.x*vmat.a13+k[n].pos3.y*vmat.a23+k[n].pos3.z*vmat.a33;
+				k[n].pos1.x = k[n].pos1.x*vmat.a11+k[n].pos1.y*vmat.a12+k[n].pos1.z*vmat.a13;
+				k[n].pos1.y = k[n].pos1.x*vmat.a21+k[n].pos1.y*vmat.a22+k[n].pos1.z*vmat.a23;
+				k[n].pos1.z = k[n].pos1.x*vmat.a31+k[n].pos1.y*vmat.a32+k[n].pos1.z*vmat.a33;
+				k[n].pos2.x = k[n].pos2.x*vmat.a11+k[n].pos2.y*vmat.a12+k[n].pos2.z*vmat.a13;
+				k[n].pos2.y = k[n].pos2.x*vmat.a21+k[n].pos2.y*vmat.a22+k[n].pos2.z*vmat.a23;
+				k[n].pos2.z = k[n].pos2.x*vmat.a31+k[n].pos2.y*vmat.a32+k[n].pos2.z*vmat.a33;
+				k[n].pos3.x = k[n].pos3.x*vmat.a11+k[n].pos3.y*vmat.a12+k[n].pos3.z*vmat.a13;
+				k[n].pos3.y = k[n].pos3.x*vmat.a21+k[n].pos3.y*vmat.a22+k[n].pos3.z*vmat.a23;
+				k[n].pos3.z = k[n].pos3.x*vmat.a31+k[n].pos3.y*vmat.a32+k[n].pos3.z*vmat.a33;
 			}
 		}
 		return k;
