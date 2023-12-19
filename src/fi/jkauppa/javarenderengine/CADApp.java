@@ -56,7 +56,7 @@ public class CADApp implements AppHandler {
 	private int mouselocationx = -1, mouselocationy = -1;
 	private int drawdepth = 0; 
 	private int drawstartdepth = 0; 
-	private final double drawdepthscale = 0.001f;
+	private final double drawdepthscale = 0.00035f;
 	private int origindeltax = 0, origindeltay = 0; 
 	private final int originlinewidth = 100;
 	private final int originlineheight = 100;
@@ -123,7 +123,7 @@ public class CADApp implements AppHandler {
 					if (triangleviewangle>90.0f) {
 						triangleviewangle = 180-triangleviewangle;
 					}
-					float shadingmultiplier = (90.0f-((float)triangleviewangle))/90.0f;
+					float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
 					g.setColor(new Color(shadingmultiplier,shadingmultiplier,shadingmultiplier));
 					g.fill(trianglepolygon);
 					g.setColor(Color.BLACK);
@@ -184,8 +184,9 @@ public class CADApp implements AppHandler {
 		return k;
 	}
 	private void updateTriangleList() {
-		this.trianglelist = MathLib.generateTriangleList(linelist.toArray(new Position2[linelist.size()]));
-		Arrays.sort(this.trianglelist);
+		Triangle[] unsortedtrianglelist = MathLib.generateTriangleList(linelist.toArray(new Position2[linelist.size()]));
+		TreeSet<Triangle> triangletree = new TreeSet<Triangle>(Arrays.asList(unsortedtrianglelist));
+		this.trianglelist = triangletree.toArray(new Triangle[triangletree.size()]);
 	}
 	
 	@Override public void actionPerformed(ActionEvent e) {}
