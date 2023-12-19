@@ -387,6 +387,35 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static Position[] translate(Position[] vpoint, Position vpos) {
+		Position[] k = null;
+		if ((vpoint!=null)&&(vpos!=null)) {
+			k = new Position[vpoint.length];
+			for (int n=0;n<vpoint.length;n++) {
+				k[n] = vpoint[n].copy();
+				k[n].x = k[n].x+vpos.x;
+				k[n].y = k[n].y+vpos.y;
+				k[n].z = k[n].z+vpos.z;
+			}
+		}
+		return k;
+	}
+	public static Position2[] translate(Position2[] vline, Position vpos) {
+		Position2[] k = null;
+		if ((vline!=null)&&(vpos!=null)) {
+			k = new Position2[vline.length];
+			for (int n=0;n<vline.length;n++) {
+				k[n] = vline[n].copy();
+				k[n].pos1.x = k[n].pos1.x+vpos.x;
+				k[n].pos1.y = k[n].pos1.y+vpos.y;
+				k[n].pos1.z = k[n].pos1.z+vpos.z;
+				k[n].pos2.x = k[n].pos2.x+vpos.x;
+				k[n].pos2.y = k[n].pos2.y+vpos.y;
+				k[n].pos2.z = k[n].pos2.z+vpos.z;
+			}
+		}
+		return k;
+	}
 	public static Triangle[] translate(Triangle[] vtri, Position vpos) {
 		Triangle[] k = null;
 		if ((vtri!=null)&&(vpos!=null)) {

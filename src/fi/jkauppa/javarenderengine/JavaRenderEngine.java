@@ -39,6 +39,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private CADApp cadapp = new CADApp();
 	private ModelApp modelapp = new ModelApp();
 	private EditorApp editorapp = new EditorApp();
+	private GameApp gameapp = new GameApp();
 	private AppHandler activeapp = null;
 	private GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
 	private GraphicsDevice gd = ge.getDefaultScreenDevice ();
@@ -169,7 +170,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		for (int i=0;i<prjplane.length;i++) {System.out.println("prjplane["+i+"]: "+prjplane[i].a+" "+prjplane[i].b+" "+prjplane[i].c+" "+prjplane[i].d);}
 		for (int i=0;i<prjplane2.length;i++) {System.out.println("prjplane2["+i+"]: "+prjplane2[i].a+" "+prjplane2[i].b+" "+prjplane2[i].c+" "+prjplane2[i].d);}
 		
-		JavaRenderEngine app = new JavaRenderEngine();
+		new JavaRenderEngine();
 	}
 	
 	private class RenderPanel extends JPanel implements ActionListener {
@@ -270,6 +271,18 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		}else if (e.getKeyCode()==KeyEvent.VK_F8) {
 			System.out.println("keyPressed: VK_F8");
 			this.setActiveApp(editorapp);
+		}else if (e.getKeyCode()==KeyEvent.VK_F9) {
+			System.out.println("keyPressed: VK_F9");
+			this.setActiveApp(gameapp);
+		}else if (e.getKeyCode()==KeyEvent.VK_F10) {
+			System.out.println("keyPressed: VK_F10");
+			//TODO <tbd>
+		}else if (e.getKeyCode()==KeyEvent.VK_F11) {
+			System.out.println("keyPressed: VK_F11");
+			//TODO <tbd>
+		}else if (e.getKeyCode()==KeyEvent.VK_F12) {
+			System.out.println("keyPressed: VK_F12");
+			//TODO Save screen shot
 		}else {
 			if (this.activeapp!=null) {this.activeapp.keyPressed(e);}
 		}

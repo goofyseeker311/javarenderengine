@@ -274,18 +274,6 @@ public class DrawApp implements AppHandler {
 		if (e.getKeyCode()==KeyEvent.VK_F4) {
 			//TODO tools/color pop-up window
 		}
-		if (e.getKeyCode()==KeyEvent.VK_F9) {
-			//TODO Game run mode
-		}
-		if (e.getKeyCode()==KeyEvent.VK_F10) {
-			//TODO <tbd>
-		}
-		if (e.getKeyCode()==KeyEvent.VK_F11) {
-			//TODO <tbd>
-		}
-		if (e.getKeyCode()==KeyEvent.VK_F12) {
-			//TODO Save screen shot
-		}
 	}
 
 	@Override public void mouseClicked(MouseEvent e) {}
