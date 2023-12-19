@@ -148,6 +148,18 @@ public class ModelApp implements AppHandler {
 			this.backwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
 			this.forwardkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_Z) {
+			this.camrot.x -= 1; if (this.camrot.x<0) {this.camrot.x = 360;}
+		} else if (e.getKeyCode()==KeyEvent.VK_X) {
+			this.camrot.x += 1; if (this.camrot.x>360) {this.camrot.x = 0;}
+		} else if (e.getKeyCode()==KeyEvent.VK_C) {
+			this.camrot.y -= 1; if (this.camrot.y<0) {this.camrot.y = 360;}
+		} else if (e.getKeyCode()==KeyEvent.VK_V) {
+			this.camrot.y += 1; if (this.camrot.y>360) {this.camrot.y = 0;}
+		} else if (e.getKeyCode()==KeyEvent.VK_B) {
+			this.camrot.z -= 1; if (this.camrot.z<0) {this.camrot.z = 360;}
+		} else if (e.getKeyCode()==KeyEvent.VK_N) {
+			this.camrot.z += 1; if (this.camrot.z>360) {this.camrot.z = 0;}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
 			this.filechooser.setDialogTitle("Load File");
 			this.filechooser.setApproveButtonText("Load");
