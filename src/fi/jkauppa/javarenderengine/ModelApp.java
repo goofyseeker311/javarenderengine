@@ -77,8 +77,8 @@ public class ModelApp implements AppHandler {
 		g.fillRect(0, 0, renderwidth, renderheight);
 		if ((model!=null)&&(trianglelist!=null)&&(materiallist!=null)) {
 			Position renderpos = new Position(-campos.x,-campos.y,-campos.z);
-			Matrix rendermat = MathLib.rotationMatrix(this.camrot.x, this.camrot.y, this.camrot.z);
-			TreeSet<Triangle> transformedtriangletree = new TreeSet<Triangle>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(trianglelist, renderpos), rendermat)));
+			Matrix rendermat = MathLib.rotationMatrix(-this.camrot.x, -this.camrot.y, -this.camrot.z);
+			TreeSet<Triangle> transformedtriangletree = new TreeSet<Triangle>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(this.trianglelist, renderpos), rendermat)));
 			Triangle[] transformedtrianglelist = transformedtriangletree.toArray(new Triangle[transformedtriangletree.size()]);
 			Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
 			Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);

@@ -26,10 +26,12 @@ import javax.swing.filechooser.FileFilter;
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
 import fi.jkauppa.javarenderengine.MathLib.Coordinate;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
+import fi.jkauppa.javarenderengine.MathLib.Matrix;
 import fi.jkauppa.javarenderengine.MathLib.Plane;
 import fi.jkauppa.javarenderengine.MathLib.Polyangle;
 import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Position2;
+import fi.jkauppa.javarenderengine.MathLib.Rotation;
 import fi.jkauppa.javarenderengine.MathLib.Sphere;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
@@ -56,10 +58,12 @@ public class CADApp implements AppHandler {
 	private int cameralocationx = 0, cameralocationy = 0;
 	private int drawdepth = 0; 
 	private int drawstartdepth = 0; 
+	private Rotation camrot = new Rotation(0,0,0);
 	private final double drawdepthscale = 0.00035f;
 	private int origindeltax = 0, origindeltay = 0; 
 	private final int originlinewidth = 100;
 	private final int originlineheight = 100;
+	private final int originlinedepth = 100;
 	private final int vertexradius = 2;
 	private final int axisstroke = 2;
 	private final int vertexstroke = 2;
@@ -72,6 +76,7 @@ public class CADApp implements AppHandler {
 	private ArrayList<Position2> linelistarray = new ArrayList<Position2>();
 	private TreeSet<Material> materiallisttree = new TreeSet<Material>(materialcomparator);
 	private Triangle[] trianglelist = null;
+	private Position2[] linelist = null;
 	private Material[] materiallist = null;
 	private JFileChooser filechooser = new JFileChooser();
 	private ImageFileFilters.OBJFileFilter objfilefilter = new ImageFileFilters.OBJFileFilter();
@@ -128,21 +133,25 @@ public class CADApp implements AppHandler {
 				this.drawdepth += 1;
 			}
 		}
+		Position renderpos = new Position(-this.cameralocationx,-this.cameralocationy,-this.drawdepth);
+		Matrix rendermat = MathLib.rotationMatrix(-this.camrot.x, -this.camrot.y, -this.camrot.z);
 		if (this.polygonfillmode==2) {
-			Plane[] triangleplanes = MathLib.planeFromPoints(trianglelist);
+			TreeSet<Triangle> transformedtriangletree = new TreeSet<Triangle>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(this.trianglelist, renderpos), rendermat)));
+			Triangle[] transformedtrianglelist = transformedtriangletree.toArray(new Triangle[transformedtriangletree.size()]);
+			Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
 			Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
 			double[] triangleviewangles = MathLib.vectorAngle(lookdir, trianglenormals);
-			for (int i=0;i<trianglelist.length;i++) {
-				if ((trianglelist[i].pos1.z<=this.drawdepth)||(trianglelist[i].pos2.z<=this.drawdepth)||(trianglelist[i].pos3.z<=this.drawdepth)) {
-					double pos1s = (this.drawdepth-trianglelist[i].pos1.z)*this.drawdepthscale+1;
-					int pos1x = (int)Math.round((trianglelist[i].pos1.x-this.cameralocationx)/pos1s)+this.origindeltax;
-					int pos1y = (int)Math.round((trianglelist[i].pos1.y-this.cameralocationy)/pos1s)+this.origindeltay;
-					double pos2s = (this.drawdepth-trianglelist[i].pos2.z)*this.drawdepthscale+1;
-					int pos2x = (int)Math.round((trianglelist[i].pos2.x-this.cameralocationx)/pos2s)+this.origindeltax;
-					int pos2y = (int)Math.round((trianglelist[i].pos2.y-this.cameralocationy)/pos2s)+this.origindeltay;
-					double pos3s = (this.drawdepth-trianglelist[i].pos3.z)*this.drawdepthscale+1;
-					int pos3x = (int)Math.round((trianglelist[i].pos3.x-this.cameralocationx)/pos3s)+this.origindeltax;
-					int pos3y = (int)Math.round((trianglelist[i].pos3.y-this.cameralocationy)/pos3s)+this.origindeltay;
+			for (int i=0;i<transformedtrianglelist.length;i++) {
+				if ((transformedtrianglelist[i].pos1.z<=0.0f)||(transformedtrianglelist[i].pos2.z<=0.0f)||(transformedtrianglelist[i].pos3.z<=0.0f)) {
+					double pos1s = (-transformedtrianglelist[i].pos1.z)*this.drawdepthscale+1;
+					int pos1x = (int)Math.round(transformedtrianglelist[i].pos1.x/pos1s)+this.origindeltax;
+					int pos1y = (int)Math.round(transformedtrianglelist[i].pos1.y/pos1s)+this.origindeltay;
+					double pos2s = (-transformedtrianglelist[i].pos2.z)*this.drawdepthscale+1;
+					int pos2x = (int)Math.round(transformedtrianglelist[i].pos2.x/pos2s)+this.origindeltax;
+					int pos2y = (int)Math.round(transformedtrianglelist[i].pos2.y/pos2s)+this.origindeltay;
+					double pos3s = (-transformedtrianglelist[i].pos3.z)*this.drawdepthscale+1;
+					int pos3x = (int)Math.round(transformedtrianglelist[i].pos3.x/pos3s)+this.origindeltax;
+					int pos3y = (int)Math.round(transformedtrianglelist[i].pos3.y/pos3s)+this.origindeltay;
 					Polygon trianglepolygon = new Polygon();
 					trianglepolygon.addPoint(pos1x, pos1y);
 					trianglepolygon.addPoint(pos2x, pos2y);
@@ -162,19 +171,21 @@ public class CADApp implements AppHandler {
 				}
 			}
 		} else {
-			Position2[] linelist = linelistarray.toArray(new Position2[linelistarray.size()]);
-			for (int i=0;i<linelist.length;i++) {
-				if ((linelist[i].pos1.z<=this.drawdepth)||(linelist[i].pos2.z<=this.drawdepth)) {
-					double pos1s = (this.drawdepth-linelist[i].pos1.z)*this.drawdepthscale+1;
-					int pos1x = (int)Math.round((linelist[i].pos1.x-this.cameralocationx)/pos1s)+this.origindeltax;
-					int pos1y = (int)Math.round((linelist[i].pos1.y-this.cameralocationy)/pos1s)+this.origindeltay;
-					double pos2s = (this.drawdepth-linelist[i].pos2.z)*this.drawdepthscale+1;
-					int pos2x = (int)Math.round((linelist[i].pos2.x-this.cameralocationx)/pos2s)+this.origindeltax;
-					int pos2y = (int)Math.round((linelist[i].pos2.y-this.cameralocationy)/pos2s)+this.origindeltay;
+			this.linelist = linelistarray.toArray(new Position2[linelistarray.size()]);
+			TreeSet<Position2> transformedlinetree = new TreeSet<Position2>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(this.linelist, renderpos), rendermat)));
+			Position2[] transformedlinelist = transformedlinetree.toArray(new Position2[transformedlinetree.size()]);
+			for (int i=0;i<transformedlinelist.length;i++) {
+				if ((transformedlinelist[i].pos1.z<=0.0f)||(transformedlinelist[i].pos2.z<=0.0f)) {
+					double pos1s = (-transformedlinelist[i].pos1.z)*this.drawdepthscale+1;
+					int pos1x = (int)Math.round(transformedlinelist[i].pos1.x/pos1s)+this.origindeltax;
+					int pos1y = (int)Math.round(transformedlinelist[i].pos1.y/pos1s)+this.origindeltay;
+					double pos2s = (-transformedlinelist[i].pos2.z)*this.drawdepthscale+1;
+					int pos2x = (int)Math.round(transformedlinelist[i].pos2.x/pos2s)+this.origindeltax;
+					int pos2y = (int)Math.round(transformedlinelist[i].pos2.y/pos2s)+this.origindeltay;
 					g.setColor(Color.BLACK);
-					if (Math.abs(linelist[i].pos1.z-this.drawdepth)<0.4f){g.setStroke(new BasicStroke(this.vertexstroke+this.vertexfocus));}else{g.setStroke(new BasicStroke(this.vertexstroke));}
+					if (Math.abs(transformedlinelist[i].pos1.z)<0.5f){g.setStroke(new BasicStroke(this.vertexstroke+this.vertexfocus));}else{g.setStroke(new BasicStroke(this.vertexstroke));}
 					g.drawOval(pos1x-this.vertexradius, pos1y-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
-					if (Math.abs(linelist[i].pos2.z-this.drawdepth)<0.4f){g.setStroke(new BasicStroke(this.vertexstroke+this.vertexfocus));}else{g.setStroke(new BasicStroke(this.vertexstroke));}
+					if (Math.abs(transformedlinelist[i].pos2.z)<0.5f){g.setStroke(new BasicStroke(this.vertexstroke+this.vertexfocus));}else{g.setStroke(new BasicStroke(this.vertexstroke));}
 					g.drawOval(pos2x-this.vertexradius, pos2y-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
 					g.setColor(Color.BLUE);
 					g.setStroke(new BasicStroke(this.sketchlinestroke));
@@ -182,15 +193,21 @@ public class CADApp implements AppHandler {
 				}
 			}
 		}
-		int axislocationx = this.origindeltax-this.cameralocationx;
-		int axislocationy = this.origindeltay-this.cameralocationy;
-		g.setStroke(new BasicStroke(this.axisstroke));
-		g.setColor(Color.RED);
-		g.drawLine(axislocationx, axislocationy, axislocationx+this.originlinewidth, axislocationy);
-		g.setColor(Color.GREEN);
-		g.drawLine(axislocationx, axislocationy, axislocationx, axislocationy+this.originlineheight);
-		g.setColor(Color.BLACK);
-		g.fillOval(axislocationx-this.vertexradius, axislocationy-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
+		Position[] originpoints = {new Position(0,0,0),new Position(this.originlinewidth,0,0),new Position(0,this.originlineheight,0),new Position(0,0,this.originlinedepth)}; 
+		Position[] transformedoriginpoints = MathLib.matrixMultiply(MathLib.translate(originpoints, renderpos), rendermat);
+		double posas = -transformedoriginpoints[0].z*this.drawdepthscale+1;
+		double posasz = -transformedoriginpoints[3].z*this.drawdepthscale+1;
+		if (posasz>0) {
+			g.setStroke(new BasicStroke(this.axisstroke));
+			g.setColor(Color.RED);
+			g.drawLine((int)Math.round(transformedoriginpoints[0].x/posas)+this.origindeltax, (int)Math.round(transformedoriginpoints[0].y/posas)+this.origindeltay, (int)Math.round(transformedoriginpoints[1].x/posas)+this.origindeltax, (int)Math.round(transformedoriginpoints[1].y/posas)+this.origindeltay);
+			g.setColor(Color.GREEN);
+			g.drawLine((int)Math.round(transformedoriginpoints[0].x/posas)+this.origindeltax, (int)Math.round(transformedoriginpoints[0].y/posas)+this.origindeltay, (int)Math.round(transformedoriginpoints[2].x/posas)+this.origindeltax, (int)Math.round(transformedoriginpoints[2].y/posas)+this.origindeltay);
+			g.setColor(Color.BLUE);
+			g.drawLine((int)Math.round(transformedoriginpoints[0].x/posas)+this.origindeltax, (int)Math.round(transformedoriginpoints[0].y/posas)+this.origindeltay, (int)Math.round(transformedoriginpoints[3].x/posasz)+this.origindeltax, (int)Math.round(transformedoriginpoints[3].y/posasz)+this.origindeltay);
+			g.setColor(Color.BLACK);
+			g.fillOval((int)Math.round(transformedoriginpoints[0].x/posas)+this.origindeltax-this.vertexradius, (int)Math.round(transformedoriginpoints[0].y/posas)+this.origindeltay-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
+		}
 	}
 
 	private int snapToGrid(int coordinate) {
@@ -207,7 +224,7 @@ public class CADApp implements AppHandler {
 		boolean[][] ssint = MathLib.sphereSphereIntersection(vsphere1, vsphere2);
 		if (ssint!=null) {
     		for (int i=0;i<ssint[0].length;i++) {
-    			if ((ssint[0][i])&&(Math.abs(vsphere2[i].z-this.drawdepth)<0.4f)) {
+    			if ((ssint[0][i])&&(Math.abs(vsphere2[i].z-this.drawdepth)<0.5f)) {
     				k = i;
     			}
     		}
@@ -283,11 +300,15 @@ public class CADApp implements AppHandler {
 				savemodel.texturecoords[0] = new Coordinate(0, 0);
 				savemodel.facenormals = new Direction[1];
 				savemodel.facenormals[0] = new Direction(0, 0, 0);
-				this.materiallist = this.materiallisttree.toArray(new Material[this.materiallisttree.size()]);
-				savemodel.materials = this.materiallist; 
+				//this.materiallist = this.materiallisttree.toArray(new Material[this.materiallisttree.size()]);
+				//savemodel.materials = this.materiallist; 
+				savemodel.materials = new Material[1];
+				savemodel.materials[0] = new Material("JREMAT");
+				savemodel.materials[0].facecolor = Color.YELLOW;
 				savemodel.objects = new ModelObject[1];
 				savemodel.objects[0] = new ModelObject("JREOBJ");
-				savemodel.objects[0].usemtl = savemodel.materials[0].materialname;
+				savemodel.objects[0].usemtl = "JREMAT";
+				//savemodel.objects[0].usemtl = savemodel.materials[0].materialname;
 				savemodel.vertexlist = MathLib.generateVertexList(this.linelistarray.toArray(new Position2[this.linelistarray.size()]));
 				Polyangle[] polygonlist = MathLib.generatePolygonList(this.linelistarray.toArray(new Position2[this.linelistarray.size()]));
 				ArrayList<ModelFaceIndex> faceindexarray = new ArrayList<ModelFaceIndex>();
