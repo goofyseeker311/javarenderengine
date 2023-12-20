@@ -374,15 +374,15 @@ public class MathLib {
 			k = new Triangle[vtri.length];
 			for (int n=0;n<vtri.length;n++) {
 				k[n] = vtri[n].copy();
-				k[n].pos1.x = k[n].pos1.x*vmat.a11+k[n].pos1.y*vmat.a12+k[n].pos1.z*vmat.a13;
-				k[n].pos1.y = k[n].pos1.x*vmat.a21+k[n].pos1.y*vmat.a22+k[n].pos1.z*vmat.a23;
-				k[n].pos1.z = k[n].pos1.x*vmat.a31+k[n].pos1.y*vmat.a32+k[n].pos1.z*vmat.a33;
-				k[n].pos2.x = k[n].pos2.x*vmat.a11+k[n].pos2.y*vmat.a12+k[n].pos2.z*vmat.a13;
-				k[n].pos2.y = k[n].pos2.x*vmat.a21+k[n].pos2.y*vmat.a22+k[n].pos2.z*vmat.a23;
-				k[n].pos2.z = k[n].pos2.x*vmat.a31+k[n].pos2.y*vmat.a32+k[n].pos2.z*vmat.a33;
-				k[n].pos3.x = k[n].pos3.x*vmat.a11+k[n].pos3.y*vmat.a12+k[n].pos3.z*vmat.a13;
-				k[n].pos3.y = k[n].pos3.x*vmat.a21+k[n].pos3.y*vmat.a22+k[n].pos3.z*vmat.a23;
-				k[n].pos3.z = k[n].pos3.x*vmat.a31+k[n].pos3.y*vmat.a32+k[n].pos3.z*vmat.a33;
+				k[n].pos1.x = vtri[n].pos1.x*vmat.a11+vtri[n].pos1.y*vmat.a12+vtri[n].pos1.z*vmat.a13;
+				k[n].pos1.y = vtri[n].pos1.x*vmat.a21+vtri[n].pos1.y*vmat.a22+vtri[n].pos1.z*vmat.a23;
+				k[n].pos1.z = vtri[n].pos1.x*vmat.a31+vtri[n].pos1.y*vmat.a32+vtri[n].pos1.z*vmat.a33;
+				k[n].pos2.x = vtri[n].pos2.x*vmat.a11+vtri[n].pos2.y*vmat.a12+vtri[n].pos2.z*vmat.a13;
+				k[n].pos2.y = vtri[n].pos2.x*vmat.a21+vtri[n].pos2.y*vmat.a22+vtri[n].pos2.z*vmat.a23;
+				k[n].pos2.z = vtri[n].pos2.x*vmat.a31+vtri[n].pos2.y*vmat.a32+vtri[n].pos2.z*vmat.a33;
+				k[n].pos3.x = vtri[n].pos3.x*vmat.a11+vtri[n].pos3.y*vmat.a12+vtri[n].pos3.z*vmat.a13;
+				k[n].pos3.y = vtri[n].pos3.x*vmat.a21+vtri[n].pos3.y*vmat.a22+vtri[n].pos3.z*vmat.a23;
+				k[n].pos3.z = vtri[n].pos3.x*vmat.a31+vtri[n].pos3.y*vmat.a32+vtri[n].pos3.z*vmat.a33;
 			}
 		}
 		return k;
