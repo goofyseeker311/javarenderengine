@@ -368,6 +368,22 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static Position2[] matrixMultiply(Position2[] vline, Matrix vmat) {
+		Position2[] k = null;
+		if ((vline!=null)&&(vmat!=null)) {
+			k = new Position2[vline.length];
+			for (int n=0;n<vline.length;n++) {
+				k[n] = vline[n].copy();
+				k[n].pos1.x = vline[n].pos1.x*vmat.a11+vline[n].pos1.y*vmat.a12+vline[n].pos1.z*vmat.a13;
+				k[n].pos1.y = vline[n].pos1.x*vmat.a21+vline[n].pos1.y*vmat.a22+vline[n].pos1.z*vmat.a23;
+				k[n].pos1.z = vline[n].pos1.x*vmat.a31+vline[n].pos1.y*vmat.a32+vline[n].pos1.z*vmat.a33;
+				k[n].pos2.x = vline[n].pos2.x*vmat.a11+vline[n].pos2.y*vmat.a12+vline[n].pos2.z*vmat.a13;
+				k[n].pos2.y = vline[n].pos2.x*vmat.a21+vline[n].pos2.y*vmat.a22+vline[n].pos2.z*vmat.a23;
+				k[n].pos2.z = vline[n].pos2.x*vmat.a31+vline[n].pos2.y*vmat.a32+vline[n].pos2.z*vmat.a33;
+			}
+		}
+		return k;
+	}
 	public static Triangle[] matrixMultiply(Triangle[] vtri, Matrix vmat) {
 		Triangle[] k = null;
 		if ((vtri!=null)&&(vmat!=null)) {
