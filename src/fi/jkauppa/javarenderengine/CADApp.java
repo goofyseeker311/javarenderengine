@@ -33,6 +33,7 @@ import fi.jkauppa.javarenderengine.MathLib.Position2;
 import fi.jkauppa.javarenderengine.MathLib.Sphere;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
+import fi.jkauppa.javarenderengine.ModelLib.MaterialComparator;
 import fi.jkauppa.javarenderengine.ModelLib.Model;
 import fi.jkauppa.javarenderengine.ModelLib.ModelFaceIndex;
 import fi.jkauppa.javarenderengine.ModelLib.ModelFaceVertexIndex;
@@ -43,6 +44,7 @@ public class CADApp implements AppHandler {
 	private GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
 	private GraphicsDevice gd = ge.getDefaultScreenDevice ();
 	private GraphicsConfiguration gc = gd.getDefaultConfiguration ();
+	private Model model = null;
 	private Direction lookdir = new Direction(0,0,-1);
 	private TexturePaint bgpattern = null;
 	private boolean draglinemode = false;
@@ -66,8 +68,11 @@ public class CADApp implements AppHandler {
 	private final int flatlinestroke = 1;
 	private final int gridstep = 20;
 	private BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
+	private MaterialComparator materialcomparator = new MaterialComparator();
 	private ArrayList<Position2> linelistarray = new ArrayList<Position2>();
+	private TreeSet<Material> materiallisttree = new TreeSet<Material>(materialcomparator);
 	private Triangle[] trianglelist = null;
+	private Material[] materiallist = null;
 	private JFileChooser filechooser = new JFileChooser();
 	private ImageFileFilters.OBJFileFilter objfilefilter = new ImageFileFilters.OBJFileFilter();
 	private boolean leftkeydown = false;
@@ -278,9 +283,8 @@ public class CADApp implements AppHandler {
 				savemodel.texturecoords[0] = new Coordinate(0, 0);
 				savemodel.facenormals = new Direction[1];
 				savemodel.facenormals[0] = new Direction(0, 0, 0);
-				savemodel.materials = new Material[1];
-				savemodel.materials[0] = new Material("JREMAT");
-				savemodel.materials[0].facecolor = Color.YELLOW;
+				this.materiallist = this.materiallisttree.toArray(new Material[this.materiallisttree.size()]);
+				savemodel.materials = this.materiallist; 
 				savemodel.objects = new ModelObject[1];
 				savemodel.objects[0] = new ModelObject("JREOBJ");
 				savemodel.objects[0].usemtl = savemodel.materials[0].materialname;
@@ -316,7 +320,12 @@ public class CADApp implements AppHandler {
 				TreeSet<Position2> uniquelinetree = new TreeSet<Position2>();
 				File loadfile = this.filechooser.getSelectedFile();
 				Model loadmodel = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
+				this.materiallisttree.clear();
+				this.materiallisttree.addAll(Arrays.asList(loadmodel.materials));
+				this.materiallist = this.materiallisttree.toArray(new Material[this.materiallisttree.size()]);
 				for (int k=0;k<loadmodel.objects.length;k++) {
+					Material searchmat = new Material(loadmodel.objects[k].usemtl);
+					int matind = Arrays.binarySearch(this.materiallist, searchmat);
 					for (int j=0;j<loadmodel.objects[k].faceindex.length;j++) {
 						Position[] loadvertex = new Position[loadmodel.objects[k].faceindex[j].facevertexindex.length];
 						for (int i=0;i<loadmodel.objects[k].faceindex[j].facevertexindex.length;i++) {
