@@ -320,9 +320,10 @@ public class CADApp implements AppHandler {
 				TreeSet<Position2> uniquelinetree = new TreeSet<Position2>();
 				File loadfile = this.filechooser.getSelectedFile();
 				Model loadmodel = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
-				this.materiallisttree.clear();
-				this.materiallisttree.addAll(Arrays.asList(loadmodel.materials));
-				this.materiallist = this.materiallisttree.toArray(new Material[this.materiallisttree.size()]);
+				//this.materiallisttree.clear();
+				//this.materiallisttree.addAll(Arrays.asList(loadmodel.materials));
+				//this.materiallist = this.materiallisttree.toArray(new Material[this.materiallisttree.size()]);
+				this.materiallist = loadmodel.materials;
 				for (int k=0;k<loadmodel.objects.length;k++) {
 					Material searchmat = new Material(loadmodel.objects[k].usemtl);
 					int matind = Arrays.binarySearch(this.materiallist, searchmat);
