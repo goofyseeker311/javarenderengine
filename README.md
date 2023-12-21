@@ -11,6 +11,7 @@ F5                -- Draw App
 F6                -- CAD App
 F7                -- Model App
 F8                -- Editor App
+F9                -- Game App
 
 Draw App Keys:
 ENTER             -- toggles between alpha/src composite pencil draw mode
@@ -68,6 +69,9 @@ NUMPAD-           -- camera location depth negative (minmax)
 F3                -- load model file dialog
 
 Editor App Keys:
+-- none --        -- placeholder key binding
+
+Game App Keys:
 -- none --        -- placeholder key binding
 ```
 
