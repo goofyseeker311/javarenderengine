@@ -80,59 +80,21 @@ public class ModelLib {
 				BufferedWriter modelobjfile = new BufferedWriter(new FileWriter(saveobjfile, false));
 				modelobjfile.write("mtllib "+model.mtllib);
 				modelobjfile.newLine();
+				for (int i=0;i<model.vertexlist.length;i++) {
+					modelobjfile.write("v "+model.vertexlist[i].x+" "+model.vertexlist[i].y+" "+model.vertexlist[i].z);
+					modelobjfile.newLine();
+				}
+				for (int i=0;i<model.facenormals.length;i++) {
+					modelobjfile.write("vn "+model.facenormals[i].dx+" "+model.facenormals[i].dy+" "+model.facenormals[i].dz);
+					modelobjfile.newLine();
+				}
+				for (int i=0;i<model.texturecoords.length;i++) {
+					modelobjfile.write("vt "+model.texturecoords[i].u+" "+model.texturecoords[i].v);
+					modelobjfile.newLine();
+				}
 				for (int k=0;k<model.objects.length;k++) {
 					modelobjfile.write("o "+model.objects[k].objectname);
 					modelobjfile.newLine();
-					int vertexindexmin = Integer.MAX_VALUE-1; 
-					int vertexindexmax = Integer.MIN_VALUE+1; 
-					int textureindexmin = Integer.MAX_VALUE-1; 
-					int textureindexmax = Integer.MIN_VALUE+1; 
-					int normalindexmin = Integer.MAX_VALUE-1; 
-					int normalindexmax = Integer.MIN_VALUE+1; 
-					for (int j=0;j<model.objects[k].faceindex.length;j++) {
-						for (int i=0;i<model.objects[k].faceindex[j].facevertexindex.length;i++) {
-							if (model.objects[k].faceindex[j].facevertexindex[i].vertexindex<vertexindexmin) {
-								vertexindexmin = model.objects[k].faceindex[j].facevertexindex[i].vertexindex;
-							}
-							if (model.objects[k].faceindex[j].facevertexindex[i].vertexindex>vertexindexmax) {
-								vertexindexmax = model.objects[k].faceindex[j].facevertexindex[i].vertexindex;
-							}
-							if (model.objects[k].faceindex[j].facevertexindex[i].textureindex<textureindexmin) {
-								textureindexmin = model.objects[k].faceindex[j].facevertexindex[i].textureindex;
-							}
-							if (model.objects[k].faceindex[j].facevertexindex[i].textureindex>textureindexmax) {
-								textureindexmax = model.objects[k].faceindex[j].facevertexindex[i].textureindex;
-							}
-							if (model.objects[k].faceindex[j].facevertexindex[i].normalindex<normalindexmin) {
-								normalindexmin = model.objects[k].faceindex[j].facevertexindex[i].normalindex;
-							}
-							if (model.objects[k].faceindex[j].facevertexindex[i].normalindex>normalindexmax) {
-								normalindexmax = model.objects[k].faceindex[j].facevertexindex[i].normalindex;
-							}
-						}
-					}
-					for (int j=0;j<model.objects[k].lineindex.length;j++) {
-						for (int i=0;i<model.objects[k].lineindex[j].linevertexindex.length;i++) {
-							if (model.objects[k].lineindex[j].linevertexindex[i]<vertexindexmin) {
-								vertexindexmin = model.objects[k].lineindex[j].linevertexindex[i];
-							}
-							if (model.objects[k].lineindex[j].linevertexindex[i]>vertexindexmax) {
-								vertexindexmax = model.objects[k].lineindex[j].linevertexindex[i];
-							}
-						}
-					}
-					for (int i=vertexindexmin-1;i<=vertexindexmax-1;i++) {
-						modelobjfile.write("v "+model.vertexlist[i].x+" "+model.vertexlist[i].y+" "+model.vertexlist[i].z);
-						modelobjfile.newLine();
-					}
-					for (int i=normalindexmin-1;i<=normalindexmax-1;i++) {
-						modelobjfile.write("vn "+model.facenormals[i].dx+" "+model.facenormals[i].dy+" "+model.facenormals[i].dz);
-						modelobjfile.newLine();
-					}
-					for (int i=textureindexmin-1;i<=textureindexmax-1;i++) {
-						modelobjfile.write("vt "+model.texturecoords[i].u+" "+model.texturecoords[i].v);
-						modelobjfile.newLine();
-					}
 					modelobjfile.write("s 0");
 					modelobjfile.newLine();
 					modelobjfile.write("usemtl "+model.objects[k].usemtl);
