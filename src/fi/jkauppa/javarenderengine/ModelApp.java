@@ -103,7 +103,7 @@ public class ModelApp implements AppHandler {
 						triangleviewangle = 180-triangleviewangle;
 					}
 					float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
-					Color tricolor = model.materials[transformedtrianglelist[i].mind].facecolor;
+					Color tricolor = this.model.materials[transformedtrianglelist[i].mind].facecolor;
 					if (tricolor==null) {tricolor = Color.WHITE;}
 					float[] tricolorcomp = tricolor.getRGBColorComponents(new float[3]);
 					g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier));
