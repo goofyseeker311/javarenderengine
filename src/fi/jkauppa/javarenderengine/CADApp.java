@@ -46,7 +46,6 @@ public class CADApp implements AppHandler {
 	private GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
 	private GraphicsDevice gd = ge.getDefaultScreenDevice ();
 	private GraphicsConfiguration gc = gd.getDefaultConfiguration ();
-	private Model model = null;
 	private Direction lookdir = new Direction(0,0,-1);
 	private TexturePaint bgpattern = null;
 	private boolean draglinemode = false;
@@ -72,9 +71,8 @@ public class CADApp implements AppHandler {
 	private final int flatlinestroke = 1;
 	private final int gridstep = 20;
 	private BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
-	private MaterialComparator materialcomparator = new MaterialComparator();
 	private ArrayList<Position2> linelistarray = new ArrayList<Position2>();
-	private TreeSet<Material> materiallisttree = new TreeSet<Material>(materialcomparator);
+	private ArrayList<Material> materiallistarray = new ArrayList<Material>();
 	private Triangle[] trianglelist = null;
 	private Position2[] linelist = null;
 	private Material[] materiallist = null;
@@ -88,6 +86,10 @@ public class CADApp implements AppHandler {
 	private boolean backwardkeydown = false;
 	
 	public CADApp() {
+		Material basicmaterial = new Material("JREMAT");
+		basicmaterial.facecolor = Color.YELLOW;
+		this.materiallistarray.add(basicmaterial);
+		this.materiallist = this.materiallistarray.toArray(new Material[materiallistarray.size()]);
 		Graphics2D pgfx = this.bgpatternimage.createGraphics();
 		pgfx.setColor(Color.WHITE);
 		pgfx.fillRect(0, 0, this.bgpatternimage.getWidth(), this.bgpatternimage.getHeight());
@@ -161,7 +163,10 @@ public class CADApp implements AppHandler {
 						triangleviewangle = 180-triangleviewangle;
 					}
 					float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
-					g.setColor(new Color(shadingmultiplier,shadingmultiplier,shadingmultiplier));
+					Color tricolor = this.materiallist[transformedtrianglelist[i].mind].facecolor;
+					if (tricolor==null) {tricolor = Color.WHITE;}
+					float[] tricolorcomp = tricolor.getRGBColorComponents(new float[3]);
+					g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier));
 					g.fill(trianglepolygon);
 					g.setColor(Color.BLACK);
 					g.setStroke(new BasicStroke(this.flatlinestroke));
@@ -300,15 +305,10 @@ public class CADApp implements AppHandler {
 				savemodel.texturecoords[0] = new Coordinate(0, 0);
 				savemodel.facenormals = new Direction[1];
 				savemodel.facenormals[0] = new Direction(0, 0, 0);
-				//this.materiallist = this.materiallisttree.toArray(new Material[this.materiallisttree.size()]);
-				//savemodel.materials = this.materiallist; 
-				savemodel.materials = new Material[1];
-				savemodel.materials[0] = new Material("JREMAT");
-				savemodel.materials[0].facecolor = Color.YELLOW;
+				savemodel.materials = this.materiallist;
 				savemodel.objects = new ModelObject[1];
 				savemodel.objects[0] = new ModelObject("JREOBJ");
-				savemodel.objects[0].usemtl = "JREMAT";
-				//savemodel.objects[0].usemtl = savemodel.materials[0].materialname;
+				savemodel.objects[0].usemtl = savemodel.materials[0].materialname;
 				savemodel.vertexlist = MathLib.generateVertexList(this.linelistarray.toArray(new Position2[this.linelistarray.size()]));
 				Polyangle[] polygonlist = MathLib.generatePolygonList(this.linelistarray.toArray(new Position2[this.linelistarray.size()]));
 				ArrayList<ModelFaceIndex> faceindexarray = new ArrayList<ModelFaceIndex>();
@@ -341,13 +341,11 @@ public class CADApp implements AppHandler {
 				TreeSet<Position2> uniquelinetree = new TreeSet<Position2>();
 				File loadfile = this.filechooser.getSelectedFile();
 				Model loadmodel = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
-				//this.materiallisttree.clear();
-				//this.materiallisttree.addAll(Arrays.asList(loadmodel.materials));
-				//this.materiallist = this.materiallisttree.toArray(new Material[this.materiallisttree.size()]);
 				this.materiallist = loadmodel.materials;
+				ArrayList<Triangle> trianglelistarray = new ArrayList<Triangle>();
 				for (int k=0;k<loadmodel.objects.length;k++) {
 					Material searchmat = new Material(loadmodel.objects[k].usemtl);
-					int matind = Arrays.binarySearch(this.materiallist, searchmat);
+					int materialindex = Arrays.binarySearch(this.materiallist, searchmat);
 					for (int j=0;j<loadmodel.objects[k].faceindex.length;j++) {
 						Position[] loadvertex = new Position[loadmodel.objects[k].faceindex[j].facevertexindex.length];
 						for (int i=0;i<loadmodel.objects[k].faceindex[j].facevertexindex.length;i++) {
@@ -360,6 +358,10 @@ public class CADApp implements AppHandler {
 							uniquelinetree.add(new Position2(loadvertex[loadmodel.objects[k].faceindex[j].facevertexindex.length-1].copy(),loadvertex[0].copy()));
 						} else if (loadmodel.objects[k].faceindex[j].facevertexindex.length==1) {
 							uniquelinetree.add(new Position2(loadvertex[0].copy(),loadvertex[0].copy()));
+						}
+						if (loadmodel.objects[k].faceindex[j].facevertexindex.length==3) {
+							trianglelistarray.add(new Triangle(loadvertex[0],loadvertex[1],loadvertex[2]));
+							trianglelistarray.get(trianglelistarray.size()-1).mind = materialindex;
 						}
 					}
 					for (int j=0;j<loadmodel.objects[k].lineindex.length;j++) {
@@ -375,8 +377,8 @@ public class CADApp implements AppHandler {
 						}
 					}
 				}
-				linelistarray.addAll(uniquelinetree);
-				updateTriangleList();
+				this.linelistarray.addAll(uniquelinetree);
+				this.trianglelist = trianglelistarray.toArray(new Triangle[trianglelistarray.size()]);
 			}
 		}
 	}
