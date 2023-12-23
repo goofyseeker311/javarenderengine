@@ -237,8 +237,18 @@ public class CADApp implements AppHandler {
 		return k;
 	}
 	private void updateTriangleList() {
-		TreeSet<Triangle> triangletree = new TreeSet<Triangle>(Arrays.asList(MathLib.generateTriangleList(linelistarray.toArray(new Position2[linelistarray.size()]))));
-		this.trianglelist = triangletree.toArray(new Triangle[triangletree.size()]);
+		Triangle[] newtrianglelist = MathLib.generateTriangleList(linelistarray.toArray(new Position2[linelistarray.size()]));
+		if (this.trianglelist!=null) {
+			TreeSet<Triangle> sortedtriangletree = new TreeSet<Triangle>(Arrays.asList(this.trianglelist));
+			Triangle[] sortedtrianglelist = sortedtriangletree.toArray(new Triangle[sortedtriangletree.size()]);
+			for (int i=0;i<newtrianglelist.length;i++) {
+				int searchindex = Arrays.binarySearch(sortedtrianglelist, newtrianglelist[i]);
+				if (searchindex>=0) {
+					newtrianglelist[i].mind = sortedtrianglelist[searchindex].mind;
+				}
+			}
+		}
+		this.trianglelist = newtrianglelist;
 	}
 	
 	@Override public void actionPerformed(ActionEvent e) {}
@@ -317,30 +327,34 @@ public class CADApp implements AppHandler {
 					savemodel.objects[i] = new ModelObject("JREOBJ"+i);
 					savemodel.objects[i].usemtl = savemodel.materials[i].materialname;
 				}
-				for (int i=0;i<this.trianglelist.length;i++) {
-					ModelFaceVertexIndex[] trianglevertex = new ModelFaceVertexIndex[3];
-					trianglevertex[0] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, this.trianglelist[i].pos1)+1,1,1);
-					trianglevertex[1] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, this.trianglelist[i].pos2)+1,1,1);
-					trianglevertex[2] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, this.trianglelist[i].pos3)+1,1,1);
-					ArrayList<ModelFaceIndex> faceindexarray = (savemodel.objects[this.trianglelist[i].mind].faceindex!=null)?(new ArrayList<ModelFaceIndex>(Arrays.asList(savemodel.objects[this.trianglelist[i].mind].faceindex))):(new ArrayList<ModelFaceIndex>());
-					faceindexarray.add(new ModelFaceIndex(trianglevertex));
-					savemodel.objects[this.trianglelist[i].mind].faceindex = faceindexarray.toArray(new ModelFaceIndex[faceindexarray.size()]);
+				if (this.trianglelist!=null) {
+					for (int i=0;i<this.trianglelist.length;i++) {
+						ModelFaceVertexIndex[] trianglevertex = new ModelFaceVertexIndex[3];
+						trianglevertex[0] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, this.trianglelist[i].pos1)+1,1,1);
+						trianglevertex[1] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, this.trianglelist[i].pos2)+1,1,1);
+						trianglevertex[2] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, this.trianglelist[i].pos3)+1,1,1);
+						ArrayList<ModelFaceIndex> faceindexarray = (savemodel.objects[this.trianglelist[i].mind].faceindex!=null)?(new ArrayList<ModelFaceIndex>(Arrays.asList(savemodel.objects[this.trianglelist[i].mind].faceindex))):(new ArrayList<ModelFaceIndex>());
+						faceindexarray.add(new ModelFaceIndex(trianglevertex));
+						savemodel.objects[this.trianglelist[i].mind].faceindex = faceindexarray.toArray(new ModelFaceIndex[faceindexarray.size()]);
+					}
 				}
 				Position2[] uniquelinelist = MathLib.generateNonTriangleLineList(this.linelistarray.toArray(new Position2[this.linelistarray.size()]));
-				for (int i=0;i<uniquelinelist.length;i++) {
-					if (uniquelinelist[i].pos1.compareTo(uniquelinelist[i].pos2)!=0) {
-						int[] linevertex = new int[2];
-						linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
-						linevertex[1] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos2)+1;
-						ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[0].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[0].lineindex))):(new ArrayList<ModelLineIndex>());
-						lineindexarray.add(new ModelLineIndex(linevertex));
-						savemodel.objects[0].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
-					} else {
-						int[] linevertex = new int[1];
-						linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
-						ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[0].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[0].lineindex))):(new ArrayList<ModelLineIndex>());
-						lineindexarray.add(new ModelLineIndex(linevertex));
-						savemodel.objects[0].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
+				if (uniquelinelist!=null) {
+					for (int i=0;i<uniquelinelist.length;i++) {
+						if (uniquelinelist[i].pos1.compareTo(uniquelinelist[i].pos2)!=0) {
+							int[] linevertex = new int[2];
+							linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
+							linevertex[1] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos2)+1;
+							ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[0].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[0].lineindex))):(new ArrayList<ModelLineIndex>());
+							lineindexarray.add(new ModelLineIndex(linevertex));
+							savemodel.objects[0].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
+						} else {
+							int[] linevertex = new int[1];
+							linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
+							ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[0].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[0].lineindex))):(new ArrayList<ModelLineIndex>());
+							lineindexarray.add(new ModelLineIndex(linevertex));
+							savemodel.objects[0].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
+						}
 					}
 				}
 				ModelLib.saveWaveFrontOBJFile(saveobjfile, savemodel);

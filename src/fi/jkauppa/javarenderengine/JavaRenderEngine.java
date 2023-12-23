@@ -277,6 +277,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		}else if (e.getKeyCode()==KeyEvent.VK_F10) {
 			System.out.println("keyPressed: VK_F10");
 			//TODO <tbd>
+			e.consume();
 		}else if (e.getKeyCode()==KeyEvent.VK_F11) {
 			System.out.println("keyPressed: VK_F11");
 			//TODO <tbd>

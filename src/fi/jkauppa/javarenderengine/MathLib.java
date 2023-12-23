@@ -15,13 +15,47 @@ public class MathLib {
 	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public int oind,tind,mind; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;} public Triangle copy(){Triangle k=new Triangle(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z),new Position(this.pos3.x,this.pos3.y,this.pos3.z));k.oind=this.oind;k.tind=this.tind;k.mind=this.mind;return k;}
 		@Override public int compareTo(Triangle o) {
 			int k = -1;
-			if (this.equals(o)) {
-				k = 0;
-			} else {
-				double zposaver1 = (this.pos1.z+this.pos2.z+this.pos3.z)/3.0f;
-				double zposaver2 = (o.pos1.z+o.pos2.z+o.pos3.z)/3.0f;
-				if (zposaver1>=zposaver2) {
+			Position[] tposarray = {this.pos1,this.pos2,this.pos3};
+			Position[] oposarray = {o.pos1,o.pos2,o.pos3};
+			Arrays.sort(tposarray);
+			Arrays.sort(oposarray);
+			if (tposarray[0].z>oposarray[0].z) {
+				k = 1;
+			} else if (tposarray[0].z==oposarray[0].z) {
+				if (tposarray[1].z>oposarray[1].z) {
 					k = 1;
+				} else if (tposarray[1].z==oposarray[1].z) {
+					if (tposarray[2].z>oposarray[2].z) {
+						k = 1;
+					} else if (tposarray[2].z==oposarray[2].z) {
+						if (tposarray[0].y>oposarray[0].y) {
+							k = 1;
+						} else if (tposarray[0].y==oposarray[0].y) {
+							if (tposarray[1].y>oposarray[1].y) {
+								k = 1;
+							} else if (tposarray[1].y==oposarray[1].y) {
+								if (tposarray[2].y>oposarray[2].y) {
+									k = 1;
+								} else if (tposarray[2].y==oposarray[2].y) {
+									if (tposarray[0].x>oposarray[0].x) {
+										k = 1;
+									} else if (tposarray[0].x==oposarray[0].x) {
+										if (tposarray[1].x>oposarray[1].x) {
+											k = 1;
+										} else if (tposarray[1].x==oposarray[1].x) {
+											if (tposarray[2].x>oposarray[2].x) {
+												k = 1;
+											} else if (tposarray[2].x==oposarray[2].x) {
+												k = 0;
+											}
+										}
+									}
+									
+								}
+							}
+						}
+						
+					}
 				}
 			}
 			return k;
