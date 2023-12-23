@@ -166,7 +166,6 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		double[] pang = MathLib.projectedAngles(64, 70);
 		for (int i=0;i<pang.length;i++) {System.out.println("pang["+i+"]="+pang[i]);}
 		Plane[] prjplane = MathLib.projectedPlanes(campos, 64, 70, new Rotation(0,0,0));
-		//Plane[] prjplane2 = MathLib.projectedPlanes(campos2[0], 64, 70, new Rotation(0,0,0));
 		Plane[] prjplane2 = MathLib.projectedPlanes(campos2[0], 64, 70, new Rotation(90,45,30));
 		for (int i=0;i<prjplane.length;i++) {System.out.println("prjplane["+i+"]: "+prjplane[i].a+" "+prjplane[i].b+" "+prjplane[i].c+" "+prjplane[i].d);}
 		for (int i=0;i<prjplane2.length;i++) {System.out.println("prjplane2["+i+"]: "+prjplane2[i].a+" "+prjplane2[i].b+" "+prjplane2[i].c+" "+prjplane2[i].d);}

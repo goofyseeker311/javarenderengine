@@ -93,6 +93,7 @@ public class ModelLib {
 					modelobjfile.newLine();
 				}
 				for (int k=0;k<model.objects.length;k++) {
+					modelobjfile.newLine();
 					modelobjfile.write("o "+model.objects[k].objectname);
 					modelobjfile.newLine();
 					modelobjfile.write("s 0");
@@ -122,7 +123,6 @@ public class ModelLib {
 							modelobjfile.newLine();
 						}
 					}
-					modelobjfile.newLine();
 				}
 				modelobjfile.close();
 				saveWaveFrontMTLFile(new File(saveobjfile.getParent(), model.mtllib).getPath(), model);
