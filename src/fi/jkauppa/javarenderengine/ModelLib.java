@@ -116,7 +116,7 @@ public class ModelLib {
 					}
 					if ((model.objects[k].lineindex!=null)&&(model.objects[k].lineindex.length>0)) {
 						for (int j=0;j<model.objects[k].lineindex.length;j++) {
-							modelobjfile.write("l ");
+							modelobjfile.write("l");
 							for (int i=0;i<model.objects[k].lineindex[j].linevertexindex.length;i++) {
 								modelobjfile.write(" "+model.objects[k].lineindex[j].linevertexindex[i]);
 							}
