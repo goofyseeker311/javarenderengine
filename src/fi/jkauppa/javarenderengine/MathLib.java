@@ -1,6 +1,5 @@
 package fi.jkauppa.javarenderengine;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.TreeSet;
@@ -31,7 +30,6 @@ public class MathLib {
 		}
 		return k;
 	}}
-	public static class Polyangle {public Position[] poslist; public Polyangle(Position[] poslisti){this.poslist=poslisti;}}
 	public static class Matrix {public double a11,a12,a13,a21,a22,a23,a31,a32,a33;public Matrix(double a11i,double a12i,double a13i,double a21i,double a22i,double a23i,double a31i,double a32i,double a33i){this.a11=a11i;this.a12=a12i;this.a13=a13i;this.a21=a21i;this.a22=a22i;this.a23=a23i;this.a31=a31i;this.a32=a32i;this.a33=a33i;}}
 	
 	public static double[] vectorDot(Direction[] vdir, Position vpoint){double[] k=null; if((vdir!=null)&&(vpoint!=null)){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vpoint.x+vdir[n].dy*vpoint.y+vdir[n].dz*vpoint.z;}}return k;}
@@ -494,18 +492,35 @@ public class MathLib {
 		return uniquevertexlist.toArray(new Position[uniquevertexlist.size()]);
 	}
 	public static Position[] generateVertexList(Position2[] linelist) {
-		ArrayList<Position> arrayvertexlist = new ArrayList<Position>(); 
+		TreeSet<Position> uniquevertexlist = new TreeSet<Position>();
 		for (int i=0;i<linelist.length;i++) {
-			arrayvertexlist.add(linelist[i].pos1);
-			arrayvertexlist.add(linelist[i].pos2);
+			uniquevertexlist.add(linelist[i].pos1);
+			uniquevertexlist.add(linelist[i].pos2);
 		}
-		TreeSet<Position> uniquevertexlist = new TreeSet<Position>(arrayvertexlist);
 		return uniquevertexlist.toArray(new Position[uniquevertexlist.size()]);
+	}
+	public static Position[] generateVertexList(Triangle[] trianglelist) {
+		TreeSet<Position> uniquevertexlist = new TreeSet<Position>();
+		for (int i=0;i<trianglelist.length;i++) {
+			uniquevertexlist.add(trianglelist[i].pos1);
+			uniquevertexlist.add(trianglelist[i].pos2);
+			uniquevertexlist.add(trianglelist[i].pos3);
+		}
+		return uniquevertexlist.toArray(new Position[uniquevertexlist.size()]);
+	}
+	public static Position2[] generateLineList(Triangle[] trianglelist) {
+		TreeSet<Position2> uniquelinelist = new TreeSet<Position2>();
+		for (int i=0;i<trianglelist.length;i++) {
+			uniquelinelist.add(new Position2(trianglelist[i].pos1,trianglelist[i].pos2));
+			uniquelinelist.add(new Position2(trianglelist[i].pos1,trianglelist[i].pos3));
+			uniquelinelist.add(new Position2(trianglelist[i].pos2,trianglelist[i].pos3));
+		}
+		return uniquelinelist.toArray(new Position2[uniquelinelist.size()]);
 	}
 	public static Triangle[] generateTriangleList(Position2[] linelist) {
 		TreeSet<Position2> uniquelinetree = new TreeSet<Position2>(Arrays.asList(linelist));
 		Position2[] uniquelinelist = uniquelinetree.toArray(new Position2[uniquelinetree.size()]);
-		ArrayList<Triangle> trianglelist = new ArrayList<Triangle>();
+		TreeSet<Triangle> uniquetrianglelist = new TreeSet<Triangle>();
 		for (int k=0;k<uniquelinelist.length;k++) {
 			Position2 kline = uniquelinelist[k];
 			for (int j=k+1;j<uniquelinelist.length;j++) {
@@ -526,68 +541,20 @@ public class MathLib {
 						boolean ilinecoonnected = (klinefreevertex.compareTo(iline.pos1)==0)&&(jlinefreevertex.compareTo(iline.pos2)==0);
 						boolean ilinecoonnectedr = (klinefreevertex.compareTo(iline.pos2)==0)&&(jlinefreevertex.compareTo(iline.pos1)==0);
 						if (ilinecoonnected||ilinecoonnectedr) {
-							trianglelist.add(new Triangle(connectedvertex,klinefreevertex,jlinefreevertex));
+							uniquetrianglelist.add(new Triangle(connectedvertex,klinefreevertex,jlinefreevertex));
 						}
 					}
 				}
 			}
 		}
-		return trianglelist.toArray(new Triangle[trianglelist.size()]);
+		return uniquetrianglelist.toArray(new Triangle[uniquetrianglelist.size()]);
 	}
-	public static Polyangle[] generatePolygonList(Position2[] linelist) {
+	public static Position2[] generateLineList(Position2[] linelist) {
+		Triangle[] uniquetrianglelist = generateTriangleList(linelist);
+		TreeSet<Position2> uniquetrianglelinelist = new TreeSet<Position2>(Arrays.asList(generateLineList(uniquetrianglelist)));
 		TreeSet<Position2> uniquelinetree = new TreeSet<Position2>(Arrays.asList(linelist));
-		Position2[] uniquelinelist = uniquelinetree.toArray(new Position2[uniquelinetree.size()]);
-		TreeSet<Position2> trianglelinetree = new TreeSet<Position2>();
-		ArrayList<Polyangle> uniquepolygonlist = new ArrayList<Polyangle>();
-		for (int k=0;k<uniquelinelist.length;k++) {
-			Position2 kline = uniquelinelist[k];
-			for (int j=k+1;j<uniquelinelist.length;j++) {
-				Position2 jline = uniquelinelist[j];
-				boolean kjlineconnected11 = kline.pos1.compareTo(jline.pos1)==0;
-				boolean kjlineconnected12 = kline.pos1.compareTo(jline.pos2)==0;
-				boolean kjlineconnected21 = kline.pos2.compareTo(jline.pos1)==0;
-				boolean kjlineconnected22 = kline.pos2.compareTo(jline.pos2)==0;
-				boolean kjlineconnected = kjlineconnected11||kjlineconnected12||kjlineconnected21||kjlineconnected22;
-				if (kjlineconnected) {
-					boolean klinefirst = (kjlineconnected11||kjlineconnected12)?true:false;
-					boolean jlinefirst = (kjlineconnected11||kjlineconnected21)?true:false;
-					for (int i=j+1;i<uniquelinelist.length;i++) {
-						Position2 iline = uniquelinelist[i];
-						Position klinefreevertex = klinefirst?kline.pos2:kline.pos1;
-						Position jlinefreevertex = jlinefirst?jline.pos2:jline.pos1;
-						Position connectedvertex = klinefirst?kline.pos1:kline.pos2;
-						boolean ilinecoonnected = (klinefreevertex.compareTo(iline.pos1)==0)&&(jlinefreevertex.compareTo(iline.pos2)==0);
-						boolean ilinecoonnectedr = (klinefreevertex.compareTo(iline.pos2)==0)&&(jlinefreevertex.compareTo(iline.pos1)==0);
-						if (ilinecoonnected||ilinecoonnectedr) {
-							Position[] linevertexlist = new Position[3];
-							linevertexlist[0] = connectedvertex;
-							linevertexlist[1] = klinefreevertex;
-							linevertexlist[2] = jlinefreevertex;
-							uniquepolygonlist.add(new Polyangle(linevertexlist));
-							trianglelinetree.add(kline);
-							trianglelinetree.add(jline);
-							trianglelinetree.add(iline);
-						}
-					}
-				}
-			}
-		}
-		TreeSet<Position2> nontrianglelinetree = new TreeSet<Position2>(Arrays.asList(linelist));
-		nontrianglelinetree.removeAll(trianglelinetree);  
-		Position2[] nontrianglelinelist = nontrianglelinetree.toArray(new Position2[nontrianglelinetree.size()]);
-		for (int k=0;k<nontrianglelinelist.length;k++) {
-			if (nontrianglelinelist[k].pos1.compareTo(nontrianglelinelist[k].pos2)==0) {
-				Position[] linevertexlist = new Position[1];
-				linevertexlist[0] = nontrianglelinelist[k].pos1;
-				uniquepolygonlist.add(new Polyangle(linevertexlist));
-			} else {
-				Position[] linevertexlist = new Position[2];
-				linevertexlist[0] = nontrianglelinelist[k].pos1;
-				linevertexlist[1] = nontrianglelinelist[k].pos2;
-				uniquepolygonlist.add(new Polyangle(linevertexlist));
-			}
-		}
-		return uniquepolygonlist.toArray(new Polyangle[uniquepolygonlist.size()]);
+		uniquelinetree.removeAll(uniquetrianglelinelist);
+		return uniquelinetree.toArray(new Position2[uniquelinetree.size()]);
 	}
 	
 	public static double[] projectedStep(int vres, int vfov) {
