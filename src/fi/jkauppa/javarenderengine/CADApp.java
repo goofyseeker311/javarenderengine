@@ -333,7 +333,7 @@ public class CADApp implements AppHandler {
 					faceindexarray.add(new ModelFaceIndex(trianglevertex));
 					savemodel.objects[this.trianglelist[i].mind].faceindex = faceindexarray.toArray(new ModelFaceIndex[faceindexarray.size()]);
 				}
-				Position2[] uniquelinelist = MathLib.generateLineList(this.linelistarray.toArray(new Position2[this.linelistarray.size()]));
+				Position2[] uniquelinelist = MathLib.generateNonTriangleLineList(this.linelistarray.toArray(new Position2[this.linelistarray.size()]));
 				for (int i=0;i<uniquelinelist.length;i++) {
 					if (uniquelinelist[i].pos1.compareTo(uniquelinelist[i].pos2)!=0) {
 						int[] linevertex = new int[2];
