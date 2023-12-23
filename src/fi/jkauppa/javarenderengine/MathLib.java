@@ -645,8 +645,17 @@ public class MathLib {
 		planenormalvectors = normalizeVector(planenormalvectors);
 	    return planeFromNormalAtPoint(vpos, planenormalvectors);
 	}
-	public static Direction[] projectedRays(int vhres, int vvres, int vhfov, int vvfov) {
-		Direction[] k = null;
+	public static Direction[][] projectedRays(int vhres, int vvres, int vhfov, int vvfov) {
+		Direction[][] k = new Direction[vvres][vhres];
+		double[] hstep = projectedStep(vhres, vhfov);
+		double[] vstep = projectedStep(vvres, vvfov);
+		for (int j=0;j<vvres;j++) {
+			k[j] = new Direction[vvres];
+			for (int i=0;i<vvres;i++) {
+				k[j][i] = new Direction(1,hstep[i],vstep[j]);
+			}
+			k[j] = normalizeVector(k[j]);
+		}
 		return k;
 	}
 	
