@@ -11,25 +11,36 @@ public class MathLib {
 	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}}
 	public static class Sphere {public double x,y,z,r; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}}
 	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}}
-	public static class Position2 implements Comparable<Position2> {public Position pos1,pos2; public int oind,mind; public Position2(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;} @Override public int compareTo(Position2 o){int k=-1;Position2 ts=this.sort();Position2 os=o.sort();if(ts.pos1.x>os.pos1.x){k=1;}else if(ts.pos1.x==os.pos1.x){if(ts.pos1.y>os.pos1.y){k=1;}else if(ts.pos1.y==os.pos1.y){if(ts.pos1.z>os.pos1.z){k=1;}else if(ts.pos1.z==os.pos1.z){if(ts.pos2.x>os.pos2.x){k=1;}else if(ts.pos2.x==os.pos2.x){if(ts.pos2.y>os.pos2.y){k=1;}else if(ts.pos2.y==os.pos2.y){if(ts.pos2.z>os.pos2.z){k=1;}else if(ts.pos2.z==os.pos2.z){k=0;}}}}}}return k;} public Position2 copy(){Position2 k=new Position2(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z)); k.oind=this.oind;k.mind=this.mind;return k;} public Position2 swap(){return new Position2(this.pos2,this.pos1);} public Position2 sort(){Position2 k=this;boolean keeporder=true;if(this.pos1.x>this.pos2.x){keeporder=false;}else if(this.pos1.x==this.pos2.x){if(this.pos1.y>this.pos2.y){keeporder=false;}else if (this.pos1.y==this.pos2.y){if(this.pos1.z>this.pos2.z){keeporder=false;}}}if(!keeporder){k=this.swap();}return k;}}
+	public static class Position2 implements Comparable<Position2> {public Position pos1,pos2; public Position2(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;} @Override public int compareTo(Position2 o){int k=-1;Position2 ts=this.sort();Position2 os=o.sort();if(ts.pos1.x>os.pos1.x){k=1;}else if(ts.pos1.x==os.pos1.x){if(ts.pos1.y>os.pos1.y){k=1;}else if(ts.pos1.y==os.pos1.y){if(ts.pos1.z>os.pos1.z){k=1;}else if(ts.pos1.z==os.pos1.z){if(ts.pos2.x>os.pos2.x){k=1;}else if(ts.pos2.x==os.pos2.x){if(ts.pos2.y>os.pos2.y){k=1;}else if(ts.pos2.y==os.pos2.y){if(ts.pos2.z>os.pos2.z){k=1;}else if(ts.pos2.z==os.pos2.z){k=0;}}}}}}return k;} public Position2 copy(){return new Position2(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z));} public Position2 swap(){return new Position2(this.pos2,this.pos1);} public Position2 sort(){Position2 k=this;boolean keeporder=true;if(this.pos1.x>this.pos2.x){keeporder=false;}else if(this.pos1.x==this.pos2.x){if(this.pos1.y>this.pos2.y){keeporder=false;}else if (this.pos1.y==this.pos2.y){if(this.pos1.z>this.pos2.z){keeporder=false;}}}if(!keeporder){k=this.swap();}return k;}}
 	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public int oind,tind,mind; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;} public Triangle copy(){Triangle k=new Triangle(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z),new Position(this.pos3.x,this.pos3.y,this.pos3.z));k.oind=this.oind;k.tind=this.tind;k.mind=this.mind;return k;}
-	@Override public int compareTo(Triangle o) {
-		int k = -1;
-		Position[] tposarray = {this.pos1,this.pos2,this.pos3};
-		Position[] oposarray = {o.pos1,o.pos2,o.pos3};
-		Arrays.sort(tposarray);
-		Arrays.sort(oposarray);
-		if ((tposarray[0].compareTo(oposarray[0])==0)&&(tposarray[1].compareTo(oposarray[1])==0)&&(tposarray[2].compareTo(oposarray[2])==0)) {
-			k = 0;
-		} else {
-			double zposaver1 = (this.pos1.z+this.pos2.z+this.pos3.z)/3.0f;
-			double zposaver2 = (o.pos1.z+o.pos2.z+o.pos3.z)/3.0f;
-			if (zposaver1>=zposaver2) {
-				k = 1;
+		@Override public int compareTo(Triangle o) {
+			int k = -1;
+			if (this.equals(o)) {
+				k = 0;
+			} else {
+				double zposaver1 = (this.pos1.z+this.pos2.z+this.pos3.z)/3.0f;
+				double zposaver2 = (o.pos1.z+o.pos2.z+o.pos3.z)/3.0f;
+				if (zposaver1>=zposaver2) {
+					k = 1;
+				}
 			}
+			return k;
 		}
-		return k;
-	}}
+		@Override public boolean equals(Object o) {
+			boolean k = false;
+			if (o.getClass().equals(this.getClass())) {
+				Triangle co = (Triangle)o;
+				Position[] tposarray = {this.pos1,this.pos2,this.pos3};
+				Position[] oposarray = {co.pos1,co.pos2,co.pos3};
+				Arrays.sort(tposarray);
+				Arrays.sort(oposarray);
+				if ((tposarray[0].compareTo(oposarray[0])==0)&&(tposarray[1].compareTo(oposarray[1])==0)&&(tposarray[2].compareTo(oposarray[2])==0)) {
+					k = true;
+				}
+			}
+			return k;
+		}
+	}
 	public static class Matrix {public double a11,a12,a13,a21,a22,a23,a31,a32,a33;public Matrix(double a11i,double a12i,double a13i,double a21i,double a22i,double a23i,double a31i,double a32i,double a33i){this.a11=a11i;this.a12=a12i;this.a13=a13i;this.a21=a21i;this.a22=a22i;this.a23=a23i;this.a31=a31i;this.a32=a32i;this.a33=a33i;}}
 	
 	public static double[] vectorDot(Direction[] vdir, Position vpoint){double[] k=null; if((vdir!=null)&&(vpoint!=null)){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vpoint.x+vdir[n].dy*vpoint.y+vdir[n].dz*vpoint.z;}}return k;}
