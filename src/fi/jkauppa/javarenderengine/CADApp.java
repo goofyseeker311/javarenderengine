@@ -48,6 +48,9 @@ public class CADApp implements AppHandler {
 	private TexturePaint bgpattern = null;
 	private boolean draglinemode = false;
 	private boolean snaplinemode = false;
+	private Color drawcolor = Color.BLACK;
+	private float[] drawcolorhsb = {0.0f, 1.0f, 0.0f};
+	private float penciltransparency = 1.0f;
 	private int polygonfillmode = 1;
 	private int selecteddragvertex = 0;
 	private int mousestartlocationx = 0, mousestartlocationy = 0;  
