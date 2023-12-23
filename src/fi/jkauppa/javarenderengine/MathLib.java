@@ -549,7 +549,7 @@ public class MathLib {
 		}
 		return uniquetrianglelist.toArray(new Triangle[uniquetrianglelist.size()]);
 	}
-	public static Position2[] generateLineList(Position2[] linelist) {
+	public static Position2[] generateNonTriangleLineList(Position2[] linelist) {
 		Triangle[] uniquetrianglelist = generateTriangleList(linelist);
 		TreeSet<Position2> uniquetrianglelinelist = new TreeSet<Position2>(Arrays.asList(generateLineList(uniquetrianglelist)));
 		TreeSet<Position2> uniquelinetree = new TreeSet<Position2>(Arrays.asList(linelist));
