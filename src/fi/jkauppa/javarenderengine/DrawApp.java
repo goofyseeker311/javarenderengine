@@ -24,6 +24,11 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
+import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.BMPFileFilter;
+import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.GIFFileFilter;
+import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.JPGFileFilter;
+import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.PNGFileFilter;
+import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.WBMPFileFilter;
 
 public class DrawApp implements AppHandler {
 	private GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
@@ -47,11 +52,11 @@ public class DrawApp implements AppHandler {
 	private int mouselastlocationx = -1, mouselastlocationy = -1;  
 	private int mouselocationx = -1, mouselocationy = -1;
 	private JFileChooser filechooser = new JFileChooser();
-	private ImageFileFilters.PNGFileFilter pngfilefilter = new ImageFileFilters.PNGFileFilter();
-	private ImageFileFilters.JPGFileFilter jpgfilefilter = new ImageFileFilters.JPGFileFilter();
-	private ImageFileFilters.GIFFileFilter giffilefilter = new ImageFileFilters.GIFFileFilter();
-	private ImageFileFilters.BMPFileFilter bmpfilefilter = new ImageFileFilters.BMPFileFilter();
-	private ImageFileFilters.WBMPFileFilter wbmpfilefilter = new ImageFileFilters.WBMPFileFilter();
+	private PNGFileFilter pngfilefilter = new PNGFileFilter();
+	private JPGFileFilter jpgfilefilter = new JPGFileFilter();
+	private GIFFileFilter giffilefilter = new GIFFileFilter();
+	private BMPFileFilter bmpfilefilter = new BMPFileFilter();
+	private WBMPFileFilter wbmpfilefilter = new WBMPFileFilter();
 	
 	public DrawApp() {
 		BufferedImage bgpatternimage = gc.createCompatibleImage(64, 64, Transparency.OPAQUE);
@@ -427,28 +432,6 @@ public class DrawApp implements AppHandler {
 
 	@Override public void drop(DropTargetDropEvent dtde) {}
 	
-	private class ImageFileFilters  {
-		public static class PNGFileFilter extends FileFilter {
-			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".png"));}
-			@Override public String getDescription() {return "PNG Image file";}
-		}
-		public static class JPGFileFilter extends FileFilter {
-			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".jpg"))||(f.getName().endsWith(".jpeg"));}
-			@Override public String getDescription() {return "JPG Image file";}
-		}
-		public static class GIFFileFilter extends FileFilter {
-			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".gif"));}
-			@Override public String getDescription() {return "GIF Image file";}
-		}
-		public static class BMPFileFilter extends FileFilter {
-			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".bmp"));}
-			@Override public String getDescription() {return "BMP Image file";}
-		}
-		public static class WBMPFileFilter extends FileFilter {
-			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".wbmp"));}
-			@Override public String getDescription() {return "WBMP Image file";}
-		}
-	}
 	private void drawPencil(Graphics2D g, int mousex, int mousey, boolean erasemode, boolean overridemode) {
 		g.setComposite(AlphaComposite.SrcOver);
 		g.setPaint(null);

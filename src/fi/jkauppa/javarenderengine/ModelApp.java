@@ -13,7 +13,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.TreeSet;
 import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileFilter;
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
 import fi.jkauppa.javarenderengine.MathLib.Matrix;
@@ -21,6 +20,7 @@ import fi.jkauppa.javarenderengine.MathLib.Plane;
 import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Rotation;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
+import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
 import fi.jkauppa.javarenderengine.ModelLib.Model;
 
@@ -35,7 +35,7 @@ public class ModelApp implements AppHandler {
 	private int origindeltax = 0, origindeltay = 0; 
 	private int lastrenderwidth = 0, lastrenderheight = 0;
 	private JFileChooser filechooser = new JFileChooser();
-	private ImageFileFilters.OBJFileFilter objfilefilter = new ImageFileFilters.OBJFileFilter();
+	private OBJFileFilter objfilefilter = new OBJFileFilter();
 	private boolean leftkeydown = false;
 	private boolean rightkeydown = false;
 	private boolean upwardkeydown = false;
@@ -55,21 +55,6 @@ public class ModelApp implements AppHandler {
 		if ((this.lastrenderwidth!=renderwidth)||(this.lastrenderheight!=renderheight)) {
 			this.lastrenderwidth = renderwidth;
 			this.lastrenderheight = renderheight;
-		}
-		if (this.leftkeydown) {
-			this.campos.x -= 20.0f*deltatimesec*100.0f;
-		} else if (this.rightkeydown) {
-			this.campos.x += 20.0f*deltatimesec*100.0f;
-		}
-		if (this.upwardkeydown) {
-			this.campos.y -= 20.0f*deltatimesec*100.0f;
-		} else if (this.downwardkeydown) {
-			this.campos.y += 20.0f*deltatimesec*100.0f;
-		}
-		if (this.forwardkeydown) {
-			this.campos.z -= 20.0f*deltatimesec*100.0f;
-		} else if (this.backwardkeydown) {
-			this.campos.z += 20.0f*deltatimesec*100.0f;
 		}
 		g.setComposite(AlphaComposite.Src);
 		g.setColor(Color.BLACK);
@@ -113,7 +98,23 @@ public class ModelApp implements AppHandler {
 		}
 	}
 
-	@Override public void actionPerformed(ActionEvent e) {}
+	@Override public void actionPerformed(ActionEvent e) {
+		if (this.leftkeydown) {
+			this.campos.x -= 20.0f;
+		} else if (this.rightkeydown) {
+			this.campos.x += 20.0f;
+		}
+		if (this.upwardkeydown) {
+			this.campos.y -= 20.0f;
+		} else if (this.downwardkeydown) {
+			this.campos.y += 20.0f;
+		}
+		if (this.forwardkeydown) {
+			this.campos.z -= 20.0f;
+		} else if (this.backwardkeydown) {
+			this.campos.z += 20.0f;
+		}
+	}
 
 	@Override public void keyReleased(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_D) {
@@ -207,12 +208,5 @@ public class ModelApp implements AppHandler {
 	}
 	
 	@Override public void drop(DropTargetDropEvent dtde) {}
-
-	private class ImageFileFilters  {
-		public static class OBJFileFilter extends FileFilter {
-			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".obj"));}
-			@Override public String getDescription() {return "OBJ Model file";}
-		}
-	}
 
 }
