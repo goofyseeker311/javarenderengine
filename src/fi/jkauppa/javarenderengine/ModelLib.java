@@ -36,9 +36,10 @@ public class ModelLib {
 		public VolatileImage fileimage;
 		public String filename;
 		public Color facecolor;
-		public int mind;
+		public int mind = -1;
 		public Material(String materialnamei) {this.materialname=materialnamei;}
 		@Override public int compareTo(Material o) {return this.materialname.compareTo(o.materialname);}
+		@Override public boolean equals(Object o) {boolean k=false;if (o.getClass().equals(this.getClass())){Material co=(Material)o;if(this.compareTo(co)==0){k=true;}}return k;}
 	}
 	public static class ModelFaceVertexIndex {
 		public int vertexindex; 
@@ -57,7 +58,6 @@ public class ModelLib {
 	public static class ModelObject {
 		public String objectname;
 		public String usemtl;
-		public int mind;
 		public ModelFaceIndex[] faceindex;
 		public ModelLineIndex[] lineindex;
 		public ModelObject(String objectnamei) {this.objectname = objectnamei;}

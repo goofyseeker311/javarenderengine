@@ -12,7 +12,7 @@ public class MathLib {
 	public static class Sphere {public double x,y,z,r; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}}
 	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}}
 	public static class Position2 implements Comparable<Position2> {public Position pos1,pos2; public Position2(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;} @Override public int compareTo(Position2 o){int k=-1;Position2 ts=this.sort();Position2 os=o.sort();if(ts.pos1.x>os.pos1.x){k=1;}else if(ts.pos1.x==os.pos1.x){if(ts.pos1.y>os.pos1.y){k=1;}else if(ts.pos1.y==os.pos1.y){if(ts.pos1.z>os.pos1.z){k=1;}else if(ts.pos1.z==os.pos1.z){if(ts.pos2.x>os.pos2.x){k=1;}else if(ts.pos2.x==os.pos2.x){if(ts.pos2.y>os.pos2.y){k=1;}else if(ts.pos2.y==os.pos2.y){if(ts.pos2.z>os.pos2.z){k=1;}else if(ts.pos2.z==os.pos2.z){k=0;}}}}}}return k;} public Position2 copy(){return new Position2(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z));} public Position2 swap(){return new Position2(this.pos2,this.pos1);} public Position2 sort(){Position2 k=this;boolean keeporder=true;if(this.pos1.x>this.pos2.x){keeporder=false;}else if(this.pos1.x==this.pos2.x){if(this.pos1.y>this.pos2.y){keeporder=false;}else if (this.pos1.y==this.pos2.y){if(this.pos1.z>this.pos2.z){keeporder=false;}}}if(!keeporder){k=this.swap();}return k;}}
-	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public int oind,tind,mind; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;} public Triangle copy(){Triangle k=new Triangle(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z),new Position(this.pos3.x,this.pos3.y,this.pos3.z));k.oind=this.oind;k.tind=this.tind;k.mind=this.mind;return k;}
+	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public int oind=-1,tind=-1,mind=-1; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;} public Triangle copy(){Triangle k=new Triangle(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z),new Position(this.pos3.x,this.pos3.y,this.pos3.z));k.oind=this.oind;k.tind=this.tind;k.mind=this.mind;return k;}
 		@Override public int compareTo(Triangle o) {
 			int k = -1;
 			Position[] tposarray = {this.pos1,this.pos2,this.pos3};
@@ -82,6 +82,7 @@ public class MathLib {
 	public static double[] vectorDot(Direction vdir1, Direction[] vdir2){double[] k=null; if((vdir1!=null)&&(vdir2!=null)){k=new double[vdir2.length];for(int n=0;n<vdir2.length;n++){k[n] = vdir1.dx*vdir2[n].dx+vdir1.dy*vdir2[n].dy+vdir1.dz*vdir2[n].dz;}}return k;}
 	public static double[] vectorDot(Direction[] vdir1, Direction[] vdir2){double[] k=null; if((vdir1!=null)&&(vdir2!=null)&&(vdir1.length==vdir2.length)){k=new double[vdir1.length];for(int n=0;n<vdir1.length;n++){k[n] = vdir1[n].dx*vdir2[n].dx+vdir1[n].dy*vdir2[n].dy+vdir1[n].dz*vdir2[n].dz;}}return k;}
 	public static double[] vectorDot(Direction[] vdir){double[] k=null; if(vdir!=null){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vdir[n].dx+vdir[n].dy*vdir[n].dy+vdir[n].dz*vdir[n].dz;}}return k;}
+	public static double vectorDot(Direction vdir){return vdir.dx*vdir.dx+vdir.dy*vdir.dy+vdir.dz*vdir.dz;}
 	public static double[] vectorDot(Plane[] vplane, Position vpoint){double[] k=null; if((vplane!=null)&&(vpoint!=null)){k=new double[vplane.length];for(int n=0;n<vplane.length;n++){k[n] = vplane[n].a*vpoint.x+vplane[n].b*vpoint.y+vplane[n].c*vpoint.z+vplane[n].d;}}return k;}
 	public static double[] vectorDot(Plane[] vplane, Direction vdir){double[] k=null; if((vplane!=null)&&(vdir!=null)){k=new double[vplane.length];for(int n=0;n<vplane.length;n++){k[n] = vplane[n].a*vdir.dx+vplane[n].b*vdir.dy+vplane[n].c*vdir.dz;}}return k;}
 
@@ -112,6 +113,21 @@ public class MathLib {
 			double[] vdirlength = vectorDot(vdir);
 			for (int n=0;n<vdir.length;n++) {
 				k[n] = Math.sqrt(vdirlength[n]);
+			}
+		}
+		return k;
+	}
+	public static double[] vectorLengthMax(Direction[] vdir) {
+		double[] k = null;
+		if (vdir!=null) {
+			k = new double[vdir.length];
+			for (int n=0;n<vdir.length;n++) {
+				if (vdir[n]!=null) {
+					double vdirlength = vectorDot(vdir[n]);
+					k[n] = Math.sqrt(vdirlength);
+				} else {
+					k[n] = Double.MAX_VALUE;
+				}
 			}
 		}
 		return k;
@@ -189,12 +205,28 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static Direction[] vectorFromPoints(Position vpoint1, Position[] vpoint2) {
+		Direction[] k = null;
+		if ((vpoint1!=null)&&(vpoint2!=null)) {
+			k = new Direction[vpoint2.length];
+			if (vpoint1!=null) {
+				for (int n=0;n<vpoint2.length;n++) {
+					if (vpoint2[n]!=null) {
+						k[n] = new Direction(vpoint2[n].x-vpoint1.x, vpoint2[n].y-vpoint1.y, vpoint2[n].z-vpoint1.z);
+					}
+				}
+			}
+		}
+		return k;
+	}
 	public static Direction[] vectorFromPoints(Position[] vpoint1, Position[] vpoint2) {
 		Direction[] k = null;
 		if ((vpoint1!=null)&&(vpoint2!=null)&&(vpoint1.length==vpoint2.length)) {
 			k = new Direction[vpoint1.length];
 			for (int n=0;n<vpoint1.length;n++) {
-				k[n] = new Direction(vpoint2[n].x-vpoint1[n].x, vpoint2[n].y-vpoint1[n].y, vpoint2[n].z-vpoint1[n].z);
+				if ((vpoint1[n]!=null)&&(vpoint2[n]!=null)) {
+					k[n] = new Direction(vpoint2[n].x-vpoint1[n].x, vpoint2[n].y-vpoint1[n].y, vpoint2[n].z-vpoint1[n].z);
+				}
 			}
 		}
 		return k;
@@ -388,11 +420,10 @@ public class MathLib {
 		if ((vpoint!=null)&&(vmat!=null)) {
 			k = new Position[vpoint.length];
 			for (int n=0;n<vpoint.length;n++) {
-				k[n] = new Position(
-						vpoint[n].x*vmat.a11+vpoint[n].y*vmat.a12+vpoint[n].z*vmat.a13,
-						vpoint[n].x*vmat.a21+vpoint[n].y*vmat.a22+vpoint[n].z*vmat.a23,
-						vpoint[n].x*vmat.a31+vpoint[n].y*vmat.a32+vpoint[n].z*vmat.a33
-						);
+				k[n] = vpoint[n].copy();
+				k[n].x = vpoint[n].x*vmat.a11+vpoint[n].y*vmat.a12+vpoint[n].z*vmat.a13;
+				k[n].y = vpoint[n].x*vmat.a21+vpoint[n].y*vmat.a22+vpoint[n].z*vmat.a23;
+				k[n].z = vpoint[n].x*vmat.a31+vpoint[n].y*vmat.a32+vpoint[n].z*vmat.a33;
 			}
 		}
 		return k;
@@ -402,11 +433,10 @@ public class MathLib {
 		if ((vdir!=null)&&(vmat!=null)) {
 			k = new Direction[vdir.length];
 			for (int n=0;n<vdir.length;n++) {
-				k[n] = new Direction(
-						vdir[n].dx*vmat.a11+vdir[n].dy*vmat.a12+vdir[n].dz*vmat.a13,
-						vdir[n].dx*vmat.a21+vdir[n].dy*vmat.a22+vdir[n].dz*vmat.a23,
-						vdir[n].dx*vmat.a31+vdir[n].dy*vmat.a32+vdir[n].dz*vmat.a33
-						);
+				k[n] = vdir[n].copy();
+				k[n].dx = vdir[n].dx*vmat.a11+vdir[n].dy*vmat.a12+vdir[n].dz*vmat.a13;
+				k[n].dy = vdir[n].dx*vmat.a21+vdir[n].dy*vmat.a22+vdir[n].dz*vmat.a23;
+				k[n].dz = vdir[n].dx*vmat.a31+vdir[n].dy*vmat.a32+vdir[n].dz*vmat.a33;
 			}
 		}
 		return k;
