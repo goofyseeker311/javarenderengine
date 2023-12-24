@@ -56,6 +56,14 @@ SHIFT             -- toggle snap to grid
 MWHEEL            -- draw height change (minmax)
 NUMPAD+           -- draw height positive (minmax)
 NUMPAD-           -- draw height negative (minmax)
+INSERT            -- hue positive change (looping)
+DELETE            -- hue negative change (looping)
+HOME              -- saturation positive change (minmax)
+END               -- saturation negative change (minmax)
+PGUP              -- brightness positive change (minmax)
+PGDOWN            -- brightness negative change (minmax)
+NUMPAD9           -- pencil transparency positive (minmax)
+NUMPAD8           -- pencil transparency negative (minmax)
 F2                -- save model file dialog
 F3                -- load model file dialog
 
