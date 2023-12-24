@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeSet;
 import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileFilter;
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
 import fi.jkauppa.javarenderengine.MathLib.Coordinate;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
@@ -33,6 +32,7 @@ import fi.jkauppa.javarenderengine.MathLib.Position2;
 import fi.jkauppa.javarenderengine.MathLib.Rotation;
 import fi.jkauppa.javarenderengine.MathLib.Sphere;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
+import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
 import fi.jkauppa.javarenderengine.ModelLib.Model;
 import fi.jkauppa.javarenderengine.ModelLib.ModelFaceIndex;
@@ -53,6 +53,7 @@ public class CADApp implements AppHandler {
 	private float penciltransparency = 1.0f;
 	private int polygonfillmode = 1;
 	private int selecteddragvertex = 0;
+	private int lastrenderwidth = 0, lastrenderheight = 0;  
 	private int mousestartlocationx = 0, mousestartlocationy = 0;  
 	private int mouselocationx = 0, mouselocationy = 0;
 	private int cameralocationx = 0, cameralocationy = 0;
@@ -60,6 +61,10 @@ public class CADApp implements AppHandler {
 	private int drawstartdepth = 0; 
 	private Rotation camrot = new Rotation(0,0,0);
 	private final double drawdepthscale = 0.00035f;
+	private Direction[][] projectedrays = null;
+	private Plane[] projectedplanes = null;
+	private int horizontalfov = 70;
+	private int verticalfov = 39;
 	private int origindeltax = 0, origindeltay = 0; 
 	private final int originlinewidth = 100;
 	private final int originlineheight = 100;
@@ -78,7 +83,7 @@ public class CADApp implements AppHandler {
 	private Position2[] linelist = null;
 	private Material[] materiallist = null;
 	private JFileChooser filechooser = new JFileChooser();
-	private ImageFileFilters.OBJFileFilter objfilefilter = new ImageFileFilters.OBJFileFilter();
+	private OBJFileFilter objfilefilter = new OBJFileFilter();
 	private boolean leftkeydown = false;
 	private boolean rightkeydown = false;
 	private boolean upwardkeydown = false;
@@ -104,6 +109,14 @@ public class CADApp implements AppHandler {
 	}
 	@Override
 	public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
+		Position renderpos = new Position(-this.cameralocationx,-this.cameralocationy,-this.drawdepth);
+		Matrix rendermat = MathLib.rotationMatrix(-this.camrot.x, -this.camrot.y, -this.camrot.z);
+		if ((renderwidth!=this.lastrenderwidth)||(renderheight!=this.lastrenderheight)) {
+			this.lastrenderwidth = renderwidth; 
+			this.lastrenderheight = renderheight; 
+			this.projectedrays = MathLib.projectedRays(renderpos, renderwidth, renderheight, this.horizontalfov, this.verticalfov, new Rotation(90,0,90));
+			this.projectedplanes = MathLib.projectedPlanes(renderpos, renderwidth, this.horizontalfov, new Rotation(90,0,90));
+		}
 		this.origindeltax = (int)Math.floor(((double)renderwidth)/2.0f);
 		this.origindeltay = (int)Math.floor(((double)renderheight)/2.0f);
 		this.bgpattern = new TexturePaint(this.bgpatternimage,new Rectangle(this.origindeltax-this.cameralocationx, this.origindeltay-this.cameralocationy, gridstep, gridstep));
@@ -113,31 +126,6 @@ public class CADApp implements AppHandler {
 		g.fillRect(0, 0, renderwidth*2, renderheight*2);
 		g.setPaint(null);
 		g.setColor(null);
-		if (this.leftkeydown) {
-			this.cameralocationx -= this.gridstep*deltatimesec*100.0f;
-		} else if (this.rightkeydown) {
-			this.cameralocationx += this.gridstep*deltatimesec*100.0f;
-		}
-		if (this.upwardkeydown) {
-			this.cameralocationy -= this.gridstep*deltatimesec*100.0f;
-		} else if (this.downwardkeydown) {
-			this.cameralocationy += this.gridstep*deltatimesec*100.0f;
-		}
-		if (this.forwardkeydown) {
-			if (this.snaplinemode) {
-				this.drawdepth = snapToGrid(this.drawdepth-this.gridstep);
-			} else {
-				this.drawdepth -= 1;
-			}
-		} else if (this.backwardkeydown) {
-			if (this.snaplinemode) {
-				this.drawdepth = snapToGrid(this.drawdepth+this.gridstep);
-			} else {
-				this.drawdepth += 1;
-			}
-		}
-		Position renderpos = new Position(-this.cameralocationx,-this.cameralocationy,-this.drawdepth);
-		Matrix rendermat = MathLib.rotationMatrix(-this.camrot.x, -this.camrot.y, -this.camrot.z);
 		if (this.polygonfillmode==2) {
 			if (this.trianglelist!=null) {
 				TreeSet<Triangle> transformedtriangletree = new TreeSet<Triangle>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(this.trianglelist, renderpos), rendermat)));
@@ -254,7 +242,33 @@ public class CADApp implements AppHandler {
 		this.trianglelist = newtrianglelist;
 	}
 	
-	@Override public void actionPerformed(ActionEvent e) {}
+	@Override public void actionPerformed(ActionEvent e) {
+		if (this.leftkeydown) {
+			this.cameralocationx -= this.gridstep;
+		} else if (this.rightkeydown) {
+			this.cameralocationx += this.gridstep;
+		}
+		if (this.upwardkeydown) {
+			this.cameralocationy -= this.gridstep;
+		} else if (this.downwardkeydown) {
+			this.cameralocationy += this.gridstep;
+		}
+		if (this.forwardkeydown) {
+			if (this.snaplinemode) {
+				this.drawdepth = snapToGrid(this.drawdepth-this.gridstep);
+			} else {
+				this.drawdepth -= 1;
+			}
+		} else if (this.backwardkeydown) {
+			if (this.snaplinemode) {
+				this.drawdepth = snapToGrid(this.drawdepth+this.gridstep);
+			} else {
+				this.drawdepth += 1;
+			}
+		}
+	}
+	
+	
 	@Override public void keyTyped(KeyEvent e) {}
 	@Override public void keyReleased(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
@@ -286,6 +300,42 @@ public class CADApp implements AppHandler {
 			this.drawdepth = 0;
 			this.cameralocationx = 0;
 			this.cameralocationy = 0;
+		} else if (e.getKeyCode()==KeyEvent.VK_INSERT) {
+			this.drawcolorhsb[0] += 0.01f;
+			if (this.drawcolorhsb[0]>1.0f) {this.drawcolorhsb[0] = 0.0f;}
+			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
+			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+		} else if (e.getKeyCode()==KeyEvent.VK_DELETE) {
+			this.drawcolorhsb[0] -= 0.01f;
+			if (this.drawcolorhsb[0]<0.0f) {this.drawcolorhsb[0] = 1.0f;}
+			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
+			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+		} else if (e.getKeyCode()==KeyEvent.VK_HOME) {
+			this.drawcolorhsb[1] += 0.01f;
+			if (this.drawcolorhsb[1]>1.0f) {this.drawcolorhsb[1] = 1.0f;}
+			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
+			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+		} else if (e.getKeyCode()==KeyEvent.VK_END) {
+			this.drawcolorhsb[1] -= 0.01f;
+			if (this.drawcolorhsb[1]<0.0f) {this.drawcolorhsb[1] = 0.0f;}
+			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
+			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_UP) {
+			this.drawcolorhsb[2] += 0.01f;
+			if (this.drawcolorhsb[2]>1.0f) {this.drawcolorhsb[2] = 1.0f;}
+			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
+			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_DOWN) {
+			this.drawcolorhsb[2] -= 0.01f;
+			if (this.drawcolorhsb[2]<0.0f) {this.drawcolorhsb[2] = 0.0f;}
+			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
+			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
 			this.polygonfillmode += 1;
 			if (this.polygonfillmode>2) {
@@ -412,13 +462,16 @@ public class CADApp implements AppHandler {
 		}
 	}
 	
-	@Override public void mouseMoved(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();}
+	@Override public void mouseMoved(MouseEvent e) {
+		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
+		
+	}
 	@Override public void mousePressed(MouseEvent e) {
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
 		this.mousestartlocationx=this.mouselocationx;this.mousestartlocationy=this.mouselocationy;
 		this.drawstartdepth = this.drawdepth;
-	    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
-	    int offmask1 = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+	    int offmask1 = MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1);
     	if (mouse1down) {
     		int vertexatmouse = getVertexAtMouse();
@@ -486,10 +539,13 @@ public class CADApp implements AppHandler {
 	public void mouseDragged(MouseEvent e) {
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
     	
-	    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
-	    int offmask1 = MouseEvent.CTRL_DOWN_MASK;
-	    boolean mouse1down = ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1);
-    	if (mouse1down) {
+	    int onmask1ctrldown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+	    int onmask1altdown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    int offmask1ctrldown = MouseEvent.ALT_DOWN_MASK;
+	    int offmask1altdown = MouseEvent.CTRL_DOWN_MASK;
+	    boolean mouse1ctrldown = ((e.getModifiersEx() & (onmask1ctrldown | offmask1ctrldown)) == onmask1ctrldown);
+	    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1altdown | offmask1altdown)) == onmask1altdown);
+    	if (mouse1ctrldown||mouse1altdown) {
     		if (this.draglinemode) {
 				int linenum = Math.floorDiv(this.selecteddragvertex,2);
 				boolean firstvertex = Math.floorMod(this.selecteddragvertex,2)==0;
@@ -536,12 +592,5 @@ public class CADApp implements AppHandler {
 	@Override public void mouseEntered(MouseEvent e) {}
 	@Override public void mouseExited(MouseEvent e) {}
 	@Override public void drop(DropTargetDropEvent dtde) {}
-
-	private class ImageFileFilters  {
-		public static class OBJFileFilter extends FileFilter {
-			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".obj"));}
-			@Override public String getDescription() {return "OBJ Model file";}
-		}
-	}
 	
 }

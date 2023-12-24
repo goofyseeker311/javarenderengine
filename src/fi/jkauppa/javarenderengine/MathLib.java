@@ -6,7 +6,7 @@ import java.util.TreeSet;
 
 public class MathLib {
 	public static class Position implements Comparable<Position> {public double x,y,z; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;} @Override public int compareTo(Position o){int k=-1;if(this.x==o.x){if(this.y==o.y){if(this.z==o.z){k=0;}else if(this.z>o.z){k=1;}}else if(this.y>o.y){k=1;}}else if(this.x>o.x){k=1;}return k;} public Position copy(){return new Position(this.x,this.y,this.z);}}
-	public static class Direction {public double dx,dy,dz; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;}}
+	public static class Direction {public double dx,dy,dz; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;} public Direction copy(){return new Direction(this.dx,this.dy,this.dz);}}
 	public static class Coordinate {public double u,v; public Coordinate(double ui,double vi){this.u=ui;this.v=vi;}}
 	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}}
 	public static class Sphere {public double x,y,z,r; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}}
@@ -459,6 +459,19 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static Direction[] translate(Direction[] vdir, Position vpos) {
+		Direction[] k = null;
+		if ((vdir!=null)&&(vpos!=null)) {
+			k = new Direction[vdir.length];
+			for (int n=0;n<vdir.length;n++) {
+				k[n] = vdir[n].copy();
+				k[n].dx = k[n].dx+vpos.x;
+				k[n].dy = k[n].dy+vpos.y;
+				k[n].dz = k[n].dz+vpos.z;
+			}
+		}
+		return k;
+	}
 	public static Position2[] translate(Position2[] vline, Position vpos) {
 		Position2[] k = null;
 		if ((vline!=null)&&(vpos!=null)) {
@@ -645,7 +658,7 @@ public class MathLib {
 		planenormalvectors = normalizeVector(planenormalvectors);
 	    return planeFromNormalAtPoint(vpos, planenormalvectors);
 	}
-	public static Direction[][] projectedRays(int vhres, int vvres, int vhfov, int vvfov) {
+	public static Direction[][] projectedRays(Position vpos, int vhres, int vvres, int vhfov, int vvfov, Rotation vrot) {
 		Direction[][] k = new Direction[vvres][vhres];
 		double[] hstep = projectedStep(vhres, vhfov);
 		double[] vstep = projectedStep(vvres, vvfov);
@@ -655,6 +668,9 @@ public class MathLib {
 				k[j][i] = new Direction(1,hstep[i],vstep[j]);
 			}
 			k[j] = normalizeVector(k[j]);
+			Matrix rotmat = rotationMatrix(vrot.x, vrot.y, vrot.z);
+			k[j] = matrixMultiply(k[j], rotmat);
+			k[j] = translate(k[j], vpos);
 		}
 		return k;
 	}
