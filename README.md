@@ -51,7 +51,7 @@ WASD              -- camera location change up/left/down/right (minmax)
 BACKSPACE         -- removes all vector lines
 ALT-DRAG-LMB      -- vector line drag draw
 ALT-RMB           -- remove line vertex
-DRAG-LMB          -- move line vertex
+CTRL-DRAG-LMB     -- move line vertex
 SHIFT             -- toggle snap to grid
 MWHEEL            -- draw height change (minmax)
 NUMPAD+           -- draw height positive (minmax)
