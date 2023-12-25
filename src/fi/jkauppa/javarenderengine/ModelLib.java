@@ -36,7 +36,7 @@ public class ModelLib {
 		public VolatileImage fileimage;
 		public String filename;
 		public Color facecolor;
-		public int mind = -1;
+		public float transparency = 1.0f;
 		public Material(String materialnamei) {this.materialname=materialnamei;}
 		@Override public int compareTo(Material o) {return this.materialname.compareTo(o.materialname);}
 		@Override public boolean equals(Object o) {boolean k=false;if (o.getClass().equals(this.getClass())){Material co=(Material)o;if(this.compareTo(co)==0){k=true;}}return k;}
@@ -153,7 +153,7 @@ public class ModelLib {
 					modelobjfile.newLine();
 					modelobjfile.write("Ni 1.450000");
 					modelobjfile.newLine();
-					modelobjfile.write("d 1.000000");
+					modelobjfile.write("d "+model.materials[i].transparency);
 					modelobjfile.newLine();
 					modelobjfile.write("illum 2");
 					modelobjfile.newLine();
@@ -274,7 +274,6 @@ public class ModelLib {
 					    }else if (fline.toLowerCase().startsWith("newmtl ")) {
 					    	String farg = fline.substring(7).trim();
 					    	modelmaterials.add(new Material(farg));
-					    	modelmaterials.get(modelmaterials.size()-1).mind = modelmaterials.size()-1;
 					    }else if (fline.toLowerCase().startsWith("map_kd ")) {
 					    	String farg = fline.substring(7).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
@@ -293,6 +292,9 @@ public class ModelLib {
 					    	String farg = fline.substring(3).trim();
 					    	String[] fargsplit = farg.split(" ");
 					    	modelmaterials.get(modelmaterials.size()-1).facecolor = new Color(Float.parseFloat(fargsplit[0]), Float.parseFloat(fargsplit[1]), Float.parseFloat(fargsplit[2]));
+					    }else if (fline.toLowerCase().startsWith("d ")) {
+					    	String farg = fline.substring(2).trim();
+					    	modelmaterials.get(modelmaterials.size()-1).transparency = Float.parseFloat(farg);
 					    }
 					}
 					k = modelmaterials.toArray(new Material[modelmaterials.size()]);

@@ -16,9 +16,9 @@ F9                -- Game App
 Draw App Keys:
 ENTER             -- toggles between alpha/src composite pencil draw mode
 BACKSPACE         -- erases the whole window canvas to white
-DRAG-LMB          -- black/hsb-color drag paint
-SHIFT-LMB         -- rgb-color picker at cursor
-ALT-DRAG-LMB      -- black/hsb-color line drag paint
+DRAG-LMB          -- black/hsba-color drag paint
+SHIFT-LMB         -- rgba-color picker at cursor
+ALT-DRAG-LMB      -- black/hsba-color line drag paint
 SHIFT-CMB         -- drag image contents on image canvas
 MWHEEL            -- pencil width change (minmax)
 SHIFT-MWHEEL      -- pencil brush image rotation angle change (looping)
@@ -49,6 +49,8 @@ CAD App Keys:
 ENTER             -- changes between polygon flat/textured/none fill modes (looping)
 WASD              -- camera location change up/left/down/right (minmax)
 BACKSPACE         -- removes all vector lines
+DRAG-LMB          -- black/hsba-color drag triangle paint
+SHIFT-LMB         -- rgba-color picker at cursor
 ALT-DRAG-LMB      -- vector line drag draw
 ALT-RMB           -- remove line vertex
 CTRL-DRAG-LMB     -- move line vertex

@@ -142,9 +142,10 @@ public class CADApp implements AppHandler {
 						}
 						float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
 						Color tricolor = this.materiallist[transformedtrianglelist[i].mind].facecolor;
+						float alphacolor = this.materiallist[transformedtrianglelist[i].mind].transparency;
 						if (tricolor==null) {tricolor = Color.WHITE;}
-						float[] tricolorcomp = tricolor.getRGBColorComponents(new float[3]);
-						g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier,this.penciltransparency));
+						float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
+						g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
 						g.fill(trianglepolygon);
 						boolean mouseoverhit = g.hit(new Rectangle(this.mouselocationx,this.mouselocationy,1,1), trianglepolygon, false);
 						if (mouseoverhit) {
@@ -223,6 +224,8 @@ public class CADApp implements AppHandler {
 	private void updateTriangleList() {
 		Material newmaterial = new Material("JREMAT1");
 		newmaterial.facecolor = this.drawcolor;
+		float[] alphacolor = this.drawcolor.getRGBComponents(new float[4]);
+		newmaterial.transparency = alphacolor[3]; 
 		if (this.materiallist!=null) {
 			int materialnum = 1;
 			while (Arrays.binarySearch(this.materiallist, newmaterial)>=0) {
@@ -585,12 +588,14 @@ public class CADApp implements AppHandler {
 	public void mouseDragged(MouseEvent e) {
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
 	    int onmask1down = MouseEvent.BUTTON1_DOWN_MASK;
-	    int offmask1down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    int offmask1down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1down | offmask1down)) == onmask1down);
     	if (mouse1down) {
     		if (this.mouseovertriangle!=-1) {
 				Material newmaterial = new Material("JREMAT1");
 				newmaterial.facecolor = this.drawcolor;
+				float[] alphacolor = this.drawcolor.getRGBComponents(new float[4]);
+				newmaterial.transparency = alphacolor[3]; 
 				if (this.materiallist!=null) {
 					int materialnum = 1;
 					while (Arrays.binarySearch(this.materiallist, newmaterial)>=0) {
@@ -614,6 +619,19 @@ public class CADApp implements AppHandler {
 				updateTriangleList();
     		}
     	}
+	    int onmask1shiftdown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
+	    int offmask1shiftdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    boolean mouse1shiftdown = ((e.getModifiersEx() & (onmask1shiftdown | offmask1shiftdown)) == onmask1shiftdown);
+	    if (mouse1shiftdown) {
+    		if (this.mouseovertriangle!=-1) {
+    			this.penciltransparency = this.materiallist[this.trianglelist[this.mouseovertriangle].mind].transparency;
+    			int colorvalue = this.materiallist[this.trianglelist[this.mouseovertriangle].mind].facecolor.getRGB();
+				Color pickeddrawcolor = new Color(colorvalue);
+				this.drawcolorhsb = Color.RGBtoHSB(pickeddrawcolor.getRed(), pickeddrawcolor.getGreen(), pickeddrawcolor.getBlue(), new float[3]);
+				float[] colorvalues = pickeddrawcolor.getRGBColorComponents(new float[3]);
+				this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+    		}
+	    }
 	    int onmask1ctrldown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    int offmask1ctrldown = MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse1ctrldown = ((e.getModifiersEx() & (onmask1ctrldown | offmask1ctrldown)) == onmask1ctrldown);
