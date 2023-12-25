@@ -27,7 +27,6 @@ import fi.jkauppa.javarenderengine.ModelLib.Model;
 public class ModelApp implements AppHandler {
 	private Model model = null;
 	private Triangle[] trianglelist = null;
-	private Material[] materiallist = null;
 	private Position campos = new Position(0,0,0);
 	private Rotation camrot = new Rotation(0,0,0);
 	private Direction lookdir = new Direction(0,0,-1);
@@ -60,7 +59,7 @@ public class ModelApp implements AppHandler {
 		g.setColor(Color.BLACK);
 		g.setPaint(null);
 		g.fillRect(0, 0, renderwidth, renderheight);
-		if ((model!=null)&&(trianglelist!=null)&&(materiallist!=null)) {
+		if ((this.model!=null)&&(this.trianglelist!=null)&&(this.model.materials!=null)) {
 			Position renderpos = new Position(-campos.x,-campos.y,-campos.z);
 			Matrix rendermat = MathLib.rotationMatrix(-this.camrot.x, -this.camrot.y, -this.camrot.z);
 			TreeSet<Triangle> transformedtriangletree = new TreeSet<Triangle>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(this.trianglelist, renderpos), rendermat)));
@@ -89,9 +88,10 @@ public class ModelApp implements AppHandler {
 					}
 					float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
 					Color tricolor = this.model.materials[transformedtrianglelist[i].mind].facecolor;
+					float alphacolor = this.model.materials[transformedtrianglelist[i].mind].transparency;
 					if (tricolor==null) {tricolor = Color.WHITE;}
-					float[] tricolorcomp = tricolor.getRGBColorComponents(new float[3]);
-					g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier));
+					float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
+					g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
 					g.fill(trianglepolygon);
 				}
 			}
@@ -167,24 +167,15 @@ public class ModelApp implements AppHandler {
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File loadfile = this.filechooser.getSelectedFile();
 				this.model = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
-				TreeSet<Material> materialarray = new TreeSet<Material>(); 
-				for (int i=0;i<model.materials.length;i++) {
-					Material material = model.materials[i];
-					material.mind = i;
-					materialarray.add(material);
-				}
-				this.materiallist = materialarray.toArray(new Material[materialarray.size()]);
 				TreeSet<Triangle> trianglearray = new TreeSet<Triangle>(); 
 				for (int j=0;j<model.objects.length;j++) {
 					Material searchmat = new Material(model.objects[j].usemtl);
-					int matind = this.materiallist[Arrays.binarySearch(this.materiallist, searchmat)].mind;
+					int matind = Arrays.binarySearch(this.model.materials, searchmat);
 					for (int i=0;i<model.objects[j].faceindex.length;i++) {
 						Position pos1 = model.vertexlist[model.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
 						Position pos2 = model.vertexlist[model.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
 						Position pos3 = model.vertexlist[model.objects[j].faceindex[i].facevertexindex[2].vertexindex-1];
 						Triangle tri = new Triangle(new Position(pos1.x,pos1.y,pos1.z),new Position(pos2.x,pos2.y,pos2.z),new Position(pos3.x,pos3.y,pos3.z));
-						tri.oind = j;
-						tri.tind = i;
 						tri.mind = matind; 
 						trianglearray.add(tri);
 					}
