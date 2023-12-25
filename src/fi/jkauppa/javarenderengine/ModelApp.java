@@ -56,7 +56,7 @@ public class ModelApp implements AppHandler {
 			this.lastrenderwidth = renderwidth;
 			this.lastrenderheight = renderheight;
 		}
-		g.setComposite(AlphaComposite.Src);
+		g.setComposite(AlphaComposite.SrcOver);
 		g.setColor(Color.BLACK);
 		g.setPaint(null);
 		g.fillRect(0, 0, renderwidth, renderheight);

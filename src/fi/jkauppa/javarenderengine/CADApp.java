@@ -54,20 +54,16 @@ public class CADApp implements AppHandler {
 	private float penciltransparency = 1.0f;
 	private int polygonfillmode = 1;
 	private int selecteddragvertex = 0;
-	private int lastrenderwidth = 0, lastrenderheight = 0;  
+	private int mouseovertriangle = -1;
 	private int mousestartlocationx = 0, mousestartlocationy = 0;  
 	private int mouselocationx = 0, mouselocationy = 0;
 	private int cameralocationx = 0, cameralocationy = 0;
 	private int drawdepth = 0; 
-	private int drawstartdepth = 0; 
+	private int drawstartdepth = 0;
 	private Rotation camrot = new Rotation(0,0,0);
 	private final double drawdepthscale = 0.00035f;
-	private Direction[][] projectedrays = null;
-	private Plane[] projectedplanes = null;
-	private MaterialComparator materialcomparator = new MaterialComparator();
-	private int horizontalfov = 70;
-	private int verticalfov = 39;
-	private int origindeltax = 0, origindeltay = 0; 
+	private int origindeltax = 0, origindeltay = 0;
+	private MaterialComparator materialcomparator = new MaterialComparator(); 
 	private final int originlinewidth = 100;
 	private final int originlineheight = 100;
 	private final int originlinedepth = 100;
@@ -108,21 +104,16 @@ public class CADApp implements AppHandler {
 	public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
 		Position renderpos = new Position(-this.cameralocationx,-this.cameralocationy,-this.drawdepth);
 		Matrix rendermat = MathLib.rotationMatrix(-this.camrot.x, -this.camrot.y, -this.camrot.z);
-		if ((renderwidth!=this.lastrenderwidth)||(renderheight!=this.lastrenderheight)) {
-			this.lastrenderwidth = renderwidth;
-			this.lastrenderheight = renderheight;
-			this.projectedrays = MathLib.projectedRays(renderpos, renderwidth, renderheight, this.horizontalfov, this.verticalfov, new Rotation(90,0,90));
-			this.projectedplanes = MathLib.projectedPlanes(renderpos, renderwidth, this.horizontalfov, new Rotation(90,0,90));
-		}
 		this.origindeltax = (int)Math.floor(((double)renderwidth)/2.0f);
 		this.origindeltay = (int)Math.floor(((double)renderheight)/2.0f);
 		this.bgpattern = new TexturePaint(this.bgpatternimage,new Rectangle(this.origindeltax-this.cameralocationx, this.origindeltay-this.cameralocationy, gridstep, gridstep));
-		g.setComposite(AlphaComposite.Src);
+		g.setComposite(AlphaComposite.SrcOver);
 		g.setColor(null);
 		g.setPaint(bgpattern);
 		g.fillRect(0, 0, renderwidth*2, renderheight*2);
 		g.setPaint(null);
 		g.setColor(null);
+		int mouseoverhittriangle = -1;
 		if (this.polygonfillmode==2) {
 			if (this.trianglelist!=null) {
 				TreeSet<Triangle> transformedtriangletree = new TreeSet<Triangle>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(this.trianglelist, renderpos), rendermat)));
@@ -153,8 +144,12 @@ public class CADApp implements AppHandler {
 						Color tricolor = this.materiallist[transformedtrianglelist[i].mind].facecolor;
 						if (tricolor==null) {tricolor = Color.WHITE;}
 						float[] tricolorcomp = tricolor.getRGBColorComponents(new float[3]);
-						g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier));
+						g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier,this.penciltransparency));
 						g.fill(trianglepolygon);
+						boolean mouseoverhit = g.hit(new Rectangle(this.mouselocationx,this.mouselocationy,1,1), trianglepolygon, false);
+						if (mouseoverhit) {
+							mouseoverhittriangle = i;
+						}
 						g.setColor(Color.BLACK);
 						g.setStroke(new BasicStroke(this.flatlinestroke));
 						g.drawLine(pos1x, pos1y, pos2x, pos2y);
@@ -201,6 +196,7 @@ public class CADApp implements AppHandler {
 			g.setColor(Color.BLACK);
 			g.fillOval((int)Math.round(transformedoriginpoints[0].x/posas)+this.origindeltax-this.vertexradius, (int)Math.round(transformedoriginpoints[0].y/posas)+this.origindeltay-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
 		}
+		this.mouseovertriangle = mouseoverhittriangle;
 	}
 
 	private int snapToGrid(int coordinate) {
@@ -225,38 +221,60 @@ public class CADApp implements AppHandler {
 		return k;
 	}
 	private void updateTriangleList() {
+		Material newmaterial = new Material("JREMAT1");
+		newmaterial.facecolor = this.drawcolor;
+		if (this.materiallist!=null) {
+			int materialnum = 1;
+			while (Arrays.binarySearch(this.materiallist, newmaterial)>=0) {
+				materialnum += 1;
+				newmaterial.materialname = "JREMAT"+materialnum;
+			}
+		}
 		Triangle[] newtrianglelist = MathLib.generateTriangleList(linelistarray.toArray(new Position2[linelistarray.size()]));
+		TreeSet<Material> uniquematerialtree = new TreeSet<Material>(this.materialcomparator);
 		if (this.trianglelist!=null) {
 			TreeSet<Triangle> sortedtriangletree = new TreeSet<Triangle>(Arrays.asList(this.trianglelist));
 			Triangle[] sortedtrianglelist = sortedtriangletree.toArray(new Triangle[sortedtriangletree.size()]);
 			for (int i=0;i<newtrianglelist.length;i++) {
 				int searchindex = Arrays.binarySearch(sortedtrianglelist, newtrianglelist[i]);
 				if (searchindex>=0) {
-					if (sortedtrianglelist[searchindex].mind==-1) {
-						Material newmaterial = new Material("JREMAT1");
-						newmaterial.facecolor = this.drawcolor;
-						if (this.materiallist!=null) {
-							int materialnum = 1;
-							while (Arrays.binarySearch(this.materiallist, newmaterial)>=0) {
-								materialnum += 1;
-								newmaterial.materialname = "JREMAT"+materialnum;
-							}
-			    			ArrayList<Material> materiallistarray = new ArrayList<Material>(Arrays.asList(this.materiallist));
-				    		materiallistarray.add(newmaterial);
-				    		this.materiallist = materiallistarray.toArray(new Material[materiallistarray.size()]);
-				    		newtrianglelist[i].mind = materiallistarray.size()-1;
-						} else {
-							this.materiallist = new Material[1];
-							this.materiallist[0] = newmaterial;
-							newtrianglelist[i].mind = 0;
-						}
+					if (sortedtrianglelist[searchindex].mind>=0) {
+						Material foundmat = this.materiallist[sortedtrianglelist[searchindex].mind];
+						uniquematerialtree.add(foundmat);
 					} else {
-						newtrianglelist[i].mind = sortedtrianglelist[searchindex].mind;
+						uniquematerialtree.add(newmaterial);
 					}
+				} else {
+					uniquematerialtree.add(newmaterial);
+				}
+			}
+		}
+		Material[] newmateriallist = uniquematerialtree.toArray(new Material[uniquematerialtree.size()]);
+		for (int i=0;i<newmateriallist.length;i++) {
+			newmateriallist[i].materialname = "JREMAT"+(i+1);
+		}
+		if (this.trianglelist!=null) {
+			TreeSet<Triangle> sortedtriangletree = new TreeSet<Triangle>(Arrays.asList(this.trianglelist));
+			Triangle[] sortedtrianglelist = sortedtriangletree.toArray(new Triangle[sortedtriangletree.size()]);
+			for (int i=0;i<newtrianglelist.length;i++) {
+				int searchindex = Arrays.binarySearch(sortedtrianglelist, newtrianglelist[i]);
+				if (searchindex>=0) {
+					if (sortedtrianglelist[searchindex].mind>=0) {
+						Material foundmat = this.materiallist[sortedtrianglelist[searchindex].mind];
+						int searchmatindex = Arrays.binarySearch(newmateriallist, foundmat, this.materialcomparator);
+						newtrianglelist[i].mind = searchmatindex;
+					} else {
+						int searchmatindex = Arrays.binarySearch(newmateriallist, newmaterial, this.materialcomparator);
+						newtrianglelist[i].mind = searchmatindex;
+					}
+				} else {
+					int searchmatindex = Arrays.binarySearch(newmateriallist, newmaterial, this.materialcomparator);
+					newtrianglelist[i].mind = searchmatindex;
 				}
 			}
 		}
 		this.trianglelist = newtrianglelist;
+		this.materiallist = newmateriallist;
 	}
 	
 	@Override public void actionPerformed(ActionEvent e) {
@@ -570,16 +588,7 @@ public class CADApp implements AppHandler {
 	    int offmask1down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1down | offmask1down)) == onmask1down);
     	if (mouse1down) {
-    		if ((this.trianglelist!=null)&&(this.mouselocationx>=0)&&(this.mouselocationy>=0)&&(this.mouselocationx<this.projectedrays[0].length)&&(this.mouselocationy<this.projectedrays.length)) {
-        		Direction[] mouseoverprojectedrayarray = new Direction[1]; 
-        		Direction mouseoverprojectedray = this.projectedrays[this.mouselocationy][this.mouselocationx];
-        		mouseoverprojectedrayarray[0] = mouseoverprojectedray;
-        		Position renderpos = new Position(0,0,0);
-    			Position[][] mouseoverintersection = MathLib.rayTriangleIntersection(renderpos, mouseoverprojectedrayarray, this.trianglelist);
-    			Direction[] intersectionvector = MathLib.vectorFromPoints(renderpos,mouseoverintersection[0]);
-    			double[] intersectiondistance = MathLib.vectorLengthMax(intersectionvector);
-    			int[] sorteddistanceindex = MathLib.indexSort(intersectiondistance);
-    			int closesttriangleindex = sorteddistanceindex[0];
+    		if (this.mouseovertriangle!=-1) {
 				Material newmaterial = new Material("JREMAT1");
 				newmaterial.facecolor = this.drawcolor;
 				if (this.materiallist!=null) {
@@ -588,15 +597,21 @@ public class CADApp implements AppHandler {
 						materialnum += 1;
 						newmaterial.materialname = "JREMAT"+materialnum;
 					}
-	    			ArrayList<Material> materiallistarray = new ArrayList<Material>(Arrays.asList(this.materiallist));
-		    		materiallistarray.add(newmaterial);
-		    		this.materiallist = materiallistarray.toArray(new Material[materiallistarray.size()]);
-		    		this.trianglelist[closesttriangleindex].mind = materiallistarray.size()-1;
+					int searchmatindex = Arrays.binarySearch(this.materiallist, newmaterial, this.materialcomparator);
+					if (searchmatindex>=0) {
+						this.trianglelist[this.mouseovertriangle].mind = searchmatindex;
+					} else {
+		    			ArrayList<Material> materiallistarray = new ArrayList<Material>(Arrays.asList(this.materiallist));
+			    		materiallistarray.add(newmaterial);
+			    		this.materiallist = materiallistarray.toArray(new Material[materiallistarray.size()]);
+			    		this.trianglelist[this.mouseovertriangle].mind = materiallistarray.size()-1;
+					}
 				} else {
 					this.materiallist = new Material[1];
 					this.materiallist[0] = newmaterial;
-					this.trianglelist[closesttriangleindex].mind = 0;
+					this.trianglelist[this.mouseovertriangle].mind = 0;
 				}
+				updateTriangleList();
     		}
     	}
 	    int onmask1ctrldown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
