@@ -265,14 +265,26 @@ public class CADApp implements AppHandler {
 					if (sortedtrianglelist[searchindex].mind>=0) {
 						Material foundmat = this.materiallist[sortedtrianglelist[searchindex].mind];
 						int searchmatindex = Arrays.binarySearch(newmateriallist, foundmat, this.materialcomparator);
-						newtrianglelist[i].mind = searchmatindex;
+						if (searchmatindex>=0) {
+							newtrianglelist[i].mind = searchmatindex;
+						} else {
+							newtrianglelist[i].mind = -1;
+						}
 					} else {
 						int searchmatindex = Arrays.binarySearch(newmateriallist, newmaterial, this.materialcomparator);
-						newtrianglelist[i].mind = searchmatindex;
+						if (searchmatindex>=0) {
+							newtrianglelist[i].mind = searchmatindex;
+						} else {
+							newtrianglelist[i].mind = -1;
+						}
 					}
 				} else {
 					int searchmatindex = Arrays.binarySearch(newmateriallist, newmaterial, this.materialcomparator);
-					newtrianglelist[i].mind = searchmatindex;
+					if (searchmatindex>=0) {
+						newtrianglelist[i].mind = searchmatindex;
+					} else {
+						newtrianglelist[i].mind = -1;
+					}
 				}
 			}
 		}
@@ -463,7 +475,8 @@ public class CADApp implements AppHandler {
 				TreeSet<Position2> uniquelinetree = new TreeSet<Position2>();
 				File loadfile = this.filechooser.getSelectedFile();
 				Model loadmodel = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
-				this.materiallist = loadmodel.materials;
+				TreeSet<Material> materiallisttree = new TreeSet<Material>(Arrays.asList(loadmodel.materials));
+				this.materiallist = materiallisttree.toArray(new Material[materiallisttree.size()]);
 				for (int i=0;i<this.materiallist.length;i++) {
 					if (this.materiallist[i].facecolor==null) {
 						this.materiallist[i].facecolor = Color.WHITE;

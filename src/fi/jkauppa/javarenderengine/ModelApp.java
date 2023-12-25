@@ -168,6 +168,8 @@ public class ModelApp implements AppHandler {
 				File loadfile = this.filechooser.getSelectedFile();
 				this.model = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
 				TreeSet<Triangle> trianglearray = new TreeSet<Triangle>(); 
+				TreeSet<Material> materiallisttree = new TreeSet<Material>(Arrays.asList(this.model.materials));
+				this.model.materials = materiallisttree.toArray(new Material[materiallisttree.size()]);
 				for (int j=0;j<model.objects.length;j++) {
 					Material searchmat = new Material(model.objects[j].usemtl);
 					int matind = Arrays.binarySearch(this.model.materials, searchmat);
