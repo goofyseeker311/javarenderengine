@@ -662,9 +662,9 @@ public class MathLib {
 	}
 	public static Direction[] projectedDirections(Rotation vrot) {
 		Direction[] rightdirupvectors = new Direction[3];
-		Direction rightvector = new Direction(0,0,1);
+		Direction rightvector = new Direction(0,1,0);
 		Direction dirvector = new Direction(1,0,0);
-		Direction upvector = new Direction(0,1,0);
+		Direction upvector = new Direction(0,0,1);
 		rightdirupvectors[0] = rightvector;
 		rightdirupvectors[1] = dirvector;
 		rightdirupvectors[2] = upvector;

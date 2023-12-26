@@ -299,28 +299,27 @@ public class CADApp implements AppHandler {
 		}
 		if (this.forwardkeydown) {
 			if (this.snaplinemode) {
-				this.drawdepth = snapToGrid(this.drawdepth-this.gridstep);
-			} else {
-				this.drawdepth -= 1;
-			}
-		} else if (this.backwardkeydown) {
-			if (this.snaplinemode) {
 				this.drawdepth = snapToGrid(this.drawdepth+this.gridstep);
 			} else {
 				this.drawdepth += 1;
 			}
+		} else if (this.backwardkeydown) {
+			if (this.snaplinemode) {
+				this.drawdepth = snapToGrid(this.drawdepth-this.gridstep);
+			} else {
+				this.drawdepth -= 1;
+			}
 		}
 	}
-	
 	
 	@Override public void keyTyped(KeyEvent e) {}
 	@Override public void keyReleased(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
 			this.snaplinemode = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_D) {
-			this.rightkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_A) {
 			this.leftkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_D) {
+			this.rightkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_W) {
 			this.upwardkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_S) {
@@ -393,18 +392,18 @@ public class CADApp implements AppHandler {
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
 			this.snaplinemode = true;
-		} else if (e.getKeyCode()==KeyEvent.VK_D) {
-			this.rightkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_A) {
 			this.leftkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_D) {
+			this.rightkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_W) {
 			this.upwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_S) {
 			this.downwardkeydown = true;
-		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
-			this.backwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
 			this.forwardkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
+			this.backwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_F2) {
 			this.filechooser.setDialogTitle("Save File");
 			this.filechooser.setApproveButtonText("Save");
