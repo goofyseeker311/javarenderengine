@@ -22,7 +22,9 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.VolatileImage;
+import java.io.File;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
@@ -181,7 +183,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		private static final long serialVersionUID = 1L;
 		private final Timer timer = new Timer(JavaRenderEngine.this.fpstargetdelay,this);
 		private long lastupdate = System.currentTimeMillis();
-		private VolatileImage doublebuffer = null;
+		public VolatileImage doublebuffer = null;
 		public RenderPanel() {
 			timer.start();
 		}
@@ -292,7 +294,15 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			//TODO <tbd>
 		}else if (e.getKeyCode()==KeyEvent.VK_F12) {
 			System.out.println("keyPressed: VK_F12");
-			//TODO Save screen shot
+			File screenshotfile = new File("screenshot001.png");
+			int screenshotnum = 1;
+			while (screenshotfile.exists()) {
+				screenshotnum += 1;
+				screenshotfile = new File("screenshot"+screenshotnum+".png");
+			}
+			try {
+				ImageIO.write(this.renderpanel.doublebuffer.getSnapshot(), "PNG", screenshotfile);
+			} catch (Exception ex) {ex.printStackTrace();}
 		}else {
 			if (this.activeapp!=null) {this.activeapp.keyPressed(e);}
 		}
