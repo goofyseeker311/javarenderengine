@@ -175,6 +175,10 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		for (int i=0;i<prjplane2.length;i++) {System.out.println("prjplane2["+i+"]: "+prjplane2[i].a+" "+prjplane2[i].b+" "+prjplane2[i].c+" "+prjplane2[i].d);}
 		Direction[][] prjrays = MathLib.projectedRays(campos,48, 27, 70, 39, new Rotation(0,0,0));
 		for (int j=0;j<prjrays.length;j++) {System.out.print("prjrays["+j+"]=");for (int i=0;i<prjrays[j].length;i++) {System.out.print(" ["+prjrays[j][i].dx+","+prjrays[j][i].dy+","+prjrays[j][i].dz+"]");}System.out.println();}
+		Direction[] camfwd = {new Direction(1,0,0)};
+		Direction[] camrgt = {new Direction(0,1,0)};
+		Direction[] camup = MathLib.vectorCross(camfwd,camrgt);
+		System.out.println("camup="+camup[0].dx+" "+camup[0].dy+" "+camup[0].dz);
 		
 		new JavaRenderEngine();
 	}
@@ -294,7 +298,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			//TODO <tbd>
 		}else if (e.getKeyCode()==KeyEvent.VK_F12) {
 			System.out.println("keyPressed: VK_F12");
-			File screenshotfile = new File("screenshot001.png");
+			File screenshotfile = new File("screenshot1.png");
 			int screenshotnum = 1;
 			while (screenshotfile.exists()) {
 				screenshotnum += 1;

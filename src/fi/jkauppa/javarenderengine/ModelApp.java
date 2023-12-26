@@ -29,7 +29,9 @@ public class ModelApp implements AppHandler {
 	private Triangle[] trianglelist = null;
 	private Position campos = new Position(0,0,0);
 	private Rotation camrot = new Rotation(0,0,0);
-	private Direction lookdir = new Direction(0,0,-1);
+	private final Direction lookdir = new Direction(0,0,-1);
+	private final Direction[] lookdirs = {new Direction(0,0,-1),new Direction(1,0,0),new Direction(0,-1,0)};
+	private Direction[] camdirs = lookdirs;
 	private final double drawdepthscale = 0.00035f;
 	private int origindeltax = 0, origindeltay = 0; 
 	private int lastrenderwidth = 0, lastrenderheight = 0;
@@ -41,6 +43,8 @@ public class ModelApp implements AppHandler {
 	private boolean downwardkeydown = false;
 	private boolean forwardkeydown = false;
 	private boolean backwardkeydown = false;
+	private int mouselastlocationx = -1, mouselastlocationy = -1;  
+	private int mouselocationx = -1, mouselocationy = -1;
 	
 	public ModelApp() {
 		this.filechooser.addChoosableFileFilter(this.objfilefilter);
@@ -66,7 +70,7 @@ public class ModelApp implements AppHandler {
 			Triangle[] transformedtrianglelist = transformedtriangletree.toArray(new Triangle[transformedtriangletree.size()]);
 			Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
 			Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
-			double[] triangleviewangles = MathLib.vectorAngle(lookdir, trianglenormals);
+			double[] triangleviewangles = MathLib.vectorAngle(this.lookdir, trianglenormals);
 			for (int i=0;i<transformedtrianglelist.length;i++) {
 				double pos1s = (-transformedtrianglelist[i].pos1.z)*this.drawdepthscale+1;
 				double pos2s = (-transformedtrianglelist[i].pos2.z)*this.drawdepthscale+1;
@@ -100,35 +104,47 @@ public class ModelApp implements AppHandler {
 
 	@Override public void actionPerformed(ActionEvent e) {
 		if (this.leftkeydown) {
-			this.campos.x -= 20.0f;
+			this.campos.x -= 20.0f*this.camdirs[1].dx;
+			this.campos.y -= 20.0f*this.camdirs[1].dy;
+			this.campos.z -= 20.0f*this.camdirs[1].dz;
 		} else if (this.rightkeydown) {
-			this.campos.x += 20.0f;
+			this.campos.x += 20.0f*this.camdirs[1].dx;
+			this.campos.y += 20.0f*this.camdirs[1].dy;
+			this.campos.z += 20.0f*this.camdirs[1].dz;
 		}
 		if (this.upwardkeydown) {
-			this.campos.y -= 20.0f;
+			this.campos.x += 20.0f*this.camdirs[2].dx;
+			this.campos.y += 20.0f*this.camdirs[2].dy;
+			this.campos.z += 20.0f*this.camdirs[2].dz;
 		} else if (this.downwardkeydown) {
-			this.campos.y += 20.0f;
+			this.campos.x -= 20.0f*this.camdirs[2].dx;
+			this.campos.y -= 20.0f*this.camdirs[2].dy;
+			this.campos.z -= 20.0f*this.camdirs[2].dz;
 		}
 		if (this.forwardkeydown) {
-			this.campos.z -= 20.0f;
+			this.campos.x += 20.0f*this.camdirs[0].dx;
+			this.campos.y += 20.0f*this.camdirs[0].dy;
+			this.campos.z += 20.0f*this.camdirs[0].dz;
 		} else if (this.backwardkeydown) {
-			this.campos.z += 20.0f;
+			this.campos.x -= 20.0f*this.camdirs[0].dx;
+			this.campos.y -= 20.0f*this.camdirs[0].dy;
+			this.campos.z -= 20.0f*this.camdirs[0].dz;
 		}
 	}
 
 	@Override public void keyReleased(KeyEvent e) {
-		if (e.getKeyCode()==KeyEvent.VK_D) {
+		if (e.getKeyCode()==KeyEvent.VK_A) {
+		this.leftkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_D) {
 			this.rightkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_A) {
-			this.leftkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_W) {
+		} else if (e.getKeyCode()==KeyEvent.VK_SPACE) {
 			this.upwardkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_S) {
+		} else if (e.getKeyCode()==KeyEvent.VK_C) {
 			this.downwardkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
-			this.backwardkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
+		} else if (e.getKeyCode()==KeyEvent.VK_W) {
 			this.forwardkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_S) {
+			this.backwardkeydown = false;
 		}
 	}
 	
@@ -137,30 +153,18 @@ public class ModelApp implements AppHandler {
 			this.model = null;
 			this.campos = new Position(0,0,0);
 			this.camrot = new Rotation(0,0,0);
-		} else if (e.getKeyCode()==KeyEvent.VK_D) {
-			this.rightkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_A) {
 			this.leftkeydown = true;
-		} else if (e.getKeyCode()==KeyEvent.VK_W) {
+		} else if (e.getKeyCode()==KeyEvent.VK_D) {
+			this.rightkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_SPACE) {
 			this.upwardkeydown = true;
-		} else if (e.getKeyCode()==KeyEvent.VK_S) {
-			this.downwardkeydown = true;
-		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
-			this.backwardkeydown = true;
-		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
-			this.forwardkeydown = true;
-		} else if (e.getKeyCode()==KeyEvent.VK_Z) {
-			this.camrot.x -= 1; if (this.camrot.x<0) {this.camrot.x = 360;}
-		} else if (e.getKeyCode()==KeyEvent.VK_X) {
-			this.camrot.x += 1; if (this.camrot.x>360) {this.camrot.x = 0;}
 		} else if (e.getKeyCode()==KeyEvent.VK_C) {
-			this.camrot.y -= 1; if (this.camrot.y<0) {this.camrot.y = 360;}
-		} else if (e.getKeyCode()==KeyEvent.VK_V) {
-			this.camrot.y += 1; if (this.camrot.y>360) {this.camrot.y = 0;}
-		} else if (e.getKeyCode()==KeyEvent.VK_B) {
-			this.camrot.z -= 1; if (this.camrot.z<0) {this.camrot.z = 360;}
-		} else if (e.getKeyCode()==KeyEvent.VK_N) {
-			this.camrot.z += 1; if (this.camrot.z>360) {this.camrot.z = 0;}
+			this.downwardkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_W) {
+			this.forwardkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_S) {
+			this.backwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
 			this.filechooser.setDialogTitle("Load File");
 			this.filechooser.setApproveButtonText("Load");
@@ -188,20 +192,27 @@ public class ModelApp implements AppHandler {
 	}
 	
 	@Override public void keyTyped(KeyEvent e) {}
-	@Override public void mouseClicked(MouseEvent e) {
-		
+
+	@Override public void mousePressed(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();mouseDragged(e);}
+	@Override public void mouseDragged(MouseEvent e) {
+		this.mouselastlocationx=this.mouselocationx;this.mouselastlocationy=this.mouselocationy;
+		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
+    	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
+    	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+    	this.camrot.y -= mousedeltax*0.1f;
+    	this.camrot.x -= mousedeltay*0.1f;
+    	if (this.camrot.x<-180) {this.camrot.x=-180;} else if (this.camrot.x>0) {this.camrot.x=0;}
+    	if (this.camrot.y<0) {this.camrot.y=360;} else if (this.camrot.y>360) {this.camrot.y=0;}
+		Matrix camrotmat = MathLib.matrixMultiply(MathLib.rotationMatrix(this.camrot.x, 0, 0),MathLib.rotationMatrix(0, this.camrot.y, 0));
+		this.camdirs = MathLib.matrixMultiply(this.lookdirs, camrotmat);
 	}
-	@Override public void mousePressed(MouseEvent e) {}
+	
+	@Override public void mouseClicked(MouseEvent e) {}
 	@Override public void mouseReleased(MouseEvent e) {}
 	@Override public void mouseEntered(MouseEvent e) {}
 	@Override public void mouseExited(MouseEvent e) {}
-	@Override public void mouseDragged(MouseEvent e) {}
 	@Override public void mouseMoved(MouseEvent e) {}
-	
-	@Override public void mouseWheelMoved(MouseWheelEvent e) {
-		this.campos.z += 200.0f*e.getWheelRotation();
-	}
-	
+	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
 	@Override public void drop(DropTargetDropEvent dtde) {}
 
 }
