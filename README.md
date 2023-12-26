@@ -12,6 +12,7 @@ F6                -- CAD App
 F7                -- Model App
 F8                -- Editor App
 F9                -- Game App
+F12               -- save a screenshot image file
 
 Draw App Keys:
 ENTER             -- toggles between alpha/src composite pencil draw mode
