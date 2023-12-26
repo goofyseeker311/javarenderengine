@@ -74,16 +74,16 @@ Model App Keys:
 BACKSPACE         -- remove loaded model and reset camera location
 MOUSE-DRAG        -- change looking movement forward direction
 WASD-C-SPACE      -- camera location change forward/left/backward/right/down/up (minmax)
-MWHEEL            -- camera location depth change (minmax)
-NUMPAD+           -- camera location depth positive (minmax)
-NUMPAD-           -- camera location depth negative (minmax)
 F3                -- load model file dialog
 
 Editor App Keys:
 -- none --        -- placeholder key binding
 
 Game App Keys:
--- none --        -- placeholder key binding
+BACKSPACE         -- remove loaded model and reset camera location
+MOUSE-DRAG        -- change looking movement forward direction
+WASD-C-SPACE      -- camera location change forward/left/backward/right/down/up (minmax)
+F3                -- load model file dialog
 ```
 
 # Installing and Running

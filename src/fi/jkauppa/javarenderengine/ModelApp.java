@@ -202,8 +202,8 @@ public class ModelApp implements AppHandler {
     	this.camrot.y -= mousedeltax*0.1f;
     	this.camrot.x -= mousedeltay*0.1f;
     	if (this.camrot.x<-180) {this.camrot.x=-180;} else if (this.camrot.x>0) {this.camrot.x=0;}
-    	if (this.camrot.y<0) {this.camrot.y=360;} else if (this.camrot.y>360) {this.camrot.y=0;}
-		Matrix camrotmat = MathLib.matrixMultiply(MathLib.rotationMatrix(this.camrot.x, 0, 0),MathLib.rotationMatrix(0, this.camrot.y, 0));
+    	if (this.camrot.y<0) {this.camrot.y+=360;} else if (this.camrot.y>360) {this.camrot.y-=360;}
+		Matrix camrotmat = MathLib.rotationMatrix(this.camrot.x, this.camrot.y, this.camrot.z);
 		this.camdirs = MathLib.matrixMultiply(this.lookdirs, camrotmat);
 	}
 	
