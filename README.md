@@ -73,7 +73,7 @@ F3                -- load model file dialog
 Model App Keys:
 BACKSPACE         -- remove loaded model and reset camera location
 MOUSE-DRAG        -- change looking movement forward direction
-WASD-C-SPACE      -- camera location change strafe forward/left/backward/right/downward/upward (minmax)
+WASD-C-SPACE      -- camera location change forward/left/backward/right/down/up (minmax)
 MWHEEL            -- camera location depth change (minmax)
 NUMPAD+           -- camera location depth positive (minmax)
 NUMPAD-           -- camera location depth negative (minmax)
