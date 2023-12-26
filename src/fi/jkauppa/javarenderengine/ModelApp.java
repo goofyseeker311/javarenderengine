@@ -188,7 +188,9 @@ public class ModelApp implements AppHandler {
 	}
 	
 	@Override public void keyTyped(KeyEvent e) {}
-	@Override public void mouseClicked(MouseEvent e) {}
+	@Override public void mouseClicked(MouseEvent e) {
+		
+	}
 	@Override public void mousePressed(MouseEvent e) {}
 	@Override public void mouseReleased(MouseEvent e) {}
 	@Override public void mouseEntered(MouseEvent e) {}

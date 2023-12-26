@@ -4,9 +4,6 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.TexturePaint;
@@ -42,9 +39,6 @@ import fi.jkauppa.javarenderengine.ModelLib.ModelLineIndex;
 import fi.jkauppa.javarenderengine.ModelLib.ModelObject;
 
 public class CADApp implements AppHandler {
-	private GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
-	private GraphicsDevice gd = ge.getDefaultScreenDevice ();
-	private GraphicsConfiguration gc = gd.getDefaultConfiguration ();
 	private Direction lookdir = new Direction(0,0,-1);
 	private TexturePaint bgpattern = null;
 	private boolean draglinemode = false;
