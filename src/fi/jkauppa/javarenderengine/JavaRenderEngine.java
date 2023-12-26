@@ -7,7 +7,9 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Toolkit;
 import java.awt.Transparency;
+import java.awt.datatransfer.Clipboard;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
@@ -225,6 +227,11 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		this.activeapp = activeappi;
 	}
 	public interface AppHandler extends ActionListener,KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
+		GraphicsDevice gd = ge.getDefaultScreenDevice ();
+		GraphicsConfiguration gc = gd.getDefaultConfiguration ();
+		Toolkit tk = Toolkit.getDefaultToolkit();
+		Clipboard cb = tk.getSystemClipboard();
 		public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps);
 		public void drop(DropTargetDropEvent dtde);
 	}
@@ -290,4 +297,5 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			if (this.activeapp!=null) {this.activeapp.keyPressed(e);}
 		}
 	}
+
 }

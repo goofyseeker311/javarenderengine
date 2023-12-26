@@ -12,6 +12,7 @@ import java.awt.event.MouseWheelEvent;
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
 
 public class GameApp implements AppHandler {
+	public GameApp() {}
 	@Override public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
 		g.setComposite(AlphaComposite.Src);
 		g.setColor(Color.RED);

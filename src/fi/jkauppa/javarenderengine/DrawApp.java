@@ -3,9 +3,6 @@ package fi.jkauppa.javarenderengine;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.TexturePaint;
 import java.awt.Transparency;
@@ -31,9 +28,6 @@ import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.PNGFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.WBMPFileFilter;
 
 public class DrawApp implements AppHandler {
-	private GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
-	private GraphicsDevice gd = ge.getDefaultScreenDevice ();
-	private GraphicsConfiguration gc = gd.getDefaultConfiguration ();
 	private VolatileImage renderbuffer = null;
 	private VolatileImage dragbuffer = null;
 	private TexturePaint bgpattern = null;
