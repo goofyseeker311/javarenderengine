@@ -80,10 +80,7 @@ Editor App Keys:
 -- none --        -- placeholder key binding
 
 Game App Keys:
-BACKSPACE         -- remove loaded model and reset camera location
-MOUSE-DRAG        -- change looking movement forward direction
-WASD-C-SPACE      -- camera location change forward/left/backward/right/down/up (minmax)
-F3                -- load model file dialog
+-- none --        -- placeholder key binding
 ```
 
 # Installing and Running
