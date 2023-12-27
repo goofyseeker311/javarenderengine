@@ -4,11 +4,13 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
+import java.awt.Rectangle;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.image.VolatileImage;
 import java.io.File;
 import java.util.Arrays;
 import java.util.TreeSet;
@@ -96,7 +98,15 @@ public class ModelApp implements AppHandler {
 					if (tricolor==null) {tricolor = Color.WHITE;}
 					float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
 					g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
-					g.fill(trianglepolygon);
+					VolatileImage tritexture = this.model.materials[transformedtrianglelist[i].mind].fileimage;
+					if (tritexture==null) {
+						g.fill(trianglepolygon);
+					} else { 
+						g.clip(trianglepolygon);
+						Rectangle polygonarea = trianglepolygon.getBounds();
+						g.drawImage(tritexture, polygonarea.x, polygonarea.y, polygonarea.x+polygonarea.width-1, polygonarea.y+polygonarea.height-1, 0, 0, tritexture.getWidth()-1, tritexture.getHeight()-1, null);
+						g.setClip(null);
+					}
 				}
 			}
 		}

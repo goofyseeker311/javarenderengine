@@ -100,7 +100,6 @@ public class GameApp implements AppHandler {
 					if (tricolor==null) {tricolor = Color.WHITE;}
 					float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
 					g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
-					g.fill(trianglepolygon);
 					g.clip(trianglepolygon);
 					Rectangle polygonarea = trianglepolygon.getBounds();
 					g.drawImage(this.defaulttexture, polygonarea.x, polygonarea.y, polygonarea.x+polygonarea.width-1, polygonarea.y+polygonarea.height-1, 0, 0, this.defaulttexture.getWidth()-1, this.defaulttexture.getHeight()-1, null);
