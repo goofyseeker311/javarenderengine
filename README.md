@@ -110,4 +110,4 @@ Model App:
 
 Game App:
 
-![gametexture](https://github.com/goofyseeker311/javarenderengine/assets/19920254/2a21e7bd-6ca0-43e9-89ea-eca80bf9eef0)
+![gametexture](https://github.com/goofyseeker311/javarenderengine/assets/19920254/7b764bef-de2a-4bfa-84e5-27ef50bd83a5)
