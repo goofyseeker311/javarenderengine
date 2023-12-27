@@ -23,6 +23,7 @@ import javax.imageio.ImageIO;
 import fi.jkauppa.javarenderengine.MathLib.Coordinate;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
 import fi.jkauppa.javarenderengine.MathLib.Position;
+import fi.jkauppa.javarenderengine.MathLib.Triangle;
 
 public class ModelLib {
 	private static GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
@@ -60,6 +61,7 @@ public class ModelLib {
 		public String usemtl;
 		public ModelFaceIndex[] faceindex;
 		public ModelLineIndex[] lineindex;
+		public Triangle triangles;
 		public ModelObject(String objectnamei) {this.objectname = objectnamei;}
 	}
 	public static class Model {

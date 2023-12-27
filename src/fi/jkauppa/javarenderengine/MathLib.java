@@ -1,7 +1,9 @@
 package fi.jkauppa.javarenderengine;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.TreeSet;
 
 public class MathLib {
@@ -367,8 +369,8 @@ public class MathLib {
 		return k;
 	}
 	
-	public static boolean[][] mutualSphereIntersection(Sphere[] vsphere) {
-		boolean[][] k = null;
+	public static Integer[][] mutualSphereIntersection(Sphere[] vsphere) {
+		Integer[][] k = new Integer[vsphere.length][0];
 		double[] xlist = new double[2*vsphere.length];
 		double[] ylist = new double[2*vsphere.length];
 		double[] zlist = new double[2*vsphere.length];
@@ -386,14 +388,51 @@ public class MathLib {
 		double[] xlistsval = indexValues(xlist,xlistsidx);
 		double[] ylistsval = indexValues(ylist,ylistsidx);
 		double[] zlistsval = indexValues(zlist,zlistsidx);
-		for (int i=0; i<vsphere.length; i++) {
-			int xlistidx1 = Arrays.binarySearch(xlist,xlist[i*2]);
-			int xlistidx2 = Arrays.binarySearch(xlist,xlist[i*2+1]);
-			int ylistidx1 = Arrays.binarySearch(ylist,ylist[i*2]);
-			int ylistidx2 = Arrays.binarySearch(ylist,ylist[i*2+1]);
-			int zlistidx1 = Arrays.binarySearch(zlist,zlist[i*2]);
-			int zlistidx2 = Arrays.binarySearch(zlist,zlist[i*2+1]);
-			//TODO limit sort intersection
+		for (int j=0;j<vsphere.length;j++) {
+			int xlistidx1 = Arrays.binarySearch(xlistsval,xlist[j*2]);
+			int xlistidx2 = Arrays.binarySearch(xlistsval,xlist[j*2+1]);
+			int ylistidx1 = Arrays.binarySearch(ylistsval,ylist[j*2]);
+			int ylistidx2 = Arrays.binarySearch(ylistsval,ylist[j*2+1]);
+			int zlistidx1 = Arrays.binarySearch(zlistsval,zlist[j*2]);
+			int zlistidx2 = Arrays.binarySearch(zlistsval,zlist[j*2+1]);
+			HashSet<Integer> mutualxindex = new HashSet<Integer>();
+			HashSet<Integer> mutualyindex = new HashSet<Integer>();
+			HashSet<Integer> mutualzindex = new HashSet<Integer>();
+			for (int i=xlistidx1;i<xlistidx2;i++) {
+				mutualxindex.add(Math.floorDiv(xlistsidx[i],2));
+			}
+			for (int i=ylistidx1;i<ylistidx2;i++) {
+				mutualyindex.add(Math.floorDiv(ylistsidx[i],2));
+			}
+			for (int i=zlistidx1;i<zlistidx2;i++) {
+				mutualzindex.add(Math.floorDiv(zlistsidx[i],2));
+			}
+			HashSet<Integer> mutualindex = new HashSet<Integer>(Arrays.asList(mutualxindex.toArray(new Integer[mutualxindex.size()])));
+			mutualindex.retainAll(mutualxindex);
+			mutualindex.retainAll(mutualyindex);
+			mutualindex.retainAll(mutualzindex);
+			mutualindex.remove(j);
+			Integer[] intersectionlist = mutualindex.toArray(new Integer[mutualindex.size()]);
+			Sphere[] intersectionspheres = new Sphere[intersectionlist.length];
+			for (int i=0;i<intersectionlist.length;i++) {
+				intersectionspheres[i] = vsphere[intersectionlist[i]];
+			}
+			Sphere[] vspherei = {vsphere[j]}; 
+			boolean[][] sphereintersection = sphereSphereIntersection(vspherei, intersectionspheres);
+			ArrayList<Integer> intersectinglist = new ArrayList<Integer>();
+			for (int i=0;i<intersectionlist.length;i++) {
+				if (sphereintersection[0][i]) {
+					intersectinglist.add(intersectionlist[i]);
+				}
+			}
+			k[j] = intersectinglist.toArray(new Integer[intersectinglist.size()]);
+		}
+		for (int j=0;j<k.length;j++) {
+			for (int i=0;i<k[j].length;i++) {
+				HashSet<Integer> newlist = new HashSet<Integer>(Arrays.asList(k[k[j][i]]));
+				newlist.add(j);
+				k[k[j][i]] = newlist.toArray(new Integer[newlist.size()]);
+			}
 		}
 		return k;
 	}
