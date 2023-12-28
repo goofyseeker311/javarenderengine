@@ -553,6 +553,7 @@ public class CADApp implements AppHandler {
 				}
 				this.linelistarray.addAll(uniquelinetree);
 				this.trianglelist = trianglelistarray.toArray(new Triangle[trianglelistarray.size()]);
+				updateTriangleList();
 			}
 		}
 	}
