@@ -156,7 +156,9 @@ public class CADApp implements AppHandler {
 				}
 			}
 		} else {
-			for (int i=0;i<this.tetrahedronlist.length;i++) {
+			if (this.tetrahedronlist!=null) {
+				for (int i=0;i<this.tetrahedronlist.length;i++) {
+				}
 			}
 			this.linelist = linelistarray.toArray(new Position2[linelistarray.size()]);
 			TreeSet<Position2> transformedlinetree = new TreeSet<Position2>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(this.linelist, renderpos), rendermat)));
