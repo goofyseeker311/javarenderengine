@@ -346,6 +346,9 @@ public class CADApp implements AppHandler {
 			this.drawdepth = 0;
 			this.cameralocationx = 0;
 			this.cameralocationy = 0;
+			this.camrot.x = 0;
+			this.camrot.y = 0;
+			this.camrot.z = 0;
 		} else if (e.getKeyCode()==KeyEvent.VK_INSERT) {
 			this.drawcolorhsb[0] += 0.01f;
 			if (this.drawcolorhsb[0]>1.0f) {this.drawcolorhsb[0] = 0.0f;}

@@ -112,6 +112,11 @@ public class ModelApp implements AppHandler {
 		}
 	}
 
+	private void updateMovementDirections() {
+		Matrix camrotmat = MathLib.rotationMatrix(this.camrot.x, this.camrot.y, this.camrot.z);
+		this.camdirs = MathLib.matrixMultiply(this.lookdirs, camrotmat);
+	}
+	
 	@Override public void actionPerformed(ActionEvent e) {
 		if (this.leftkeydown) {
 			this.campos.x -= 20.0f*this.camdirs[1].dx;
@@ -163,6 +168,7 @@ public class ModelApp implements AppHandler {
 			this.model = null;
 			this.campos = new Position(0,0,0);
 			this.camrot = new Rotation(0,0,0);
+			updateMovementDirections();
 		} else if (e.getKeyCode()==KeyEvent.VK_A) {
 			this.leftkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_D) {
@@ -211,10 +217,7 @@ public class ModelApp implements AppHandler {
     	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
     	this.camrot.y -= mousedeltax*0.1f;
     	this.camrot.x -= mousedeltay*0.1f;
-    	if (this.camrot.x<-180) {this.camrot.x=-180;} else if (this.camrot.x>0) {this.camrot.x=0;}
-    	if (this.camrot.y<0) {this.camrot.y+=360;} else if (this.camrot.y>360) {this.camrot.y-=360;}
-		Matrix camrotmat = MathLib.rotationMatrix(this.camrot.x, this.camrot.y, this.camrot.z);
-		this.camdirs = MathLib.matrixMultiply(this.lookdirs, camrotmat);
+    	updateMovementDirections();
 	}
 	
 	@Override public void mouseClicked(MouseEvent e) {}
