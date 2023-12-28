@@ -28,6 +28,7 @@ import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Position2;
 import fi.jkauppa.javarenderengine.MathLib.Rotation;
 import fi.jkauppa.javarenderengine.MathLib.Sphere;
+import fi.jkauppa.javarenderengine.MathLib.Tetrahedron;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
@@ -70,9 +71,10 @@ public class CADApp implements AppHandler {
 	private final int gridstep = 20;
 	private BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
 	private ArrayList<Position2> linelistarray = new ArrayList<Position2>();
-	private Triangle[] trianglelist = null;
 	private Position2[] linelist = null;
+	private Triangle[] trianglelist = null;
 	private Material[] materiallist = null;
+	private Tetrahedron[] tetrahedronlist = null;
 	private JFileChooser filechooser = new JFileChooser();
 	private OBJFileFilter objfilefilter = new OBJFileFilter();
 	private boolean leftkeydown = false;
@@ -154,6 +156,10 @@ public class CADApp implements AppHandler {
 				}
 			}
 		} else {
+			if (this.tetrahedronlist!=null) {
+				for (int i=0;i<this.tetrahedronlist.length;i++) {
+				}
+			}
 			this.linelist = linelistarray.toArray(new Position2[linelistarray.size()]);
 			TreeSet<Position2> transformedlinetree = new TreeSet<Position2>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(this.linelist, renderpos), rendermat)));
 			Position2[] transformedlinelist = transformedlinetree.toArray(new Position2[transformedlinetree.size()]);
@@ -284,6 +290,7 @@ public class CADApp implements AppHandler {
 		}
 		this.trianglelist = newtrianglelist;
 		this.materiallist = newmateriallist;
+		this.tetrahedronlist = MathLib.generateTetrahedronList(linelistarray.toArray(new Position2[linelistarray.size()]));
 	}
 	
 	@Override public void actionPerformed(ActionEvent e) {
@@ -426,7 +433,7 @@ public class CADApp implements AppHandler {
 				savemodel.facenormals[0] = new Direction(0, 0, 0);
 				savemodel.vertexlist = MathLib.generateVertexList(this.linelistarray.toArray(new Position2[this.linelistarray.size()]));
 				for (int i=0;i<savemodel.materials.length;i++) {
-					savemodel.objects[i] = new ModelObject("JREOBJ"+i);
+					savemodel.objects[i] = new ModelObject("JREOBJ"+(i+1));
 					savemodel.objects[i].usemtl = savemodel.materials[i].materialname;
 				}
 				if (this.trianglelist!=null) {

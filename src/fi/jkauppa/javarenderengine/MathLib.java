@@ -14,6 +14,68 @@ public class MathLib {
 	public static class Sphere {public double x,y,z,r; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}}
 	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}}
 	public static class Position2 implements Comparable<Position2> {public Position pos1,pos2; public Position2(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;} @Override public int compareTo(Position2 o){int k=-1;Position2 ts=this.sort();Position2 os=o.sort();if(ts.pos1.x>os.pos1.x){k=1;}else if(ts.pos1.x==os.pos1.x){if(ts.pos1.y>os.pos1.y){k=1;}else if(ts.pos1.y==os.pos1.y){if(ts.pos1.z>os.pos1.z){k=1;}else if(ts.pos1.z==os.pos1.z){if(ts.pos2.x>os.pos2.x){k=1;}else if(ts.pos2.x==os.pos2.x){if(ts.pos2.y>os.pos2.y){k=1;}else if(ts.pos2.y==os.pos2.y){if(ts.pos2.z>os.pos2.z){k=1;}else if(ts.pos2.z==os.pos2.z){k=0;}}}}}}return k;} public Position2 copy(){return new Position2(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z));} public Position2 swap(){return new Position2(this.pos2,this.pos1);} public Position2 sort(){Position2 k=this;boolean keeporder=true;if(this.pos1.x>this.pos2.x){keeporder=false;}else if(this.pos1.x==this.pos2.x){if(this.pos1.y>this.pos2.y){keeporder=false;}else if (this.pos1.y==this.pos2.y){if(this.pos1.z>this.pos2.z){keeporder=false;}}}if(!keeporder){k=this.swap();}return k;}}
+	public static class Tetrahedron implements Comparable<Tetrahedron> {public Position pos1,pos2,pos3,pos4; public Tetrahedron(Position pos1i,Position pos2i, Position pos3i,Position pos4i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;this.pos4=pos4i;}
+		@Override public int compareTo(Tetrahedron o) {
+			int k = -1;
+			Position[] tposarray = {this.pos1,this.pos2,this.pos3,this.pos4};
+			Position[] oposarray = {o.pos1,o.pos2,o.pos3,o.pos4};
+			Arrays.sort(tposarray);
+			Arrays.sort(oposarray);
+			if (tposarray[0].z>oposarray[0].z) {
+				k = 1;
+			} else if (tposarray[0].z==oposarray[0].z) {
+				if (tposarray[1].z>oposarray[1].z) {
+					k = 1;
+				} else if (tposarray[1].z==oposarray[1].z) {
+					if (tposarray[2].z>oposarray[2].z) {
+						k = 1;
+					} else if (tposarray[2].z==oposarray[2].z) {
+						if (tposarray[3].z>oposarray[3].z) {
+							k = 1;
+						} else if (tposarray[3].z==oposarray[3].z) {
+							if (tposarray[0].y>oposarray[0].y) {
+								k = 1;
+							} else if (tposarray[0].y==oposarray[0].y) {
+								if (tposarray[1].y>oposarray[1].y) {
+									k = 1;
+								} else if (tposarray[1].y==oposarray[1].y) {
+									if (tposarray[2].y>oposarray[2].y) {
+										k = 1;
+									} else if (tposarray[2].y==oposarray[2].y) {
+										if (tposarray[3].y>oposarray[3].y) {
+											k = 1;
+										} else if (tposarray[3].y==oposarray[3].y) {
+											if (tposarray[0].x>oposarray[0].x) {
+												k = 1;
+											} else if (tposarray[0].x==oposarray[0].x) {
+												if (tposarray[1].x>oposarray[1].x) {
+													k = 1;
+												} else if (tposarray[1].x==oposarray[1].x) {
+													if (tposarray[2].x>oposarray[2].x) {
+														k = 1;
+													} else if (tposarray[2].x==oposarray[2].x) {
+														if (tposarray[3].x>oposarray[3].x) {
+															k = 1;
+														} else if (tposarray[3].x==oposarray[3].x) {
+															k = 0;
+														}}}}}}}}}}}}
+			return k;
+		}
+		@Override public boolean equals(Object o) {
+			boolean k = false;
+			if (o.getClass().equals(this.getClass())) {
+				Tetrahedron co = (Tetrahedron)o;
+				Position[] tposarray = {this.pos1,this.pos2,this.pos3,this.pos4};
+				Position[] oposarray = {co.pos1,co.pos2,co.pos3,this.pos4};
+				Arrays.sort(tposarray);
+				Arrays.sort(oposarray);
+				if ((tposarray[0].compareTo(oposarray[0])==0)&&(tposarray[1].compareTo(oposarray[1])==0)&&(tposarray[2].compareTo(oposarray[2])==0)&&(tposarray[3].compareTo(oposarray[3])==0)) {
+					k = true;
+				}
+			}
+			return k;
+		}
+	}
 	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public int mind=-1; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;} public Triangle copy(){Triangle k=new Triangle(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z),new Position(this.pos3.x,this.pos3.y,this.pos3.z));k.mind=this.mind;return k;}
 		@Override public int compareTo(Triangle o) {
 			int k = -1;
@@ -49,17 +111,7 @@ public class MathLib {
 												k = 1;
 											} else if (tposarray[2].x==oposarray[2].x) {
 												k = 0;
-											}
-										}
-									}
-									
-								}
-							}
-						}
-						
-					}
-				}
-			}
+											}}}}}}}}}
 			return k;
 		}
 		@Override public boolean equals(Object o) {
@@ -228,6 +280,20 @@ public class MathLib {
 			for (int n=0;n<vpoint1.length;n++) {
 				if ((vpoint1[n]!=null)&&(vpoint2[n]!=null)) {
 					k[n] = new Direction(vpoint2[n].x-vpoint1[n].x, vpoint2[n].y-vpoint1[n].y, vpoint2[n].z-vpoint1[n].z);
+				}
+			}
+		}
+		return k;
+	}
+	public static Direction[] vectorFromPoints(Position vpoint1, Sphere[] vsphere) {
+		Direction[] k = null;
+		if ((vpoint1!=null)&&(vsphere!=null)) {
+			k = new Direction[vsphere.length];
+			if (vpoint1!=null) {
+				for (int n=0;n<vsphere.length;n++) {
+					if (vsphere[n]!=null) {
+						k[n] = new Direction(vsphere[n].x-vpoint1.x, vsphere[n].y-vpoint1.y, vsphere[n].z-vpoint1.z);
+					}
 				}
 			}
 		}
@@ -682,6 +748,32 @@ public class MathLib {
 		TreeSet<Position2> uniquelinetree = new TreeSet<Position2>(Arrays.asList(linelist));
 		uniquelinetree.removeAll(uniquetrianglelinelist);
 		return uniquelinetree.toArray(new Position2[uniquelinetree.size()]);
+	}
+
+	public static Tetrahedron[] generateTetrahedronList(Position2[] linelist) {
+		TreeSet<Tetrahedron> uniquetetrahedronlist = new TreeSet<Tetrahedron>();
+		Triangle[] uniquetrianglelist = generateTriangleList(linelist);
+		for (int k=0;k<uniquetrianglelist.length;k++) {
+			Triangle trianglek = uniquetrianglelist[k]; 
+			for (int j=k+1;j<uniquetrianglelist.length;j++) {
+				Triangle trianglej = uniquetrianglelist[j]; 
+				for (int i=j+1;i<uniquetrianglelist.length;i++) {
+					Triangle trianglei = uniquetrianglelist[i];
+					Position[] trianglevertex = {trianglek.pos1,trianglek.pos2,trianglek.pos3,trianglej.pos1,trianglej.pos2,trianglej.pos3,trianglei.pos1,trianglei.pos2,trianglei.pos3};
+					Position[] uniquetrianglevertex = generateVertexList(trianglevertex);
+					if (uniquetrianglevertex.length==4) {
+						Triangle triangle1 = new Triangle(uniquetrianglevertex[0],uniquetrianglevertex[1],uniquetrianglevertex[2]);
+						Triangle triangle2 = new Triangle(uniquetrianglevertex[1],uniquetrianglevertex[2],uniquetrianglevertex[3]);
+						Triangle[] triangles12 = {triangle1,triangle2};
+						Plane[] triangle1plane = planeFromPoints(triangles12);
+						if ((!((triangle1plane[0].a==triangle1plane[1].a)&&(triangle1plane[0].b==triangle1plane[1].b)&&(triangle1plane[0].c==triangle1plane[1].c)))&&(!((triangle1plane[0].a==-triangle1plane[1].a)&&(triangle1plane[0].b==-triangle1plane[1].b)&&(triangle1plane[0].c==-triangle1plane[1].c)))) {
+							uniquetetrahedronlist.add(new Tetrahedron(uniquetrianglevertex[0],uniquetrianglevertex[1],uniquetrianglevertex[2],uniquetrianglevertex[3]));
+						}
+					}
+				}
+			}
+		}
+		return uniquetetrahedronlist.toArray(new Tetrahedron[uniquetetrahedronlist.size()]);
 	}
 	
 	public static double[] projectedStep(int vres, int vfov) {
