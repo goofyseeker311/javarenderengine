@@ -13,7 +13,7 @@ public class MathLib {
 	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}}
 	public static class Sphere {public double x,y,z,r; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}}
 	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}}
-	public static class Position2 implements Comparable<Position2> {public Position pos1,pos2; public Position2(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;} @Override public int compareTo(Position2 o){int k=-1;Position2 ts=this.sort();Position2 os=o.sort();if(ts.pos1.x>os.pos1.x){k=1;}else if(ts.pos1.x==os.pos1.x){if(ts.pos1.y>os.pos1.y){k=1;}else if(ts.pos1.y==os.pos1.y){if(ts.pos1.z>os.pos1.z){k=1;}else if(ts.pos1.z==os.pos1.z){if(ts.pos2.x>os.pos2.x){k=1;}else if(ts.pos2.x==os.pos2.x){if(ts.pos2.y>os.pos2.y){k=1;}else if(ts.pos2.y==os.pos2.y){if(ts.pos2.z>os.pos2.z){k=1;}else if(ts.pos2.z==os.pos2.z){k=0;}}}}}}return k;} public Position2 copy(){return new Position2(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z));} public Position2 swap(){return new Position2(this.pos2,this.pos1);} public Position2 sort(){Position2 k=this;boolean keeporder=true;if(this.pos1.x>this.pos2.x){keeporder=false;}else if(this.pos1.x==this.pos2.x){if(this.pos1.y>this.pos2.y){keeporder=false;}else if (this.pos1.y==this.pos2.y){if(this.pos1.z>this.pos2.z){keeporder=false;}}}if(!keeporder){k=this.swap();}return k;}}
+	public static class Position2 implements Comparable<Position2> {public Position pos1,pos2; int hitind=-1; public Position2(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;} @Override public int compareTo(Position2 o){int k=-1;Position2 ts=this.sort();Position2 os=o.sort();if(ts.pos1.x>os.pos1.x){k=1;}else if(ts.pos1.x==os.pos1.x){if(ts.pos1.y>os.pos1.y){k=1;}else if(ts.pos1.y==os.pos1.y){if(ts.pos1.z>os.pos1.z){k=1;}else if(ts.pos1.z==os.pos1.z){if(ts.pos2.x>os.pos2.x){k=1;}else if(ts.pos2.x==os.pos2.x){if(ts.pos2.y>os.pos2.y){k=1;}else if(ts.pos2.y==os.pos2.y){if(ts.pos2.z>os.pos2.z){k=1;}else if(ts.pos2.z==os.pos2.z){k=0;}}}}}}return k;} public Position2 copy(){return new Position2(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z));} public Position2 swap(){return new Position2(this.pos2,this.pos1);} public Position2 sort(){Position2 k=this;boolean keeporder=true;if(this.pos1.x>this.pos2.x){keeporder=false;}else if(this.pos1.x==this.pos2.x){if(this.pos1.y>this.pos2.y){keeporder=false;}else if (this.pos1.y==this.pos2.y){if(this.pos1.z>this.pos2.z){keeporder=false;}}}if(!keeporder){k=this.swap();}return k;}}
 	public static class Tetrahedron implements Comparable<Tetrahedron> {public Position pos1,pos2,pos3,pos4; public Tetrahedron(Position pos1i,Position pos2i, Position pos3i,Position pos4i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;this.pos4=pos4i;}
 		@Override public int compareTo(Tetrahedron o) {
 			int k = -1;
@@ -377,23 +377,26 @@ public class MathLib {
 				Direction[] vtri12 = vectorFromPoints(p1, p2);
 				Direction[] vtri13 = vectorFromPoints(p1, p3);
 				Direction[] vtri23 = vectorFromPoints(p2, p3);
-				double[][] ptd1 = rayPlaneDistance(vtri[m].pos1, vtri12, vplane);
-				double[][] ptd2 = rayPlaneDistance(vtri[m].pos1, vtri13, vplane);
-				double[][] ptd3 = rayPlaneDistance(vtri[m].pos2, vtri23, vplane);
+				double[][] ptd12 = rayPlaneDistance(vtri[m].pos1, vtri12, vplane);
+				double[][] ptd13 = rayPlaneDistance(vtri[m].pos1, vtri13, vplane);
+				double[][] ptd23 = rayPlaneDistance(vtri[m].pos2, vtri23, vplane);
 				for (int n=0;n<vplane.length;n++) {
-					Position[] ptlint1 = new Position[1]; ptlint1[0] = new Position(vtri[m].pos1.x+ptd1[0][n]*vtri12[0].dx,vtri[m].pos1.y+ptd1[0][n]*vtri12[0].dy,vtri[m].pos1.z+ptd1[0][n]*vtri12[0].dz);
-					Position[] ptlint2 = new Position[1]; ptlint2[0] = new Position(vtri[m].pos1.x+ptd2[0][n]*vtri13[0].dx,vtri[m].pos1.y+ptd2[0][n]*vtri13[0].dy,vtri[m].pos1.z+ptd2[0][n]*vtri13[0].dz);
-					Position[] ptlint3 = new Position[1]; ptlint3[0] = new Position(vtri[m].pos2.x+ptd3[0][n]*vtri23[0].dx,vtri[m].pos2.y+ptd3[0][n]*vtri23[0].dy,vtri[m].pos2.z+ptd3[0][n]*vtri23[0].dz);
-					boolean ptlhit1 = (ptd1[0][n]>=0)&(ptd1[0][n]<=1);
-					boolean ptlhit2 = (ptd2[0][n]>=0)&(ptd2[0][n]<=1);
-					boolean ptlhit3 = (ptd3[0][n]>=0)&(ptd3[0][n]<=1);
-					if (ptlhit1|ptlhit2|ptlhit3) {
-						if (ptlhit1&&ptlhit2) {
-							k[n][m] = new Position2(ptlint1[0],ptlint2[0]);
-						} else if (ptlhit1&&ptlhit3) {
-							k[n][m] = new Position2(ptlint1[0],ptlint3[0]);
-						} else if (ptlhit2&&ptlhit3) {
-							k[n][m] = new Position2(ptlint2[0],ptlint3[0]);
+					Position[] ptlint12 = new Position[1]; ptlint12[0] = new Position(vtri[m].pos1.x+ptd12[0][n]*vtri12[0].dx,vtri[m].pos1.y+ptd12[0][n]*vtri12[0].dy,vtri[m].pos1.z+ptd12[0][n]*vtri12[0].dz);
+					Position[] ptlint13 = new Position[1]; ptlint13[0] = new Position(vtri[m].pos1.x+ptd13[0][n]*vtri13[0].dx,vtri[m].pos1.y+ptd13[0][n]*vtri13[0].dy,vtri[m].pos1.z+ptd13[0][n]*vtri13[0].dz);
+					Position[] ptlint23 = new Position[1]; ptlint23[0] = new Position(vtri[m].pos2.x+ptd23[0][n]*vtri23[0].dx,vtri[m].pos2.y+ptd23[0][n]*vtri23[0].dy,vtri[m].pos2.z+ptd23[0][n]*vtri23[0].dz);
+					boolean ptlhit12 = (ptd12[0][n]>=0)&(ptd12[0][n]<=1);
+					boolean ptlhit13 = (ptd13[0][n]>=0)&(ptd13[0][n]<=1);
+					boolean ptlhit23 = (ptd23[0][n]>=0)&(ptd23[0][n]<=1);
+					if (ptlhit12|ptlhit13|ptlhit23) {
+						if (ptlhit12&&ptlhit13) {
+							k[n][m] = new Position2(ptlint12[0],ptlint13[0]);
+							k[n][m].hitind = 0;
+						} else if (ptlhit12&&ptlhit23) {
+							k[n][m] = new Position2(ptlint12[0],ptlint23[0]);
+							k[n][m].hitind = 1;
+						} else if (ptlhit13&&ptlhit23) {
+							k[n][m] = new Position2(ptlint13[0],ptlint23[0]);
+							k[n][m].hitind = 2;
 						}
 					}
 				}

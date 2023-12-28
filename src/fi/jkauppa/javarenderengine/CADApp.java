@@ -114,10 +114,21 @@ public class CADApp implements AppHandler {
 			if (this.trianglelist!=null) {
 				TreeSet<Triangle> transformedtriangletree = new TreeSet<Triangle>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(this.trianglelist, renderpos), rendermat)));
 				Triangle[] transformedtrianglelist = transformedtriangletree.toArray(new Triangle[transformedtriangletree.size()]);
+				Direction[] lookdirarray = {lookdir};
+				Plane[] lookdirplane = MathLib.planeFromNormalAtPoint(new Position(0,0,0), lookdirarray);
+				Position2[][] clipplaneint = MathLib.planeTriangleIntersection(lookdirplane, transformedtrianglelist);
 				Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
 				Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
 				double[] triangleviewangles = MathLib.vectorAngle(lookdir, trianglenormals);
 				for (int i=0;i<transformedtrianglelist.length;i++) {
+					double triangleviewangle = triangleviewangles[i];
+					if (triangleviewangle>90.0f) {triangleviewangle = 180-triangleviewangle;}
+					float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
+					Color tricolor = this.materiallist[transformedtrianglelist[i].mind].facecolor;
+					float alphacolor = this.materiallist[transformedtrianglelist[i].mind].transparency;
+					if (tricolor==null) {tricolor = Color.WHITE;}
+					float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
+					g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
 					if ((transformedtrianglelist[i].pos1.z<=0.0f)||(transformedtrianglelist[i].pos2.z<=0.0f)||(transformedtrianglelist[i].pos3.z<=0.0f)) {
 						double pos1s = (-transformedtrianglelist[i].pos1.z)*this.drawdepthscale+1;
 						int pos1x = (int)Math.round(transformedtrianglelist[i].pos1.x/pos1s)+this.origindeltax;
@@ -129,19 +140,40 @@ public class CADApp implements AppHandler {
 						int pos3x = (int)Math.round(transformedtrianglelist[i].pos3.x/pos3s)+this.origindeltax;
 						int pos3y = (int)Math.round(transformedtrianglelist[i].pos3.y/pos3s)+this.origindeltay;
 						Polygon trianglepolygon = new Polygon();
-						trianglepolygon.addPoint(pos1x, pos1y);
-						trianglepolygon.addPoint(pos2x, pos2y);
-						trianglepolygon.addPoint(pos3x, pos3y);
-						double triangleviewangle = triangleviewangles[i];
-						if (triangleviewangle>90.0f) {
-							triangleviewangle = 180-triangleviewangle;
+						if (clipplaneint[0][i]!=null) {
+							Position2 lineint = clipplaneint[0][i];
+							double posi1s = (-lineint.pos1.z)*this.drawdepthscale+1;
+							int posi1x = (int)Math.round(lineint.pos1.x/posi1s)+this.origindeltax;
+							int posi1y = (int)Math.round(lineint.pos1.y/posi1s)+this.origindeltay;
+							double posi2s = (-lineint.pos2.z)*this.drawdepthscale+1;
+							int posi2x = (int)Math.round(lineint.pos2.x/posi2s)+this.origindeltax;
+							int posi2y = (int)Math.round(lineint.pos2.y/posi2s)+this.origindeltay;
+							if (transformedtrianglelist[i].pos1.z<=0) {
+								trianglepolygon.addPoint(pos1x, pos1y);
+							}
+							if (lineint.hitind==0) {
+								trianglepolygon.addPoint(posi2x, posi2y);
+								trianglepolygon.addPoint(posi1x, posi1y);
+							}
+							if (transformedtrianglelist[i].pos2.z<=0) {
+								trianglepolygon.addPoint(pos2x, pos2y);
+							}
+							if (lineint.hitind==1) {
+								trianglepolygon.addPoint(posi1x, posi1y);
+								trianglepolygon.addPoint(posi2x, posi2y);
+							}
+							if (transformedtrianglelist[i].pos3.z<=0) {
+								trianglepolygon.addPoint(pos3x, pos3y);
+							}
+							if (lineint.hitind==2) {
+								trianglepolygon.addPoint(posi2x, posi2y);
+								trianglepolygon.addPoint(posi1x, posi1y);
+							}
+						} else {
+							trianglepolygon.addPoint(pos1x, pos1y);
+							trianglepolygon.addPoint(pos2x, pos2y);
+							trianglepolygon.addPoint(pos3x, pos3y);
 						}
-						float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
-						Color tricolor = this.materiallist[transformedtrianglelist[i].mind].facecolor;
-						float alphacolor = this.materiallist[transformedtrianglelist[i].mind].transparency;
-						if (tricolor==null) {tricolor = Color.WHITE;}
-						float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
-						g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
 						g.fill(trianglepolygon);
 						boolean mouseoverhit = g.hit(new Rectangle(this.mouselocationx,this.mouselocationy,1,1), trianglepolygon, false);
 						if (mouseoverhit) {
@@ -149,9 +181,7 @@ public class CADApp implements AppHandler {
 						}
 						g.setColor(Color.BLACK);
 						g.setStroke(new BasicStroke(this.flatlinestroke));
-						g.drawLine(pos1x, pos1y, pos2x, pos2y);
-						g.drawLine(pos1x, pos1y, pos3x, pos3y);
-						g.drawLine(pos2x, pos2y, pos3x, pos3y);
+						g.draw(trianglepolygon);
 					}
 				}
 			}
