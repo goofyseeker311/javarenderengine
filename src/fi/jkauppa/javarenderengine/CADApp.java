@@ -187,7 +187,33 @@ public class CADApp implements AppHandler {
 			}
 		} else {
 			if (this.tetrahedronlist!=null) {
-				for (int i=0;i<this.tetrahedronlist.length;i++) {
+				g.setColor(new Color(0.5f, 0.5f, 0.5f, 0.1f));
+				for (int j=0;j<this.tetrahedronlist.length;j++) {
+					Triangle[] tetrahedrontrianglelist = new Triangle[4];
+					tetrahedrontrianglelist[0] = new Triangle(this.tetrahedronlist[j].pos1,this.tetrahedronlist[j].pos2,this.tetrahedronlist[j].pos3); 
+					tetrahedrontrianglelist[1] = new Triangle(this.tetrahedronlist[j].pos1,this.tetrahedronlist[j].pos2,this.tetrahedronlist[j].pos4); 
+					tetrahedrontrianglelist[2] = new Triangle(this.tetrahedronlist[j].pos1,this.tetrahedronlist[j].pos3,this.tetrahedronlist[j].pos4); 
+					tetrahedrontrianglelist[3] = new Triangle(this.tetrahedronlist[j].pos2,this.tetrahedronlist[j].pos3,this.tetrahedronlist[j].pos4);
+					TreeSet<Triangle> transformedtriangletree = new TreeSet<Triangle>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(tetrahedrontrianglelist, renderpos), rendermat)));
+					Triangle[] transformedtetrahedrontrianglelist = transformedtriangletree.toArray(new Triangle[transformedtriangletree.size()]);
+					for (int i=0;i<transformedtetrahedrontrianglelist.length;i++) {
+						if ((transformedtetrahedrontrianglelist[i].pos1.z<=0.0f)||(transformedtetrahedrontrianglelist[i].pos2.z<=0.0f)||(transformedtetrahedrontrianglelist[i].pos3.z<=0.0f)) {
+							double pos1s = (-transformedtetrahedrontrianglelist[i].pos1.z)*this.drawdepthscale+1;
+							int pos1x = (int)Math.round(transformedtetrahedrontrianglelist[i].pos1.x/pos1s)+this.origindeltax;
+							int pos1y = (int)Math.round(transformedtetrahedrontrianglelist[i].pos1.y/pos1s)+this.origindeltay;
+							double pos2s = (-transformedtetrahedrontrianglelist[i].pos2.z)*this.drawdepthscale+1;
+							int pos2x = (int)Math.round(transformedtetrahedrontrianglelist[i].pos2.x/pos2s)+this.origindeltax;
+							int pos2y = (int)Math.round(transformedtetrahedrontrianglelist[i].pos2.y/pos2s)+this.origindeltay;
+							double pos3s = (-transformedtetrahedrontrianglelist[i].pos3.z)*this.drawdepthscale+1;
+							int pos3x = (int)Math.round(transformedtetrahedrontrianglelist[i].pos3.x/pos3s)+this.origindeltax;
+							int pos3y = (int)Math.round(transformedtetrahedrontrianglelist[i].pos3.y/pos3s)+this.origindeltay;
+							Polygon trianglepolygon = new Polygon();
+							trianglepolygon.addPoint(pos1x, pos1y);
+							trianglepolygon.addPoint(pos2x, pos2y);
+							trianglepolygon.addPoint(pos3x, pos3y);
+							g.fill(trianglepolygon);
+						}
+					}
 				}
 			}
 			this.linelist = linelistarray.toArray(new Position2[linelistarray.size()]);
