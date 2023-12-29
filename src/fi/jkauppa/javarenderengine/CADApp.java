@@ -58,7 +58,6 @@ public class CADApp implements AppHandler {
 	private Rotation camrot = new Rotation(0,0,0);
 	private final double drawdepthscale = 0.00035f;
 	private int origindeltax = 0, origindeltay = 0;
-	private MaterialComparator materialcomparator = new MaterialComparator(); 
 	private final int originlinewidth = 100;
 	private final int originlineheight = 100;
 	private final int originlinedepth = 100;
@@ -84,6 +83,7 @@ public class CADApp implements AppHandler {
 	private boolean forwardkeydown = false;
 	private boolean backwardkeydown = false;
 	private boolean updatetrianglelist = true;
+	private MaterialComparator materialcomparator = new MaterialComparator();
 	
 	public CADApp() {
 		Graphics2D pgfx = this.bgpatternimage.createGraphics();
@@ -99,6 +99,8 @@ public class CADApp implements AppHandler {
 	}
 	@Override
 	public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
+		Triangle[] copytrianglelist = null; if (this.trianglelist!=null) {copytrianglelist = Arrays.copyOf(this.trianglelist, this.trianglelist.length);}
+		Material[] copymateriallist = null; if (this.materiallist!=null) {copymateriallist = Arrays.copyOf(this.materiallist, this.materiallist.length);}
 		Position renderpos = new Position(-this.cameralocationx,-this.cameralocationy,-this.drawdepth);
 		Matrix rendermat = MathLib.rotationMatrix(-this.camrot.x, -this.camrot.y, -this.camrot.z);
 		this.origindeltax = (int)Math.floor(((double)renderwidth)/2.0f);
@@ -112,8 +114,8 @@ public class CADApp implements AppHandler {
 		g.setColor(null);
 		int mouseoverhittriangle = -1;
 		if (this.polygonfillmode==2) {
-			if (this.trianglelist!=null) {
-				TreeSet<Triangle> transformedtriangletree = new TreeSet<Triangle>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(this.trianglelist, renderpos), rendermat)));
+			if (copytrianglelist!=null) {
+				TreeSet<Triangle> transformedtriangletree = new TreeSet<Triangle>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(copytrianglelist, renderpos), rendermat)));
 				Triangle[] transformedtrianglelist = transformedtriangletree.toArray(new Triangle[transformedtriangletree.size()]);
 				Direction[] lookdirarray = {lookdir};
 				Plane[] lookdirplane = MathLib.planeFromNormalAtPoint(new Position(0,0,0), lookdirarray);
@@ -125,8 +127,8 @@ public class CADApp implements AppHandler {
 					double triangleviewangle = triangleviewangles[i];
 					if (triangleviewangle>90.0f) {triangleviewangle = 180-triangleviewangle;}
 					float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
-					Color tricolor = this.materiallist[transformedtrianglelist[i].mind].facecolor;
-					float alphacolor = this.materiallist[transformedtrianglelist[i].mind].transparency;
+					Color tricolor = copymateriallist[transformedtrianglelist[i].mind].facecolor;
+					float alphacolor = copymateriallist[transformedtrianglelist[i].mind].transparency;
 					if (tricolor==null) {tricolor = Color.WHITE;}
 					float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
 					g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
@@ -277,78 +279,6 @@ public class CADApp implements AppHandler {
     		}
 		}
 		return k;
-	}
-	private void updateTriangleList() {
-		Material newmaterial = new Material("JREMAT1");
-		newmaterial.facecolor = this.drawcolor;
-		float[] alphacolor = this.drawcolor.getRGBComponents(new float[4]);
-		newmaterial.transparency = alphacolor[3]; 
-		if (this.materiallist!=null) {
-			int materialnum = 1;
-			while (Arrays.binarySearch(this.materiallist, newmaterial)>=0) {
-				materialnum += 1;
-				newmaterial.materialname = "JREMAT"+materialnum;
-			}
-		}
-		Triangle[] newtrianglelist = MathLib.generateTriangleList(linelistarray.toArray(new Position2[linelistarray.size()]));
-		TreeSet<Material> uniquematerialtree = new TreeSet<Material>(this.materialcomparator);
-		if (this.trianglelist!=null) {
-			TreeSet<Triangle> sortedtriangletree = new TreeSet<Triangle>(Arrays.asList(this.trianglelist));
-			Triangle[] sortedtrianglelist = sortedtriangletree.toArray(new Triangle[sortedtriangletree.size()]);
-			for (int i=0;i<newtrianglelist.length;i++) {
-				int searchindex = Arrays.binarySearch(sortedtrianglelist, newtrianglelist[i]);
-				if (searchindex>=0) {
-					if (sortedtrianglelist[searchindex].mind>=0) {
-						Material foundmat = this.materiallist[sortedtrianglelist[searchindex].mind];
-						uniquematerialtree.add(foundmat);
-					} else {
-						uniquematerialtree.add(newmaterial);
-					}
-				} else {
-					uniquematerialtree.add(newmaterial);
-				}
-			}
-		}
-		Material[] newmateriallist = uniquematerialtree.toArray(new Material[uniquematerialtree.size()]);
-		for (int i=0;i<newmateriallist.length;i++) {
-			newmateriallist[i].materialname = "JREMAT"+(i+1);
-		}
-		if (this.trianglelist!=null) {
-			TreeSet<Triangle> sortedtriangletree = new TreeSet<Triangle>(Arrays.asList(this.trianglelist));
-			Triangle[] sortedtrianglelist = sortedtriangletree.toArray(new Triangle[sortedtriangletree.size()]);
-			for (int i=0;i<newtrianglelist.length;i++) {
-				int searchindex = Arrays.binarySearch(sortedtrianglelist, newtrianglelist[i]);
-				if (searchindex>=0) {
-					if (sortedtrianglelist[searchindex].mind>=0) {
-						Material foundmat = this.materiallist[sortedtrianglelist[searchindex].mind];
-						int searchmatindex = Arrays.binarySearch(newmateriallist, foundmat, this.materialcomparator);
-						if (searchmatindex>=0) {
-							newtrianglelist[i].mind = searchmatindex;
-						} else {
-							newtrianglelist[i].mind = -1;
-						}
-					} else {
-						int searchmatindex = Arrays.binarySearch(newmateriallist, newmaterial, this.materialcomparator);
-						if (searchmatindex>=0) {
-							newtrianglelist[i].mind = searchmatindex;
-						} else {
-							newtrianglelist[i].mind = -1;
-						}
-					}
-				} else {
-					int searchmatindex = Arrays.binarySearch(newmateriallist, newmaterial, this.materialcomparator);
-					if (searchmatindex>=0) {
-						newtrianglelist[i].mind = searchmatindex;
-					} else {
-						newtrianglelist[i].mind = -1;
-					}
-				}
-			}
-		}
-		this.trianglelist = newtrianglelist;
-		this.materiallist = newmateriallist;
-		this.tetrahedronlist = MathLib.generateTetrahedronList(linelistarray.toArray(new Position2[linelistarray.size()]));
-		this.updatetrianglelist = false; 
 	}
 	
 	@Override public void actionPerformed(ActionEvent e) {
@@ -582,7 +512,7 @@ public class CADApp implements AppHandler {
 				}
 				this.linelistarray.addAll(uniquelinetree);
 				this.trianglelist = trianglelistarray.toArray(new Triangle[trianglelistarray.size()]);
-				updateTriangleList();
+				(new TriangleListUpdater()).start(); 
 			}
 		}
 	}
@@ -661,7 +591,7 @@ public class CADApp implements AppHandler {
 		}
 		if (this.updatetrianglelist) {
 			this.updatetrianglelist = false;
-			updateTriangleList();
+			(new TriangleListUpdater()).start(); 
 		}
 	}
 	
@@ -765,5 +695,85 @@ public class CADApp implements AppHandler {
 	@Override public void mouseEntered(MouseEvent e) {}
 	@Override public void mouseExited(MouseEvent e) {}
 	@Override public void drop(DropTargetDropEvent dtde) {}
+
+	private synchronized void updateTriangleList() {
+		Triangle[] copytrianglelist = null; if (this.trianglelist!=null) {copytrianglelist = Arrays.copyOf(this.trianglelist, this.trianglelist.length);}
+		Material[] copymateriallist = null; if (this.materiallist!=null) {copymateriallist = Arrays.copyOf(this.materiallist, this.materiallist.length);}
+		Material newmaterial = new Material("JREMAT1");
+		newmaterial.facecolor = this.drawcolor;
+		float[] alphacolor = this.drawcolor.getRGBComponents(new float[4]);
+		newmaterial.transparency = alphacolor[3]; 
+		if (copymateriallist!=null) {
+			int materialnum = 1;
+			while (Arrays.binarySearch(copymateriallist, newmaterial)>=0) {
+				materialnum += 1;
+				newmaterial.materialname = "JREMAT"+materialnum;
+			}
+		}
+		Triangle[] newtrianglelist = MathLib.generateTriangleList(linelistarray.toArray(new Position2[linelistarray.size()]));
+		TreeSet<Material> uniquematerialtree = new TreeSet<Material>(this.materialcomparator);
+		if (copytrianglelist!=null) {
+			TreeSet<Triangle> sortedtriangletree = new TreeSet<Triangle>(Arrays.asList(copytrianglelist));
+			Triangle[] sortedtrianglelist = sortedtriangletree.toArray(new Triangle[sortedtriangletree.size()]);
+			for (int i=0;i<newtrianglelist.length;i++) {
+				int searchindex = Arrays.binarySearch(sortedtrianglelist, newtrianglelist[i]);
+				if (searchindex>=0) {
+					if (sortedtrianglelist[searchindex].mind>=0) {
+						Material foundmat = copymateriallist[sortedtrianglelist[searchindex].mind];
+						uniquematerialtree.add(foundmat);
+					} else {
+						uniquematerialtree.add(newmaterial);
+					}
+				} else {
+					uniquematerialtree.add(newmaterial);
+				}
+			}
+		}
+		Material[] newmateriallist = uniquematerialtree.toArray(new Material[uniquematerialtree.size()]);
+		for (int i=0;i<newmateriallist.length;i++) {
+			newmateriallist[i].materialname = "JREMAT"+(i+1);
+		}
+		if (copytrianglelist!=null) {
+			TreeSet<Triangle> sortedtriangletree = new TreeSet<Triangle>(Arrays.asList(copytrianglelist));
+			Triangle[] sortedtrianglelist = sortedtriangletree.toArray(new Triangle[sortedtriangletree.size()]);
+			for (int i=0;i<newtrianglelist.length;i++) {
+				int searchindex = Arrays.binarySearch(sortedtrianglelist, newtrianglelist[i]);
+				if (searchindex>=0) {
+					if (sortedtrianglelist[searchindex].mind>=0) {
+						Material foundmat = copymateriallist[sortedtrianglelist[searchindex].mind];
+						int searchmatindex = Arrays.binarySearch(newmateriallist, foundmat, this.materialcomparator);
+						if (searchmatindex>=0) {
+							newtrianglelist[i].mind = searchmatindex;
+						} else {
+							newtrianglelist[i].mind = -1;
+						}
+					} else {
+						int searchmatindex = Arrays.binarySearch(newmateriallist, newmaterial, this.materialcomparator);
+						if (searchmatindex>=0) {
+							newtrianglelist[i].mind = searchmatindex;
+						} else {
+							newtrianglelist[i].mind = -1;
+						}
+					}
+				} else {
+					int searchmatindex = Arrays.binarySearch(newmateriallist, newmaterial, this.materialcomparator);
+					if (searchmatindex>=0) {
+						newtrianglelist[i].mind = searchmatindex;
+					} else {
+						newtrianglelist[i].mind = -1;
+					}
+				}
+			}
+		}
+		this.tetrahedronlist = MathLib.generateTetrahedronList(linelistarray.toArray(new Position2[linelistarray.size()]));
+		this.trianglelist = newtrianglelist;
+		this.materiallist = newmateriallist;
+	}
+	
+	private class TriangleListUpdater extends Thread {
+		public void run() {
+			updateTriangleList();
+		}
+	}
 	
 }
