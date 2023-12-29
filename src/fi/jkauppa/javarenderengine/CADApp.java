@@ -149,21 +149,21 @@ public class CADApp implements AppHandler {
 							double posi2s = (-lineint.pos2.z)*this.drawdepthscale+1;
 							int posi2x = (int)Math.round(lineint.pos2.x/posi2s)+this.origindeltax;
 							int posi2y = (int)Math.round(lineint.pos2.y/posi2s)+this.origindeltay;
-							if (transformedtrianglelist[i].pos1.z<=0) {
+							if (transformedtrianglelist[i].pos1.z<0) {
 								trianglepolygon.addPoint(pos1x, pos1y);
 							}
 							if (lineint.hitind==0) {
 								trianglepolygon.addPoint(posi2x, posi2y);
 								trianglepolygon.addPoint(posi1x, posi1y);
 							}
-							if (transformedtrianglelist[i].pos2.z<=0) {
+							if (transformedtrianglelist[i].pos2.z<0) {
 								trianglepolygon.addPoint(pos2x, pos2y);
 							}
 							if (lineint.hitind==1) {
 								trianglepolygon.addPoint(posi1x, posi1y);
 								trianglepolygon.addPoint(posi2x, posi2y);
 							}
-							if (transformedtrianglelist[i].pos3.z<=0) {
+							if (transformedtrianglelist[i].pos3.z<0) {
 								trianglepolygon.addPoint(pos3x, pos3y);
 							}
 							if (lineint.hitind==2) {
@@ -401,6 +401,7 @@ public class CADApp implements AppHandler {
 			this.materiallist = null;
 			this.linelist = null;
 			this.linelistarray.clear();
+			this.tetrahedronlist = null;
 			this.drawdepth = 0;
 			this.cameralocationx = 0;
 			this.cameralocationy = 0;
