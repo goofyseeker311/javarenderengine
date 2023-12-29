@@ -83,6 +83,7 @@ public class CADApp implements AppHandler {
 	private boolean downwardkeydown = false;
 	private boolean forwardkeydown = false;
 	private boolean backwardkeydown = false;
+	private boolean updatetrianglelist = true;
 	
 	public CADApp() {
 		Graphics2D pgfx = this.bgpatternimage.createGraphics();
@@ -347,6 +348,7 @@ public class CADApp implements AppHandler {
 		this.trianglelist = newtrianglelist;
 		this.materiallist = newmateriallist;
 		this.tetrahedronlist = MathLib.generateTetrahedronList(linelistarray.toArray(new Position2[linelistarray.size()]));
+		this.updatetrianglelist = false; 
 	}
 	
 	@Override public void actionPerformed(ActionEvent e) {
@@ -631,7 +633,7 @@ public class CADApp implements AppHandler {
 			this.linelistarray.add(new Position2(new Position(drawstartlocationx, drawstartlocationy, this.drawstartdepth), new Position(drawlocationx, drawlocationy, this.drawdepth)));
 			this.draglinemode = true;
 			this.selecteddragvertex = (this.linelistarray.size()-1)*2+1;
-			updateTriangleList();
+			this.updatetrianglelist = true;
     	}
 	    int onmask3altdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    int offmask3altdown = MouseEvent.CTRL_DOWN_MASK;
@@ -641,7 +643,7 @@ public class CADApp implements AppHandler {
 			if (vertexatmouse!=-1) {
 				int linenum = Math.floorDiv(vertexatmouse,2);
 				this.linelistarray.remove(linenum);
-				updateTriangleList();
+				this.updatetrianglelist = true;
 			}
     	}
 		mouseDragged(e);
@@ -655,6 +657,10 @@ public class CADApp implements AppHandler {
 					this.draglinemode = false;
 				}
 			}
+		}
+		if (this.updatetrianglelist) {
+			this.updatetrianglelist = false;
+			updateTriangleList();
 		}
 	}
 	
@@ -689,7 +695,7 @@ public class CADApp implements AppHandler {
 					this.materiallist[0] = newmaterial;
 					this.trianglelist[this.mouseovertriangle].mind = 0;
 				}
-				updateTriangleList();
+				this.updatetrianglelist = true;
     		}
     	}
 	    int onmask1shiftdown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
@@ -742,7 +748,7 @@ public class CADApp implements AppHandler {
 					this.linelistarray.get(linenum).pos2.y = drawlocationy;
 					this.linelistarray.get(linenum).pos2.z = this.drawdepth;
     			}
-				updateTriangleList();
+				this.updatetrianglelist = true;
     		}
 		}
 	}
