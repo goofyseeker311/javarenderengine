@@ -759,18 +759,22 @@ public class MathLib {
 		for (int k=0;k<uniquetrianglelist.length;k++) {
 			Triangle trianglek = uniquetrianglelist[k]; 
 			for (int j=k+1;j<uniquetrianglelist.length;j++) {
-				Triangle trianglej = uniquetrianglelist[j]; 
-				for (int i=j+1;i<uniquetrianglelist.length;i++) {
-					Triangle trianglei = uniquetrianglelist[i];
-					Position[] trianglevertex = {trianglek.pos1,trianglek.pos2,trianglek.pos3,trianglej.pos1,trianglej.pos2,trianglej.pos3,trianglei.pos1,trianglei.pos2,trianglei.pos3};
-					Position[] uniquetrianglevertex = generateVertexList(trianglevertex);
-					if (uniquetrianglevertex.length==4) {
-						Triangle triangle1 = new Triangle(uniquetrianglevertex[0],uniquetrianglevertex[1],uniquetrianglevertex[2]);
-						Triangle triangle2 = new Triangle(uniquetrianglevertex[1],uniquetrianglevertex[2],uniquetrianglevertex[3]);
-						Triangle[] triangles12 = {triangle1,triangle2};
-						Plane[] triangle1plane = planeFromPoints(triangles12);
-						if ((!((triangle1plane[0].a==triangle1plane[1].a)&&(triangle1plane[0].b==triangle1plane[1].b)&&(triangle1plane[0].c==triangle1plane[1].c)))&&(!((triangle1plane[0].a==-triangle1plane[1].a)&&(triangle1plane[0].b==-triangle1plane[1].b)&&(triangle1plane[0].c==-triangle1plane[1].c)))) {
-							uniquetetrahedronlist.add(new Tetrahedron(uniquetrianglevertex[0],uniquetrianglevertex[1],uniquetrianglevertex[2],uniquetrianglevertex[3]));
+				Triangle trianglej = uniquetrianglelist[j];
+				Position[] trianglevertexkj = {trianglek.pos1,trianglek.pos2,trianglek.pos3,trianglej.pos1,trianglej.pos2,trianglej.pos3};
+				Position[] uniquetrianglevertexkj = generateVertexList(trianglevertexkj);
+				if (uniquetrianglevertexkj.length==4) {
+					for (int i=j+1;i<uniquetrianglelist.length;i++) {
+						Triangle trianglei = uniquetrianglelist[i];
+						Position[] trianglevertexkji = {trianglek.pos1,trianglek.pos2,trianglek.pos3,trianglej.pos1,trianglej.pos2,trianglej.pos3,trianglei.pos1,trianglei.pos2,trianglei.pos3};
+						Position[] uniquetrianglevertexkji = generateVertexList(trianglevertexkji);
+						if (uniquetrianglevertexkji.length==4) {
+							Triangle triangle1 = new Triangle(uniquetrianglevertexkji[0],uniquetrianglevertexkji[1],uniquetrianglevertexkji[2]);
+							Triangle triangle2 = new Triangle(uniquetrianglevertexkji[1],uniquetrianglevertexkji[2],uniquetrianglevertexkji[3]);
+							Triangle[] triangles12 = {triangle1,triangle2};
+							Plane[] triangle1plane = planeFromPoints(triangles12);
+							if ((!((triangle1plane[0].a==triangle1plane[1].a)&&(triangle1plane[0].b==triangle1plane[1].b)&&(triangle1plane[0].c==triangle1plane[1].c)))&&(!((triangle1plane[0].a==-triangle1plane[1].a)&&(triangle1plane[0].b==-triangle1plane[1].b)&&(triangle1plane[0].c==-triangle1plane[1].c)))) {
+								uniquetetrahedronlist.add(new Tetrahedron(uniquetrianglevertexkji[0],uniquetrianglevertexkji[1],uniquetrianglevertexkji[2],uniquetrianglevertexkji[3]));
+							}
 						}
 					}
 				}
