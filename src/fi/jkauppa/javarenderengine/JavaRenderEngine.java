@@ -56,8 +56,11 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	private DropTargetHandler droptargethandler = new DropTargetHandler();
 	private final int fpstarget = 120;
 	private final int fpstargetdelay = (int)Math.floor(1000.0f/(2.0f*(double)fpstarget));
+	private VolatileImage logoimage = UtilLib.loadImage("res/icons/logo.png", true);
 	
 	public JavaRenderEngine() {
+		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
+		this.setTitle("Java Render Engine v1.4.13");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {

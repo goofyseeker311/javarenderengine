@@ -226,14 +226,19 @@ public class DrawApp implements AppHandler {
 				File savefile = this.filechooser.getSelectedFile();
 				FileFilter savefileformat = this.filechooser.getFileFilter();
 				if (savefileformat.equals(this.jpgfilefilter)) {
+					if (!savefile.getName().toLowerCase().endsWith(".obj")) {savefile = new File(savefile.getPath().concat(".obj"));}
 					try {ImageIO.write(this.renderbuffer.getSnapshot(), "JPG", savefile);} catch (Exception ex) {ex.printStackTrace();}
 				} else if (savefileformat.equals(this.giffilefilter)) {
+					if (!savefile.getName().toLowerCase().endsWith(".gif")) {savefile = new File(savefile.getPath().concat(".gif"));}
 					try {ImageIO.write(this.renderbuffer.getSnapshot(), "GIF", savefile);} catch (Exception ex) {ex.printStackTrace();}
 				} else if (savefileformat.equals(this.bmpfilefilter)) {
+					if (!savefile.getName().toLowerCase().endsWith(".bmp")) {savefile = new File(savefile.getPath().concat(".bmp"));}
 					try {ImageIO.write(this.renderbuffer.getSnapshot(), "BMP", savefile);} catch (Exception ex) {ex.printStackTrace();}
 				} else if (savefileformat.equals(this.wbmpfilefilter)) {
+					if (!savefile.getName().toLowerCase().endsWith(".wbmp")) {savefile = new File(savefile.getPath().concat(".wbmp"));}
 					try {ImageIO.write(this.renderbuffer.getSnapshot(), "WBMP", savefile);} catch (Exception ex) {ex.printStackTrace();}
 				} else {
+					if (!savefile.getName().toLowerCase().endsWith(".png")) {savefile = new File(savefile.getPath().concat(".png"));}
 					try {ImageIO.write(this.renderbuffer.getSnapshot(), "PNG", savefile);} catch (Exception ex) {ex.printStackTrace();}
 				}
 			}

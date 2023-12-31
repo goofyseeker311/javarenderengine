@@ -17,6 +17,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import javax.swing.JFileChooser;
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
@@ -32,7 +33,6 @@ import fi.jkauppa.javarenderengine.MathLib.Tetrahedron;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
-import fi.jkauppa.javarenderengine.ModelLib.MaterialComparator;
 import fi.jkauppa.javarenderengine.ModelLib.Model;
 import fi.jkauppa.javarenderengine.ModelLib.ModelFaceIndex;
 import fi.jkauppa.javarenderengine.ModelLib.ModelFaceVertexIndex;
@@ -49,7 +49,7 @@ public class CADApp implements AppHandler {
 	private float penciltransparency = 1.0f;
 	private int polygonfillmode = 1;
 	private int selecteddragvertex = 0;
-	private int mouseovertriangle = -1;
+	private Triangle mouseovertriangle = null;
 	private int mousestartlocationx = 0, mousestartlocationy = 0;  
 	private int mouselocationx = 0, mouselocationy = 0;
 	private int cameralocationx = 0, cameralocationy = 0;
@@ -70,9 +70,7 @@ public class CADApp implements AppHandler {
 	private final int gridstep = 20;
 	private BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
 	private ArrayList<Position2> linelistarray = new ArrayList<Position2>();
-	private Position2[] linelist = null;
-	private Triangle[] trianglelist = null;
-	private Material[] materiallist = null;
+	private TreeMap<Triangle,Material> trianglematerialmap = new TreeMap<Triangle,Material>();
 	private Tetrahedron[] tetrahedronlist = null;
 	private JFileChooser filechooser = new JFileChooser();
 	private OBJFileFilter objfilefilter = new OBJFileFilter();
@@ -83,7 +81,6 @@ public class CADApp implements AppHandler {
 	private boolean forwardkeydown = false;
 	private boolean backwardkeydown = false;
 	private boolean updatetrianglelist = true;
-	private MaterialComparator materialcomparator = new MaterialComparator();
 	
 	public CADApp() {
 		Graphics2D pgfx = this.bgpatternimage.createGraphics();
@@ -99,8 +96,7 @@ public class CADApp implements AppHandler {
 	}
 	@Override
 	public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
-		Triangle[] copytrianglelist = null; if (this.trianglelist!=null) {copytrianglelist = Arrays.copyOf(this.trianglelist, this.trianglelist.length);}
-		Material[] copymateriallist = null; if (this.materiallist!=null) {copymateriallist = Arrays.copyOf(this.materiallist, this.materiallist.length);}
+		TreeMap<Triangle,Material> trianglematerialmaphandle = this.trianglematerialmap;
 		Position renderpos = new Position(-this.cameralocationx,-this.cameralocationy,-this.drawdepth);
 		Matrix rendermat = MathLib.rotationMatrix(-this.camrot.x, -this.camrot.y, -this.camrot.z);
 		this.origindeltax = (int)Math.floor(((double)renderwidth)/2.0f);
@@ -112,80 +108,81 @@ public class CADApp implements AppHandler {
 		g.fillRect(0, 0, renderwidth*2, renderheight*2);
 		g.setPaint(null);
 		g.setColor(null);
-		int mouseoverhittriangle = -1;
+		Triangle mouseoverhittriangle = null;
 		if (this.polygonfillmode==2) {
-			if (copytrianglelist!=null) {
-				TreeSet<Triangle> transformedtriangletree = new TreeSet<Triangle>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(copytrianglelist, renderpos), rendermat)));
-				Triangle[] transformedtrianglelist = transformedtriangletree.toArray(new Triangle[transformedtriangletree.size()]);
-				Direction[] lookdirarray = {lookdir};
-				Plane[] lookdirplane = MathLib.planeFromNormalAtPoint(new Position(0,0,0), lookdirarray);
-				Position2[][] clipplaneint = MathLib.planeTriangleIntersection(lookdirplane, transformedtrianglelist);
-				Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
-				Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
-				double[] triangleviewangles = MathLib.vectorAngle(lookdir, trianglenormals);
-				for (int i=0;i<transformedtrianglelist.length;i++) {
-					double triangleviewangle = triangleviewangles[i];
-					if (triangleviewangle>90.0f) {triangleviewangle = 180-triangleviewangle;}
-					float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
-					Color tricolor = copymateriallist[transformedtrianglelist[i].mind].facecolor;
-					float alphacolor = copymateriallist[transformedtrianglelist[i].mind].transparency;
-					if (tricolor==null) {tricolor = Color.WHITE;}
-					float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
-					g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
-					if ((transformedtrianglelist[i].pos1.z<=0.0f)||(transformedtrianglelist[i].pos2.z<=0.0f)||(transformedtrianglelist[i].pos3.z<=0.0f)) {
-						double pos1s = (-transformedtrianglelist[i].pos1.z)*this.drawdepthscale+1;
-						int pos1x = (int)Math.round(transformedtrianglelist[i].pos1.x/pos1s)+this.origindeltax;
-						int pos1y = (int)Math.round(transformedtrianglelist[i].pos1.y/pos1s)+this.origindeltay;
-						double pos2s = (-transformedtrianglelist[i].pos2.z)*this.drawdepthscale+1;
-						int pos2x = (int)Math.round(transformedtrianglelist[i].pos2.x/pos2s)+this.origindeltax;
-						int pos2y = (int)Math.round(transformedtrianglelist[i].pos2.y/pos2s)+this.origindeltay;
-						double pos3s = (-transformedtrianglelist[i].pos3.z)*this.drawdepthscale+1;
-						int pos3x = (int)Math.round(transformedtrianglelist[i].pos3.x/pos3s)+this.origindeltax;
-						int pos3y = (int)Math.round(transformedtrianglelist[i].pos3.y/pos3s)+this.origindeltay;
-						Polygon trianglepolygon = new Polygon();
-						if (clipplaneint[0][i]!=null) {
-							Position2 lineint = clipplaneint[0][i];
-							double posi1s = (-lineint.pos1.z)*this.drawdepthscale+1;
-							int posi1x = (int)Math.round(lineint.pos1.x/posi1s)+this.origindeltax;
-							int posi1y = (int)Math.round(lineint.pos1.y/posi1s)+this.origindeltay;
-							double posi2s = (-lineint.pos2.z)*this.drawdepthscale+1;
-							int posi2x = (int)Math.round(lineint.pos2.x/posi2s)+this.origindeltax;
-							int posi2y = (int)Math.round(lineint.pos2.y/posi2s)+this.origindeltay;
-							if (transformedtrianglelist[i].pos1.z<0) {
-								trianglepolygon.addPoint(pos1x, pos1y);
-							}
-							if (lineint.hitind==0) {
-								trianglepolygon.addPoint(posi2x, posi2y);
-								trianglepolygon.addPoint(posi1x, posi1y);
-							}
-							if (transformedtrianglelist[i].pos2.z<0) {
-								trianglepolygon.addPoint(pos2x, pos2y);
-							}
-							if (lineint.hitind==1) {
-								trianglepolygon.addPoint(posi1x, posi1y);
-								trianglepolygon.addPoint(posi2x, posi2y);
-							}
-							if (transformedtrianglelist[i].pos3.z<0) {
-								trianglepolygon.addPoint(pos3x, pos3y);
-							}
-							if (lineint.hitind==2) {
-								trianglepolygon.addPoint(posi2x, posi2y);
-								trianglepolygon.addPoint(posi1x, posi1y);
-							}
-						} else {
+			Triangle[] copytrianglelist = trianglematerialmaphandle.keySet().toArray(new Triangle[trianglematerialmaphandle.size()]);
+			for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].sind = i;}
+			ArrayList<Triangle> transformedtrianglearray = new ArrayList<Triangle>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(copytrianglelist, renderpos), rendermat)));
+			Triangle[] transformedtrianglelist = transformedtrianglearray.toArray(new Triangle[transformedtrianglearray.size()]);
+			Direction[] lookdirarray = {lookdir};
+			Plane[] lookdirplane = MathLib.planeFromNormalAtPoint(new Position(0,0,0), lookdirarray);
+			Position2[][] clipplaneint = MathLib.planeTriangleIntersection(lookdirplane, transformedtrianglelist);
+			Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
+			Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
+			double[] triangleviewangles = MathLib.vectorAngle(lookdir, trianglenormals);
+			for (int i=0;i<transformedtrianglelist.length;i++) {
+				double triangleviewangle = triangleviewangles[i];
+				if (triangleviewangle>90.0f) {triangleviewangle = 180-triangleviewangle;}
+				float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
+				Material copymaterial = trianglematerialmaphandle.get(copytrianglelist[transformedtrianglelist[i].sind]);
+				Color tricolor = copymaterial.facecolor;
+				float alphacolor = copymaterial.transparency;
+				if (tricolor==null) {tricolor = Color.WHITE;}
+				float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
+				g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
+				if ((transformedtrianglelist[i].pos1.z<=0.0f)||(transformedtrianglelist[i].pos2.z<=0.0f)||(transformedtrianglelist[i].pos3.z<=0.0f)) {
+					double pos1s = (-transformedtrianglelist[i].pos1.z)*this.drawdepthscale+1;
+					int pos1x = (int)Math.round(transformedtrianglelist[i].pos1.x/pos1s)+this.origindeltax;
+					int pos1y = (int)Math.round(transformedtrianglelist[i].pos1.y/pos1s)+this.origindeltay;
+					double pos2s = (-transformedtrianglelist[i].pos2.z)*this.drawdepthscale+1;
+					int pos2x = (int)Math.round(transformedtrianglelist[i].pos2.x/pos2s)+this.origindeltax;
+					int pos2y = (int)Math.round(transformedtrianglelist[i].pos2.y/pos2s)+this.origindeltay;
+					double pos3s = (-transformedtrianglelist[i].pos3.z)*this.drawdepthscale+1;
+					int pos3x = (int)Math.round(transformedtrianglelist[i].pos3.x/pos3s)+this.origindeltax;
+					int pos3y = (int)Math.round(transformedtrianglelist[i].pos3.y/pos3s)+this.origindeltay;
+					Polygon trianglepolygon = new Polygon();
+					if (clipplaneint[0][i]!=null) {
+						Position2 lineint = clipplaneint[0][i];
+						double posi1s = (-lineint.pos1.z)*this.drawdepthscale+1;
+						int posi1x = (int)Math.round(lineint.pos1.x/posi1s)+this.origindeltax;
+						int posi1y = (int)Math.round(lineint.pos1.y/posi1s)+this.origindeltay;
+						double posi2s = (-lineint.pos2.z)*this.drawdepthscale+1;
+						int posi2x = (int)Math.round(lineint.pos2.x/posi2s)+this.origindeltax;
+						int posi2y = (int)Math.round(lineint.pos2.y/posi2s)+this.origindeltay;
+						if (transformedtrianglelist[i].pos1.z<0) {
 							trianglepolygon.addPoint(pos1x, pos1y);
+						}
+						if (lineint.hitind==0) {
+							trianglepolygon.addPoint(posi2x, posi2y);
+							trianglepolygon.addPoint(posi1x, posi1y);
+						}
+						if (transformedtrianglelist[i].pos2.z<0) {
 							trianglepolygon.addPoint(pos2x, pos2y);
+						}
+						if (lineint.hitind==1) {
+							trianglepolygon.addPoint(posi1x, posi1y);
+							trianglepolygon.addPoint(posi2x, posi2y);
+						}
+						if (transformedtrianglelist[i].pos3.z<0) {
 							trianglepolygon.addPoint(pos3x, pos3y);
 						}
-						g.fill(trianglepolygon);
-						boolean mouseoverhit = g.hit(new Rectangle(this.mouselocationx,this.mouselocationy,1,1), trianglepolygon, false);
-						if (mouseoverhit) {
-							mouseoverhittriangle = i;
+						if (lineint.hitind==2) {
+							trianglepolygon.addPoint(posi2x, posi2y);
+							trianglepolygon.addPoint(posi1x, posi1y);
 						}
-						g.setColor(Color.BLACK);
-						g.setStroke(new BasicStroke(this.flatlinestroke));
-						g.draw(trianglepolygon);
+					} else {
+						trianglepolygon.addPoint(pos1x, pos1y);
+						trianglepolygon.addPoint(pos2x, pos2y);
+						trianglepolygon.addPoint(pos3x, pos3y);
 					}
+					g.fill(trianglepolygon);
+					boolean mouseoverhit = g.hit(new Rectangle(this.mouselocationx,this.mouselocationy,1,1), trianglepolygon, false);
+					if (mouseoverhit) {
+						mouseoverhittriangle = copytrianglelist[i];
+					}
+					g.setColor(Color.BLACK);
+					g.setStroke(new BasicStroke(this.flatlinestroke));
+					g.draw(trianglepolygon);
 				}
 			}
 		} else {
@@ -197,8 +194,7 @@ public class CADApp implements AppHandler {
 					tetrahedrontrianglelist[1] = new Triangle(this.tetrahedronlist[j].pos1,this.tetrahedronlist[j].pos2,this.tetrahedronlist[j].pos4); 
 					tetrahedrontrianglelist[2] = new Triangle(this.tetrahedronlist[j].pos1,this.tetrahedronlist[j].pos3,this.tetrahedronlist[j].pos4); 
 					tetrahedrontrianglelist[3] = new Triangle(this.tetrahedronlist[j].pos2,this.tetrahedronlist[j].pos3,this.tetrahedronlist[j].pos4);
-					TreeSet<Triangle> transformedtriangletree = new TreeSet<Triangle>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(tetrahedrontrianglelist, renderpos), rendermat)));
-					Triangle[] transformedtetrahedrontrianglelist = transformedtriangletree.toArray(new Triangle[transformedtriangletree.size()]);
+					Triangle[] transformedtetrahedrontrianglelist = MathLib.matrixMultiply(MathLib.translate(tetrahedrontrianglelist, renderpos), rendermat);
 					for (int i=0;i<transformedtetrahedrontrianglelist.length;i++) {
 						if ((transformedtetrahedrontrianglelist[i].pos1.z<=0.0f)||(transformedtetrahedrontrianglelist[i].pos2.z<=0.0f)||(transformedtetrahedrontrianglelist[i].pos3.z<=0.0f)) {
 							double pos1s = (-transformedtetrahedrontrianglelist[i].pos1.z)*this.drawdepthscale+1;
@@ -219,9 +215,8 @@ public class CADApp implements AppHandler {
 					}
 				}
 			}
-			this.linelist = linelistarray.toArray(new Position2[linelistarray.size()]);
-			TreeSet<Position2> transformedlinetree = new TreeSet<Position2>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(this.linelist, renderpos), rendermat)));
-			Position2[] transformedlinelist = transformedlinetree.toArray(new Position2[transformedlinetree.size()]);
+			Position2[] copylinelist = linelistarray.toArray(new Position2[linelistarray.size()]);
+			Position2[] transformedlinelist = MathLib.matrixMultiply(MathLib.translate(copylinelist, renderpos), rendermat);
 			for (int i=0;i<transformedlinelist.length;i++) {
 				if ((transformedlinelist[i].pos1.z<=0.0f)||(transformedlinelist[i].pos2.z<=0.0f)) {
 					double pos1s = (-transformedlinelist[i].pos1.z)*this.drawdepthscale+1;
@@ -327,10 +322,8 @@ public class CADApp implements AppHandler {
 	}
 	@Override public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
-			this.trianglelist = null;
-			this.materiallist = null;
-			this.linelist = null;
 			this.linelistarray.clear();
+			this.trianglematerialmap.clear();
 			this.tetrahedronlist = null;
 			this.drawdepth = 0;
 			this.cameralocationx = 0;
@@ -407,6 +400,7 @@ public class CADApp implements AppHandler {
 			this.filechooser.setDialogTitle("Save File");
 			this.filechooser.setApproveButtonText("Save");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
+				TreeMap<Triangle,Material> trianglematerialmaphandle = this.trianglematerialmap;
 				File savefile = this.filechooser.getSelectedFile();
 				Model savemodel = new Model(savefile.getPath());
 				String saveobjfile = savefile.getPath();
@@ -414,10 +408,12 @@ public class CADApp implements AppHandler {
 				if (savemtlfile.toLowerCase().endsWith(".obj")) {
 					savemtlfile = savemtlfile.substring(0, savemtlfile.length()-4).concat(".mtl");
 				} else {
+					saveobjfile = saveobjfile.concat(".obj");
 					savemtlfile = savemtlfile.concat(".mtl");
 				}
 				savemodel.mtllib = savemtlfile;
-				savemodel.materials = this.materiallist;
+				TreeSet<Material> materiallisttree = new TreeSet<Material>(trianglematerialmaphandle.values());
+				savemodel.materials = materiallisttree.toArray(new Material[materiallisttree.size()]);
 				savemodel.objects = new ModelObject[savemodel.materials.length];
 				savemodel.texturecoords = new Coordinate[1];
 				savemodel.texturecoords[0] = new Coordinate(0, 0);
@@ -425,20 +421,24 @@ public class CADApp implements AppHandler {
 				savemodel.facenormals[0] = new Direction(0, 0, 0);
 				savemodel.vertexlist = MathLib.generateVertexList(this.linelistarray.toArray(new Position2[this.linelistarray.size()]));
 				for (int i=0;i<savemodel.materials.length;i++) {
+					savemodel.materials[i].materialname = "JREMAT"+(i+1);
 					savemodel.objects[i] = new ModelObject("JREOBJ"+(i+1));
 					savemodel.objects[i].usemtl = savemodel.materials[i].materialname;
 				}
-				if (this.trianglelist!=null) {
-					for (int i=0;i<this.trianglelist.length;i++) {
-						ModelFaceVertexIndex[] trianglevertex = new ModelFaceVertexIndex[3];
-						trianglevertex[0] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, this.trianglelist[i].pos1)+1,1,1);
-						trianglevertex[1] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, this.trianglelist[i].pos2)+1,1,1);
-						trianglevertex[2] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, this.trianglelist[i].pos3)+1,1,1);
-						ArrayList<ModelFaceIndex> faceindexarray = (savemodel.objects[this.trianglelist[i].mind].faceindex!=null)?(new ArrayList<ModelFaceIndex>(Arrays.asList(savemodel.objects[this.trianglelist[i].mind].faceindex))):(new ArrayList<ModelFaceIndex>());
-						faceindexarray.add(new ModelFaceIndex(trianglevertex));
-						savemodel.objects[this.trianglelist[i].mind].faceindex = faceindexarray.toArray(new ModelFaceIndex[faceindexarray.size()]);
-					}
+				Triangle[] copytrianglelist = trianglematerialmaphandle.keySet().toArray(new Triangle[trianglematerialmaphandle.size()]);
+				for (int i=0;i<copytrianglelist.length;i++) {
+					ModelFaceVertexIndex[] trianglevertex = new ModelFaceVertexIndex[3];
+					trianglevertex[0] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos1)+1,1,1);
+					trianglevertex[1] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos2)+1,1,1);
+					trianglevertex[2] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos3)+1,1,1);
+					Material copymaterial = trianglematerialmaphandle.get(copytrianglelist[i]);
+					int searchmatindex = Arrays.binarySearch(savemodel.materials, copymaterial);
+					ModelFaceIndex[] objectfaceindex = savemodel.objects[searchmatindex].faceindex;
+					ArrayList<ModelFaceIndex> faceindexarray = (objectfaceindex!=null)?(new ArrayList<ModelFaceIndex>(Arrays.asList(objectfaceindex))):(new ArrayList<ModelFaceIndex>());
+					faceindexarray.add(new ModelFaceIndex(trianglevertex));
+					savemodel.objects[searchmatindex].faceindex = faceindexarray.toArray(new ModelFaceIndex[faceindexarray.size()]);
 				}
+				
 				Position2[] uniquelinelist = MathLib.generateNonTriangleLineList(this.linelistarray.toArray(new Position2[this.linelistarray.size()]));
 				if (uniquelinelist!=null) {
 					for (int i=0;i<uniquelinelist.length;i++) {
@@ -467,17 +467,21 @@ public class CADApp implements AppHandler {
 				TreeSet<Position2> uniquelinetree = new TreeSet<Position2>();
 				File loadfile = this.filechooser.getSelectedFile();
 				Model loadmodel = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
-				TreeSet<Material> materiallisttree = new TreeSet<Material>(Arrays.asList(loadmodel.materials));
-				this.materiallist = materiallisttree.toArray(new Material[materiallisttree.size()]);
-				for (int i=0;i<this.materiallist.length;i++) {
-					if (this.materiallist[i].facecolor==null) {
-						this.materiallist[i].facecolor = Color.WHITE;
+				ArrayList<Material> materiallisttree = new ArrayList<Material>(Arrays.asList(loadmodel.materials));
+				Material[] copymateriallist = materiallisttree.toArray(new Material[materiallisttree.size()]);
+				for (int i=0;i<copymateriallist.length;i++) {
+					if (copymateriallist[i].facecolor==null) {
+						copymateriallist[i].facecolor = Color.WHITE;
 					}
 				}
-				ArrayList<Triangle> trianglelistarray = new ArrayList<Triangle>();
+				this.trianglematerialmap.clear();
 				for (int k=0;k<loadmodel.objects.length;k++) {
-					Material searchmat = new Material(loadmodel.objects[k].usemtl);
-					int materialindex = Arrays.binarySearch(this.materiallist, searchmat);
+					Material foundmat = null;
+					for (int i=0;(i<copymateriallist.length)&&(foundmat==null);i++) {
+						if (loadmodel.objects[k].usemtl.equals(copymateriallist[i].materialname)) {
+							foundmat = copymateriallist[i];
+						}
+					}
 					for (int j=0;j<loadmodel.objects[k].faceindex.length;j++) {
 						Position[] loadvertex = new Position[loadmodel.objects[k].faceindex[j].facevertexindex.length];
 						for (int i=0;i<loadmodel.objects[k].faceindex[j].facevertexindex.length;i++) {
@@ -493,8 +497,7 @@ public class CADApp implements AppHandler {
 						}
 						if (loadmodel.objects[k].faceindex[j].facevertexindex.length==3) {
 							Triangle newtriangle = new Triangle(loadvertex[0],loadvertex[1],loadvertex[2]);
-							newtriangle.mind = materialindex;
-							trianglelistarray.add(newtriangle);
+							this.trianglematerialmap.put(newtriangle, foundmat);
 						}
 					}
 					for (int j=0;j<loadmodel.objects[k].lineindex.length;j++) {
@@ -511,7 +514,6 @@ public class CADApp implements AppHandler {
 					}
 				}
 				this.linelistarray.addAll(uniquelinetree);
-				this.trianglelist = trianglelistarray.toArray(new Triangle[trianglelistarray.size()]);
 				(new TriangleListUpdater()).start(); 
 			}
 		}
@@ -601,41 +603,21 @@ public class CADApp implements AppHandler {
 	    int offmask1down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1down | offmask1down)) == onmask1down);
     	if (mouse1down) {
-    		if (this.mouseovertriangle!=-1) {
-				Material newmaterial = new Material("JREMAT1");
+    		if (this.mouseovertriangle!=null) {
+				Material newmaterial = new Material();
 				newmaterial.facecolor = this.drawcolor;
-				float[] alphacolor = this.drawcolor.getRGBComponents(new float[4]);
-				newmaterial.transparency = alphacolor[3]; 
-				if (this.materiallist!=null) {
-					int materialnum = 1;
-					while (Arrays.binarySearch(this.materiallist, newmaterial)>=0) {
-						materialnum += 1;
-						newmaterial.materialname = "JREMAT"+materialnum;
-					}
-					int searchmatindex = Arrays.binarySearch(this.materiallist, newmaterial, this.materialcomparator);
-					if (searchmatindex>=0) {
-						this.trianglelist[this.mouseovertriangle].mind = searchmatindex;
-					} else {
-		    			ArrayList<Material> materiallistarray = new ArrayList<Material>(Arrays.asList(this.materiallist));
-			    		materiallistarray.add(newmaterial);
-			    		this.materiallist = materiallistarray.toArray(new Material[materiallistarray.size()]);
-			    		this.trianglelist[this.mouseovertriangle].mind = materiallistarray.size()-1;
-					}
-				} else {
-					this.materiallist = new Material[1];
-					this.materiallist[0] = newmaterial;
-					this.trianglelist[this.mouseovertriangle].mind = 0;
-				}
-				this.updatetrianglelist = true;
+				newmaterial.transparency = this.penciltransparency;
+				this.trianglematerialmap.put(this.mouseovertriangle, newmaterial);
     		}
     	}
 	    int onmask1shiftdown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    int offmask1shiftdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse1shiftdown = ((e.getModifiersEx() & (onmask1shiftdown | offmask1shiftdown)) == onmask1shiftdown);
 	    if (mouse1shiftdown) {
-    		if (this.mouseovertriangle!=-1) {
-    			this.penciltransparency = this.materiallist[this.trianglelist[this.mouseovertriangle].mind].transparency;
-    			int colorvalue = this.materiallist[this.trianglelist[this.mouseovertriangle].mind].facecolor.getRGB();
+    		if (this.mouseovertriangle!=null) {
+    			Material mouseovermaterial = this.trianglematerialmap.get(this.mouseovertriangle);
+    			this.penciltransparency = mouseovermaterial.transparency;
+    			int colorvalue = mouseovermaterial.facecolor.getRGB();
 				Color pickeddrawcolor = new Color(colorvalue);
 				this.drawcolorhsb = Color.RGBtoHSB(pickeddrawcolor.getRed(), pickeddrawcolor.getGreen(), pickeddrawcolor.getBlue(), new float[3]);
 				float[] colorvalues = pickeddrawcolor.getRGBColorComponents(new float[3]);
@@ -697,77 +679,21 @@ public class CADApp implements AppHandler {
 	@Override public void drop(DropTargetDropEvent dtde) {}
 
 	private synchronized void updateTriangleList() {
-		Triangle[] copytrianglelist = null; if (this.trianglelist!=null) {copytrianglelist = Arrays.copyOf(this.trianglelist, this.trianglelist.length);}
-		Material[] copymateriallist = null; if (this.materiallist!=null) {copymateriallist = Arrays.copyOf(this.materiallist, this.materiallist.length);}
-		Material newmaterial = new Material("JREMAT1");
-		newmaterial.facecolor = this.drawcolor;
-		float[] alphacolor = this.drawcolor.getRGBComponents(new float[4]);
-		newmaterial.transparency = alphacolor[3]; 
-		if (copymateriallist!=null) {
-			int materialnum = 1;
-			while (Arrays.binarySearch(copymateriallist, newmaterial)>=0) {
-				materialnum += 1;
-				newmaterial.materialname = "JREMAT"+materialnum;
+		TreeMap<Triangle,Material> newtrianglematerialmap = new TreeMap<Triangle,Material>();
+		Position2[] copylinelist = linelistarray.toArray(new Position2[linelistarray.size()]);
+		Triangle[] newtrianglelist = MathLib.generateTriangleList(copylinelist);
+		Tetrahedron[] newtetrahedronlist = MathLib.generateTetrahedronList(copylinelist);
+		for (int i=0;i<newtrianglelist.length;i++) {
+			Material foundmat = this.trianglematerialmap.get(newtrianglelist[i]);
+			if (foundmat==null) {
+				foundmat = new Material();
+				foundmat.facecolor = this.drawcolor;
+				foundmat.transparency = this.penciltransparency;
 			}
+			newtrianglematerialmap.put(newtrianglelist[i], foundmat);
 		}
-		Triangle[] newtrianglelist = MathLib.generateTriangleList(linelistarray.toArray(new Position2[linelistarray.size()]));
-		TreeSet<Material> uniquematerialtree = new TreeSet<Material>(this.materialcomparator);
-		if (copytrianglelist!=null) {
-			TreeSet<Triangle> sortedtriangletree = new TreeSet<Triangle>(Arrays.asList(copytrianglelist));
-			Triangle[] sortedtrianglelist = sortedtriangletree.toArray(new Triangle[sortedtriangletree.size()]);
-			for (int i=0;i<newtrianglelist.length;i++) {
-				int searchindex = Arrays.binarySearch(sortedtrianglelist, newtrianglelist[i]);
-				if (searchindex>=0) {
-					if (sortedtrianglelist[searchindex].mind>=0) {
-						Material foundmat = copymateriallist[sortedtrianglelist[searchindex].mind];
-						uniquematerialtree.add(foundmat);
-					} else {
-						uniquematerialtree.add(newmaterial);
-					}
-				} else {
-					uniquematerialtree.add(newmaterial);
-				}
-			}
-		}
-		Material[] newmateriallist = uniquematerialtree.toArray(new Material[uniquematerialtree.size()]);
-		for (int i=0;i<newmateriallist.length;i++) {
-			newmateriallist[i].materialname = "JREMAT"+(i+1);
-		}
-		if (copytrianglelist!=null) {
-			TreeSet<Triangle> sortedtriangletree = new TreeSet<Triangle>(Arrays.asList(copytrianglelist));
-			Triangle[] sortedtrianglelist = sortedtriangletree.toArray(new Triangle[sortedtriangletree.size()]);
-			for (int i=0;i<newtrianglelist.length;i++) {
-				int searchindex = Arrays.binarySearch(sortedtrianglelist, newtrianglelist[i]);
-				if (searchindex>=0) {
-					if (sortedtrianglelist[searchindex].mind>=0) {
-						Material foundmat = copymateriallist[sortedtrianglelist[searchindex].mind];
-						int searchmatindex = Arrays.binarySearch(newmateriallist, foundmat, this.materialcomparator);
-						if (searchmatindex>=0) {
-							newtrianglelist[i].mind = searchmatindex;
-						} else {
-							newtrianglelist[i].mind = -1;
-						}
-					} else {
-						int searchmatindex = Arrays.binarySearch(newmateriallist, newmaterial, this.materialcomparator);
-						if (searchmatindex>=0) {
-							newtrianglelist[i].mind = searchmatindex;
-						} else {
-							newtrianglelist[i].mind = -1;
-						}
-					}
-				} else {
-					int searchmatindex = Arrays.binarySearch(newmateriallist, newmaterial, this.materialcomparator);
-					if (searchmatindex>=0) {
-						newtrianglelist[i].mind = searchmatindex;
-					} else {
-						newtrianglelist[i].mind = -1;
-					}
-				}
-			}
-		}
-		this.tetrahedronlist = MathLib.generateTetrahedronList(linelistarray.toArray(new Position2[linelistarray.size()]));
-		this.trianglelist = newtrianglelist;
-		this.materiallist = newmateriallist;
+		this.trianglematerialmap = newtrianglematerialmap;
+		this.tetrahedronlist = newtetrahedronlist;
 	}
 	
 	private class TriangleListUpdater extends Thread {

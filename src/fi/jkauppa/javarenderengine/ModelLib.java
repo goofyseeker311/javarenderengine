@@ -16,7 +16,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Comparator;
 
 import javax.imageio.ImageIO;
 
@@ -30,16 +29,14 @@ public class ModelLib {
 	private static GraphicsDevice gd = ge.getDefaultScreenDevice ();
 	private static GraphicsConfiguration gc = gd.getDefaultConfiguration ();
 	
-	public static class MaterialComparator implements Comparator<Material> {@Override public int compare(Material o1, Material o2){int k=-1;if(o1.facecolor.getRed()>o2.facecolor.getRed()){k=1;}else if(o1.facecolor.getRed()==o2.facecolor.getRed()){if(o1.facecolor.getGreen()>o2.facecolor.getGreen()){k=1;}else if(o1.facecolor.getGreen()==o2.facecolor.getGreen()){if(o1.facecolor.getBlue()>o2.facecolor.getBlue()){k=1;}else if(o1.facecolor.getBlue()==o2.facecolor.getBlue()){if(o1.facecolor.getAlpha()>o2.facecolor.getAlpha()){k=1;}else if (o1.facecolor.getAlpha()==o2.facecolor.getAlpha()){k=0;}}}}return k;}}
-	
 	public static class Material implements Comparable<Material> {
 		public String materialname;
 		public VolatileImage fileimage;
 		public String filename;
-		public Color facecolor;
+		public Color facecolor = null;
 		public float transparency = 1.0f;
-		public Material(String materialnamei) {this.materialname=materialnamei;}
-		@Override public int compareTo(Material o) {return this.materialname.compareTo(o.materialname);}
+		public Material() {}
+		@Override public int compareTo(Material o){int k=-1;if(this.facecolor.getRed()>o.facecolor.getRed()){k=1;}else if(this.facecolor.getRed()==o.facecolor.getRed()){if(this.facecolor.getGreen()>o.facecolor.getGreen()){k=1;}else if(this.facecolor.getGreen()==o.facecolor.getGreen()){if(this.facecolor.getBlue()>o.facecolor.getBlue()){k=1;}else if(this.facecolor.getBlue()==o.facecolor.getBlue()){if(this.facecolor.getAlpha()>o.facecolor.getAlpha()){k=1;}else if (this.facecolor.getAlpha()==o.facecolor.getAlpha()){k=0;}}}}return k;}
 		@Override public boolean equals(Object o) {boolean k=false;if (o.getClass().equals(this.getClass())){Material co=(Material)o;if(this.compareTo(co)==0){k=true;}}return k;}
 	}
 	public static class ModelFaceVertexIndex {
@@ -275,7 +272,8 @@ public class ModelLib {
 					    if (fline.toLowerCase().startsWith("#")) {
 					    }else if (fline.toLowerCase().startsWith("newmtl ")) {
 					    	String farg = fline.substring(7).trim();
-					    	modelmaterials.add(new Material(farg));
+					    	modelmaterials.add(new Material());
+					    	modelmaterials.get(modelmaterials.size()-1).materialname = farg;
 					    }else if (fline.toLowerCase().startsWith("map_kd ")) {
 					    	String farg = fline.substring(7).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
