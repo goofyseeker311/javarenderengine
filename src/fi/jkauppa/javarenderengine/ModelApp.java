@@ -13,7 +13,9 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.image.VolatileImage;
 import java.io.File;
 import java.util.Arrays;
+import java.util.TreeMap;
 import java.util.TreeSet;
+
 import javax.swing.JFileChooser;
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
@@ -28,7 +30,7 @@ import fi.jkauppa.javarenderengine.ModelLib.Model;
 
 public class ModelApp implements AppHandler {
 	private Model model = null;
-	private Triangle[] trianglelist = null;
+	private TreeMap<Triangle,Material> trianglematerialmap = new TreeMap<Triangle,Material>();
 	private Position campos = new Position(0,0,0);
 	private Rotation camrot = new Rotation(0,0,0);
 	private final Direction lookdir = new Direction(0,0,-1);
@@ -65,48 +67,49 @@ public class ModelApp implements AppHandler {
 		g.setColor(Color.BLACK);
 		g.setPaint(null);
 		g.fillRect(0, 0, renderwidth, renderheight);
-		if ((this.model!=null)&&(this.trianglelist!=null)&&(this.model.materials!=null)) {
-			Position renderpos = new Position(-campos.x,-campos.y,-campos.z);
-			Matrix rendermat = MathLib.rotationMatrix(-this.camrot.x, -this.camrot.y, -this.camrot.z);
-			TreeSet<Triangle> transformedtriangletree = new TreeSet<Triangle>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(this.trianglelist, renderpos), rendermat)));
-			Triangle[] transformedtrianglelist = transformedtriangletree.toArray(new Triangle[transformedtriangletree.size()]);
-			Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
-			Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
-			double[] triangleviewangles = MathLib.vectorAngle(this.lookdir, trianglenormals);
-			for (int i=0;i<transformedtrianglelist.length;i++) {
-				double pos1s = (-transformedtrianglelist[i].pos1.z)*this.drawdepthscale+1;
-				double pos2s = (-transformedtrianglelist[i].pos2.z)*this.drawdepthscale+1;
-				double pos3s = (-transformedtrianglelist[i].pos3.z)*this.drawdepthscale+1;
-				if ((pos1s>0)&&(pos2s>0)&&(pos3s>0)) {
-					int pos1x = (int)Math.round(transformedtrianglelist[i].pos1.x/pos1s)+this.origindeltax;
-					int pos1y = (int)Math.round(transformedtrianglelist[i].pos1.y/pos1s)+this.origindeltay;
-					int pos2x = (int)Math.round(transformedtrianglelist[i].pos2.x/pos2s)+this.origindeltax;
-					int pos2y = (int)Math.round(transformedtrianglelist[i].pos2.y/pos2s)+this.origindeltay;
-					int pos3x = (int)Math.round(transformedtrianglelist[i].pos3.x/pos3s)+this.origindeltax;
-					int pos3y = (int)Math.round(transformedtrianglelist[i].pos3.y/pos3s)+this.origindeltay;
-					Polygon trianglepolygon = new Polygon();
-					trianglepolygon.addPoint(pos1x, pos1y);
-					trianglepolygon.addPoint(pos2x, pos2y);
-					trianglepolygon.addPoint(pos3x, pos3y);
-					double triangleviewangle = triangleviewangles[i];
-					if (triangleviewangle>90.0f) {
-						triangleviewangle = 180-triangleviewangle;
-					}
-					float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
-					Color tricolor = this.model.materials[transformedtrianglelist[i].mind].facecolor;
-					float alphacolor = this.model.materials[transformedtrianglelist[i].mind].transparency;
-					if (tricolor==null) {tricolor = Color.WHITE;}
-					float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
-					g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
-					VolatileImage tritexture = this.model.materials[transformedtrianglelist[i].mind].fileimage;
-					if (tritexture==null) {
-						g.fill(trianglepolygon);
-					} else { 
-						g.clip(trianglepolygon);
-						Rectangle polygonarea = trianglepolygon.getBounds();
-						g.drawImage(tritexture, polygonarea.x, polygonarea.y, polygonarea.x+polygonarea.width-1, polygonarea.y+polygonarea.height-1, 0, 0, tritexture.getWidth()-1, tritexture.getHeight()-1, null);
-						g.setClip(null);
-					}
+		Position renderpos = new Position(-campos.x,-campos.y,-campos.z);
+		Matrix rendermat = MathLib.rotationMatrix(-this.camrot.x, -this.camrot.y, -this.camrot.z);
+		Triangle[] copytrianglelist = this.trianglematerialmap.keySet().toArray(new Triangle[this.trianglematerialmap.size()]);
+		for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].sind = i;}
+		TreeSet<Triangle> transformedtrianglearray = new TreeSet<Triangle>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(copytrianglelist, renderpos), rendermat)));
+		Triangle[] transformedtrianglelist = transformedtrianglearray.toArray(new Triangle[transformedtrianglearray.size()]);
+		Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
+		Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
+		double[] triangleviewangles = MathLib.vectorAngle(this.lookdir, trianglenormals);
+		for (int i=0;i<transformedtrianglelist.length;i++) {
+			double pos1s = (-transformedtrianglelist[i].pos1.z)*this.drawdepthscale+1;
+			double pos2s = (-transformedtrianglelist[i].pos2.z)*this.drawdepthscale+1;
+			double pos3s = (-transformedtrianglelist[i].pos3.z)*this.drawdepthscale+1;
+			if ((pos1s>0)&&(pos2s>0)&&(pos3s>0)) {
+				int pos1x = (int)Math.round(transformedtrianglelist[i].pos1.x/pos1s)+this.origindeltax;
+				int pos1y = (int)Math.round(transformedtrianglelist[i].pos1.y/pos1s)+this.origindeltay;
+				int pos2x = (int)Math.round(transformedtrianglelist[i].pos2.x/pos2s)+this.origindeltax;
+				int pos2y = (int)Math.round(transformedtrianglelist[i].pos2.y/pos2s)+this.origindeltay;
+				int pos3x = (int)Math.round(transformedtrianglelist[i].pos3.x/pos3s)+this.origindeltax;
+				int pos3y = (int)Math.round(transformedtrianglelist[i].pos3.y/pos3s)+this.origindeltay;
+				Polygon trianglepolygon = new Polygon();
+				trianglepolygon.addPoint(pos1x, pos1y);
+				trianglepolygon.addPoint(pos2x, pos2y);
+				trianglepolygon.addPoint(pos3x, pos3y);
+				double triangleviewangle = triangleviewangles[i];
+				if (triangleviewangle>90.0f) {
+					triangleviewangle = 180-triangleviewangle;
+				}
+				float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
+				Material copymaterial = this.trianglematerialmap.get(copytrianglelist[transformedtrianglelist[i].sind]);
+				Color tricolor = copymaterial.facecolor;
+				float alphacolor = copymaterial.transparency;
+				if (tricolor==null) {tricolor = Color.WHITE;}
+				float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
+				g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
+				VolatileImage tritexture = copymaterial.fileimage;
+				if (tritexture==null) {
+					g.fill(trianglepolygon);
+				} else { 
+					g.clip(trianglepolygon);
+					Rectangle polygonarea = trianglepolygon.getBounds();
+					g.drawImage(tritexture, polygonarea.x, polygonarea.y, polygonarea.x+polygonarea.width-1, polygonarea.y+polygonarea.height-1, 0, 0, tritexture.getWidth()-1, tritexture.getHeight()-1, null);
+					g.setClip(null);
 				}
 			}
 		}
@@ -166,6 +169,7 @@ public class ModelApp implements AppHandler {
 	@Override public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
 			this.model = null;
+			this.trianglematerialmap.clear();
 			this.campos = new Position(0,0,0);
 			this.camrot = new Rotation(0,0,0);
 			updateMovementDirections();
@@ -187,22 +191,25 @@ public class ModelApp implements AppHandler {
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File loadfile = this.filechooser.getSelectedFile();
 				this.model = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
-				TreeSet<Triangle> trianglearray = new TreeSet<Triangle>(); 
-				TreeSet<Material> materiallisttree = new TreeSet<Material>(Arrays.asList(this.model.materials));
-				this.model.materials = materiallisttree.toArray(new Material[materiallisttree.size()]);
 				for (int j=0;j<model.objects.length;j++) {
-					Material searchmat = new Material(model.objects[j].usemtl);
-					int matind = Arrays.binarySearch(this.model.materials, searchmat);
+					Material foundmat = null;
+					for (int i=0;(i<this.model.materials.length)&&(foundmat==null);i++) {
+						if (this.model.objects[j].usemtl.equals(this.model.materials[i].materialname)) {
+							foundmat = this.model.materials[i];
+						}
+					}
+					if (foundmat==null) {
+						foundmat = new Material();
+						foundmat.facecolor = Color.WHITE;
+					}
 					for (int i=0;i<model.objects[j].faceindex.length;i++) {
 						Position pos1 = model.vertexlist[model.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
 						Position pos2 = model.vertexlist[model.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
 						Position pos3 = model.vertexlist[model.objects[j].faceindex[i].facevertexindex[2].vertexindex-1];
 						Triangle tri = new Triangle(new Position(pos1.x,pos1.y,pos1.z),new Position(pos2.x,pos2.y,pos2.z),new Position(pos3.x,pos3.y,pos3.z));
-						tri.mind = matind; 
-						trianglearray.add(tri);
+						this.trianglematerialmap.put(tri, foundmat);
 					}
 				}
-				this.trianglelist = trianglearray.toArray(new Triangle[trianglearray.size()]);
 			}
 		}
 	}
