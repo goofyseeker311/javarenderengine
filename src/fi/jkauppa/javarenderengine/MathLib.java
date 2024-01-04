@@ -346,6 +346,24 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static double[][] pointPlaneDistance(Position[] vpoint, Plane[] vplane) {
+		double[][] k = null;
+		if ((vpoint!=null)&&(vplane!=null)) {
+			Direction[] vplanedir = new Direction[vplane.length];
+			for (int n=0;n<vplanedir.length;n++) {
+				vplanedir[n] = new Direction(vplane[n].a, vplane[n].b, vplane[n].c);
+			}
+			double[] vplanelen = vectorLength(vplanedir);
+			k = new double[vpoint.length][vplane.length];
+			for (int n=0;n<vpoint.length;n++) {
+				double[] top = vectorDot(vplane, vpoint[n]);
+				for (int m=0;m<vplane.length;m++) {
+					k[n][m] = -top[m]/vplanelen[m];
+				}
+			}
+		}
+		return k;
+	}
 	public static double[][] rayPlaneDistance(Position vpos, Direction[] vdir, Plane[] vplane) {
 		double[][] k = null;
 		if ((vpos!=null)&&(vdir!=null)&&(vplane!=null)) {
