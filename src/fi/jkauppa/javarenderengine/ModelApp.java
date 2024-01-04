@@ -47,6 +47,8 @@ public class ModelApp implements AppHandler {
 	private boolean downwardkeydown = false;
 	private boolean forwardkeydown = false;
 	private boolean backwardkeydown = false;
+	private boolean rollrightkeydown = false;
+	private boolean rollleftkeydown = false;
 	private int mouselastlocationx = -1, mouselastlocationy = -1;  
 	private int mouselocationx = -1, mouselocationy = -1;
 	
@@ -70,11 +72,13 @@ public class ModelApp implements AppHandler {
 		Position renderpos = new Position(-campos.x,-campos.y,-campos.z);
 		Matrix rendermatz = MathLib.rotationMatrix(0.0f, 0.0f, -this.camrot.z);
 		Matrix rendermatx = MathLib.rotationMatrix(-this.camrot.x, 0.0f, 0.0f);
+		Matrix rendermaty = MathLib.rotationMatrix(0.0f, 0.0f, -this.camrot.y);
 		Triangle[] copytrianglelist = this.trianglematerialmap.keySet().toArray(new Triangle[this.trianglematerialmap.size()]);
 		for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].sind = i;}
 		Triangle[] transformedtriangles = MathLib.translate(copytrianglelist, renderpos);
 		transformedtriangles = MathLib.matrixMultiply(transformedtriangles, rendermatz);
 		transformedtriangles = MathLib.matrixMultiply(transformedtriangles, rendermatx);
+		transformedtriangles = MathLib.matrixMultiply(transformedtriangles, rendermaty);
 		TreeSet<Triangle> transformedtrianglearray = new TreeSet<Triangle>(Arrays.asList(transformedtriangles));
 		Triangle[] transformedtrianglelist = transformedtrianglearray.toArray(new Triangle[transformedtrianglearray.size()]);
 		Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
@@ -122,8 +126,8 @@ public class ModelApp implements AppHandler {
 	private void updateMovementDirections() {
 		Matrix camrotmatx = MathLib.rotationMatrix(this.camrot.x, 0.0f, 0.0f);
 		Matrix camrotmatz = MathLib.rotationMatrix(0.0f, 0.0f, this.camrot.z);
-		this.camdirs = MathLib.matrixMultiply(this.lookdirs, camrotmatx);
-		this.camdirs = MathLib.matrixMultiply(this.camdirs, camrotmatz);
+		Direction[] camlookdirs = MathLib.matrixMultiply(this.lookdirs, camrotmatx);
+		this.camdirs = MathLib.matrixMultiply(camlookdirs, camrotmatz);
 	}
 	
 	@Override public void actionPerformed(ActionEvent e) {
@@ -154,6 +158,13 @@ public class ModelApp implements AppHandler {
 			this.campos.y -= 20.0f*this.camdirs[0].dy;
 			this.campos.z -= 20.0f*this.camdirs[0].dz;
 		}
+		if (this.rollleftkeydown) {
+			this.camrot.y -= 1.0f;
+    		if (this.camrot.y<0.0f) {this.camrot.y+=360.0f;}
+		} else if (this.rollrightkeydown) {
+			this.camrot.y += 1.0f;
+	    	if (this.camrot.y>360.0f) {this.camrot.y-=360.0f;}
+		}
 	}
 
 	@Override public void keyReleased(KeyEvent e) {
@@ -169,6 +180,10 @@ public class ModelApp implements AppHandler {
 			this.forwardkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_S) {
 			this.backwardkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_Q) {
+			this.rollleftkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_E) {
+			this.rollrightkeydown = false;
 		}
 	}
 	
@@ -191,6 +206,10 @@ public class ModelApp implements AppHandler {
 			this.forwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_S) {
 			this.backwardkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_Q) {
+			this.rollleftkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_E) {
+			this.rollrightkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
 			this.filechooser.setDialogTitle("Load File");
 			this.filechooser.setApproveButtonText("Load");
