@@ -7,6 +7,36 @@ import java.util.HashSet;
 import java.util.TreeSet;
 
 public class MathLib {
+	public static class TriangleOverlapComparator implements Comparator<Triangle> {
+		private Position origin;
+		public TriangleOverlapComparator(Position origini) {this.origin=origini;}
+		@Override public int compare(Triangle o1, Triangle o2) {
+			Triangle[] tri1 = {o1}; 
+			Triangle[] tri2 = {o2}; 
+			Triangle pos1tria = new Triangle(this.origin, o1.pos1, o1.pos2);
+			Triangle pos1trib = new Triangle(this.origin, o1.pos1, o1.pos3);
+			Triangle pos1tric = new Triangle(this.origin, o1.pos2, o1.pos3);
+			Triangle pos2tria = new Triangle(this.origin, o2.pos1, o2.pos2);
+			Triangle pos2trib = new Triangle(this.origin, o2.pos1, o2.pos3);
+			Triangle pos2tric = new Triangle(this.origin, o2.pos2, o2.pos3);
+			Triangle[] pos1tri = {pos1tria, pos1trib, pos1tric}; 
+			Triangle[] pos2tri = {pos2tria, pos2trib, pos2tric}; 
+			Plane[] pos1planes = planeFromPoints(pos1tri);
+			Plane[] pos2planes = planeFromPoints(pos2tri);
+			Position2[][] pos1tri2int = planeTriangleIntersection(pos1planes, tri2);
+			Position2[][] pos2tri1int = planeTriangleIntersection(pos2planes, tri1);
+			return 0;
+		}
+	}
+
+	public static class LineOverlapComparator implements Comparator<Position2> {
+		private Position2 origin;
+		public LineOverlapComparator(Position2 origini) {this.origin=origini;}
+		@Override public int compare(Position2 o1, Position2 o2) {
+			return 0;
+		}
+	}
+	
 	public static class Position implements Comparable<Position> {public double x,y,z; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;} @Override public int compareTo(Position o){int k=-1;if(this.x==o.x){if(this.y==o.y){if(this.z==o.z){k=0;}else if(this.z>o.z){k=1;}}else if(this.y>o.y){k=1;}}else if(this.x>o.x){k=1;}return k;} public Position copy(){return new Position(this.x,this.y,this.z);}}
 	public static class Direction {public double dx,dy,dz; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;} public Direction copy(){return new Direction(this.dx,this.dy,this.dz);}}
 	public static class Coordinate {public double u,v; public Coordinate(double ui,double vi){this.u=ui;this.v=vi;}}

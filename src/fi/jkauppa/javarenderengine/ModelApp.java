@@ -68,10 +68,14 @@ public class ModelApp implements AppHandler {
 		g.setPaint(null);
 		g.fillRect(0, 0, renderwidth, renderheight);
 		Position renderpos = new Position(-campos.x,-campos.y,-campos.z);
-		Matrix rendermat = MathLib.rotationMatrix(-this.camrot.x, -this.camrot.y, -this.camrot.z);
+		Matrix rendermatz = MathLib.rotationMatrix(0.0f, 0.0f, -this.camrot.z);
+		Matrix rendermatx = MathLib.rotationMatrix(-this.camrot.x, 0.0f, 0.0f);
 		Triangle[] copytrianglelist = this.trianglematerialmap.keySet().toArray(new Triangle[this.trianglematerialmap.size()]);
 		for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].sind = i;}
-		TreeSet<Triangle> transformedtrianglearray = new TreeSet<Triangle>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(copytrianglelist, renderpos), rendermat)));
+		Triangle[] transformedtriangles = MathLib.translate(copytrianglelist, renderpos);
+		transformedtriangles = MathLib.matrixMultiply(transformedtriangles, rendermatz);
+		transformedtriangles = MathLib.matrixMultiply(transformedtriangles, rendermatx);
+		TreeSet<Triangle> transformedtrianglearray = new TreeSet<Triangle>(Arrays.asList(transformedtriangles));
 		Triangle[] transformedtrianglelist = transformedtrianglearray.toArray(new Triangle[transformedtrianglearray.size()]);
 		Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
 		Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
@@ -116,8 +120,10 @@ public class ModelApp implements AppHandler {
 	}
 
 	private void updateMovementDirections() {
-		Matrix camrotmat = MathLib.rotationMatrix(this.camrot.x, this.camrot.y, this.camrot.z);
-		this.camdirs = MathLib.matrixMultiply(this.lookdirs, camrotmat);
+		Matrix camrotmatx = MathLib.rotationMatrix(this.camrot.x, 0.0f, 0.0f);
+		Matrix camrotmatz = MathLib.rotationMatrix(0.0f, 0.0f, this.camrot.z);
+		this.camdirs = MathLib.matrixMultiply(this.lookdirs, camrotmatx);
+		this.camdirs = MathLib.matrixMultiply(this.camdirs, camrotmatz);
 	}
 	
 	@Override public void actionPerformed(ActionEvent e) {
@@ -222,8 +228,12 @@ public class ModelApp implements AppHandler {
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
     	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
     	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-    	this.camrot.y -= mousedeltax*0.1f;
-    	this.camrot.x -= mousedeltay*0.1f;
+    	this.camrot.z += mousedeltax*0.1f;
+    	this.camrot.x += mousedeltay*0.1f;
+    	if (this.camrot.z>360.0f) {this.camrot.z-=360.0f;}
+    	else if (this.camrot.z<0.0f) {this.camrot.z+=360.0f;}
+    	if (this.camrot.x>0.0f) {this.camrot.x=0.0f;}
+    	else if (this.camrot.x<-180.0f) {this.camrot.x=-180.0f;}
     	updateMovementDirections();
 	}
 	
