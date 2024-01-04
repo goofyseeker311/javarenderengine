@@ -32,7 +32,8 @@ public class ModelApp implements AppHandler {
 	private Model model = null;
 	private TreeMap<Triangle,Material> trianglematerialmap = new TreeMap<Triangle,Material>();
 	private Position campos = new Position(0,0,0);
-	private Rotation camrot = new Rotation(0,0,0);
+	private Rotation camrot = new Rotation(0.0f, 0.0f, 0.0f);
+	private Matrix rendermat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 	private final Direction lookdir = new Direction(0,0,-1);
 	private final Direction[] lookdirs = {new Direction(0,0,-1),new Direction(1,0,0),new Direction(0,-1,0)};
 	private Direction[] camdirs = lookdirs;
@@ -70,15 +71,10 @@ public class ModelApp implements AppHandler {
 		g.setPaint(null);
 		g.fillRect(0, 0, renderwidth, renderheight);
 		Position renderpos = new Position(-campos.x,-campos.y,-campos.z);
-		Matrix rendermatz = MathLib.rotationMatrix(0.0f, 0.0f, -this.camrot.z);
-		Matrix rendermatx = MathLib.rotationMatrix(-this.camrot.x, 0.0f, 0.0f);
-		Matrix rendermaty = MathLib.rotationMatrix(0.0f, 0.0f, -this.camrot.y);
 		Triangle[] copytrianglelist = this.trianglematerialmap.keySet().toArray(new Triangle[this.trianglematerialmap.size()]);
 		for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].sind = i;}
 		Triangle[] transformedtriangles = MathLib.translate(copytrianglelist, renderpos);
-		transformedtriangles = MathLib.matrixMultiply(transformedtriangles, rendermatz);
-		transformedtriangles = MathLib.matrixMultiply(transformedtriangles, rendermatx);
-		transformedtriangles = MathLib.matrixMultiply(transformedtriangles, rendermaty);
+		transformedtriangles = MathLib.matrixMultiply(transformedtriangles, rendermat);
 		TreeSet<Triangle> transformedtrianglearray = new TreeSet<Triangle>(Arrays.asList(transformedtriangles));
 		Triangle[] transformedtrianglelist = transformedtrianglearray.toArray(new Triangle[transformedtrianglearray.size()]);
 		Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
@@ -123,11 +119,23 @@ public class ModelApp implements AppHandler {
 		}
 	}
 
-	private void updateMovementDirections() {
-		Matrix camrotmatx = MathLib.rotationMatrix(this.camrot.x, 0.0f, 0.0f);
+	private void updateCameraDirections() {
 		Matrix camrotmatz = MathLib.rotationMatrix(0.0f, 0.0f, this.camrot.z);
-		Direction[] camlookdirs = MathLib.matrixMultiply(this.lookdirs, camrotmatx);
-		this.camdirs = MathLib.matrixMultiply(camlookdirs, camrotmatz);
+		Matrix camrotmaty = MathLib.rotationMatrix(0.0f, this.camrot.y, 0.0f);
+		Matrix camrotmatx = MathLib.rotationMatrix(this.camrot.x, 0.0f, 0.0f);
+		Matrix renderrotmatx = MathLib.rotationMatrix(-this.camrot.x, 0.0f, 0.0f);
+		Matrix renderrotmaty = MathLib.rotationMatrix(0.0f, -this.camrot.y, 0.0f);
+		Matrix renderrotmatz = MathLib.rotationMatrix(0.0f, 0.0f, -this.camrot.z);
+		Matrix eyeonemat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
+		Matrix camrotmat = MathLib.matrixMultiply(eyeonemat, camrotmatz);
+		camrotmat = MathLib.matrixMultiply(camrotmat, camrotmaty);
+		camrotmat = MathLib.matrixMultiply(camrotmat, camrotmatx);
+		Matrix renderrotmat = MathLib.matrixMultiply(eyeonemat, renderrotmatx);
+		renderrotmat = MathLib.matrixMultiply(renderrotmat, renderrotmaty);
+		renderrotmat = MathLib.matrixMultiply(renderrotmat, renderrotmatz);
+		Direction[] camlookdirs = MathLib.matrixMultiply(this.lookdirs, camrotmat);
+		this.rendermat = renderrotmat;
+		this.camdirs = camlookdirs;
 	}
 	
 	@Override public void actionPerformed(ActionEvent e) {
@@ -140,15 +148,6 @@ public class ModelApp implements AppHandler {
 			this.campos.y += 20.0f*this.camdirs[1].dy;
 			this.campos.z += 20.0f*this.camdirs[1].dz;
 		}
-		if (this.upwardkeydown) {
-			this.campos.x += 20.0f*this.camdirs[2].dx;
-			this.campos.y += 20.0f*this.camdirs[2].dy;
-			this.campos.z += 20.0f*this.camdirs[2].dz;
-		} else if (this.downwardkeydown) {
-			this.campos.x -= 20.0f*this.camdirs[2].dx;
-			this.campos.y -= 20.0f*this.camdirs[2].dy;
-			this.campos.z -= 20.0f*this.camdirs[2].dz;
-		}
 		if (this.forwardkeydown) {
 			this.campos.x += 20.0f*this.camdirs[0].dx;
 			this.campos.y += 20.0f*this.camdirs[0].dy;
@@ -158,12 +157,21 @@ public class ModelApp implements AppHandler {
 			this.campos.y -= 20.0f*this.camdirs[0].dy;
 			this.campos.z -= 20.0f*this.camdirs[0].dz;
 		}
+		if (this.upwardkeydown) {
+			this.campos.x += 20.0f*this.camdirs[2].dx;
+			this.campos.y += 20.0f*this.camdirs[2].dy;
+			this.campos.z += 20.0f*this.camdirs[2].dz;
+		} else if (this.downwardkeydown) {
+			this.campos.x -= 20.0f*this.camdirs[2].dx;
+			this.campos.y -= 20.0f*this.camdirs[2].dy;
+			this.campos.z -= 20.0f*this.camdirs[2].dz;
+		}
 		if (this.rollleftkeydown) {
 			this.camrot.y -= 1.0f;
-    		if (this.camrot.y<0.0f) {this.camrot.y+=360.0f;}
+			updateCameraDirections();
 		} else if (this.rollrightkeydown) {
 			this.camrot.y += 1.0f;
-	    	if (this.camrot.y>360.0f) {this.camrot.y-=360.0f;}
+			updateCameraDirections();
 		}
 	}
 
@@ -172,14 +180,14 @@ public class ModelApp implements AppHandler {
 		this.leftkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_D) {
 			this.rightkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_SPACE) {
-			this.upwardkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_C) {
-			this.downwardkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_W) {
 			this.forwardkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_S) {
 			this.backwardkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_SPACE) {
+			this.upwardkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_C) {
+			this.downwardkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_Q) {
 			this.rollleftkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_E) {
@@ -193,7 +201,7 @@ public class ModelApp implements AppHandler {
 			this.trianglematerialmap.clear();
 			this.campos = new Position(0,0,0);
 			this.camrot = new Rotation(0,0,0);
-			updateMovementDirections();
+			updateCameraDirections();
 		} else if (e.getKeyCode()==KeyEvent.VK_A) {
 			this.leftkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_D) {
@@ -249,11 +257,7 @@ public class ModelApp implements AppHandler {
     	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
     	this.camrot.z += mousedeltax*0.1f;
     	this.camrot.x += mousedeltay*0.1f;
-    	if (this.camrot.z>360.0f) {this.camrot.z-=360.0f;}
-    	else if (this.camrot.z<0.0f) {this.camrot.z+=360.0f;}
-    	if (this.camrot.x>0.0f) {this.camrot.x=0.0f;}
-    	else if (this.camrot.x<-180.0f) {this.camrot.x=-180.0f;}
-    	updateMovementDirections();
+    	updateCameraDirections();
 	}
 	
 	@Override public void mouseClicked(MouseEvent e) {}
