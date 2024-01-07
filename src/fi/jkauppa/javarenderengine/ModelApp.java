@@ -12,6 +12,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.VolatileImage;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -23,6 +24,7 @@ import fi.jkauppa.javarenderengine.MathLib.Matrix;
 import fi.jkauppa.javarenderengine.MathLib.Plane;
 import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Rotation;
+import fi.jkauppa.javarenderengine.MathLib.Sphere;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
@@ -75,12 +77,17 @@ public class ModelApp implements AppHandler {
 		for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].sind = i;}
 		Triangle[] transformedtriangles = MathLib.translate(copytrianglelist, renderpos);
 		transformedtriangles = MathLib.matrixMultiply(transformedtriangles, rendermat);
-		TreeSet<Triangle> transformedtrianglearray = new TreeSet<Triangle>(Arrays.asList(transformedtriangles));
+		Sphere[] transformedtrianglespherelist = MathLib.triangleCircumSphere(transformedtriangles);
+		TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(Arrays.asList(transformedtrianglespherelist));
+		Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
+		for (int i=0;i<sortedtrianglespherelist.length;i++) {sortedtrianglespherelist[i].sind = i;}
+		ArrayList<Triangle> transformedtrianglearray = new ArrayList<Triangle>(Arrays.asList(transformedtriangles));
 		Triangle[] transformedtrianglelist = transformedtrianglearray.toArray(new Triangle[transformedtrianglearray.size()]);
 		Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
 		Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
 		double[] triangleviewangles = MathLib.vectorAngle(this.lookdir, trianglenormals);
-		for (int i=0;i<transformedtrianglelist.length;i++) {
+		for (int j=0;j<sortedtrianglespherelist.length;j++) {
+			int i = sortedtrianglespherelist[j].sind;
 			double pos1s = (-transformedtrianglelist[i].pos1.z)*this.drawdepthscale+1;
 			double pos2s = (-transformedtrianglelist[i].pos2.z)*this.drawdepthscale+1;
 			double pos3s = (-transformedtrianglelist[i].pos3.z)*this.drawdepthscale+1;

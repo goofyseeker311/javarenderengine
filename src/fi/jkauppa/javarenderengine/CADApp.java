@@ -112,7 +112,13 @@ public class CADApp implements AppHandler {
 		if (this.polygonfillmode==2) {
 			Triangle[] copytrianglelist = trianglematerialmaphandle.keySet().toArray(new Triangle[trianglematerialmaphandle.size()]);
 			for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].sind = i;}
-			ArrayList<Triangle> transformedtrianglearray = new ArrayList<Triangle>(Arrays.asList(MathLib.matrixMultiply(MathLib.translate(copytrianglelist, renderpos), rendermat)));
+			Triangle[] transformedtriangles = MathLib.translate(copytrianglelist, renderpos);
+			transformedtriangles = MathLib.matrixMultiply(transformedtriangles, rendermat);
+			Sphere[] transformedtrianglespherelist = MathLib.triangleCircumSphere(transformedtriangles);
+			TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(Arrays.asList(transformedtrianglespherelist));
+			Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
+			for (int i=0;i<sortedtrianglespherelist.length;i++) {sortedtrianglespherelist[i].sind = i;}
+			ArrayList<Triangle> transformedtrianglearray = new ArrayList<Triangle>(Arrays.asList(transformedtriangles));
 			Triangle[] transformedtrianglelist = transformedtrianglearray.toArray(new Triangle[transformedtrianglearray.size()]);
 			Direction[] lookdirarray = {lookdir};
 			Plane[] lookdirplane = MathLib.planeFromNormalAtPoint(new Position(0,0,0), lookdirarray);
@@ -120,7 +126,8 @@ public class CADApp implements AppHandler {
 			Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
 			Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
 			double[] triangleviewangles = MathLib.vectorAngle(lookdir, trianglenormals);
-			for (int i=0;i<transformedtrianglelist.length;i++) {
+			for (int j=0;j<sortedtrianglespherelist.length;j++) {
+				int i = sortedtrianglespherelist[j].sind;
 				double triangleviewangle = triangleviewangles[i];
 				if (triangleviewangle>90.0f) {triangleviewangle = 180-triangleviewangle;}
 				float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
