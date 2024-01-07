@@ -11,9 +11,36 @@ public class MathLib {
 	public static class Direction {public double dx,dy,dz; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;} public Direction copy(){return new Direction(this.dx,this.dy,this.dz);}}
 	public static class Coordinate {public double u,v; public Coordinate(double ui,double vi){this.u=ui;this.v=vi;}}
 	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}}
-	public static class Sphere {public double x,y,z,r; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}}
+	public static class Sphere implements Comparable<Sphere> {public double x,y,z,r; public int sind=-1; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}
+		@Override public int compareTo(Sphere o) {
+			int k = -1;
+			if (this.equals(o)) {
+				k = 0;
+			} else {
+				Direction[] tvector = {new Direction(this.x,this.y,this.z)};
+				Direction[] ovector = {new Direction(o.x,o.y,o.z)};
+				double[] tspheredist = vectorLength(tvector);
+				double[] ospheredist = vectorLength(ovector);
+				if (tspheredist[0]>ospheredist[0]) {
+					k = 1;
+				}
+			}
+			return k;
+		}
+		@Override public boolean equals(Object o) {
+			boolean k = false;
+			if (o.getClass().equals(this.getClass())) {
+				Sphere os = (Sphere)o;
+				if ((this.x==os.x)&&(this.y==os.y)&&(this.z==os.z)&&(this.r==os.r)) {
+					k = true;
+				}
+			}
+			return k;
+		}
+	}
+	public static class Cuboid {public double x1,y1,z1,x2,y2,z2; public Cuboid(double x1i,double y1i,double z1i,double x2i,double y2i,double z2i){this.x1=x1i;this.y1=y1i;this.z1=z1i;this.x2=x2i;this.y2=y2i;this.z2=z2i;}}
 	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}}
-	public static class Position2 implements Comparable<Position2> {public Position pos1,pos2; int hitind=-1; public Position2(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}
+	public static class Position2 implements Comparable<Position2> {public Position pos1,pos2; public int hitind=-1; public Position2(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}
 		@Override public int compareTo(Position2 o){
 			int k=-1;
 			Position2 ts=this.sort();
@@ -891,4 +918,52 @@ public class MathLib {
 		return k;
 	}
 	
+	public static Cuboid axisAlignedBoundingBox(Position[] vertexlist) {
+		double xmin=Double.MAX_VALUE, ymin=Double.MAX_VALUE, zmin=Double.MAX_VALUE;
+		double xmax=Double.MIN_VALUE, ymax=Double.MIN_VALUE, zmax=Double.MIN_VALUE;
+		for (int i=0;i<vertexlist.length;i++) {
+			if (vertexlist[i].x<xmin) {xmin=vertexlist[i].x;}
+			if (vertexlist[i].x>xmax) {xmax=vertexlist[i].x;}
+			if (vertexlist[i].y<ymin) {ymin=vertexlist[i].y;}
+			if (vertexlist[i].y>ymax) {ymax=vertexlist[i].y;}
+			if (vertexlist[i].z<zmin) {zmin=vertexlist[i].z;}
+			if (vertexlist[i].z>zmax) {zmax=vertexlist[i].z;}
+		}
+		return new Cuboid(xmin,ymin,zmin,xmax,ymax,zmax);
+	}
+	public static Sphere pointcloudcircumsphere(Position[] vertexlist) {
+		Cuboid pointcloudlimits = axisAlignedBoundingBox(vertexlist);
+		Position pointcloudcenter = new Position((pointcloudlimits.x1+pointcloudlimits.x2)/2.0f,(pointcloudlimits.y1+pointcloudlimits.y2)/2.0f,(pointcloudlimits.z1+pointcloudlimits.z2)/2.0f);
+		Direction[] pointvectors = vectorFromPoints(pointcloudcenter, vertexlist);
+		double[] pointdistances = vectorLength(pointvectors);
+		double maxradius = -1;
+		for (int i=0;i<pointdistances.length;i++) {
+			if (pointdistances[i]>maxradius) {
+				maxradius = pointdistances[i]; 
+			}
+		}
+		return new Sphere(pointcloudcenter.x,pointcloudcenter.y,pointcloudcenter.z,maxradius);
+	}
+	public static Sphere[] triangleCircumSphere(Triangle[] trianglelist) {
+		Sphere[] k = new Sphere[trianglelist.length];
+		for (int i=0;i<trianglelist.length;i++) {
+			Direction[] v12 = {new Direction(trianglelist[i].pos2.x-trianglelist[i].pos1.x,trianglelist[i].pos2.y-trianglelist[i].pos1.y,trianglelist[i].pos2.z-trianglelist[i].pos1.z)};
+			Direction[] v13 = {new Direction(trianglelist[i].pos3.x-trianglelist[i].pos1.x,trianglelist[i].pos3.y-trianglelist[i].pos1.y,trianglelist[i].pos3.z-trianglelist[i].pos1.z)};
+			double[] v12L = vectorLength(v12);
+			double[] v13L = vectorLength(v13);
+			Direction[] cv12v13 = vectorCross(v12,v13);
+			double[] cv12v13L = vectorLength(cv12v13);
+			Direction[] toparg = {new Direction(v12L[0]*v13[0].dx-v13L[0]*v12[0].dx,v12L[0]*v13[0].dy-v13L[0]*v12[0].dy,v12L[0]*v13[0].dz-v13L[0]*v12[0].dz)};
+			Direction[] top = vectorCross(toparg,cv12v13);
+			double bottom = 2.0f*Math.pow(cv12v13L[0],2);
+			Position p1 = trianglelist[i].pos1;
+			if (bottom!=0) {
+				Position spherecenter = new Position(top[0].dx/bottom+p1.x,top[0].dy/bottom+p1.y,top[0].dz/bottom+p1.z);
+				Direction[] sphereradiusvector = {new Direction(spherecenter.x-p1.x,spherecenter.y-p1.y,spherecenter.z-p1.z)};
+				double[] sphereradius = vectorLength(sphereradiusvector);
+				k[i] = new Sphere(spherecenter.x,spherecenter.y,spherecenter.z,sphereradius[0]);
+			}
+		}
+		return k;
+	}
 }

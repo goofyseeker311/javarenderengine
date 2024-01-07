@@ -29,6 +29,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.UIManager;
+
+import fi.jkauppa.javarenderengine.MathLib.Cuboid;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
 import fi.jkauppa.javarenderengine.MathLib.Matrix;
 import fi.jkauppa.javarenderengine.MathLib.Plane;
@@ -192,6 +194,13 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		double[][] vppdist2 = MathLib.pointPlaneDistance(campos2, tplane2);
 		System.out.println("vppdist="+vppdist[0][0]);
 		System.out.println("vppdist2["+vppdist2.length+"]["+vppdist2[0].length+"]="); for (int j=0;j<vppdist2.length;j++) {for (int i=0;i<vppdist2[0].length;i++) {System.out.print(" "+vppdist2[j][i]);}System.out.println();}
+		Position[] vertexlist = {new Position(-5,3,9),new Position(-7,-3,-1),new Position(4,-6,-7),new Position(2,4,11)};
+		Cuboid aaboundingbox = MathLib.axisAlignedBoundingBox(vertexlist);
+		Sphere pointcloudsphere = MathLib.pointcloudcircumsphere(vertexlist);
+		Sphere[] trianglesphere = MathLib.triangleCircumSphere(ptri);
+		System.out.println("aaboundingbox="+aaboundingbox.x1+","+aaboundingbox.y1+","+aaboundingbox.z1+" "+aaboundingbox.x2+" "+aaboundingbox.y2+" "+aaboundingbox.z2);
+		System.out.println("boundingsphere="+pointcloudsphere.x+","+pointcloudsphere.y+","+pointcloudsphere.z+" "+pointcloudsphere.r);
+		for (int i=0;i<trianglesphere.length;i++) {System.out.println("trianglesphere["+i+"]="+trianglesphere[i].x+" "+trianglesphere[i].y+" "+trianglesphere[i].z+" "+trianglesphere[i].r);}
 		
 		new JavaRenderEngine();
 	}
