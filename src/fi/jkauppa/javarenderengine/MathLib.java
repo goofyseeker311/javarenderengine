@@ -7,43 +7,43 @@ import java.util.HashSet;
 import java.util.TreeSet;
 
 public class MathLib {
-	public static class TriangleOverlapComparator implements Comparator<Triangle> {
-		private Position origin;
-		public TriangleOverlapComparator(Position origini) {this.origin=origini;}
-		@Override public int compare(Triangle o1, Triangle o2) {
-			Triangle[] tri1 = {o1}; 
-			Triangle[] tri2 = {o2}; 
-			Triangle pos1tria = new Triangle(this.origin, o1.pos1, o1.pos2);
-			Triangle pos1trib = new Triangle(this.origin, o1.pos1, o1.pos3);
-			Triangle pos1tric = new Triangle(this.origin, o1.pos2, o1.pos3);
-			Triangle pos2tria = new Triangle(this.origin, o2.pos1, o2.pos2);
-			Triangle pos2trib = new Triangle(this.origin, o2.pos1, o2.pos3);
-			Triangle pos2tric = new Triangle(this.origin, o2.pos2, o2.pos3);
-			Triangle[] pos1tri = {pos1tria, pos1trib, pos1tric}; 
-			Triangle[] pos2tri = {pos2tria, pos2trib, pos2tric}; 
-			Plane[] pos1planes = planeFromPoints(pos1tri);
-			Plane[] pos2planes = planeFromPoints(pos2tri);
-			Position2[][] pos1tri2int = planeTriangleIntersection(pos1planes, tri2);
-			Position2[][] pos2tri1int = planeTriangleIntersection(pos2planes, tri1);
-			return 0;
-		}
-	}
-
-	public static class LineOverlapComparator implements Comparator<Position2> {
-		private Position2 origin;
-		public LineOverlapComparator(Position2 origini) {this.origin=origini;}
-		@Override public int compare(Position2 o1, Position2 o2) {
-			return 0;
-		}
-	}
-	
 	public static class Position implements Comparable<Position> {public double x,y,z; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;} @Override public int compareTo(Position o){int k=-1;if(this.x==o.x){if(this.y==o.y){if(this.z==o.z){k=0;}else if(this.z>o.z){k=1;}}else if(this.y>o.y){k=1;}}else if(this.x>o.x){k=1;}return k;} public Position copy(){return new Position(this.x,this.y,this.z);}}
 	public static class Direction {public double dx,dy,dz; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;} public Direction copy(){return new Direction(this.dx,this.dy,this.dz);}}
 	public static class Coordinate {public double u,v; public Coordinate(double ui,double vi){this.u=ui;this.v=vi;}}
 	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}}
 	public static class Sphere {public double x,y,z,r; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}}
 	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}}
-	public static class Position2 implements Comparable<Position2> {public Position pos1,pos2; int hitind=-1; public Position2(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;} @Override public int compareTo(Position2 o){int k=-1;Position2 ts=this.sort();Position2 os=o.sort();if(ts.pos1.x>os.pos1.x){k=1;}else if(ts.pos1.x==os.pos1.x){if(ts.pos1.y>os.pos1.y){k=1;}else if(ts.pos1.y==os.pos1.y){if(ts.pos1.z>os.pos1.z){k=1;}else if(ts.pos1.z==os.pos1.z){if(ts.pos2.x>os.pos2.x){k=1;}else if(ts.pos2.x==os.pos2.x){if(ts.pos2.y>os.pos2.y){k=1;}else if(ts.pos2.y==os.pos2.y){if(ts.pos2.z>os.pos2.z){k=1;}else if(ts.pos2.z==os.pos2.z){k=0;}}}}}}return k;} public Position2 copy(){return new Position2(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z));} public Position2 swap(){return new Position2(this.pos2,this.pos1);} public Position2 sort(){Position2 k=this;boolean keeporder=true;if(this.pos1.x>this.pos2.x){keeporder=false;}else if(this.pos1.x==this.pos2.x){if(this.pos1.y>this.pos2.y){keeporder=false;}else if (this.pos1.y==this.pos2.y){if(this.pos1.z>this.pos2.z){keeporder=false;}}}if(!keeporder){k=this.swap();}return k;}}
+	public static class Position2 implements Comparable<Position2> {public Position pos1,pos2; int hitind=-1; public Position2(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}
+		@Override public int compareTo(Position2 o){
+			int k=-1;
+			Position2 ts=this.sort();
+			Position2 os=o.sort();
+			if (ts.pos1.x>os.pos1.x) {
+				k=1;
+			}else if (ts.pos1.x==os.pos1.x) {
+				if(ts.pos1.y>os.pos1.y){
+					k=1;
+				}else if (ts.pos1.y==os.pos1.y) {
+					if(ts.pos1.z>os.pos1.z) {
+						k=1;
+					} else if (ts.pos1.z==os.pos1.z) {
+						if(ts.pos2.x>os.pos2.x) {
+							k=1;
+						} else if (ts.pos2.x==os.pos2.x) {
+							if(ts.pos2.y>os.pos2.y) {
+								k=1;
+							} else if (ts.pos2.y==os.pos2.y) {
+								if (ts.pos2.z>os.pos2.z) {
+									k=1;
+								} else if (ts.pos2.z==os.pos2.z) {
+									k=0;
+								}}}}}}
+			return k;
+		}
+		public Position2 copy(){return new Position2(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z));}
+		public Position2 swap(){return new Position2(this.pos2,this.pos1);}
+		public Position2 sort(){Position2 k=this;boolean keeporder=true;if(this.pos1.x>this.pos2.x){keeporder=false;}else if(this.pos1.x==this.pos2.x){if(this.pos1.y>this.pos2.y){keeporder=false;}else if (this.pos1.y==this.pos2.y){if(this.pos1.z>this.pos2.z){keeporder=false;}}}if(!keeporder){k=this.swap();}return k;}
+	}
 	public static class Tetrahedron implements Comparable<Tetrahedron> {public Position pos1,pos2,pos3,pos4; public Tetrahedron(Position pos1i,Position pos2i, Position pos3i,Position pos4i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;this.pos4=pos4i;}
 		@Override public int compareTo(Tetrahedron o) {
 			int k = -1;
@@ -122,22 +122,22 @@ public class MathLib {
 					if (tposarray[2].z>oposarray[2].z) {
 						k = 1;
 					} else if (tposarray[2].z==oposarray[2].z) {
-						if (tposarray[0].y>oposarray[0].y) {
+						if (Math.abs(tposarray[0].y)>Math.abs(oposarray[0].y)) {
 							k = 1;
 						} else if (tposarray[0].y==oposarray[0].y) {
-							if (tposarray[1].y>oposarray[1].y) {
+							if (Math.abs(tposarray[1].y)>Math.abs(oposarray[1].y)) {
 								k = 1;
 							} else if (tposarray[1].y==oposarray[1].y) {
-								if (tposarray[2].y>oposarray[2].y) {
+								if (Math.abs(tposarray[2].y)>Math.abs(oposarray[2].y)) {
 									k = 1;
 								} else if (tposarray[2].y==oposarray[2].y) {
-									if (tposarray[0].x>oposarray[0].x) {
+									if (Math.abs(tposarray[0].x)>Math.abs(oposarray[0].x)) {
 										k = 1;
 									} else if (tposarray[0].x==oposarray[0].x) {
-										if (tposarray[1].x>oposarray[1].x) {
+										if (Math.abs(tposarray[1].x)>Math.abs(oposarray[1].x)) {
 											k = 1;
 										} else if (tposarray[1].x==oposarray[1].x) {
-											if (tposarray[2].x>oposarray[2].x) {
+											if (Math.abs(tposarray[2].x)>Math.abs(oposarray[2].x)) {
 												k = 1;
 											} else if (tposarray[2].x==oposarray[2].x) {
 												k = 0;
