@@ -109,48 +109,32 @@ public class GameApp implements AppHandler {
 							Position[] drawlinepoints = {drawline.pos1, drawline.pos2};
 							double[][] drawlinefwdintpointsdist = MathLib.pointPlaneDistance(drawlinepoints, camfwdplane);
 							double[][] drawlineupintpointsdist = MathLib.pointPlaneDistance(drawlinepoints, camupplane);
-							double drawangle1 = (180.0f/Math.PI)*Math.atan(drawlineupintpointsdist[0][0]/drawlinefwdintpointsdist[0][0]);
-							double drawangle2 = (180.0f/Math.PI)*Math.atan(drawlineupintpointsdist[1][0]/drawlinefwdintpointsdist[1][0]);
+							double drawangle1 = (180.0f/Math.PI)*Math.atan(drawlineupintpointsdist[0][0]/Math.abs(drawlinefwdintpointsdist[0][0]));
+							double drawangle2 = (180.0f/Math.PI)*Math.atan(drawlineupintpointsdist[1][0]/Math.abs(drawlinefwdintpointsdist[1][0]));
 							double[] angles = {drawangle1, drawangle2};
 							int[] anglesind = MathLib.indexSort(angles);
 							double[] anglessort = MathLib.indexValues(angles, anglesind);
-							Direction[] drawvector = MathLib.vectorFromPoints(this.campos, drawlinepoints);
+							Position[] sortlinepoints = {drawlinepoints[anglesind[0]], drawlinepoints[anglesind[1]]}; 
+							if (!Double.isFinite(anglessort[0])) {anglessort[0] = -180.0f;}
+							if (!Double.isFinite(anglessort[1])) {anglessort[1] = 180.0f;}
+							Direction[] drawvector = MathLib.vectorFromPoints(this.campos, sortlinepoints);
 							double[] drawdistance = MathLib.vectorLength(drawvector);
 							double drawdistancedelta = drawdistance[1]-drawdistance[0];
-							if (!Double.isFinite(anglessort[0])) {
-								anglessort[0] = -180.0f;
-							}
-							if (!Double.isFinite(anglessort[1])) {
-								anglessort[1] = 180.0f;
-							}
 							int startind = Arrays.binarySearch(verticalangles, anglessort[0]);
 							int endind = Arrays.binarySearch(verticalangles, anglessort[1]);
 							if (startind<0) {startind = -startind-1; }
 							if (endind<0) {endind = -endind-1;}
 							if (startind>=verticalangles.length) {startind = verticalangles.length-1; }
 							if (endind>=verticalangles.length) {endind = verticalangles.length-1; }
-							//if (((startind>=0)&&(endind>=0))||(startind<=-verticalangles.length)||(endind>-1)) {
-								int indcount = endind - startind + 1;
-								double drawstep = drawdistancedelta/((double)indcount);
-								for (int n=startind;n<=endind;n++) {
-									double stepdistance = drawdistance[0] + drawstep*(n-startind);  
-									if (stepdistance<this.zbuffer[n][j]) {
-										this.zbuffer[n][j] = stepdistance;
-										g.drawLine(j, n, j, n);
-									}
+							int indcount = endind - startind + 1;
+							double drawstep = drawdistancedelta/((double)indcount);
+							for (int n=startind;n<=endind;n++) {
+								double stepdistance = drawdistance[0] + drawstep*(n-startind);  
+								if (stepdistance<this.zbuffer[n][j]) {
+									this.zbuffer[n][j] = stepdistance;
+									g.drawLine(j, n, j, n);
 								}
-							//}
-							/*
-							VolatileImage tritexture = copymaterial.fileimage;
-							if (tritexture==null) {
-								g.fill(trianglepolygon);
-							} else {
-								g.clip(trianglepolygon);
-								Rectangle polygonarea = trianglepolygon.getBounds();
-								g.drawImage(tritexture, polygonarea.x, polygonarea.y, polygonarea.x+polygonarea.width-1, polygonarea.y+polygonarea.height-1, 0, 0, tritexture.getWidth()-1, tritexture.getHeight()-1, null);
-								g.setClip(null);
 							}
-							*/
 						}
 					}
 				}
