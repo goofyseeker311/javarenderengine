@@ -36,7 +36,6 @@ import fi.jkauppa.javarenderengine.MathLib.Matrix;
 import fi.jkauppa.javarenderengine.MathLib.Plane;
 import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Position2;
-import fi.jkauppa.javarenderengine.MathLib.Rotation;
 import fi.jkauppa.javarenderengine.MathLib.Sphere;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
 
@@ -62,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.5.4");
+		this.setTitle("Java Render Engine v1.6.0");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -198,7 +197,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		System.out.println("camup="+camup[0].dx+" "+camup[0].dy+" "+camup[0].dz);
 		Position[] vpoint = {new Position(0,0,0)};
 		Position[] vplanepoint = {new Position(1,1,0)};
-		Direction[] vplanenormal = {new Direction(1,1,0)};
+		Direction[] vplanenormal = {new Direction(-1,-1,0)};
 		Plane[] vplane = MathLib.planeFromNormalAtPoint(vplanepoint, vplanenormal);
 		double[][] vppdist = MathLib.pointPlaneDistance(vpoint, vplane);
 		double[][] vppdist2 = MathLib.pointPlaneDistance(campos2, tplane2);

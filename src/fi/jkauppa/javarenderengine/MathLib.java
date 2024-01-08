@@ -397,7 +397,7 @@ public class MathLib {
 			for (int n=0;n<vpoint.length;n++) {
 				double[] top = vectorDot(vplane, vpoint[n]);
 				for (int m=0;m<vplane.length;m++) {
-					k[n][m] = -top[m]/vplanelen[m];
+					k[n][m] = top[m]/vplanelen[m];
 				}
 			}
 		}
@@ -887,27 +887,27 @@ public class MathLib {
 	}
 	public static Direction[] projectedDirections(Matrix vmat) {
 		Direction[] rightdirupvectors = new Direction[3];
-		Direction dirvector = new Direction(1,0,0);
-		Direction upvector = new Direction(0,-1,0);
-		Direction rightvector = new Direction(0,0,1);
+		Direction dirvector = new Direction(0,0,-1);
+		Direction rightvector = new Direction(0,1,0);
+		Direction upvector = new Direction(1,0,0);
 		rightdirupvectors[0] = dirvector;
-		rightdirupvectors[1] = upvector;
-		rightdirupvectors[2] = rightvector;
+		rightdirupvectors[1] = rightvector;
+		rightdirupvectors[2] = upvector;
 	    return matrixMultiply(rightdirupvectors, vmat);
 	}
 	public static Direction[] projectedVectors(int vres, double vfov, Matrix vmat) {
 	    double[] steps = projectedStep(vres,vfov);
 		Direction[] fwdvectors = new Direction[vres];
 	    for (int i=0;i<vres;i++) {
-	    	fwdvectors[i] = new Direction(1, steps[i], 0);
+	    	fwdvectors[i] = new Direction(steps[i], 0, -1);
 	    }
 	    fwdvectors = normalizeVector(fwdvectors);
 	    return matrixMultiply(fwdvectors, vmat);
 	}
 	public static Plane[] projectedPlanes(Position vpos, int vres, double vfov, Matrix vmat) {
 		Direction[] fwdvectors = projectedVectors(vres, vfov, vmat);
-		Direction[] rightdirupvectors = projectedDirections(vmat);
-		Direction rightvector = rightdirupvectors[2];
+		Direction[] dirrightupvectors = projectedDirections(vmat);
+		Direction rightvector = dirrightupvectors[1];
 		Direction[] planenormalvectors = vectorCross(fwdvectors,rightvector);
 		planenormalvectors = normalizeVector(planenormalvectors);
 	    return planeFromNormalAtPoint(vpos, planenormalvectors);

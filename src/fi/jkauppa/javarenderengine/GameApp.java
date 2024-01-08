@@ -31,7 +31,7 @@ public class GameApp implements AppHandler {
 	private Position campos = new Position(0,0,0);
 	private Rotation camrot = new Rotation(0.0f, 0.0f, 0.0f);
 	private Matrix rendermat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
-	private final Direction[] lookdirs = {new Direction(1,0,0),new Direction(0,0,1),new Direction(0,1,0)};
+	private final Direction[] lookdirs = {new Direction(0,0,-1),new Direction(1,0,0),new Direction(0,-1,0)};
 	private Direction[] camdirs = lookdirs;
 	private final double hfov = 70.0f, vfov = 50.0f;
 	private JFileChooser filechooser = new JFileChooser();
@@ -73,7 +73,7 @@ public class GameApp implements AppHandler {
 			Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
 			double[] triangleviewangles = MathLib.vectorAngle(this.camdirs[0], trianglenormals);
 			Direction[] camfwddir = {this.camdirs[0]};
-			Direction[] camupdir = {this.camdirs[1]};
+			Direction[] camupdir = {this.camdirs[2]};
 			Plane[] camfwdplane = MathLib.planeFromNormalAtPoint(this.campos, camfwddir);
 			Plane[] camupplane = MathLib.planeFromNormalAtPoint(this.campos, camupdir);
 			Color[] trianglecolor = new Color[copytrianglelist.length];
@@ -191,13 +191,13 @@ public class GameApp implements AppHandler {
 			this.campos.z -= 20.0f*this.camdirs[0].dz;
 		}
 		if (this.upwardkeydown) {
-			this.campos.x += 20.0f*this.camdirs[2].dx;
-			this.campos.y += 20.0f*this.camdirs[2].dy;
-			this.campos.z += 20.0f*this.camdirs[2].dz;
-		} else if (this.downwardkeydown) {
 			this.campos.x -= 20.0f*this.camdirs[2].dx;
 			this.campos.y -= 20.0f*this.camdirs[2].dy;
 			this.campos.z -= 20.0f*this.camdirs[2].dz;
+		} else if (this.downwardkeydown) {
+			this.campos.x += 20.0f*this.camdirs[2].dx;
+			this.campos.y += 20.0f*this.camdirs[2].dy;
+			this.campos.z += 20.0f*this.camdirs[2].dz;
 		}
 		if (this.rollleftkeydown) {
 			this.camrot.y -= 1.0f;
@@ -288,8 +288,8 @@ public class GameApp implements AppHandler {
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
     	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
     	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-    	this.camrot.z += mousedeltax*0.1f;
-    	this.camrot.x += mousedeltay*0.1f;
+    	this.camrot.z -= mousedeltax*0.1f;
+    	this.camrot.x -= mousedeltay*0.1f;
     	updateCameraDirections();
 	}
 	
