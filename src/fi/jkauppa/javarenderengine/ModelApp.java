@@ -12,7 +12,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.VolatileImage;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -75,14 +74,12 @@ public class ModelApp implements AppHandler {
 		Position renderpos = new Position(-campos.x,-campos.y,-campos.z);
 		Triangle[] copytrianglelist = this.trianglematerialmap.keySet().toArray(new Triangle[this.trianglematerialmap.size()]);
 		for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].sind = i;}
-		Triangle[] transformedtriangles = MathLib.translate(copytrianglelist, renderpos);
-		transformedtriangles = MathLib.matrixMultiply(transformedtriangles, rendermat);
-		Sphere[] transformedtrianglespherelist = MathLib.triangleCircumSphere(transformedtriangles);
+		Triangle[] transformedtrianglelist = MathLib.translate(copytrianglelist, renderpos);
+		transformedtrianglelist = MathLib.matrixMultiply(transformedtrianglelist, rendermat);
+		Sphere[] transformedtrianglespherelist = MathLib.triangleCircumSphere(transformedtrianglelist);
+		for (int i=0;i<transformedtrianglespherelist.length;i++) {transformedtrianglespherelist[i].sind = i;}
 		TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(Arrays.asList(transformedtrianglespherelist));
 		Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
-		for (int i=0;i<sortedtrianglespherelist.length;i++) {sortedtrianglespherelist[i].sind = i;}
-		ArrayList<Triangle> transformedtrianglearray = new ArrayList<Triangle>(Arrays.asList(transformedtriangles));
-		Triangle[] transformedtrianglelist = transformedtrianglearray.toArray(new Triangle[transformedtrianglearray.size()]);
 		Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
 		Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
 		double[] triangleviewangles = MathLib.vectorAngle(this.lookdir, trianglenormals);

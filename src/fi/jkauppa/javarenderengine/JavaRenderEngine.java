@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.5.0");
+		this.setTitle("Java Render Engine v1.5.3");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -196,7 +196,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		System.out.println("vppdist2["+vppdist2.length+"]["+vppdist2[0].length+"]="); for (int j=0;j<vppdist2.length;j++) {for (int i=0;i<vppdist2[0].length;i++) {System.out.print(" "+vppdist2[j][i]);}System.out.println();}
 		Position[] vertexlist = {new Position(-5,3,9),new Position(-7,-3,-1),new Position(4,-6,-7),new Position(2,4,11)};
 		Cuboid aaboundingbox = MathLib.axisAlignedBoundingBox(vertexlist);
-		Sphere pointcloudsphere = MathLib.pointcloudcircumsphere(vertexlist);
+		Sphere pointcloudsphere = MathLib.pointCloudCircumSphere(vertexlist);
 		Sphere[] trianglesphere = MathLib.triangleCircumSphere(ptri);
 		System.out.println("aaboundingbox="+aaboundingbox.x1+","+aaboundingbox.y1+","+aaboundingbox.z1+" "+aaboundingbox.x2+" "+aaboundingbox.y2+" "+aaboundingbox.z2);
 		System.out.println("boundingsphere="+pointcloudsphere.x+","+pointcloudsphere.y+","+pointcloudsphere.z+" "+pointcloudsphere.r);

@@ -14,15 +14,17 @@ public class MathLib {
 	public static class Sphere implements Comparable<Sphere> {public double x,y,z,r; public int sind=-1; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}
 		@Override public int compareTo(Sphere o) {
 			int k = -1;
-			if (this.equals(o)) {
-				k = 0;
-			} else {
-				Direction[] tvector = {new Direction(this.x,this.y,this.z)};
-				Direction[] ovector = {new Direction(o.x,o.y,o.z)};
-				double[] tspheredist = vectorLength(tvector);
-				double[] ospheredist = vectorLength(ovector);
-				if (tspheredist[0]>ospheredist[0]) {
+			if (this.z>o.z) {
+				k = 1;
+			} else if (this.z==o.z) {
+				if (Math.abs(this.y)>Math.abs(o.y)) {
 					k = 1;
+				} else if (this.y==o.y) {
+					if (Math.abs(this.x)>Math.abs(o.x)) {
+						k = 1;
+					} else if (this.x==o.x) {
+						k = 0;
+					}
 				}
 			}
 			return k;
@@ -931,7 +933,7 @@ public class MathLib {
 		}
 		return new Cuboid(xmin,ymin,zmin,xmax,ymax,zmax);
 	}
-	public static Sphere pointcloudcircumsphere(Position[] vertexlist) {
+	public static Sphere pointCloudCircumSphere(Position[] vertexlist) {
 		Cuboid pointcloudlimits = axisAlignedBoundingBox(vertexlist);
 		Position pointcloudcenter = new Position((pointcloudlimits.x1+pointcloudlimits.x2)/2.0f,(pointcloudlimits.y1+pointcloudlimits.y2)/2.0f,(pointcloudlimits.z1+pointcloudlimits.z2)/2.0f);
 		Direction[] pointvectors = vectorFromPoints(pointcloudcenter, vertexlist);

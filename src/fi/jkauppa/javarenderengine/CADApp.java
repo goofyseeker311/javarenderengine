@@ -112,14 +112,12 @@ public class CADApp implements AppHandler {
 		if (this.polygonfillmode==2) {
 			Triangle[] copytrianglelist = trianglematerialmaphandle.keySet().toArray(new Triangle[trianglematerialmaphandle.size()]);
 			for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].sind = i;}
-			Triangle[] transformedtriangles = MathLib.translate(copytrianglelist, renderpos);
-			transformedtriangles = MathLib.matrixMultiply(transformedtriangles, rendermat);
-			Sphere[] transformedtrianglespherelist = MathLib.triangleCircumSphere(transformedtriangles);
+			Triangle[] transformedtrianglelist = MathLib.translate(copytrianglelist, renderpos);
+			transformedtrianglelist = MathLib.matrixMultiply(transformedtrianglelist, rendermat);
+			Sphere[] transformedtrianglespherelist = MathLib.triangleCircumSphere(transformedtrianglelist);
+			for (int i=0;i<transformedtrianglespherelist.length;i++) {transformedtrianglespherelist[i].sind = i;}
 			TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(Arrays.asList(transformedtrianglespherelist));
 			Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
-			for (int i=0;i<sortedtrianglespherelist.length;i++) {sortedtrianglespherelist[i].sind = i;}
-			ArrayList<Triangle> transformedtrianglearray = new ArrayList<Triangle>(Arrays.asList(transformedtriangles));
-			Triangle[] transformedtrianglelist = transformedtrianglearray.toArray(new Triangle[transformedtrianglearray.size()]);
 			Direction[] lookdirarray = {lookdir};
 			Plane[] lookdirplane = MathLib.planeFromNormalAtPoint(new Position(0,0,0), lookdirarray);
 			Position2[][] clipplaneint = MathLib.planeTriangleIntersection(lookdirplane, transformedtrianglelist);
