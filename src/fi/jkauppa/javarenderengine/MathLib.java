@@ -885,7 +885,7 @@ public class MathLib {
 		for (int i=0;i<vres;i++){k[i]=(180.0f/Math.PI)*Math.atan(hd[i]);}
 		return k;
 	}
-	public static Direction[] projectedDirections(Rotation vrot) {
+	public static Direction[] projectedDirections(Matrix vmat) {
 		Direction[] rightdirupvectors = new Direction[3];
 		Direction dirvector = new Direction(1,0,0);
 		Direction upvector = new Direction(0,-1,0);
@@ -893,28 +893,26 @@ public class MathLib {
 		rightdirupvectors[0] = dirvector;
 		rightdirupvectors[1] = upvector;
 		rightdirupvectors[2] = rightvector;
-	    Matrix rotmat = rotationMatrix(vrot.x, vrot.y, vrot.z);
-	    return matrixMultiply(rightdirupvectors, rotmat);
+	    return matrixMultiply(rightdirupvectors, vmat);
 	}
-	public static Direction[] projectedVectors(int vres, double vfov, Rotation vrot) {
+	public static Direction[] projectedVectors(int vres, double vfov, Matrix vmat) {
 	    double[] steps = projectedStep(vres,vfov);
-	    Matrix rotmat = rotationMatrix(vrot.x, vrot.y, vrot.z);
 		Direction[] fwdvectors = new Direction[vres];
 	    for (int i=0;i<vres;i++) {
 	    	fwdvectors[i] = new Direction(1, steps[i], 0);
 	    }
 	    fwdvectors = normalizeVector(fwdvectors);
-	    return matrixMultiply(fwdvectors, rotmat);
+	    return matrixMultiply(fwdvectors, vmat);
 	}
-	public static Plane[] projectedPlanes(Position vpos, int vres, double vfov, Rotation vrot) {
-		Direction[] fwdvectors = projectedVectors(vres, vfov, vrot);
-		Direction[] rightdirupvectors = projectedDirections(vrot);
+	public static Plane[] projectedPlanes(Position vpos, int vres, double vfov, Matrix vmat) {
+		Direction[] fwdvectors = projectedVectors(vres, vfov, vmat);
+		Direction[] rightdirupvectors = projectedDirections(vmat);
 		Direction rightvector = rightdirupvectors[2];
 		Direction[] planenormalvectors = vectorCross(fwdvectors,rightvector);
 		planenormalvectors = normalizeVector(planenormalvectors);
 	    return planeFromNormalAtPoint(vpos, planenormalvectors);
 	}
-	public static Direction[][] projectedRays(Position vpos, int vhres, int vvres, double vhfov, double vvfov, Rotation vrot) {
+	public static Direction[][] projectedRays(Position vpos, int vhres, int vvres, double vhfov, double vvfov, Matrix vmat) {
 		Direction[][] k = new Direction[vvres][vhres];
 		double[] hstep = projectedStep(vhres, vhfov);
 		double[] vstep = projectedStep(vvres, vvfov);
@@ -924,8 +922,7 @@ public class MathLib {
 				k[j][i] = new Direction(1,hstep[i],vstep[j]);
 			}
 			k[j] = normalizeVector(k[j]);
-			Matrix rotmat = rotationMatrix(vrot.x, vrot.y, vrot.z);
-			k[j] = matrixMultiply(k[j], rotmat);
+			k[j] = matrixMultiply(k[j], vmat);
 			k[j] = translate(k[j], vpos);
 		}
 		return k;

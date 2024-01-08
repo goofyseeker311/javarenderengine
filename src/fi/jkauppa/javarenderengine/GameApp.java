@@ -3,13 +3,11 @@ package fi.jkauppa.javarenderengine;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Transparency;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.awt.image.VolatileImage;
 import java.io.File;
 import java.util.Arrays;
 import java.util.TreeMap;
@@ -32,7 +30,7 @@ public class GameApp implements AppHandler {
 	private TreeMap<Triangle,Material> trianglematerialmap = new TreeMap<Triangle,Material>();
 	private Position campos = new Position(0,0,0);
 	private Rotation camrot = new Rotation(0.0f, 0.0f, 0.0f);
-	private final Rotation vertplanesrot = new Rotation(0.0f,0.0f,0.0f);
+	private Matrix rendermat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 	private final Direction[] lookdirs = {new Direction(1,0,0),new Direction(0,0,1),new Direction(0,1,0)};
 	private Direction[] camdirs = lookdirs;
 	private final double hfov = 70.0f, vfov = 50.0f;
@@ -48,7 +46,7 @@ public class GameApp implements AppHandler {
 	private boolean rollleftkeydown = false;
 	private int mouselastlocationx = -1, mouselastlocationy = -1;  
 	private int mouselocationx = -1, mouselocationy = -1;
-	private VolatileImage zbuffer = null;
+	private double[][] zbuffer = null;
 	
 	public GameApp() {
 		this.filechooser.addChoosableFileFilter(this.objfilefilter);
@@ -57,34 +55,27 @@ public class GameApp implements AppHandler {
 	}
 	
 	@Override public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
-		if ((this.zbuffer==null)||((this.zbuffer.getWidth()!=renderwidth)&&(this.zbuffer.getHeight()!=renderheight))) {
-			VolatileImage oldzbuffer = this.zbuffer;
-			this.zbuffer = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.OPAQUE);
-			Graphics2D gfx = this.zbuffer.createGraphics();
-			gfx.setComposite(AlphaComposite.Clear);
-			gfx.fillRect(0, 0, renderwidth, renderheight);
-			if (oldzbuffer!=null) {
-				gfx.setComposite(AlphaComposite.Src);
-				gfx.drawImage(oldzbuffer, 0, 0, null);
-			}
-			gfx.dispose();
+		if ((this.zbuffer==null)||(this.zbuffer.length!=renderheight)||(this.zbuffer[0].length!=renderwidth)) {
+			this.zbuffer = new double[renderheight][renderwidth];
 		}
+		for (int i=0;i<this.zbuffer.length;i++) {Arrays.fill(this.zbuffer[i],Double.MAX_VALUE);}
 		g.setComposite(AlphaComposite.SrcOver);
 		g.setColor(Color.BLACK);
 		g.setPaint(null);
 		g.fillRect(0, 0, renderwidth, renderheight);
 		Triangle[] copytrianglelist = this.trianglematerialmap.keySet().toArray(new Triangle[this.trianglematerialmap.size()]);
-		if ((this.zbuffer!=null)&&(copytrianglelist.length>0)) {
-			Plane[] verticalplanes = MathLib.projectedPlanes(campos, renderwidth, hfov, vertplanesrot);
+		if (copytrianglelist.length>0) {
+			Plane[] verticalplanes = MathLib.projectedPlanes(this.campos, renderwidth, hfov, this.rendermat);
 			double[] verticalangles = MathLib.projectedAngles(renderheight, vfov);
+			Arrays.sort(verticalangles);
 			Position2[][] vertplanetriangleint = MathLib.planeTriangleIntersection(verticalplanes, copytrianglelist);		
 			Plane[] triangleplanes = MathLib.planeFromPoints(copytrianglelist);
 			Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
 			double[] triangleviewangles = MathLib.vectorAngle(this.camdirs[0], trianglenormals);
 			Direction[] camfwddir = {this.camdirs[0]};
 			Direction[] camupdir = {this.camdirs[1]};
-			Plane[] camfwdplane = MathLib.planeFromNormalAtPoint(campos, camfwddir);
-			Plane[] camupplane = MathLib.planeFromNormalAtPoint(campos, camupdir);
+			Plane[] camfwdplane = MathLib.planeFromNormalAtPoint(this.campos, camfwddir);
+			Plane[] camupplane = MathLib.planeFromNormalAtPoint(this.campos, camupdir);
 			Color[] trianglecolor = new Color[copytrianglelist.length];
 			for (int i=0;i<copytrianglelist.length;i++) {
 				double triangleviewangle = triangleviewangles[i];
@@ -106,7 +97,6 @@ public class GameApp implements AppHandler {
 						double[][] trianglefwdintpointsdist = MathLib.pointPlaneDistance(triangleintpoints, camfwdplane);
 						if ((trianglefwdintpointsdist[0][0]>0)||(trianglefwdintpointsdist[1][0]>0)) {
 							Position2 drawline = triangleint;
-							/*
 							Position2[] triangleintarray = {triangleint};
 							Position[][] lineviewint = MathLib.planeLineIntersection(camfwdplane, triangleintarray);
 							if (lineviewint[0][0]!=null) {
@@ -116,25 +106,40 @@ public class GameApp implements AppHandler {
 									drawline = new Position2(triangleint.pos2, lineviewint[0][0]);
 								}
 							}
-							*/
 							Position[] drawlinepoints = {drawline.pos1, drawline.pos2};
 							double[][] drawlinefwdintpointsdist = MathLib.pointPlaneDistance(drawlinepoints, camfwdplane);
 							double[][] drawlineupintpointsdist = MathLib.pointPlaneDistance(drawlinepoints, camupplane);
 							double drawangle1 = (180.0f/Math.PI)*Math.atan(drawlineupintpointsdist[0][0]/drawlinefwdintpointsdist[0][0]);
 							double drawangle2 = (180.0f/Math.PI)*Math.atan(drawlineupintpointsdist[1][0]/drawlinefwdintpointsdist[1][0]);
 							double[] angles = {drawangle1, drawangle2};
-							Arrays.sort(angles);
-							if (!Double.isFinite(angles[0])) {
-								angles[0] = -180.0f;
+							int[] anglesind = MathLib.indexSort(angles);
+							double[] anglessort = MathLib.indexValues(angles, anglesind);
+							Direction[] drawvector = MathLib.vectorFromPoints(this.campos, drawlinepoints);
+							double[] drawdistance = MathLib.vectorLength(drawvector);
+							double drawdistancedelta = drawdistance[1]-drawdistance[0];
+							if (!Double.isFinite(anglessort[0])) {
+								anglessort[0] = -180.0f;
 							}
-							if (!Double.isFinite(angles[1])) {
-								angles[1] = 180.0f;
+							if (!Double.isFinite(anglessort[1])) {
+								anglessort[1] = 180.0f;
 							}
-							for (int n=0;n<verticalangles.length;n++) {
-								if ((verticalangles[n]>=angles[0])&&((verticalangles[n]<=angles[1]))) {
-									g.drawLine(j, n, j, n);
+							int startind = Arrays.binarySearch(verticalangles, anglessort[0]);
+							int endind = Arrays.binarySearch(verticalangles, anglessort[1]);
+							if (startind<0) {startind = -startind-1; }
+							if (endind<0) {endind = -endind-1;}
+							if (startind>=verticalangles.length) {startind = verticalangles.length-1; }
+							if (endind>=verticalangles.length) {endind = verticalangles.length-1; }
+							//if (((startind>=0)&&(endind>=0))||(startind<=-verticalangles.length)||(endind>-1)) {
+								int indcount = endind - startind + 1;
+								double drawstep = drawdistancedelta/((double)indcount);
+								for (int n=startind;n<=endind;n++) {
+									double stepdistance = drawdistance[0] + drawstep*(n-startind);  
+									if (stepdistance<this.zbuffer[n][j]) {
+										this.zbuffer[n][j] = stepdistance;
+										g.drawLine(j, n, j, n);
+									}
 								}
-							}
+							//}
 							/*
 							VolatileImage tritexture = copymaterial.fileimage;
 							if (tritexture==null) {
@@ -162,6 +167,7 @@ public class GameApp implements AppHandler {
 		camrotmat = MathLib.matrixMultiply(camrotmat, camrotmaty);
 		camrotmat = MathLib.matrixMultiply(camrotmat, camrotmatx);
 		Direction[] camlookdirs = MathLib.matrixMultiply(this.lookdirs, camrotmat);
+		this.rendermat = camrotmat;
 		this.camdirs = camlookdirs;
 	}
 	
