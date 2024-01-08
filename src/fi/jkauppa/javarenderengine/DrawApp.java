@@ -72,7 +72,7 @@ public class DrawApp implements AppHandler {
 	
 	@Override
 	public void renderWindow(Graphics2D g2, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
-		if ((renderbuffer==null)||((renderbuffer.getWidth()!=renderwidth)&&(renderbuffer.getHeight()!=renderheight))) {
+		if ((renderbuffer==null)||(renderbuffer.getWidth()!=renderwidth)||(renderbuffer.getHeight()!=renderheight)) {
 			VolatileImage oldimage = this.renderbuffer;
 			this.renderbuffer = gc.createCompatibleVolatileImage(renderwidth,renderheight, Transparency.TRANSLUCENT);
 			this.dragbuffer = gc.createCompatibleVolatileImage(renderwidth,renderheight, Transparency.TRANSLUCENT);

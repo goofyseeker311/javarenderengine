@@ -36,7 +36,6 @@ import fi.jkauppa.javarenderengine.MathLib.Matrix;
 import fi.jkauppa.javarenderengine.MathLib.Plane;
 import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Position2;
-import fi.jkauppa.javarenderengine.MathLib.Rotation;
 import fi.jkauppa.javarenderengine.MathLib.Sphere;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
 
@@ -62,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.5.3");
+		this.setTitle("Java Render Engine v1.6.0");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -174,21 +173,31 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		Position2[] pline = new Position2[3]; pline[0]=new Position2(new Position(1,0,-1),new Position(1,0,1)); pline[1]=new Position2(new Position(-1,0,1),new Position(1,0,1)); pline[2]=new Position2(new Position(1,0,1),new Position(1,0,3));
 		Position[][] camplint = MathLib.planeLineIntersection(camplane, pline);
 		for (int i=0;i<camplint.length;i++) {for (int j=0;j<camplint[i].length;j++) {if(camplint[i][j]!=null) {System.out.println("camplint["+i+"]["+j+"]: "+camplint[i][j].x+" "+camplint[i][j].y+" "+camplint[i][j].z);}else{System.out.println("camplint["+i+"]["+j+"]: no hit.");}}}
-		double[] pang = MathLib.projectedAngles(64, 70);
+		double[] pang = MathLib.projectedAngles(64, 70.0f);
 		for (int i=0;i<pang.length;i++) {System.out.println("pang["+i+"]="+pang[i]);}
-		Plane[] prjplane = MathLib.projectedPlanes(campos, 64, 70, new Rotation(0,0,0));
-		Plane[] prjplane2 = MathLib.projectedPlanes(campos2[0], 64, 70, new Rotation(90,45,30));
+		double[] prjstep = MathLib.projectedStep(64, 70.0f);
+		double[] prjangles = MathLib.projectedAngles(64, 70.0f);
+		Direction[] prjdirs = MathLib.projectedDirections(matrot1);
+		Direction[] prjdirs2 = MathLib.projectedDirections(matrot2);
+		Direction[] prjvectors = MathLib.projectedVectors(64, 70.0f, matrot1);
+		Plane[] prjplane = MathLib.projectedPlanes(campos, 64, 70.0f, matrot1);
+		Plane[] prjplane2 = MathLib.projectedPlanes(campos2[0], 64, 70.0f, matrot2);
+		for (int i=0;i<prjstep.length;i++) {System.out.println("prjstep["+i+"]: "+prjstep[i]);}
+		for (int i=0;i<prjangles.length;i++) {System.out.println("prjangles["+i+"]: "+prjangles[i]);}
+		System.out.println("prjdirs[0]="+prjdirs[0].dx+","+prjdirs[0].dy+","+prjdirs[0].dz); System.out.println("prjdirs[1]="+prjdirs[1].dx+","+prjdirs[1].dy+","+prjdirs[1].dz); System.out.println("prjdirs[2]="+prjdirs[2].dx+","+prjdirs[2].dy+","+prjdirs[2].dz);
+		System.out.println("prjdirs2[0]="+prjdirs2[0].dx+","+prjdirs2[0].dy+","+prjdirs2[0].dz); System.out.println("prjdirs2[1]="+prjdirs2[1].dx+","+prjdirs2[1].dy+","+prjdirs2[1].dz); System.out.println("prjdirs2[2]="+prjdirs2[2].dx+","+prjdirs2[2].dy+","+prjdirs2[2].dz);
+		for (int i=0;i<prjvectors.length;i++) {System.out.println("prjvectors["+i+"]: "+prjvectors[i].dx+" "+prjvectors[i].dy+" "+prjvectors[i].dz);}
 		for (int i=0;i<prjplane.length;i++) {System.out.println("prjplane["+i+"]: "+prjplane[i].a+" "+prjplane[i].b+" "+prjplane[i].c+" "+prjplane[i].d);}
 		for (int i=0;i<prjplane2.length;i++) {System.out.println("prjplane2["+i+"]: "+prjplane2[i].a+" "+prjplane2[i].b+" "+prjplane2[i].c+" "+prjplane2[i].d);}
-		Direction[][] prjrays = MathLib.projectedRays(campos,48, 27, 70, 39, new Rotation(0,0,0));
+		Direction[][] prjrays = MathLib.projectedRays(campos,48, 27, 70, 39, matrot1);
 		for (int j=0;j<prjrays.length;j++) {System.out.print("prjrays["+j+"]=");for (int i=0;i<prjrays[j].length;i++) {System.out.print(" ["+prjrays[j][i].dx+","+prjrays[j][i].dy+","+prjrays[j][i].dz+"]");}System.out.println();}
 		Direction[] camfwd = {new Direction(1,0,0)};
 		Direction[] camrgt = {new Direction(0,1,0)};
-		Direction[] camup = MathLib.vectorCross(camfwd,camrgt);
+		Direction[] camup = MathLib.vectorCross(camfwd[0],camrgt);
 		System.out.println("camup="+camup[0].dx+" "+camup[0].dy+" "+camup[0].dz);
 		Position[] vpoint = {new Position(0,0,0)};
 		Position[] vplanepoint = {new Position(1,1,0)};
-		Direction[] vplanenormal = {new Direction(1,1,0)};
+		Direction[] vplanenormal = {new Direction(-1,-1,0)};
 		Plane[] vplane = MathLib.planeFromNormalAtPoint(vplanepoint, vplanenormal);
 		double[][] vppdist = MathLib.pointPlaneDistance(vpoint, vplane);
 		double[][] vppdist2 = MathLib.pointPlaneDistance(campos2, tplane2);
@@ -221,7 +230,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			double ticktimesec = (double)ticktime / 1000.0f;
 			double ticktimefps = 1000.0f/(double)ticktime;
 			lastupdate = newupdate;
-			if ((doublebuffer==null)||((doublebuffer.getWidth()!=this.getWidth())&&(doublebuffer.getHeight()!=this.getHeight()))) {
+			if ((this.doublebuffer==null)||((this.doublebuffer.getWidth()!=this.getWidth())&&(this.doublebuffer.getHeight()!=this.getHeight()))) {
 				System.out.println("Window: Resolution "+this.getWidth()+"x"+this.getHeight());
 				VolatileImage oldimage = this.doublebuffer;
 				this.doublebuffer = gc.createCompatibleVolatileImage(this.getWidth(),this.getHeight(), Transparency.OPAQUE);

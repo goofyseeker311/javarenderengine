@@ -82,7 +82,12 @@ Editor App Keys:
 -- none --        -- placeholder key binding
 
 Game App Keys:
--- none --        -- placeholder key binding
+BACKSPACE         -- remove loaded model and reset camera location
+MOUSE-DRAG        -- change looking movement forward direction
+WASD              -- camera location change forward/left/backward/right (minmax)
+C-SPACE           -- camera height change down/up (minmax)
+QE                -- camera tilt change left/right (looping)
+F3                -- load model file dialog
 ```
 
 # Installing and Running
@@ -106,7 +111,3 @@ CAD App:
 Model App:
 
 ![modelrender](https://github.com/goofyseeker311/javarenderengine/assets/19920254/ae8251b3-419f-4578-83af-0bd4474a9231)
-
-Game App:
-
-![gametexture](https://github.com/goofyseeker311/javarenderengine/assets/19920254/7b764bef-de2a-4bfa-84e5-27ef50bd83a5)
