@@ -209,6 +209,16 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static Direction[] vectorCross(Direction[] vdir1, Direction vdir2) {
+		Direction[] k=null;
+		if ((vdir1!=null)&&(vdir2!=null)) {
+			k=new Direction[vdir1.length];
+			for (int n=0;n<vdir1.length;n++) {
+				k[n] = new Direction(vdir1[n].dy*vdir2.dz-vdir1[n].dz*vdir2.dy,-(vdir1[n].dx*vdir2.dz-vdir1[n].dz*vdir2.dx),vdir1[n].dx*vdir2.dy-vdir1[n].dy*vdir2.dx);
+			}
+		}
+		return k;
+	}
 	public static Direction[] vectorCross(Direction[] vdir1, Direction[] vdir2) {
 		Direction[] k=null;
 		if ((vdir1!=null)&&(vdir2!=null)&&(vdir1.length==vdir2.length)) {
@@ -860,16 +870,16 @@ public class MathLib {
 		return uniquetetrahedronlist.toArray(new Tetrahedron[uniquetetrahedronlist.size()]);
 	}
 	
-	public static double[] projectedStep(int vres, int vfov) {
+	public static double[] projectedStep(int vres, double vfov) {
 		double[] k = new double[vres];
-		double halfvfov = ((double)vfov)/2.0f;
+		double halfvfov = vfov/2.0f;
 		double stepmax = Math.abs(Math.tan(halfvfov*(Math.PI/180.0f)));
 		double stepmin = -stepmax;
 		double step = 2.0f/((double)(vres-1))*stepmax;
 		for (int i=0;i<vres;i++){k[i]=stepmin+step*i;}
 		return k;
 	}
-	public static double[] projectedAngles(int vres, int vfov) {
+	public static double[] projectedAngles(int vres, double vfov) {
 		double[] k = new double[vres];
 		double[] hd = projectedStep(vres, vfov);
 		for (int i=0;i<vres;i++){k[i]=(180.0f/Math.PI)*Math.atan(hd[i]);}
@@ -877,33 +887,34 @@ public class MathLib {
 	}
 	public static Direction[] projectedDirections(Rotation vrot) {
 		Direction[] rightdirupvectors = new Direction[3];
-		Direction rightvector = new Direction(0,1,0);
 		Direction dirvector = new Direction(1,0,0);
-		Direction upvector = new Direction(0,0,1);
-		rightdirupvectors[0] = rightvector;
-		rightdirupvectors[1] = dirvector;
-		rightdirupvectors[2] = upvector;
+		Direction upvector = new Direction(0,-1,0);
+		Direction rightvector = new Direction(0,0,1);
+		rightdirupvectors[0] = dirvector;
+		rightdirupvectors[1] = upvector;
+		rightdirupvectors[2] = rightvector;
 	    Matrix rotmat = rotationMatrix(vrot.x, vrot.y, vrot.z);
 	    return matrixMultiply(rightdirupvectors, rotmat);
 	}
-	public static Direction[] projectedVectors(int vres, int vfov, Rotation vrot) {
+	public static Direction[] projectedVectors(int vres, double vfov, Rotation vrot) {
 	    double[] steps = projectedStep(vres,vfov);
 	    Matrix rotmat = rotationMatrix(vrot.x, vrot.y, vrot.z);
 		Direction[] fwdvectors = new Direction[vres];
 	    for (int i=0;i<vres;i++) {
 	    	fwdvectors[i] = new Direction(1, steps[i], 0);
 	    }
+	    fwdvectors = normalizeVector(fwdvectors);
 	    return matrixMultiply(fwdvectors, rotmat);
 	}
-	public static Plane[] projectedPlanes(Position vpos, int vres, int vfov, Rotation vrot) {
+	public static Plane[] projectedPlanes(Position vpos, int vres, double vfov, Rotation vrot) {
 		Direction[] fwdvectors = projectedVectors(vres, vfov, vrot);
 		Direction[] rightdirupvectors = projectedDirections(vrot);
-		Direction rightvector = rightdirupvectors[0];
-		Direction[] planenormalvectors = vectorCross(rightvector, fwdvectors);
+		Direction rightvector = rightdirupvectors[2];
+		Direction[] planenormalvectors = vectorCross(fwdvectors,rightvector);
 		planenormalvectors = normalizeVector(planenormalvectors);
 	    return planeFromNormalAtPoint(vpos, planenormalvectors);
 	}
-	public static Direction[][] projectedRays(Position vpos, int vhres, int vvres, int vhfov, int vvfov, Rotation vrot) {
+	public static Direction[][] projectedRays(Position vpos, int vhres, int vvres, double vhfov, double vvfov, Rotation vrot) {
 		Direction[][] k = new Direction[vvres][vhres];
 		double[] hstep = projectedStep(vhres, vhfov);
 		double[] vstep = projectedStep(vvres, vvfov);
