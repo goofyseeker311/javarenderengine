@@ -40,7 +40,7 @@ public class ModelApp implements AppHandler {
 	private final Direction lookdir = new Direction(0,0,-1);
 	private final Direction[] lookdirs = {new Direction(0,0,-1),new Direction(1,0,0),new Direction(0,-1,0)};
 	private Direction[] camdirs = lookdirs;
-	private final double hfov = 70.0f, vfov = 39.375f;
+	private final double hfov = 70.0f, vfov = 43.0f;
 	private JFileChooser filechooser = new JFileChooser();
 	private OBJFileFilter objfilefilter = new OBJFileFilter();
 	private boolean leftkeydown = false;
