@@ -22,6 +22,7 @@ import fi.jkauppa.javarenderengine.MathLib.Direction;
 import fi.jkauppa.javarenderengine.MathLib.Matrix;
 import fi.jkauppa.javarenderengine.MathLib.Plane;
 import fi.jkauppa.javarenderengine.MathLib.Position;
+import fi.jkauppa.javarenderengine.MathLib.Position2;
 import fi.jkauppa.javarenderengine.MathLib.Rotation;
 import fi.jkauppa.javarenderengine.MathLib.Sphere;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
@@ -34,13 +35,12 @@ public class ModelApp implements AppHandler {
 	private TreeMap<Triangle,Material> trianglematerialmap = new TreeMap<Triangle,Material>();
 	private Position campos = new Position(0,0,0);
 	private Rotation camrot = new Rotation(0.0f, 0.0f, 0.0f);
+	private Matrix cameramat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 	private Matrix rendermat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 	private final Direction lookdir = new Direction(0,0,-1);
 	private final Direction[] lookdirs = {new Direction(0,0,-1),new Direction(1,0,0),new Direction(0,-1,0)};
 	private Direction[] camdirs = lookdirs;
-	private final double drawdepthscale = 0.00035f;
-	private int origindeltax = 0, origindeltay = 0; 
-	private int lastrenderwidth = 0, lastrenderheight = 0;
+	private final double hfov = 70.0f, vfov = 39.375f;
 	private JFileChooser filechooser = new JFileChooser();
 	private OBJFileFilter objfilefilter = new OBJFileFilter();
 	private boolean leftkeydown = false;
@@ -53,20 +53,35 @@ public class ModelApp implements AppHandler {
 	private boolean rollleftkeydown = false;
 	private int mouselastlocationx = -1, mouselastlocationy = -1;  
 	private int mouselocationx = -1, mouselocationy = -1;
+	private double[][] zbuffer = null;
+	private int polygonfillmode = 1;
+	private final double drawdepthscale = 0.00035f;
+	private int origindeltax = 0, origindeltay = 0; 
+	private int lastrenderwidth = 0, lastrenderheight = 0;
 	
 	public ModelApp() {
 		this.filechooser.addChoosableFileFilter(this.objfilefilter);
 		this.filechooser.setFileFilter(this.objfilefilter);
 		this.filechooser.setAcceptAllFileFilterUsed(false);
 	}
-	
+
 	@Override public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
+		if (this.polygonfillmode==1) {
+			renderWindowHardware(g, renderwidth, renderheight, deltatimesec, deltatimefps);
+		} else {
+			renderWindowSoftware(g, renderwidth, renderheight, deltatimesec, deltatimefps);
+		}
+	}
+
+	public void renderWindowHardware(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
 		this.origindeltax = (int)Math.floor(((double)renderwidth)/2.0f);
 		this.origindeltay = (int)Math.floor(((double)renderheight)/2.0f);
 		if ((this.lastrenderwidth!=renderwidth)||(this.lastrenderheight!=renderheight)) {
 			this.lastrenderwidth = renderwidth;
 			this.lastrenderheight = renderheight;
 		}
+		g.scale(1.0f, -1.0f);
+		g.translate(0.0f, -renderheight);
 		g.setComposite(AlphaComposite.SrcOver);
 		g.setColor(Color.BLACK);
 		g.setPaint(null);
@@ -122,6 +137,94 @@ public class ModelApp implements AppHandler {
 			}
 		}
 	}
+	
+	private void renderWindowSoftware(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
+		if ((this.zbuffer==null)||(this.zbuffer.length!=renderheight)||(this.zbuffer[0].length!=renderwidth)) {
+			this.zbuffer = new double[renderheight][renderwidth];
+		}
+		for (int i=0;i<this.zbuffer.length;i++) {Arrays.fill(this.zbuffer[i],Double.MAX_VALUE);}
+		g.setComposite(AlphaComposite.SrcOver);
+		g.setColor(Color.BLACK);
+		g.setPaint(null);
+		g.fillRect(0, 0, renderwidth, renderheight);
+		Triangle[] copytrianglelist = this.trianglematerialmap.keySet().toArray(new Triangle[this.trianglematerialmap.size()]);
+		if (copytrianglelist.length>0) {
+			Plane[] verticalplanes = MathLib.projectedPlanes(this.campos, renderwidth, hfov, this.cameramat);
+			double[] verticalangles = MathLib.projectedAngles(renderheight, vfov);
+			Arrays.sort(verticalangles);
+			Position2[][] vertplanetriangleint = MathLib.planeTriangleIntersection(verticalplanes, copytrianglelist);		
+			Plane[] triangleplanes = MathLib.planeFromPoints(copytrianglelist);
+			Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
+			double[] triangleviewangles = MathLib.vectorAngle(this.camdirs[0], trianglenormals);
+			Direction[] camfwddir = {this.camdirs[0]};
+			Direction[] camupdir = {this.camdirs[2]};
+			Plane[] camfwdplane = MathLib.planeFromNormalAtPoint(this.campos, camfwddir);
+			Plane[] camupplane = MathLib.planeFromNormalAtPoint(this.campos, camupdir);
+			Color[] trianglecolor = new Color[copytrianglelist.length];
+			for (int i=0;i<copytrianglelist.length;i++) {
+				double triangleviewangle = triangleviewangles[i];
+				if (triangleviewangle>90.0f) {triangleviewangle = 180-triangleviewangle;}
+				float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
+				Material copymaterial = this.trianglematerialmap.get(copytrianglelist[i]);
+				Color tricolor = copymaterial.facecolor;
+				float alphacolor = copymaterial.transparency;
+				if (tricolor==null) {tricolor = Color.WHITE;}
+				float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
+				trianglecolor[i] = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
+			}
+			for (int j=0;j<vertplanetriangleint.length;j++) {
+				for (int i=0;i<vertplanetriangleint[0].length;i++) {
+					Position2 triangleint = vertplanetriangleint[j][i];
+					if (triangleint!=null) {
+						g.setColor(trianglecolor[i]);
+						Position[] triangleintpoints = {triangleint.pos1, triangleint.pos2};
+						double[][] trianglefwdintpointsdist = MathLib.pointPlaneDistance(triangleintpoints, camfwdplane);
+						if ((trianglefwdintpointsdist[0][0]>0)||(trianglefwdintpointsdist[1][0]>0)) {
+							Position2 drawline = triangleint;
+							Position2[] triangleintarray = {triangleint};
+							Position[][] lineviewint = MathLib.planeLineIntersection(camfwdplane, triangleintarray);
+							if (lineviewint[0][0]!=null) {
+								if (trianglefwdintpointsdist[0][0]>0) {
+									drawline = new Position2(triangleint.pos1, lineviewint[0][0]);
+								} else if (trianglefwdintpointsdist[1][0]>0) {
+									drawline = new Position2(triangleint.pos2, lineviewint[0][0]);
+								}
+							}
+							Position[] drawlinepoints = {drawline.pos1, drawline.pos2};
+							double[][] drawlinefwdintpointsdist = MathLib.pointPlaneDistance(drawlinepoints, camfwdplane);
+							double[][] drawlineupintpointsdist = MathLib.pointPlaneDistance(drawlinepoints, camupplane);
+							double drawangle1 = (180.0f/Math.PI)*Math.atan(drawlineupintpointsdist[0][0]/Math.abs(drawlinefwdintpointsdist[0][0]));
+							double drawangle2 = (180.0f/Math.PI)*Math.atan(drawlineupintpointsdist[1][0]/Math.abs(drawlinefwdintpointsdist[1][0]));
+							double[] angles = {drawangle1, drawangle2};
+							int[] anglesind = MathLib.indexSort(angles);
+							double[] anglessort = MathLib.indexValues(angles, anglesind);
+							Position[] sortlinepoints = {drawlinepoints[anglesind[0]], drawlinepoints[anglesind[1]]}; 
+							if (!Double.isFinite(anglessort[0])) {anglessort[0] = -180.0f;}
+							if (!Double.isFinite(anglessort[1])) {anglessort[1] = 180.0f;}
+							Direction[] drawvector = MathLib.vectorFromPoints(this.campos, sortlinepoints);
+							double[] drawdistance = MathLib.vectorLength(drawvector);
+							double drawdistancedelta = drawdistance[1]-drawdistance[0];
+							int startind = Arrays.binarySearch(verticalangles, anglessort[0]);
+							int endind = Arrays.binarySearch(verticalangles, anglessort[1]);
+							if (startind<0) {startind = -startind-1; }
+							if (endind<0) {endind = -endind-1;}
+							if (startind>=verticalangles.length) {startind = verticalangles.length-1; }
+							if (endind>=verticalangles.length) {endind = verticalangles.length-1; }
+							int indcount = endind - startind + 1;
+							double drawstep = drawdistancedelta/((double)indcount);
+							for (int n=startind;n<=endind;n++) {
+								double stepdistance = drawdistance[0] + drawstep*(n-startind);  
+								if (stepdistance<this.zbuffer[n][j]) {
+									this.zbuffer[n][j] = stepdistance;
+									g.drawLine(j, n, j, n);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 
 	private void updateCameraDirections() {
 		Matrix camrotmatz = MathLib.rotationMatrix(0.0f, 0.0f, this.camrot.z);
@@ -139,6 +242,7 @@ public class ModelApp implements AppHandler {
 		renderrotmat = MathLib.matrixMultiply(renderrotmat, renderrotmatz);
 		Direction[] camlookdirs = MathLib.matrixMultiply(this.lookdirs, camrotmat);
 		this.rendermat = renderrotmat;
+		this.cameramat = camrotmat;
 		this.camdirs = camlookdirs;
 	}
 	
@@ -162,13 +266,13 @@ public class ModelApp implements AppHandler {
 			this.campos.z -= 20.0f*this.camdirs[0].dz;
 		}
 		if (this.upwardkeydown) {
-			this.campos.x += 20.0f*this.camdirs[2].dx;
-			this.campos.y += 20.0f*this.camdirs[2].dy;
-			this.campos.z += 20.0f*this.camdirs[2].dz;
-		} else if (this.downwardkeydown) {
 			this.campos.x -= 20.0f*this.camdirs[2].dx;
 			this.campos.y -= 20.0f*this.camdirs[2].dy;
 			this.campos.z -= 20.0f*this.camdirs[2].dz;
+		} else if (this.downwardkeydown) {
+			this.campos.x += 20.0f*this.camdirs[2].dx;
+			this.campos.y += 20.0f*this.camdirs[2].dy;
+			this.campos.z += 20.0f*this.camdirs[2].dz;
 		}
 		if (this.rollleftkeydown) {
 			this.camrot.y -= 1.0f;
@@ -222,6 +326,11 @@ public class ModelApp implements AppHandler {
 			this.rollleftkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_E) {
 			this.rollrightkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
+			this.polygonfillmode += 1;
+			if (this.polygonfillmode>2) {
+				this.polygonfillmode = 1;
+			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
 			this.filechooser.setDialogTitle("Load File");
 			this.filechooser.setApproveButtonText("Load");
@@ -259,8 +368,8 @@ public class ModelApp implements AppHandler {
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
     	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
     	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-    	this.camrot.z += mousedeltax*0.1f;
-    	this.camrot.x += mousedeltay*0.1f;
+    	this.camrot.z -= mousedeltax*0.1f;
+    	this.camrot.x -= mousedeltay*0.1f;
     	updateCameraDirections();
 	}
 	
