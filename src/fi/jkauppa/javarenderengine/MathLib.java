@@ -17,10 +17,10 @@ public class MathLib {
 			if (this.z>o.z) {
 				k = 1;
 			} else if (this.z==o.z) {
-				if (Math.abs(this.y)>Math.abs(o.y)) {
+				if (this.y>o.y) {
 					k = 1;
 				} else if (this.y==o.y) {
-					if (Math.abs(this.x)>Math.abs(o.x)) {
+					if (this.x>o.x) {
 						k = 1;
 					} else if (this.x==o.x) {
 						k = 0;
@@ -151,22 +151,22 @@ public class MathLib {
 					if (tposarray[2].z>oposarray[2].z) {
 						k = 1;
 					} else if (tposarray[2].z==oposarray[2].z) {
-						if (Math.abs(tposarray[0].y)>Math.abs(oposarray[0].y)) {
+						if (tposarray[0].y>oposarray[0].y) {
 							k = 1;
 						} else if (tposarray[0].y==oposarray[0].y) {
-							if (Math.abs(tposarray[1].y)>Math.abs(oposarray[1].y)) {
+							if (tposarray[1].y>oposarray[1].y) {
 								k = 1;
 							} else if (tposarray[1].y==oposarray[1].y) {
-								if (Math.abs(tposarray[2].y)>Math.abs(oposarray[2].y)) {
+								if (tposarray[2].y>oposarray[2].y) {
 									k = 1;
 								} else if (tposarray[2].y==oposarray[2].y) {
-									if (Math.abs(tposarray[0].x)>Math.abs(oposarray[0].x)) {
+									if (tposarray[0].x>oposarray[0].x) {
 										k = 1;
 									} else if (tposarray[0].x==oposarray[0].x) {
-										if (Math.abs(tposarray[1].x)>Math.abs(oposarray[1].x)) {
+										if (tposarray[1].x>oposarray[1].x) {
 											k = 1;
 										} else if (tposarray[1].x==oposarray[1].x) {
-											if (Math.abs(tposarray[2].x)>Math.abs(oposarray[2].x)) {
+											if (tposarray[2].x>oposarray[2].x) {
 												k = 1;
 											} else if (tposarray[2].x==oposarray[2].x) {
 												k = 0;
