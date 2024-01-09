@@ -11,7 +11,7 @@ public class MathLib {
 	public static class Direction {public double dx,dy,dz; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;} public Direction copy(){return new Direction(this.dx,this.dy,this.dz);}}
 	public static class Coordinate {public double u,v; public Coordinate(double ui,double vi){this.u=ui;this.v=vi;}}
 	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}}
-	public static class Sphere implements Comparable<Sphere> {public double x,y,z,r; public int sind=-1; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}
+	public static class Sphere implements Comparable<Sphere> {public double x,y,z,r; public int ind=-1; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}
 		@Override public int compareTo(Sphere o) {
 			int k = -1;
 			if (this.z>o.z) {
@@ -40,7 +40,7 @@ public class MathLib {
 			return k;
 		}
 	}
-	public static class Cuboid {public double x1,y1,z1,x2,y2,z2; public Cuboid(double x1i,double y1i,double z1i,double x2i,double y2i,double z2i){this.x1=x1i;this.y1=y1i;this.z1=z1i;this.x2=x2i;this.y2=y2i;this.z2=z2i;}}
+	public static class AxisAlignedBoundingBox {public double x1,y1,z1,x2,y2,z2; public AxisAlignedBoundingBox(double x1i,double y1i,double z1i,double x2i,double y2i,double z2i){this.x1=x1i;this.y1=y1i;this.z1=z1i;this.x2=x2i;this.y2=y2i;this.z2=z2i;}}
 	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}}
 	public static class Position2 implements Comparable<Position2> {public Position pos1,pos2; public int hitind=-1; public Position2(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}
 		@Override public int compareTo(Position2 o){
@@ -135,7 +135,7 @@ public class MathLib {
 			return k;
 		}
 	}
-	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public int sind=-1; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;} public Triangle copy(){Triangle k=new Triangle(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z),new Position(this.pos3.x,this.pos3.y,this.pos3.z));k.sind=this.sind;return k;}
+	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public int ind=-1; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;} public Triangle copy(){Triangle k=new Triangle(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z),new Position(this.pos3.x,this.pos3.y,this.pos3.z));k.ind=this.ind;return k;}
 		@Override public int compareTo(Triangle o) {
 			int k = -1;
 			Position[] tposarray = {this.pos1,this.pos2,this.pos3};
@@ -184,6 +184,22 @@ public class MathLib {
 				if ((tposarray[0].compareTo(oposarray[0])==0)&&(tposarray[1].compareTo(oposarray[1])==0)&&(tposarray[2].compareTo(oposarray[2])==0)) {
 					k = true;
 				}
+			}
+			return k;
+		}
+	}
+	public static class Entity implements Comparable<Entity> {
+		public Entity[] childlist = null;
+		public Triangle[] trianglelist = null;
+		public Sphere sphereboundaryvolume = null;
+		public AxisAlignedBoundingBox aabbboundaryvolume = null;
+		@Override public int compareTo(Entity o) {
+			return 0;
+		}
+		@Override public boolean equals(Object o) {
+			boolean k = false;
+			if (o.getClass().equals(this.getClass())) {
+				//Entity co = (Entity)o;
 			}
 			return k;
 		}
@@ -928,7 +944,7 @@ public class MathLib {
 		return k;
 	}
 	
-	public static Cuboid axisAlignedBoundingBox(Position[] vertexlist) {
+	public static AxisAlignedBoundingBox axisAlignedBoundingBox(Position[] vertexlist) {
 		double xmin=Double.MAX_VALUE, ymin=Double.MAX_VALUE, zmin=Double.MAX_VALUE;
 		double xmax=Double.MIN_VALUE, ymax=Double.MIN_VALUE, zmax=Double.MIN_VALUE;
 		for (int i=0;i<vertexlist.length;i++) {
@@ -939,10 +955,10 @@ public class MathLib {
 			if (vertexlist[i].z<zmin) {zmin=vertexlist[i].z;}
 			if (vertexlist[i].z>zmax) {zmax=vertexlist[i].z;}
 		}
-		return new Cuboid(xmin,ymin,zmin,xmax,ymax,zmax);
+		return new AxisAlignedBoundingBox(xmin,ymin,zmin,xmax,ymax,zmax);
 	}
 	public static Sphere pointCloudCircumSphere(Position[] vertexlist) {
-		Cuboid pointcloudlimits = axisAlignedBoundingBox(vertexlist);
+		AxisAlignedBoundingBox pointcloudlimits = axisAlignedBoundingBox(vertexlist);
 		Position pointcloudcenter = new Position((pointcloudlimits.x1+pointcloudlimits.x2)/2.0f,(pointcloudlimits.y1+pointcloudlimits.y2)/2.0f,(pointcloudlimits.z1+pointcloudlimits.z2)/2.0f);
 		Direction[] pointvectors = vectorFromPoints(pointcloudcenter, vertexlist);
 		double[] pointdistances = vectorLength(pointvectors);

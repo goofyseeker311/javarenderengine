@@ -111,11 +111,11 @@ public class CADApp implements AppHandler {
 		Triangle mouseoverhittriangle = null;
 		if (this.polygonfillmode==2) {
 			Triangle[] copytrianglelist = trianglematerialmaphandle.keySet().toArray(new Triangle[trianglematerialmaphandle.size()]);
-			for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].sind = i;}
+			for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].ind = i;}
 			Triangle[] transformedtrianglelist = MathLib.translate(copytrianglelist, renderpos);
 			transformedtrianglelist = MathLib.matrixMultiply(transformedtrianglelist, rendermat);
 			Sphere[] transformedtrianglespherelist = MathLib.triangleCircumSphere(transformedtrianglelist);
-			for (int i=0;i<transformedtrianglespherelist.length;i++) {transformedtrianglespherelist[i].sind = i;}
+			for (int i=0;i<transformedtrianglespherelist.length;i++) {transformedtrianglespherelist[i].ind = i;}
 			TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(Arrays.asList(transformedtrianglespherelist));
 			Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
 			Direction[] lookdirarray = {lookdir};
@@ -125,11 +125,11 @@ public class CADApp implements AppHandler {
 			Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
 			double[] triangleviewangles = MathLib.vectorAngle(lookdir, trianglenormals);
 			for (int j=0;j<sortedtrianglespherelist.length;j++) {
-				int i = sortedtrianglespherelist[j].sind;
+				int i = sortedtrianglespherelist[j].ind;
 				double triangleviewangle = triangleviewangles[i];
 				if (triangleviewangle>90.0f) {triangleviewangle = 180-triangleviewangle;}
 				float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
-				Material copymaterial = trianglematerialmaphandle.get(copytrianglelist[transformedtrianglelist[i].sind]);
+				Material copymaterial = trianglematerialmaphandle.get(copytrianglelist[transformedtrianglelist[i].ind]);
 				Color tricolor = copymaterial.facecolor;
 				float alphacolor = copymaterial.transparency;
 				if (tricolor==null) {tricolor = Color.WHITE;}

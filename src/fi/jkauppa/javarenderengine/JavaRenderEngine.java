@@ -1,5 +1,8 @@
 package fi.jkauppa.javarenderengine;
 
+//TODO object handling
+//TODO texture handling
+
 import java.awt.AlphaComposite;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -30,7 +33,7 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.UIManager;
 
-import fi.jkauppa.javarenderengine.MathLib.Cuboid;
+import fi.jkauppa.javarenderengine.MathLib.AxisAlignedBoundingBox;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
 import fi.jkauppa.javarenderengine.MathLib.Matrix;
 import fi.jkauppa.javarenderengine.MathLib.Plane;
@@ -204,7 +207,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		System.out.println("vppdist="+vppdist[0][0]);
 		System.out.println("vppdist2["+vppdist2.length+"]["+vppdist2[0].length+"]="); for (int j=0;j<vppdist2.length;j++) {for (int i=0;i<vppdist2[0].length;i++) {System.out.print(" "+vppdist2[j][i]);}System.out.println();}
 		Position[] vertexlist = {new Position(-5,3,9),new Position(-7,-3,-1),new Position(4,-6,-7),new Position(2,4,11)};
-		Cuboid aaboundingbox = MathLib.axisAlignedBoundingBox(vertexlist);
+		AxisAlignedBoundingBox aaboundingbox = MathLib.axisAlignedBoundingBox(vertexlist);
 		Sphere pointcloudsphere = MathLib.pointCloudCircumSphere(vertexlist);
 		Sphere[] trianglesphere = MathLib.triangleCircumSphere(ptri);
 		System.out.println("aaboundingbox="+aaboundingbox.x1+","+aaboundingbox.y1+","+aaboundingbox.z1+" "+aaboundingbox.x2+" "+aaboundingbox.y2+" "+aaboundingbox.z2);
