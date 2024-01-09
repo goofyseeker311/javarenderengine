@@ -83,6 +83,7 @@ Editor App Keys:
 -- none --        -- placeholder key binding
 
 Game App Keys:
+-- none --        -- placeholder key binding
 ```
 
 # Installing and Running
