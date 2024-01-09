@@ -77,17 +77,12 @@ WASD              -- camera location change forward/left/backward/right (minmax)
 C-SPACE           -- camera height change down/up (minmax)
 QE                -- camera tilt change left/right (looping)
 F3                -- load model file dialog
+ENTER             -- changes between hardware/software renderers (looping)
 
 Editor App Keys:
 -- none --        -- placeholder key binding
 
 Game App Keys:
-BACKSPACE         -- remove loaded model and reset camera location
-MOUSE-DRAG        -- change looking movement forward direction
-WASD              -- camera location change forward/left/backward/right (minmax)
-C-SPACE           -- camera height change down/up (minmax)
-QE                -- camera tilt change left/right (looping)
-F3                -- load model file dialog
 ```
 
 # Installing and Running
