@@ -36,8 +36,33 @@ public class ModelLib {
 		public Color facecolor = null;
 		public float transparency = 1.0f;
 		public Material() {}
-		@Override public int compareTo(Material o){int k=-1;if(this.facecolor.getRed()>o.facecolor.getRed()){k=1;}else if(this.facecolor.getRed()==o.facecolor.getRed()){if(this.facecolor.getGreen()>o.facecolor.getGreen()){k=1;}else if(this.facecolor.getGreen()==o.facecolor.getGreen()){if(this.facecolor.getBlue()>o.facecolor.getBlue()){k=1;}else if(this.facecolor.getBlue()==o.facecolor.getBlue()){if(this.facecolor.getAlpha()>o.facecolor.getAlpha()){k=1;}else if (this.facecolor.getAlpha()==o.facecolor.getAlpha()){k=0;}}}}return k;}
-		@Override public boolean equals(Object o) {boolean k=false;if (o.getClass().equals(this.getClass())){Material co=(Material)o;if(this.compareTo(co)==0){k=true;}}return k;}
+		@Override public int compareTo(Material o) {
+			int k=-1;
+			if(this.facecolor.getRed()>o.facecolor.getRed()) {
+				k=1;
+			} else if(this.facecolor.getRed()==o.facecolor.getRed()) {
+				if (this.facecolor.getGreen()>o.facecolor.getGreen()) {
+					k=1;
+				} else if (this.facecolor.getGreen()==o.facecolor.getGreen()) {
+					if (this.facecolor.getBlue()>o.facecolor.getBlue()) {
+						k=1;
+					} else if (this.facecolor.getBlue()==o.facecolor.getBlue()) {
+						if(this.facecolor.getAlpha()>o.facecolor.getAlpha()) {
+							k=1;
+						} else if (this.facecolor.getAlpha()==o.facecolor.getAlpha()) {
+							k=0;
+						}}}}
+			return k;}
+		@Override public boolean equals(Object o) {
+			boolean k=false;
+			if (o.getClass().equals(this.getClass())){
+				Material co=(Material)o;
+				if(this.compareTo(co)==0){
+					k=true;
+				}
+			}
+			return k;
+		}
 	}
 	public static class ModelFaceVertexIndex {
 		public int vertexindex; 
