@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
+
+import fi.jkauppa.javarenderengine.ModelLib.Material;
 
 public class MathLib {
 	public static class Position implements Comparable<Position> {public double x,y,z; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;} @Override public int compareTo(Position o){int k=-1;if(this.x==o.x){if(this.y==o.y){if(this.z==o.z){k=0;}else if(this.z>o.z){k=1;}}else if(this.y>o.y){k=1;}}else if(this.x>o.x){k=1;}return k;} public Position copy(){return new Position(this.x,this.y,this.z);}}
@@ -190,7 +193,9 @@ public class MathLib {
 	}
 	public static class Entity implements Comparable<Entity> {
 		public Entity[] childlist = null;
-		public Triangle[] trianglelist = null;
+		public TreeMap<Triangle,Material> trianglematerialmap = null;
+		public Position2[] linelist = null;
+		public Tetrahedron[] tetrahedronlist = null;
 		public Sphere sphereboundaryvolume = null;
 		public AxisAlignedBoundingBox aabbboundaryvolume = null;
 		@Override public int compareTo(Entity o) {
@@ -877,6 +882,10 @@ public class MathLib {
 			}
 		}
 		return uniquetetrahedronlist.toArray(new Tetrahedron[uniquetetrahedronlist.size()]);
+	}
+	
+	public static Entity[] generateEntityList(Position2[] linelist) {
+		return null;
 	}
 	
 	public static double[] projectedStep(int vres, double vfov) {
