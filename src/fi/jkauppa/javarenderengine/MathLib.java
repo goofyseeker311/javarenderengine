@@ -42,6 +42,57 @@ public class MathLib {
 			}
 			return k;
 		}
+		public static class SphereRenderComparator implements Comparator<Sphere> {
+			@Override public int compare(Sphere o1, Sphere o2) {
+				int k = -1;
+				if (o1.z>o2.z) {
+					k = 1;
+				} else if (o1.z==o2.z) {
+					double ydiff = o1.y-o2.y;
+					double xdiff = o1.x-o2.x;
+					if (Math.abs(ydiff)>Math.abs(xdiff)) {
+						if (Math.abs(o1.y)>Math.abs(o2.y)) {
+							k = 1;
+						} else if (o1.y==o2.y) {
+							if (Math.abs(o1.x)>Math.abs(o2.x)) {
+								k = 1;
+							} else if (o1.x==o2.x) {
+								k = 0;
+							}
+						}
+					} else {
+						if (Math.abs(o1.x)>Math.abs(o2.x)) {
+							k = 1;
+						} else if (o1.x==o2.x) {
+							if (Math.abs(o1.y)>Math.abs(o2.y)) {
+								k = 1;
+							} else if (o1.y==o2.y) {
+								k = 0;
+							}
+						}
+					}
+				}
+				return k;
+			}
+			
+		}
+		public static class SphereDistanceComparator implements Comparator<Sphere> {
+			public Position origin;
+			public SphereDistanceComparator(Position origini) {this.origin = origini;}
+			@Override public int compare(Sphere o1, Sphere o2) {
+				int k = 1;
+				Sphere[] spheres = {o1,o2};
+				Direction[] spheredir = vectorFromPoints(this.origin, spheres);
+				double[] spheredist = vectorLength(spheredir);				
+				if (spheredist[0]>spheredist[1]) {
+					k = -1;
+				} else if (spheredist[0]==spheredist[1]) {
+					k = 0;
+				}
+				return k;
+			}
+			
+		}
 	}
 	public static class AxisAlignedBoundingBox {public double x1,y1,z1,x2,y2,z2; public AxisAlignedBoundingBox(double x1i,double y1i,double z1i,double x2i,double y2i,double z2i){this.x1=x1i;this.y1=y1i;this.z1=z1i;this.x2=x2i;this.y2=y2i;this.z2=z2i;}}
 	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}}
@@ -138,7 +189,7 @@ public class MathLib {
 			return k;
 		}
 	}
-	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public int ind=-1; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;} public Triangle copy(){Triangle k=new Triangle(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z),new Position(this.pos3.x,this.pos3.y,this.pos3.z));k.ind=this.ind;return k;}
+	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public Direction norm; public Material mat; public int ind=-1; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;} public Triangle copy(){Triangle k=new Triangle(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z),new Position(this.pos3.x,this.pos3.y,this.pos3.z));k.norm=this.norm;k.mat=this.mat;k.ind=this.ind;return k;}
 		@Override public int compareTo(Triangle o) {
 			int k = -1;
 			Position[] tposarray = {this.pos1,this.pos2,this.pos3};

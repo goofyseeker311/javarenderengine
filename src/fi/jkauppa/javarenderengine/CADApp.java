@@ -30,6 +30,7 @@ import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Position2;
 import fi.jkauppa.javarenderengine.MathLib.Rotation;
 import fi.jkauppa.javarenderengine.MathLib.Sphere;
+import fi.jkauppa.javarenderengine.MathLib.Sphere.SphereRenderComparator;
 import fi.jkauppa.javarenderengine.MathLib.Tetrahedron;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
@@ -119,7 +120,8 @@ public class CADApp implements AppHandler {
 			transformedtrianglelist = MathLib.matrixMultiply(transformedtrianglelist, rendermat);
 			Sphere[] transformedtrianglespherelist = MathLib.triangleCircumSphere(transformedtrianglelist);
 			for (int i=0;i<transformedtrianglespherelist.length;i++) {transformedtrianglespherelist[i].ind = i;}
-			TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(Arrays.asList(transformedtrianglespherelist));
+			TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereRenderComparator());
+			sortedtrianglespheretree.addAll(Arrays.asList(transformedtrianglespherelist));
 			Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
 			Direction[] lookdirarray = {lookdir};
 			Plane[] lookdirplane = MathLib.planeFromNormalAtPoint(new Position(0,0,0), lookdirarray);

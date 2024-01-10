@@ -26,6 +26,8 @@ import fi.jkauppa.javarenderengine.MathLib.Position2;
 import fi.jkauppa.javarenderengine.MathLib.Rotation;
 import fi.jkauppa.javarenderengine.MathLib.Sphere;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
+import fi.jkauppa.javarenderengine.MathLib.Sphere.SphereDistanceComparator;
+import fi.jkauppa.javarenderengine.MathLib.Sphere.SphereRenderComparator;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
 import fi.jkauppa.javarenderengine.ModelLib.Model;
@@ -93,7 +95,8 @@ public class ModelApp implements AppHandler {
 		transformedtrianglelist = MathLib.matrixMultiply(transformedtrianglelist, rendermat);
 		Sphere[] transformedtrianglespherelist = MathLib.triangleCircumSphere(transformedtrianglelist);
 		for (int i=0;i<transformedtrianglespherelist.length;i++) {transformedtrianglespherelist[i].ind = i;}
-		TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(Arrays.asList(transformedtrianglespherelist));
+		TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereRenderComparator());
+		sortedtrianglespheretree.addAll(Arrays.asList(transformedtrianglespherelist));
 		Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
 		Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
 		Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
@@ -172,11 +175,17 @@ public class ModelApp implements AppHandler {
 				float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
 				trianglecolor[i] = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
 			}
+			Sphere[] copytrianglepherelist = MathLib.triangleCircumSphere(copytrianglelist);
+			for (int i=0;i<copytrianglepherelist.length;i++) {copytrianglepherelist[i].ind = i;}
+			TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereDistanceComparator(this.campos));
+			sortedtrianglespheretree.addAll(Arrays.asList(copytrianglepherelist));
+			Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
 			for (int j=0;j<vertplanetriangleint.length;j++) {
-				for (int i=0;i<vertplanetriangleint[0].length;i++) {
-					Position2 triangleint = vertplanetriangleint[j][i];
+				for (int i=0;i<sortedtrianglespherelist.length;i++) {
+					int it = sortedtrianglespherelist[i].ind;
+					Position2 triangleint = vertplanetriangleint[j][it];
 					if (triangleint!=null) {
-						g.setColor(trianglecolor[i]);
+						g.setColor(trianglecolor[it]);
 						Position[] triangleintpoints = {triangleint.pos1, triangleint.pos2};
 						double[][] trianglefwdintpointsdist = MathLib.pointPlaneDistance(triangleintpoints, camfwdplane);
 						if ((trianglefwdintpointsdist[0][0]>0)||(trianglefwdintpointsdist[1][0]>0)) {
