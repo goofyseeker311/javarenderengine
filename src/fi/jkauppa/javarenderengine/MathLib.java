@@ -5,12 +5,42 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.TreeSet;
 
 import fi.jkauppa.javarenderengine.ModelLib.Material;
 
 public class MathLib {
-	public static class Position implements Comparable<Position> {public double x,y,z; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;} @Override public int compareTo(Position o){int k=-1;if(this.x==o.x){if(this.y==o.y){if(this.z==o.z){k=0;}else if(this.z>o.z){k=1;}}else if(this.y>o.y){k=1;}}else if(this.x>o.x){k=1;}return k;} public Position copy(){return new Position(this.x,this.y,this.z);}}
+	public static class Position implements Comparable<Position> {public double x,y,z; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
+		@Override public int compareTo(Position o){
+			int k = -1;
+			if (this.z>o.z) {
+				k = 1;
+			} else if (this.z==o.z) {
+				if (this.y>o.y) {
+					k = 1;
+				} else if (this.y==o.y) {
+					if (this.x>o.x) {
+						k = 1;
+					} else if (this.x==o.x) {
+						k = 0;
+					}
+				}
+			}
+			return k;
+		}
+		@Override public boolean equals(Object o) {
+			boolean k = false;
+			if (o.getClass().equals(this.getClass())) {
+				Position os = (Position)o;
+				if ((this.x==os.x)&&(this.y==os.y)&&(this.z==os.z)) {
+					k = true;
+				}
+			}
+			return k;
+		}
+		public Position copy(){return new Position(this.x,this.y,this.z);}
+	}
 	public static class Direction {public double dx,dy,dz; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;} public Direction copy(){return new Direction(this.dx,this.dy,this.dz);}}
 	public static class Coordinate {public double u,v; public Coordinate(double ui,double vi){this.u=ui;this.v=vi;}}
 	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}}
@@ -105,26 +135,37 @@ public class MathLib {
 			int k=-1;
 			Line ts=this.sort();
 			Line os=o.sort();
-			if (ts.pos1.x>os.pos1.x) {
+			if (ts.pos1.z>os.pos1.z) {
 				k=1;
-			}else if (ts.pos1.x==os.pos1.x) {
+			}else if (ts.pos1.z==os.pos1.z) {
 				if(ts.pos1.y>os.pos1.y){
 					k=1;
 				}else if (ts.pos1.y==os.pos1.y) {
-					if(ts.pos1.z>os.pos1.z) {
+					if(ts.pos1.x>os.pos1.x) {
 						k=1;
-					} else if (ts.pos1.z==os.pos1.z) {
-						if(ts.pos2.x>os.pos2.x) {
+					} else if (ts.pos1.x==os.pos1.x) {
+						if(ts.pos2.z>os.pos2.z) {
 							k=1;
-						} else if (ts.pos2.x==os.pos2.x) {
+						} else if (ts.pos2.z==os.pos2.z) {
 							if(ts.pos2.y>os.pos2.y) {
 								k=1;
 							} else if (ts.pos2.y==os.pos2.y) {
-								if (ts.pos2.z>os.pos2.z) {
+								if (ts.pos2.x>os.pos2.x) {
 									k=1;
-								} else if (ts.pos2.z==os.pos2.z) {
+								} else if (ts.pos2.x==os.pos2.x) {
 									k=0;
 								}}}}}}
+			return k;
+		}
+		@Override public boolean equals(Object o) {
+			boolean k = false;
+			if (o.getClass().equals(this.getClass())) {
+				Line os = ((Line)o).sort();
+				Line ts=this.sort();
+				if ((ts.pos1.x==os.pos1.x)&&(this.pos1.y==os.pos1.y)&&(this.pos1.z==os.pos1.z)&&(ts.pos2.x==os.pos2.x)&&(this.pos2.y==os.pos2.y)&&(this.pos2.z==os.pos2.z)) {
+					k = true;
+				}
+			}
 			return k;
 		}
 		public Line copy(){return new Line(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z));}
@@ -1000,15 +1041,38 @@ public class MathLib {
 	
 	public static Entity[] generateEntityList(Line[] linelist) {
 		ArrayList<Entity> newentitylistarray = new ArrayList<Entity>();
-		Entity newentity = new Entity();
-		Position[] newvertexlist = generateVertexList(linelist);
-		newentity.trianglelist = generateTriangleList(linelist);
-		newentity.linelist = generateNonTriangleLineList(linelist);
-		newentity.tetrahedronlist = generateTetrahedronList(linelist);
-		newentity.surfacelist = generateSurfaceList(linelist);
-		newentity.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newvertexlist);
-		newentity.sphereboundaryvolume = MathLib.pointCloudCircumSphere(newvertexlist);
-		newentitylistarray.add(newentity);
+		for (int j=0;j<linelist.length;j++) {
+			Entity foundent = null;
+			for (Iterator<Entity> i=newentitylistarray.iterator();(i.hasNext())&&(foundent==null);) {
+				Entity searchent = i.next();
+				if (searchent.linelist!=null) {
+					Position[] searchvert = MathLib.generateVertexList(searchent.linelist);
+					if ((Arrays.binarySearch(searchvert, linelist[j].pos1)>=0)||(Arrays.binarySearch(searchvert, linelist[j].pos2)>=0)) {
+						foundent = searchent; 
+					}
+				}
+			}
+			if (foundent!=null) {
+				TreeSet<Line> newlinelistarray = new TreeSet<Line>(Arrays.asList(foundent.linelist));
+				newlinelistarray.add(linelist[j]);
+				foundent.linelist = newlinelistarray.toArray(new Line[newlinelistarray.size()]);
+			} else {
+				Entity newentity = new Entity();
+				Line[] newlinelist = {linelist[j]}; 
+				newentity.linelist = newlinelist; 
+				newentitylistarray.add(newentity);
+			}
+		}
+		for (Iterator<Entity> i=newentitylistarray.iterator();i.hasNext();) {
+			Entity processent = i.next();
+			Position[] newvertexlist = generateVertexList(processent.linelist);
+			processent.trianglelist = generateTriangleList(processent.linelist);
+			processent.tetrahedronlist = generateTetrahedronList(processent.linelist);
+			processent.surfacelist = generateSurfaceList(processent.linelist);
+			processent.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newvertexlist);
+			processent.sphereboundaryvolume = MathLib.pointCloudCircumSphere(newvertexlist);
+			processent.linelist = generateNonTriangleLineList(processent.linelist);
+		}
 		return newentitylistarray.toArray(new Entity[newentitylistarray.size()]);
 	}
 	

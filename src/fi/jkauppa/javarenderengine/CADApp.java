@@ -418,25 +418,26 @@ public class CADApp implements AppHandler {
 		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
 			this.backwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_F2) {
-		    int onmask = KeyEvent.SHIFT_DOWN_MASK;
-		    int offmask = KeyEvent.ALT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
-		    boolean f2shiftdown = (e.getModifiersEx() & (onmask | offmask)) == onmask;
 			this.filechooser.setDialogTitle("Save File");
 			this.filechooser.setApproveButtonText("Save");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
+			    int onmask = KeyEvent.SHIFT_DOWN_MASK;
+			    int offmask = KeyEvent.ALT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
+			    boolean f2shiftdown = (e.getModifiersEx() & (onmask | offmask)) == onmask;
+				Triangle[] copytrianglelist = this.entitylist[0].trianglelist;
+			    if (f2shiftdown) {
+			    	copytrianglelist = this.entitylist[0].surfacelist;
+			    }
 				File savefile = this.filechooser.getSelectedFile();
 				FileFilter savefileformat = this.filechooser.getFileFilter();
 				if (savefileformat.equals(this.stlfilefilter)) {
-					Triangle[] savemodel = this.entitylist[0].trianglelist;
+					Triangle[] savemodel = copytrianglelist;
 					String savestlfile = savefile.getPath();
 					if (savestlfile.toLowerCase().endsWith(".stl")) {
 						savestlfile = savestlfile.substring(0, savestlfile.length()-4).concat(".stl");
 					} else {
 						savestlfile = savestlfile.concat(".stl");
 					}
-				    if (f2shiftdown) {
-				    	savemodel = this.entitylist[0].surfacelist;
-				    }
 					ModelLib.saveSTLFile(savestlfile, savemodel, "JREOBJ");
 				} else {
 					Model savemodel = new Model(savefile.getPath());
@@ -449,10 +450,6 @@ public class CADApp implements AppHandler {
 						savemtlfile = savemtlfile.concat(".mtl");
 					}
 					savemodel.mtllib = savemtlfile;
-					Triangle[] copytrianglelist = this.entitylist[0].trianglelist;
-				    if (f2shiftdown) {
-				    	copytrianglelist = this.entitylist[0].surfacelist;
-				    }
 					TreeSet<Material> materiallistarray = new TreeSet<Material>();
 					for (int i=0;i<copytrianglelist.length;i++) {
 						materiallistarray.add(copytrianglelist[i].mat);
