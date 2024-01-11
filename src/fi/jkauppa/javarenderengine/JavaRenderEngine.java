@@ -35,10 +35,10 @@ import javax.swing.UIManager;
 
 import fi.jkauppa.javarenderengine.MathLib.AxisAlignedBoundingBox;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
+import fi.jkauppa.javarenderengine.MathLib.Line;
 import fi.jkauppa.javarenderengine.MathLib.Matrix;
 import fi.jkauppa.javarenderengine.MathLib.Plane;
 import fi.jkauppa.javarenderengine.MathLib.Position;
-import fi.jkauppa.javarenderengine.MathLib.Position2;
 import fi.jkauppa.javarenderengine.MathLib.Sphere;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
 
@@ -64,7 +64,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.6.5");
+		this.setTitle("Java Render Engine v1.6.6");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -138,7 +138,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		for (int i=0;i<camdirang.length;i++) {System.out.println("camdirang: "+camdirang[i]);}
 		Position[][] camrtint = MathLib.rayTriangleIntersection(campos, camdir3, ptri);
 		for (int i=0;i<camrtint.length;i++) {for (int j=0;j<camrtint[i].length;j++) {if(camrtint[i][j]!=null) {System.out.println("camrtint["+i+"]["+j+"]: "+camrtint[i][j].x+" "+camrtint[i][j].y+" "+camrtint[i][j].z);}else{System.out.println("camrtint["+i+"]["+j+"]: no hit.");}}}
-		Position2[][] camptint = MathLib.planeTriangleIntersection(camplane, ptri);
+		Line[][] camptint = MathLib.planeTriangleIntersection(camplane, ptri);
 		for (int i=0;i<camptint.length;i++) {for (int j=0;j<camptint[i].length;j++) {if(camptint[i][j]!=null) {System.out.println("camptint["+i+"]["+j+"]: "+camptint[i][j].pos1.x+" "+camptint[i][j].pos1.y+" "+camptint[i][j].pos1.z+", "+camptint[i][j].pos2.x+" "+camptint[i][j].pos2.y+" "+camptint[i][j].pos2.z);}else{System.out.println("camptint["+i+"]["+j+"]: no hit.");}}}
 		Matrix mat1 = new Matrix(1,0,0,0,1,0,0,0,1);
 		Matrix mat2 = new Matrix(0.6124,0.6124,0.5000,0.3536,0.3536,-0.8660,-0.7071,0.7071,0);
@@ -173,7 +173,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		Integer[][] ssint2 = MathLib.mutualSphereIntersection(vsphere3);
 		System.out.println("ssint["+ssint.length+"]["+ssint[0].length+"]="); for (int j=0;j<ssint.length;j++) {for (int i=0;i<ssint[0].length;i++) {System.out.print(" "+ssint[j][i]);}System.out.println();}
 		for (int j=0;j<ssint2.length;j++) {System.out.print("ssint2["+j+"]=");for (int i=0;i<ssint2[j].length;i++){System.out.print(" "+ssint2[j][i]);}System.out.println();}
-		Position2[] pline = new Position2[3]; pline[0]=new Position2(new Position(1,0,-1),new Position(1,0,1)); pline[1]=new Position2(new Position(-1,0,1),new Position(1,0,1)); pline[2]=new Position2(new Position(1,0,1),new Position(1,0,3));
+		Line[] pline = new Line[3]; pline[0]=new Line(new Position(1,0,-1),new Position(1,0,1)); pline[1]=new Line(new Position(-1,0,1),new Position(1,0,1)); pline[2]=new Line(new Position(1,0,1),new Position(1,0,3));
 		Position[][] camplint = MathLib.planeLineIntersection(camplane, pline);
 		for (int i=0;i<camplint.length;i++) {for (int j=0;j<camplint[i].length;j++) {if(camplint[i][j]!=null) {System.out.println("camplint["+i+"]["+j+"]: "+camplint[i][j].x+" "+camplint[i][j].y+" "+camplint[i][j].z);}else{System.out.println("camplint["+i+"]["+j+"]: no hit.");}}}
 		double[] pang = MathLib.projectedAngles(64, 70.0f);

@@ -19,10 +19,10 @@ import java.util.TreeSet;
 import javax.swing.JFileChooser;
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
+import fi.jkauppa.javarenderengine.MathLib.Line;
 import fi.jkauppa.javarenderengine.MathLib.Matrix;
 import fi.jkauppa.javarenderengine.MathLib.Plane;
 import fi.jkauppa.javarenderengine.MathLib.Position;
-import fi.jkauppa.javarenderengine.MathLib.Position2;
 import fi.jkauppa.javarenderengine.MathLib.Rotation;
 import fi.jkauppa.javarenderengine.MathLib.Sphere;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
@@ -155,7 +155,7 @@ public class ModelApp implements AppHandler {
 			Plane[] verticalplanes = MathLib.projectedPlanes(this.campos, renderwidth, hfov, this.cameramat);
 			double[] verticalangles = MathLib.projectedAngles(renderheight, vfov);
 			Arrays.sort(verticalangles);
-			Position2[][] vertplanetriangleint = MathLib.planeTriangleIntersection(verticalplanes, copytrianglelist);		
+			Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(verticalplanes, copytrianglelist);		
 			Plane[] triangleplanes = MathLib.planeFromPoints(copytrianglelist);
 			Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
 			double[] triangleviewangles = MathLib.vectorAngle(this.camdirs[0], trianglenormals);
@@ -183,20 +183,20 @@ public class ModelApp implements AppHandler {
 			for (int j=0;j<vertplanetriangleint.length;j++) {
 				for (int i=0;i<sortedtrianglespherelist.length;i++) {
 					int it = sortedtrianglespherelist[i].ind;
-					Position2 triangleint = vertplanetriangleint[j][it];
+					Line triangleint = vertplanetriangleint[j][it];
 					if (triangleint!=null) {
 						g.setColor(trianglecolor[it]);
 						Position[] triangleintpoints = {triangleint.pos1, triangleint.pos2};
 						double[][] trianglefwdintpointsdist = MathLib.pointPlaneDistance(triangleintpoints, camfwdplane);
 						if ((trianglefwdintpointsdist[0][0]>0)||(trianglefwdintpointsdist[1][0]>0)) {
-							Position2 drawline = triangleint;
-							Position2[] triangleintarray = {triangleint};
+							Line drawline = triangleint;
+							Line[] triangleintarray = {triangleint};
 							Position[][] lineviewint = MathLib.planeLineIntersection(camfwdplane, triangleintarray);
 							if (lineviewint[0][0]!=null) {
 								if (trianglefwdintpointsdist[0][0]>0) {
-									drawline = new Position2(triangleint.pos1, lineviewint[0][0]);
+									drawline = new Line(triangleint.pos1, lineviewint[0][0]);
 								} else if (trianglefwdintpointsdist[1][0]>0) {
-									drawline = new Position2(triangleint.pos2, lineviewint[0][0]);
+									drawline = new Line(triangleint.pos2, lineviewint[0][0]);
 								}
 							}
 							Position[] drawlinepoints = {drawline.pos1, drawline.pos2};

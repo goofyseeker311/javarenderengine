@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import fi.jkauppa.javarenderengine.ModelLib.Material;
@@ -26,7 +25,11 @@ public class MathLib {
 					if (this.x>o.x) {
 						k = 1;
 					} else if (this.x==o.x) {
-						k = 0;
+						if (this.r>o.r) {
+							k = 1;
+						} else if (this.r==o.r) {
+							k = 0;
+						}
 					}
 				}
 			}
@@ -96,11 +99,11 @@ public class MathLib {
 	}
 	public static class AxisAlignedBoundingBox {public double x1,y1,z1,x2,y2,z2; public AxisAlignedBoundingBox(double x1i,double y1i,double z1i,double x2i,double y2i,double z2i){this.x1=x1i;this.y1=y1i;this.z1=z1i;this.x2=x2i;this.y2=y2i;this.z2=z2i;}}
 	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}}
-	public static class Position2 implements Comparable<Position2> {public Position pos1,pos2; public int hitind=-1; public Position2(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}
-		@Override public int compareTo(Position2 o){
+	public static class Line implements Comparable<Line> {public Position pos1,pos2; public int hitind=-1; public Line(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}
+		@Override public int compareTo(Line o){
 			int k=-1;
-			Position2 ts=this.sort();
-			Position2 os=o.sort();
+			Line ts=this.sort();
+			Line os=o.sort();
 			if (ts.pos1.x>os.pos1.x) {
 				k=1;
 			}else if (ts.pos1.x==os.pos1.x) {
@@ -123,9 +126,9 @@ public class MathLib {
 								}}}}}}
 			return k;
 		}
-		public Position2 copy(){return new Position2(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z));}
-		public Position2 swap(){return new Position2(this.pos2,this.pos1);}
-		public Position2 sort(){Position2 k=this;boolean keeporder=true;if(this.pos1.x>this.pos2.x){keeporder=false;}else if(this.pos1.x==this.pos2.x){if(this.pos1.y>this.pos2.y){keeporder=false;}else if (this.pos1.y==this.pos2.y){if(this.pos1.z>this.pos2.z){keeporder=false;}}}if(!keeporder){k=this.swap();}return k;}
+		public Line copy(){return new Line(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z));}
+		public Line swap(){return new Line(this.pos2,this.pos1);}
+		public Line sort(){Line k=this;boolean keeporder=true;if(this.pos1.x>this.pos2.x){keeporder=false;}else if(this.pos1.x==this.pos2.x){if(this.pos1.y>this.pos2.y){keeporder=false;}else if (this.pos1.y==this.pos2.y){if(this.pos1.z>this.pos2.z){keeporder=false;}}}if(!keeporder){k=this.swap();}return k;}
 	}
 	public static class Tetrahedron implements Comparable<Tetrahedron> {public Position pos1,pos2,pos3,pos4; public Tetrahedron(Position pos1i,Position pos2i, Position pos3i,Position pos4i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;this.pos4=pos4i;}
 		@Override public int compareTo(Tetrahedron o) {
@@ -244,8 +247,8 @@ public class MathLib {
 	}
 	public static class Entity implements Comparable<Entity> {
 		public Entity[] childlist = null;
-		public TreeMap<Triangle,Material> trianglematerialmap = null;
-		public Position2[] linelist = null;
+		public Triangle[] trianglelist = null;
+		public Line[] linelist = null;
 		public Tetrahedron[] tetrahedronlist = null;
 		public Sphere sphereboundaryvolume = null;
 		public AxisAlignedBoundingBox aabbboundaryvolume = null;
@@ -518,10 +521,10 @@ public class MathLib {
 		}
 		return k;
 	}
-	public static Position2[][] planeTriangleIntersection(Plane[] vplane, Triangle[] vtri) {
-		Position2[][] k = null;
+	public static Line[][] planeTriangleIntersection(Plane[] vplane, Triangle[] vtri) {
+		Line[][] k = null;
 		if ((vplane!=null)&&(vtri!=null)) {
-			k = new Position2[vplane.length][vtri.length]; 
+			k = new Line[vplane.length][vtri.length]; 
 			for (int m=0;m<vtri.length;m++) {
 				Position[] p1 = new Position[1]; p1[0] = vtri[m].pos1;
 				Position[] p2 = new Position[1]; p2[0] = vtri[m].pos2;
@@ -541,13 +544,13 @@ public class MathLib {
 					boolean ptlhit23 = (ptd23[0][n]>=0)&(ptd23[0][n]<=1);
 					if (ptlhit12|ptlhit13|ptlhit23) {
 						if (ptlhit12&&ptlhit13) {
-							k[n][m] = new Position2(ptlint12[0],ptlint13[0]);
+							k[n][m] = new Line(ptlint12[0],ptlint13[0]);
 							k[n][m].hitind = 0;
 						} else if (ptlhit12&&ptlhit23) {
-							k[n][m] = new Position2(ptlint12[0],ptlint23[0]);
+							k[n][m] = new Line(ptlint12[0],ptlint23[0]);
 							k[n][m].hitind = 1;
 						} else if (ptlhit13&&ptlhit23) {
-							k[n][m] = new Position2(ptlint13[0],ptlint23[0]);
+							k[n][m] = new Line(ptlint13[0],ptlint23[0]);
 							k[n][m].hitind = 2;
 						}
 					}
@@ -556,7 +559,7 @@ public class MathLib {
 		}
 		return k;
 	}
-	public static Position[][] planeLineIntersection(Plane[] vplane, Position2[] vline) {
+	public static Position[][] planeLineIntersection(Plane[] vplane, Line[] vline) {
 		Position[][] k = null;
 		if ((vplane!=null)&&(vline!=null)) {
 			k = new Position[vplane.length][vline.length]; 
@@ -629,7 +632,6 @@ public class MathLib {
 				mutualzindex.add(Math.floorDiv(zlistsidx[i],2));
 			}
 			HashSet<Integer> mutualindex = new HashSet<Integer>(Arrays.asList(mutualxindex.toArray(new Integer[mutualxindex.size()])));
-			mutualindex.retainAll(mutualxindex);
 			mutualindex.retainAll(mutualyindex);
 			mutualindex.retainAll(mutualzindex);
 			mutualindex.remove(j);
@@ -701,10 +703,10 @@ public class MathLib {
 		}
 		return k;
 	}
-	public static Position2[] matrixMultiply(Position2[] vline, Matrix vmat) {
-		Position2[] k = null;
+	public static Line[] matrixMultiply(Line[] vline, Matrix vmat) {
+		Line[] k = null;
 		if ((vline!=null)&&(vmat!=null)) {
-			k = new Position2[vline.length];
+			k = new Line[vline.length];
 			for (int n=0;n<vline.length;n++) {
 				k[n] = vline[n].copy();
 				k[n].pos1.x = vline[n].pos1.x*vmat.a11+vline[n].pos1.y*vmat.a12+vline[n].pos1.z*vmat.a13;
@@ -762,10 +764,10 @@ public class MathLib {
 		}
 		return k;
 	}
-	public static Position2[] translate(Position2[] vline, Position vpos) {
-		Position2[] k = null;
+	public static Line[] translate(Line[] vline, Position vpos) {
+		Line[] k = null;
 		if ((vline!=null)&&(vpos!=null)) {
-			k = new Position2[vline.length];
+			k = new Line[vline.length];
 			for (int n=0;n<vline.length;n++) {
 				k[n] = vline[n].copy();
 				k[n].pos1.x = k[n].pos1.x+vpos.x;
@@ -805,21 +807,26 @@ public class MathLib {
 		return matrixMultiply(zrot,matrixMultiply(yrot, xrot));
 	}
 	
+	public static class DoubleSort implements Comparable<DoubleSort> {
+		public Double value;
+		public int ind;
+		public DoubleSort(double valuei) {this.value = valuei;}
+		@Override public int compareTo(DoubleSort o) {
+			return this.value.compareTo(o.value);
+		}
+	}
 	public static int[] indexSort(double[] data) {
 		int[] k = null;
 		if ((data!=null)&&(data.length>0)) {
 			k = new int[data.length];
-			Integer[] idx = new Integer[data.length];
-			for (int i=0;i<data.length;i++) {
-				idx[i] = i; 
+			DoubleSort[] sorteddouble = new DoubleSort[data.length];
+			for (int i=0;i<sorteddouble.length;i++) {
+				sorteddouble[i] = new DoubleSort(data[i]);
+				sorteddouble[i].ind = i;
 			}
-			Arrays.sort(idx, new Comparator<Integer>() {
-			    @Override public int compare(final Integer o1, final Integer o2) {
-			        return Double.compare(data[o1], data[o2]);
-			    }
-			});
-			for (int i=0;i<data.length;i++) {
-				k[i] = idx[i].intValue(); 
+			Arrays.sort(sorteddouble);
+			for (int i=0;i<sorteddouble.length;i++) {
+				k[i] = sorteddouble[i].ind;
 			}
 		}
 		return k;
@@ -835,44 +842,38 @@ public class MathLib {
 		return k;
 	}
 	
-	public static Position[] generateVertexList(Position[] vertexlist) {
-		TreeSet<Position> uniquevertexlist = new TreeSet<Position>(Arrays.asList(vertexlist));
-		return uniquevertexlist.toArray(new Position[uniquevertexlist.size()]);
-	}
-	public static Position[] generateVertexList(Position2[] linelist) {
-		TreeSet<Position> uniquevertexlist = new TreeSet<Position>();
+	public static Position[] generateVertexList(Line[] linelist) {
+		TreeSet<Position> vertexlist = new TreeSet<Position>();
 		for (int i=0;i<linelist.length;i++) {
-			uniquevertexlist.add(linelist[i].pos1);
-			uniquevertexlist.add(linelist[i].pos2);
+			vertexlist.add(linelist[i].pos1);
+			vertexlist.add(linelist[i].pos2);
 		}
-		return uniquevertexlist.toArray(new Position[uniquevertexlist.size()]);
+		return vertexlist.toArray(new Position[vertexlist.size()]);
 	}
 	public static Position[] generateVertexList(Triangle[] trianglelist) {
-		TreeSet<Position> uniquevertexlist = new TreeSet<Position>();
+		TreeSet<Position> vertexlist = new TreeSet<Position>();
 		for (int i=0;i<trianglelist.length;i++) {
-			uniquevertexlist.add(trianglelist[i].pos1);
-			uniquevertexlist.add(trianglelist[i].pos2);
-			uniquevertexlist.add(trianglelist[i].pos3);
+			vertexlist.add(trianglelist[i].pos1);
+			vertexlist.add(trianglelist[i].pos2);
+			vertexlist.add(trianglelist[i].pos3);
 		}
-		return uniquevertexlist.toArray(new Position[uniquevertexlist.size()]);
+		return vertexlist.toArray(new Position[vertexlist.size()]);
 	}
-	public static Position2[] generateLineList(Triangle[] trianglelist) {
-		TreeSet<Position2> uniquelinelist = new TreeSet<Position2>();
+	public static Line[] generateLineList(Triangle[] trianglelist) {
+		TreeSet<Line> linelist = new TreeSet<Line>();
 		for (int i=0;i<trianglelist.length;i++) {
-			uniquelinelist.add(new Position2(trianglelist[i].pos1,trianglelist[i].pos2));
-			uniquelinelist.add(new Position2(trianglelist[i].pos1,trianglelist[i].pos3));
-			uniquelinelist.add(new Position2(trianglelist[i].pos2,trianglelist[i].pos3));
+			linelist.add(new Line(trianglelist[i].pos1,trianglelist[i].pos2));
+			linelist.add(new Line(trianglelist[i].pos1,trianglelist[i].pos3));
+			linelist.add(new Line(trianglelist[i].pos2,trianglelist[i].pos3));
 		}
-		return uniquelinelist.toArray(new Position2[uniquelinelist.size()]);
+		return linelist.toArray(new Line[linelist.size()]);
 	}
-	public static Triangle[] generateTriangleList(Position2[] linelist) {
-		TreeSet<Position2> uniquelinetree = new TreeSet<Position2>(Arrays.asList(linelist));
-		Position2[] uniquelinelist = uniquelinetree.toArray(new Position2[uniquelinetree.size()]);
-		TreeSet<Triangle> uniquetrianglelist = new TreeSet<Triangle>();
-		for (int k=0;k<uniquelinelist.length;k++) {
-			Position2 kline = uniquelinelist[k];
-			for (int j=k+1;j<uniquelinelist.length;j++) {
-				Position2 jline = uniquelinelist[j];
+	public static Triangle[] generateTriangleList(Line[] linelist) {
+		ArrayList<Triangle> trianglelist = new ArrayList<Triangle>();
+		for (int k=0;k<linelist.length;k++) {
+			Line kline = linelist[k];
+			for (int j=k+1;j<linelist.length;j++) {
+				Line jline = linelist[j];
 				boolean kjlineconnected11 = kline.pos1.compareTo(jline.pos1)==0;
 				boolean kjlineconnected12 = kline.pos1.compareTo(jline.pos2)==0;
 				boolean kjlineconnected21 = kline.pos2.compareTo(jline.pos1)==0;
@@ -881,61 +882,70 @@ public class MathLib {
 				if (kjlineconnected) {
 					boolean klinefirst = (kjlineconnected11||kjlineconnected12)?true:false;
 					boolean jlinefirst = (kjlineconnected11||kjlineconnected21)?true:false;
-					for (int i=j+1;i<uniquelinelist.length;i++) {
-						Position2 iline = uniquelinelist[i];
+					for (int i=j+1;i<linelist.length;i++) {
+						Line iline = linelist[i];
 						Position klinefreevertex = klinefirst?kline.pos2:kline.pos1;
 						Position jlinefreevertex = jlinefirst?jline.pos2:jline.pos1;
 						Position connectedvertex = klinefirst?kline.pos1:kline.pos2;
 						boolean ilinecoonnected = (klinefreevertex.compareTo(iline.pos1)==0)&&(jlinefreevertex.compareTo(iline.pos2)==0);
 						boolean ilinecoonnectedr = (klinefreevertex.compareTo(iline.pos2)==0)&&(jlinefreevertex.compareTo(iline.pos1)==0);
 						if (ilinecoonnected||ilinecoonnectedr) {
-							uniquetrianglelist.add(new Triangle(connectedvertex,klinefreevertex,jlinefreevertex));
+							trianglelist.add(new Triangle(connectedvertex,klinefreevertex,jlinefreevertex));
 						}
 					}
 				}
 			}
 		}
-		return uniquetrianglelist.toArray(new Triangle[uniquetrianglelist.size()]);
+		return trianglelist.toArray(new Triangle[trianglelist.size()]);
 	}
-	public static Position2[] generateNonTriangleLineList(Position2[] linelist) {
-		Triangle[] uniquetrianglelist = generateTriangleList(linelist);
-		TreeSet<Position2> uniquetrianglelinelist = new TreeSet<Position2>(Arrays.asList(generateLineList(uniquetrianglelist)));
-		TreeSet<Position2> uniquelinetree = new TreeSet<Position2>(Arrays.asList(linelist));
-		uniquelinetree.removeAll(uniquetrianglelinelist);
-		return uniquelinetree.toArray(new Position2[uniquelinetree.size()]);
+	public static Line[] generateNonTriangleLineList(Line[] linelist) {
+		Triangle[] trianglelist = generateTriangleList(linelist);
+		TreeSet<Line> trianglelinelistarray = new TreeSet<Line>(Arrays.asList(generateLineList(trianglelist)));
+		TreeSet<Line> linelistarray = new TreeSet<Line>(Arrays.asList(linelist));
+		linelistarray.removeAll(trianglelinelistarray);
+		return linelistarray.toArray(new Line[linelistarray.size()]);
 	}
 
-	public static Tetrahedron[] generateTetrahedronList(Position2[] linelist) {
-		TreeSet<Tetrahedron> uniquetetrahedronlist = new TreeSet<Tetrahedron>();
+	public static Tetrahedron[] generateTetrahedronList(Line[] linelist) {
 		Triangle[] uniquetrianglelist = generateTriangleList(linelist);
+		TreeSet<Tetrahedron> tetrahedronlist = new TreeSet<Tetrahedron>();
 		for (int k=0;k<uniquetrianglelist.length;k++) {
 			Triangle trianglek = uniquetrianglelist[k]; 
 			for (int j=k+1;j<uniquetrianglelist.length;j++) {
 				Triangle trianglej = uniquetrianglelist[j];
 				Position[] trianglevertexkj = {trianglek.pos1,trianglek.pos2,trianglek.pos3,trianglej.pos1,trianglej.pos2,trianglej.pos3};
-				Position[] uniquetrianglevertexkj = generateVertexList(trianglevertexkj);
-				if (uniquetrianglevertexkj.length==4) {
+				TreeSet<Position> uniquetrianglevertexkj = new TreeSet<Position>(Arrays.asList(trianglevertexkj));
+				if (uniquetrianglevertexkj.size()==4) {
 					for (int i=j+1;i<uniquetrianglelist.length;i++) {
 						Triangle trianglei = uniquetrianglelist[i];
 						Position[] trianglevertexkji = {trianglek.pos1,trianglek.pos2,trianglek.pos3,trianglej.pos1,trianglej.pos2,trianglej.pos3,trianglei.pos1,trianglei.pos2,trianglei.pos3};
-						Position[] uniquetrianglevertexkji = generateVertexList(trianglevertexkji);
+						TreeSet<Position> uniquetrianglevertexkjiset = new TreeSet<Position>(Arrays.asList(trianglevertexkji));
+						Position[] uniquetrianglevertexkji = uniquetrianglevertexkjiset.toArray(new Position[uniquetrianglevertexkjiset.size()]);
 						if (uniquetrianglevertexkji.length==4) {
 							Triangle triangle1 = new Triangle(uniquetrianglevertexkji[0],uniquetrianglevertexkji[1],uniquetrianglevertexkji[2]);
 							Triangle triangle2 = new Triangle(uniquetrianglevertexkji[1],uniquetrianglevertexkji[2],uniquetrianglevertexkji[3]);
 							Triangle[] triangles12 = {triangle1,triangle2};
 							Plane[] triangle1plane = planeFromPoints(triangles12);
 							if ((!((triangle1plane[0].a==triangle1plane[1].a)&&(triangle1plane[0].b==triangle1plane[1].b)&&(triangle1plane[0].c==triangle1plane[1].c)))&&(!((triangle1plane[0].a==-triangle1plane[1].a)&&(triangle1plane[0].b==-triangle1plane[1].b)&&(triangle1plane[0].c==-triangle1plane[1].c)))) {
-								uniquetetrahedronlist.add(new Tetrahedron(uniquetrianglevertexkji[0],uniquetrianglevertexkji[1],uniquetrianglevertexkji[2],uniquetrianglevertexkji[3]));
+								tetrahedronlist.add(new Tetrahedron(uniquetrianglevertexkji[0],uniquetrianglevertexkji[1],uniquetrianglevertexkji[2],uniquetrianglevertexkji[3]));
 							}
 						}
 					}
 				}
 			}
 		}
-		return uniquetetrahedronlist.toArray(new Tetrahedron[uniquetetrahedronlist.size()]);
+		return tetrahedronlist.toArray(new Tetrahedron[tetrahedronlist.size()]);
+	}
+
+	public static Triangle[] generateSurfaceList(Line[] linelist) {
+		//Tetrahedron[] newtetrahedronlist = generateTetrahedronList(linelist);
+		return null;
 	}
 	
-	public static Entity[] generateEntityList(Position2[] linelist) {
+	public static Entity[] generateEntityList(Line[] linelist) {
+		//Triangle[] newtrianglelist = MathLib.generateTriangleList(linelist);
+		//Line[] newnontrianglelinelist = MathLib.generateNonTriangleLineList(linelist);
+		//Tetrahedron[] newtetrahedronlist = MathLib.generateTetrahedronList(linelist);
 		return null;
 	}
 	
