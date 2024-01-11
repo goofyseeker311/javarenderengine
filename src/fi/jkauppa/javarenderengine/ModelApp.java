@@ -215,17 +215,19 @@ public class ModelApp implements AppHandler {
 							double drawdistancedelta = drawdistance[1]-drawdistance[0];
 							int startind = Arrays.binarySearch(verticalangles, anglessort[0]);
 							int endind = Arrays.binarySearch(verticalangles, anglessort[1]);
-							if (startind<0) {startind = -startind-1; }
-							if (endind<0) {endind = -endind-1;}
-							if (startind>=verticalangles.length) {startind = verticalangles.length-1; }
-							if (endind>=verticalangles.length) {endind = verticalangles.length-1; }
-							int indcount = endind - startind + 1;
-							double drawstep = drawdistancedelta/((double)indcount);
-							for (int n=startind;n<=endind;n++) {
-								double stepdistance = drawdistance[0] + drawstep*(n-startind);  
-								if (stepdistance<this.zbuffer[n][j]) {
-									this.zbuffer[n][j] = stepdistance;
-									g.drawLine(j, n, j, n);
+							if ((startind!=-(verticalangles.length+1))&&(endind!=-1)) {
+								if (startind<0) {startind = -startind-1; }
+								if (endind<0) {endind = -endind-1;}
+								if (startind>=verticalangles.length) {startind = verticalangles.length-1; }
+								if (endind>=verticalangles.length) {endind = verticalangles.length-1; }
+								int indcount = endind - startind + 1;
+								double drawstep = drawdistancedelta/((double)indcount);
+								for (int n=startind;n<=endind;n++) {
+									double stepdistance = drawdistance[0] + drawstep*(n-startind);  
+									if (stepdistance<this.zbuffer[n][j]) {
+										this.zbuffer[n][j] = stepdistance;
+										g.drawLine(j, n, j, n);
+									}
 								}
 							}
 						}
