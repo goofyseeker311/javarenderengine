@@ -42,7 +42,7 @@ public class ModelApp implements AppHandler {
 	private final Direction lookdir = new Direction(0,0,-1);
 	private final Direction[] lookdirs = {new Direction(0,0,-1),new Direction(1,0,0),new Direction(0,-1,0)};
 	private Direction[] camdirs = lookdirs;
-	private final double hfov = 70.0f, vfov = 43.0f;
+	private double hfov = 70.0f, vfov = 43.0f;
 	private JFileChooser filechooser = new JFileChooser();
 	private OBJFileFilter objfilefilter = new OBJFileFilter();
 	private boolean leftkeydown = false;
@@ -146,6 +146,7 @@ public class ModelApp implements AppHandler {
 			this.zbuffer = new double[renderheight][renderwidth];
 		}
 		for (int i=0;i<this.zbuffer.length;i++) {Arrays.fill(this.zbuffer[i],Double.MAX_VALUE);}
+		this.vfov = 2.0f*(180.0f/Math.PI)*Math.atan((((double)renderheight)/((double)renderwidth))*Math.tan((this.hfov/2.0f)*(Math.PI/180.0f))); 
 		g.setComposite(AlphaComposite.SrcOver);
 		g.setColor(Color.BLACK);
 		g.setPaint(null);
@@ -166,7 +167,7 @@ public class ModelApp implements AppHandler {
 			Color[] trianglecolor = new Color[copytrianglelist.length];
 			for (int i=0;i<copytrianglelist.length;i++) {
 				double triangleviewangle = triangleviewangles[i];
-				if (triangleviewangle>90.0f) {triangleviewangle = 180-triangleviewangle;}
+				if (triangleviewangle>90.0f) {triangleviewangle = 180.0f-triangleviewangle;}
 				float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
 				Material copymaterial = this.trianglematerialmap.get(copytrianglelist[i]);
 				Color tricolor = copymaterial.facecolor;
