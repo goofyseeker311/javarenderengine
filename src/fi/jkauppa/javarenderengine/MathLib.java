@@ -1,5 +1,6 @@
 package fi.jkauppa.javarenderengine;
 
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -262,6 +263,7 @@ public class MathLib {
 	public static double[] vectorDot(Direction[] vdir, Position vpoint){double[] k=null; if((vdir!=null)&&(vpoint!=null)){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vpoint.x+vdir[n].dy*vpoint.y+vdir[n].dz*vpoint.z;}}return k;}
 	public static double[] vectorDot(Direction[] vdir, Position[] vpoint){double[] k=null; if((vdir!=null)&&(vpoint!=null)&&(vdir.length==vpoint.length)){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vpoint[n].x+vdir[n].dy*vpoint[n].y+vdir[n].dz*vpoint[n].z;}}return k;}
 	public static double[] vectorDot(Direction vdir1, Direction[] vdir2){double[] k=null; if((vdir1!=null)&&(vdir2!=null)){k=new double[vdir2.length];for(int n=0;n<vdir2.length;n++){k[n] = vdir1.dx*vdir2[n].dx+vdir1.dy*vdir2[n].dy+vdir1.dz*vdir2[n].dz;}}return k;}
+	public static double vectorDot(Direction vdir1, Direction vdir2){return vdir1.dx*vdir2.dx+vdir1.dy*vdir2.dy+vdir1.dz*vdir2.dz;}
 	public static double[] vectorDot(Direction[] vdir1, Direction[] vdir2){double[] k=null; if((vdir1!=null)&&(vdir2!=null)&&(vdir1.length==vdir2.length)){k=new double[vdir1.length];for(int n=0;n<vdir1.length;n++){k[n] = vdir1[n].dx*vdir2[n].dx+vdir1[n].dy*vdir2[n].dy+vdir1[n].dz*vdir2[n].dz;}}return k;}
 	public static double[] vectorDot(Direction[] vdir){double[] k=null; if(vdir!=null){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vdir[n].dx+vdir[n].dy*vdir[n].dy+vdir[n].dz*vdir[n].dz;}}return k;}
 	public static double vectorDot(Direction vdir){return vdir.dx*vdir.dx+vdir.dy*vdir.dy+vdir.dz*vdir.dz;}
@@ -581,6 +583,67 @@ public class MathLib {
 		return k;
 	}
 
+	public static Rectangle[][] cubemapSphereIntersection(Position vpos, Sphere[] vsphere, int vres) {
+		Rectangle[][] k = new Rectangle[vsphere.length][6];
+		double[] cmangles = projectedAngles(vres, 90);
+		Arrays.sort(cmangles);
+		Direction[] cubedir = {new Direction(1.0f,0.0f,0.0f),new Direction(0.0f,1.0f,0.0f),new Direction(-1.0f,0.0f,0.0f),new Direction(0.0f,-1.0f,0.0f),new Direction(0.0f,0.0f,1.0f),new Direction(0.0f,0.0f,-1.0f)};
+		int[] cubeind1 = {3,3,3,3,2,2};
+		int[] cubeind2 = {2,1,2,1,1,1};
+		Direction[] lvec = vectorFromPoints(vpos, vsphere);
+		double[] lvecl = MathLib.vectorLength(lvec);
+		for (int j=0;j<vsphere.length;j++) {
+			double cmradang = (180.0f/Math.PI)*Math.asin(vsphere[j].r/lvecl[j]);
+			if (Double.isNaN(cmradang)) {cmradang = 90.0f;}
+			for (int i=0;i<cubedir.length;i++) {
+				Direction[] lvecx = new Direction[2];
+				double sign1 = 1.0f;
+				double sign2 = 1.0f;
+				if (cubeind1[i]==1) {
+					lvecx[0] = new Direction(0.0f,lvec[j].dy,lvec[j].dz);
+					sign2 = lvec[j].dx<0.0f?-1.0f:1.0f;
+				} else if (cubeind1[i]==2) {
+					lvecx[0] = new Direction(lvec[j].dx,0.0f,lvec[j].dz);
+					sign2 = lvec[j].dy<0.0f?-1.0f:1.0f;
+				} else {
+					lvecx[0] = new Direction(lvec[j].dx,lvec[j].dy,0.0f);
+					sign2 = lvec[j].dz<0.0f?-1.0f:1.0f;
+				}
+				if (cubeind2[i]==1) {
+					lvecx[1] = new Direction(0.0f,lvec[j].dy,lvec[j].dz);
+					sign1 = lvec[j].dx<0.0f?-1.0f:1.0f;
+				} else if (cubeind2[i]==2) {
+					lvecx[1] = new Direction(lvec[j].dx,0.0f,lvec[j].dz);
+					sign1 = lvec[j].dy<0.0f?-1.0f:1.0f;
+				} else {
+					lvecx[1] = new Direction(lvec[j].dx,lvec[j].dy,0.0f);
+					sign1 = lvec[j].dz<0.0f?-1.0f:1.0f;
+				}
+				Direction[] lvecxn = normalizeVector(lvecx);
+				double lvecxa1 = sign1*(180.0f/Math.PI)*Math.acos(vectorDot(lvecxn[0],cubedir[i])); 
+				double lvecxa2 = sign2*(180.0f/Math.PI)*Math.acos(vectorDot(lvecxn[1],cubedir[i]));
+				double lvecxa1min = lvecxa1 - cmradang;
+				double lvecxa1max = lvecxa1 + cmradang;
+				double lvecxa2min = lvecxa2 - cmradang;
+				double lvecxa2max = lvecxa2 + cmradang;
+				int startind1 = Arrays.binarySearch(cmangles, lvecxa1min);
+				int endind1 = Arrays.binarySearch(cmangles, lvecxa1max);
+				int startind2 = Arrays.binarySearch(cmangles, lvecxa2min);
+				int endind2 = Arrays.binarySearch(cmangles, lvecxa2max);
+				if (startind1<0) {startind1 = -startind1-1;}
+				if (endind1<0) {endind1 = -endind1-1;}
+				if (startind1>=cmangles.length) {startind1 = cmangles.length-1;}
+				if (endind1>=cmangles.length) {endind1 = cmangles.length-1;}
+				if (startind2<0) {startind2 = -startind2-1;}
+				if (endind2<0) {endind2 = -endind2-1;}
+				if (startind2>=cmangles.length) {startind2 = cmangles.length-1;}
+				if (endind2>=cmangles.length) {endind2 = cmangles.length-1;}
+				k[j][i] = new Rectangle(startind1,startind2,endind1-startind1+1,endind2-startind2+1);
+			}
+		}
+		return k;
+	}
+	
 	public static boolean[][] sphereSphereIntersection(Sphere[] vsphere1, Sphere[] vsphere2) {
 		boolean[][] k = null;
 		if ((vsphere1.length>0)&&(vsphere2.length>0)) {

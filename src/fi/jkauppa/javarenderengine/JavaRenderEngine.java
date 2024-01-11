@@ -10,6 +10,7 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.Transparency;
 import java.awt.datatransfer.Clipboard;
@@ -213,6 +214,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		System.out.println("aaboundingbox="+aaboundingbox.x1+","+aaboundingbox.y1+","+aaboundingbox.z1+" "+aaboundingbox.x2+" "+aaboundingbox.y2+" "+aaboundingbox.z2);
 		System.out.println("boundingsphere="+pointcloudsphere.x+","+pointcloudsphere.y+","+pointcloudsphere.z+" "+pointcloudsphere.r);
 		for (int i=0;i<trianglesphere.length;i++) {System.out.println("trianglesphere["+i+"]="+trianglesphere[i].x+" "+trianglesphere[i].y+" "+trianglesphere[i].z+" "+trianglesphere[i].r);}
+		Position vpos = new Position(0,0,0);
+		Rectangle[][] cmsint = MathLib.cubemapSphereIntersection(vpos, vsphere3, 64);
+		for (int j=0;j<cmsint.length;j++) {System.out.print("cmsint["+j+"]="); for (int i=0;i<cmsint[0].length;i++) {System.out.print(" "+cmsint[j][i].x+","+cmsint[j][i].y+","+(cmsint[j][i].x+cmsint[j][i].width-1)+","+(cmsint[j][i].y+cmsint[j][i].height-1));} System.out.println();}
 		
 		new JavaRenderEngine();
 	}
