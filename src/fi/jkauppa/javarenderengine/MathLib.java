@@ -250,6 +250,7 @@ public class MathLib {
 		public Triangle[] trianglelist = null;
 		public Line[] linelist = null;
 		public Tetrahedron[] tetrahedronlist = null;
+		public Triangle[] surfacelist = null;
 		public Sphere sphereboundaryvolume = null;
 		public AxisAlignedBoundingBox aabbboundaryvolume = null;
 		@Override public int compareTo(Entity o) {
@@ -903,17 +904,43 @@ public class MathLib {
 	}
 
 	public static Triangle[] generateSurfaceList(Line[] linelist) {
-		//Tetrahedron[] newtetrahedronlist = generateTetrahedronList(linelist);
-		return null;
+		TreeSet<Triangle> surfacelistarray = new TreeSet<Triangle>(); 
+		Tetrahedron[] newtetrahedronlist = generateTetrahedronList(linelist);
+		for (int j=0;j<newtetrahedronlist.length;j++) {
+			Triangle tetrahedronside1 = new Triangle(newtetrahedronlist[j].pos1, newtetrahedronlist[j].pos2, newtetrahedronlist[j].pos3); 
+			Triangle tetrahedronside2 = new Triangle(newtetrahedronlist[j].pos1, newtetrahedronlist[j].pos2, newtetrahedronlist[j].pos4); 
+			Triangle tetrahedronside3 = new Triangle(newtetrahedronlist[j].pos1, newtetrahedronlist[j].pos3, newtetrahedronlist[j].pos4); 
+			Triangle tetrahedronside4 = new Triangle(newtetrahedronlist[j].pos2, newtetrahedronlist[j].pos3, newtetrahedronlist[j].pos4);
+			Triangle[] tetrahedronsides = {tetrahedronside1,tetrahedronside2,tetrahedronside3,tetrahedronside4};
+			Plane[] tetrahedronsideplanes = planeFromPoints(tetrahedronsides);
+			Position[] tetrahedronsidepoints = {newtetrahedronlist[j].pos4,newtetrahedronlist[j].pos3,newtetrahedronlist[j].pos2,newtetrahedronlist[j].pos1};
+			for (int i=0;i<tetrahedronsides.length;i++) {
+				Plane[] tetrahedronsideplane = {tetrahedronsideplanes[i]};
+				Direction tetrahedronsideplanenormal = new Direction(tetrahedronsideplanes[i].a,tetrahedronsideplanes[i].b,tetrahedronsideplanes[i].c);
+				Direction[] tetrahedronsideplanenormalarray = {tetrahedronsideplanenormal};
+				double[][] tetrahedronsideplanepointdist = rayPlaneDistance(tetrahedronsidepoints[i], tetrahedronsideplanenormalarray, tetrahedronsideplane);
+				if (tetrahedronsideplanepointdist[0][0]<0) {
+					tetrahedronsideplanenormal = new Direction(-tetrahedronsideplanes[i].a,-tetrahedronsideplanes[i].b,-tetrahedronsideplanes[i].c);
+				}
+				tetrahedronsides[i].norm = tetrahedronsideplanenormal;
+				if (surfacelistarray.contains(tetrahedronsides[i])) {
+					surfacelistarray.remove(tetrahedronsides[i]);
+				} else {
+					surfacelistarray.add(tetrahedronsides[i]);
+				}
+			}
+		}
+		return surfacelistarray.toArray(new Triangle[surfacelistarray.size()]);
 	}
 	
 	public static Entity[] generateEntityList(Line[] linelist) {
 		ArrayList<Entity> newentitylistarray = new ArrayList<Entity>();
 		Entity newentity = new Entity();
-		Position[] newvertexlist = MathLib.generateVertexList(linelist);
-		newentity.trianglelist = MathLib.generateTriangleList(linelist);
-		newentity.linelist = MathLib.generateNonTriangleLineList(linelist);
-		newentity.tetrahedronlist = MathLib.generateTetrahedronList(linelist);
+		Position[] newvertexlist = generateVertexList(linelist);
+		newentity.trianglelist = generateTriangleList(linelist);
+		newentity.linelist = generateNonTriangleLineList(linelist);
+		newentity.tetrahedronlist = generateTetrahedronList(linelist);
+		newentity.surfacelist = generateSurfaceList(linelist);
 		newentity.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newvertexlist);
 		newentity.sphereboundaryvolume = MathLib.pointCloudCircumSphere(newvertexlist);
 		newentitylistarray.add(newentity);

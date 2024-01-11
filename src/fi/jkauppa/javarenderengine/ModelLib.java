@@ -329,5 +329,35 @@ public class ModelLib {
 		}
 		return k;
 	}
+
+	public static void saveSTLFile(String filename, Triangle[] model, String objectname) {
+		if ((filename!=null)&&(model!=null)) {
+			try {
+				File savestlfile = new File(filename);
+				BufferedWriter modelstlfile = new BufferedWriter(new FileWriter(savestlfile, false));
+				modelstlfile.write("solid "+objectname);
+				modelstlfile.newLine();
+				for (int i=0;i<model.length;i++) {
+					modelstlfile.write("facet normal "+String.format("%1.4e",model[i].norm.dx).replace(',','.')+" "+String.format("%1.4e",model[i].norm.dy).replace(',','.')+" "+String.format("%1.4e",model[i].norm.dz).replace(',','.'));
+					modelstlfile.newLine();
+					modelstlfile.write("\touter loop");
+					modelstlfile.newLine();
+					modelstlfile.write("\t\tvertex "+String.format("%1.4e",model[i].pos1.x).replace(',','.')+" "+String.format("%1.4e",model[i].pos1.y).replace(',','.')+" "+String.format("%1.4e",model[i].pos1.z).replace(',','.'));
+					modelstlfile.newLine();
+					modelstlfile.write("\t\tvertex "+String.format("%1.4e",model[i].pos2.x).replace(',','.')+" "+String.format("%1.4e",model[i].pos2.y).replace(',','.')+" "+String.format("%1.4e",model[i].pos2.z).replace(',','.'));
+					modelstlfile.newLine();
+					modelstlfile.write("\t\tvertex "+String.format("%1.4e",model[i].pos3.x).replace(',','.')+" "+String.format("%1.4e",model[i].pos3.y).replace(',','.')+" "+String.format("%1.4e",model[i].pos3.z).replace(',','.'));
+					modelstlfile.newLine();
+					modelstlfile.write("\tendloop");
+					modelstlfile.newLine();
+					modelstlfile.write("endfacet");
+					modelstlfile.newLine();
+				}
+				modelstlfile.write("endsolid "+objectname);
+				modelstlfile.newLine();
+				modelstlfile.close();
+			} catch(Exception ex){ex.printStackTrace();}
+		}
+	}
 	
 }

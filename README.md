@@ -67,7 +67,8 @@ PGUP              -- brightness positive change (minmax)
 PGDOWN            -- brightness negative change (minmax)
 NUMPAD9           -- pencil transparency positive (minmax)
 NUMPAD8           -- pencil transparency negative (minmax)
-F2                -- save model file dialog
+F2                -- save model file dialog (all primitives)
+SHIFT-F2          -- save model file dialog (surface only)
 F3                -- load model file dialog
 
 Model App Keys:
