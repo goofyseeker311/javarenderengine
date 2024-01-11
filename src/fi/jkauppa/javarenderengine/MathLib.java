@@ -594,7 +594,7 @@ public class MathLib {
 		double[] lvecl = MathLib.vectorLength(lvec);
 		for (int j=0;j<vsphere.length;j++) {
 			double cmradang = (180.0f/Math.PI)*Math.asin(vsphere[j].r/lvecl[j]);
-			if (Double.isNaN(cmradang)) {cmradang = 90.0f;}
+			if (!Double.isFinite(cmradang)) {cmradang = 180.0f;}
 			for (int i=0;i<cubedir.length;i++) {
 				Direction[] lvecx = new Direction[2];
 				double sign1 = 1.0f;
@@ -630,15 +630,17 @@ public class MathLib {
 				int endind1 = Arrays.binarySearch(cmangles, lvecxa1max);
 				int startind2 = Arrays.binarySearch(cmangles, lvecxa2min);
 				int endind2 = Arrays.binarySearch(cmangles, lvecxa2max);
-				if (startind1<0) {startind1 = -startind1-1;}
-				if (endind1<0) {endind1 = -endind1-1;}
-				if (startind1>=cmangles.length) {startind1 = cmangles.length-1;}
-				if (endind1>=cmangles.length) {endind1 = cmangles.length-1;}
-				if (startind2<0) {startind2 = -startind2-1;}
-				if (endind2<0) {endind2 = -endind2-1;}
-				if (startind2>=cmangles.length) {startind2 = cmangles.length-1;}
-				if (endind2>=cmangles.length) {endind2 = cmangles.length-1;}
-				k[j][i] = new Rectangle(startind1,startind2,endind1-startind1+1,endind2-startind2+1);
+				if ((startind1!=-(cmangles.length+1))&&(endind1!=-1)&&(startind2!=-(cmangles.length+1))&&(endind2!=-1)) {
+					if (startind1<0) {startind1 = -startind1-1;}
+					if (endind1<0) {endind1 = -endind1-1;}
+					if (startind1>=cmangles.length) {startind1 = cmangles.length-1;}
+					if (endind1>=cmangles.length) {endind1 = cmangles.length-1;}
+					if (startind2<0) {startind2 = -startind2-1;}
+					if (endind2<0) {endind2 = -endind2-1;}
+					if (startind2>=cmangles.length) {startind2 = cmangles.length-1;}
+					if (endind2>=cmangles.length) {endind2 = cmangles.length-1;}
+					k[j][i] = new Rectangle(startind1,startind2,endind1-startind1+1,endind2-startind2+1);
+				}
 			}
 		}
 		return k;
