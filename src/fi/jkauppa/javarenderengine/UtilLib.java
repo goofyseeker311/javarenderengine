@@ -11,6 +11,7 @@ import java.awt.image.VolatileImage;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 import javax.swing.filechooser.FileFilter;
@@ -73,4 +74,40 @@ public class UtilLib {
 		}
 		return k;
 	}
+
+	public static class DoubleSort implements Comparable<DoubleSort> {
+		public Double value;
+		public int ind;
+		public DoubleSort(double valuei) {this.value = valuei;}
+		@Override public int compareTo(DoubleSort o) {
+			return this.value.compareTo(o.value);
+		}
+	}
+	public static int[] indexSort(double[] data) {
+		int[] k = null;
+		if ((data!=null)&&(data.length>0)) {
+			k = new int[data.length];
+			DoubleSort[] sorteddouble = new DoubleSort[data.length];
+			for (int i=0;i<sorteddouble.length;i++) {
+				sorteddouble[i] = new DoubleSort(data[i]);
+				sorteddouble[i].ind = i;
+			}
+			Arrays.sort(sorteddouble);
+			for (int i=0;i<sorteddouble.length;i++) {
+				k[i] = sorteddouble[i].ind;
+			}
+		}
+		return k;
+	}
+	public static double[] indexValues(double[] data, int[] idx) {
+		double[] k = null;
+		if ((data!=null)&&(idx!=null)&&(data.length>0)&&(idx.length>0)&&(data.length==idx.length)) {
+			k = new double[data.length];
+			for (int i=0;i<data.length;i++) {
+				k[i] = data[idx[i]];
+			}
+		}
+		return k;
+	}
+
 }

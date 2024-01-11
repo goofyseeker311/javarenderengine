@@ -205,8 +205,8 @@ public class ModelApp implements AppHandler {
 							double drawangle1 = (180.0f/Math.PI)*Math.atan(drawlineupintpointsdist[0][0]/Math.abs(drawlinefwdintpointsdist[0][0]));
 							double drawangle2 = (180.0f/Math.PI)*Math.atan(drawlineupintpointsdist[1][0]/Math.abs(drawlinefwdintpointsdist[1][0]));
 							double[] angles = {drawangle1, drawangle2};
-							int[] anglesind = MathLib.indexSort(angles);
-							double[] anglessort = MathLib.indexValues(angles, anglesind);
+							int[] anglesind = UtilLib.indexSort(angles);
+							double[] anglessort = UtilLib.indexValues(angles, anglesind);
 							Position[] sortlinepoints = {drawlinepoints[anglesind[0]], drawlinepoints[anglesind[1]]}; 
 							if (!Double.isFinite(anglessort[0])) {anglessort[0] = -180.0f;}
 							if (!Double.isFinite(anglessort[1])) {anglessort[1] = 180.0f;}
