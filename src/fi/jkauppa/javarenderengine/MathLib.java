@@ -606,12 +606,12 @@ public class MathLib {
 			zlist[2*i] = vsphere[i].z-vsphere[i].r;
 			zlist[2*i+1] = vsphere[i].z+vsphere[i].r;
 		}
-		int[] xlistsidx = indexSort(xlist);
-		int[] ylistsidx = indexSort(ylist);
-		int[] zlistsidx = indexSort(zlist);
-		double[] xlistsval = indexValues(xlist,xlistsidx);
-		double[] ylistsval = indexValues(ylist,ylistsidx);
-		double[] zlistsval = indexValues(zlist,zlistsidx);
+		int[] xlistsidx = UtilLib.indexSort(xlist);
+		int[] ylistsidx = UtilLib.indexSort(ylist);
+		int[] zlistsidx = UtilLib.indexSort(zlist);
+		double[] xlistsval = UtilLib.indexValues(xlist,xlistsidx);
+		double[] ylistsval = UtilLib.indexValues(ylist,ylistsidx);
+		double[] zlistsval = UtilLib.indexValues(zlist,zlistsidx);
 		for (int j=0;j<vsphere.length;j++) {
 			int xlistidx1 = Arrays.binarySearch(xlistsval,xlist[j*2]);
 			int xlistidx2 = Arrays.binarySearch(xlistsval,xlist[j*2+1]);
@@ -807,41 +807,6 @@ public class MathLib {
 		return matrixMultiply(zrot,matrixMultiply(yrot, xrot));
 	}
 	
-	public static class DoubleSort implements Comparable<DoubleSort> {
-		public Double value;
-		public int ind;
-		public DoubleSort(double valuei) {this.value = valuei;}
-		@Override public int compareTo(DoubleSort o) {
-			return this.value.compareTo(o.value);
-		}
-	}
-	public static int[] indexSort(double[] data) {
-		int[] k = null;
-		if ((data!=null)&&(data.length>0)) {
-			k = new int[data.length];
-			DoubleSort[] sorteddouble = new DoubleSort[data.length];
-			for (int i=0;i<sorteddouble.length;i++) {
-				sorteddouble[i] = new DoubleSort(data[i]);
-				sorteddouble[i].ind = i;
-			}
-			Arrays.sort(sorteddouble);
-			for (int i=0;i<sorteddouble.length;i++) {
-				k[i] = sorteddouble[i].ind;
-			}
-		}
-		return k;
-	}
-	public static double[] indexValues(double[] data, int[] idx) {
-		double[] k = null;
-		if ((data!=null)&&(idx!=null)&&(data.length>0)&&(idx.length>0)&&(data.length==idx.length)) {
-			k = new double[data.length];
-			for (int i=0;i<data.length;i++) {
-				k[i] = data[idx[i]];
-			}
-		}
-		return k;
-	}
-	
 	public static Position[] generateVertexList(Line[] linelist) {
 		TreeSet<Position> vertexlist = new TreeSet<Position>();
 		for (int i=0;i<linelist.length;i++) {
@@ -943,10 +908,16 @@ public class MathLib {
 	}
 	
 	public static Entity[] generateEntityList(Line[] linelist) {
-		//Triangle[] newtrianglelist = MathLib.generateTriangleList(linelist);
-		//Line[] newnontrianglelinelist = MathLib.generateNonTriangleLineList(linelist);
-		//Tetrahedron[] newtetrahedronlist = MathLib.generateTetrahedronList(linelist);
-		return null;
+		ArrayList<Entity> newentitylistarray = new ArrayList<Entity>();
+		Entity newentity = new Entity();
+		Position[] newvertexlist = MathLib.generateVertexList(linelist);
+		newentity.trianglelist = MathLib.generateTriangleList(linelist);
+		newentity.linelist = MathLib.generateNonTriangleLineList(linelist);
+		newentity.tetrahedronlist = MathLib.generateTetrahedronList(linelist);
+		newentity.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newvertexlist);
+		newentity.sphereboundaryvolume = MathLib.pointCloudCircumSphere(newvertexlist);
+		newentitylistarray.add(newentity);
+		return newentitylistarray.toArray(new Entity[newentitylistarray.size()]);
 	}
 	
 	public static double[] projectedStep(int vres, double vfov) {
