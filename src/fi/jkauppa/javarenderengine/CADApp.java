@@ -509,61 +509,67 @@ public class CADApp implements AppHandler {
 			this.filechooser.setApproveButtonText("Load");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File loadfile = this.filechooser.getSelectedFile();
-				Model loadmodel = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
+				FileFilter loadfileformat = this.filechooser.getFileFilter();
 				Entity[] newentitylist = {new Entity()};
 				this.entitylist = newentitylist;
-				TreeSet<Line> uniquelinetree = new TreeSet<Line>();
-				ArrayList<Material> materiallisttree = new ArrayList<Material>(Arrays.asList(loadmodel.materials));
-				Material[] copymateriallist = materiallisttree.toArray(new Material[materiallisttree.size()]);
-				for (int i=0;i<copymateriallist.length;i++) {
-					if (copymateriallist[i].facecolor==null) {
-						copymateriallist[i].facecolor = Color.WHITE;
-					}
-				}
-				for (int k=0;k<loadmodel.objects.length;k++) {
-					Material foundmat = null;
-					for (int i=0;(i<copymateriallist.length)&&(foundmat==null);i++) {
-						if (loadmodel.objects[k].usemtl.equals(copymateriallist[i].materialname)) {
-							foundmat = copymateriallist[i];
+				if (loadfileformat.equals(this.stlfilefilter)) {
+					this.entitylist[0].trianglelist = ModelLib.loadSTLFile(loadfile.getPath(), false);
+					this.linelistarray.addAll(Arrays.asList(MathLib.generateLineList(this.entitylist[0].trianglelist)));
+				} else {
+					Model loadmodel = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
+					TreeSet<Line> uniquelinetree = new TreeSet<Line>();
+					ArrayList<Material> materiallisttree = new ArrayList<Material>(Arrays.asList(loadmodel.materials));
+					Material[] copymateriallist = materiallisttree.toArray(new Material[materiallisttree.size()]);
+					for (int i=0;i<copymateriallist.length;i++) {
+						if (copymateriallist[i].facecolor==null) {
+							copymateriallist[i].facecolor = Color.WHITE;
 						}
 					}
-					for (int j=0;j<loadmodel.objects[k].faceindex.length;j++) {
-						Position[] loadvertex = new Position[loadmodel.objects[k].faceindex[j].facevertexindex.length];
-						for (int i=0;i<loadmodel.objects[k].faceindex[j].facevertexindex.length;i++) {
-							loadvertex[i] = loadmodel.vertexlist[loadmodel.objects[k].faceindex[j].facevertexindex[i].vertexindex-1];
-							if (i>0) {
-								uniquelinetree.add(new Line(loadvertex[i-1].copy(),loadvertex[i].copy()));
+					for (int k=0;k<loadmodel.objects.length;k++) {
+						Material foundmat = null;
+						for (int i=0;(i<copymateriallist.length)&&(foundmat==null);i++) {
+							if (loadmodel.objects[k].usemtl.equals(copymateriallist[i].materialname)) {
+								foundmat = copymateriallist[i];
 							}
 						}
-						if (loadmodel.objects[k].faceindex[j].facevertexindex.length>2) {
-							uniquelinetree.add(new Line(loadvertex[loadmodel.objects[k].faceindex[j].facevertexindex.length-1].copy(),loadvertex[0].copy()));
-						} else if (loadmodel.objects[k].faceindex[j].facevertexindex.length==1) {
-							uniquelinetree.add(new Line(loadvertex[0].copy(),loadvertex[0].copy()));
-						}
-						if (loadmodel.objects[k].faceindex[j].facevertexindex.length==3) {
-							ArrayList<Triangle> newtrianglelistarray = new ArrayList<Triangle>();
-							if (this.entitylist[0].trianglelist!=null) {newtrianglelistarray.addAll(Arrays.asList(this.entitylist[0].trianglelist));}
-							Triangle newtriangle = new Triangle(loadvertex[0],loadvertex[1],loadvertex[2]);
-							newtriangle.mat = foundmat;
-							newtrianglelistarray.add(newtriangle);
-							this.entitylist[0].trianglelist = newtrianglelistarray.toArray(new Triangle[newtrianglelistarray.size()]);
-						}
-					}
-					for (int j=0;j<loadmodel.objects[k].lineindex.length;j++) {
-						Position[] loadvertex = new Position[loadmodel.objects[k].lineindex[j].linevertexindex.length];
-						for (int i=0;i<loadmodel.objects[k].lineindex[j].linevertexindex.length;i++) {
-							loadvertex[i] = loadmodel.vertexlist[loadmodel.objects[k].lineindex[j].linevertexindex[i]-1];
-							if (i>0) {
-								uniquelinetree.add(new Line(loadvertex[i-1].copy(),loadvertex[i].copy()));
+						for (int j=0;j<loadmodel.objects[k].faceindex.length;j++) {
+							Position[] loadvertex = new Position[loadmodel.objects[k].faceindex[j].facevertexindex.length];
+							for (int i=0;i<loadmodel.objects[k].faceindex[j].facevertexindex.length;i++) {
+								loadvertex[i] = loadmodel.vertexlist[loadmodel.objects[k].faceindex[j].facevertexindex[i].vertexindex-1];
+								if (i>0) {
+									uniquelinetree.add(new Line(loadvertex[i-1].copy(),loadvertex[i].copy()));
+								}
+							}
+							if (loadmodel.objects[k].faceindex[j].facevertexindex.length>2) {
+								uniquelinetree.add(new Line(loadvertex[loadmodel.objects[k].faceindex[j].facevertexindex.length-1].copy(),loadvertex[0].copy()));
+							} else if (loadmodel.objects[k].faceindex[j].facevertexindex.length==1) {
+								uniquelinetree.add(new Line(loadvertex[0].copy(),loadvertex[0].copy()));
+							}
+							if (loadmodel.objects[k].faceindex[j].facevertexindex.length==3) {
+								ArrayList<Triangle> newtrianglelistarray = new ArrayList<Triangle>();
+								if (this.entitylist[0].trianglelist!=null) {newtrianglelistarray.addAll(Arrays.asList(this.entitylist[0].trianglelist));}
+								Triangle newtriangle = new Triangle(loadvertex[0],loadvertex[1],loadvertex[2]);
+								newtriangle.mat = foundmat;
+								newtrianglelistarray.add(newtriangle);
+								this.entitylist[0].trianglelist = newtrianglelistarray.toArray(new Triangle[newtrianglelistarray.size()]);
 							}
 						}
-						if (loadmodel.objects[k].lineindex[j].linevertexindex.length==1) {
-							uniquelinetree.add(new Line(loadvertex[0].copy(),loadvertex[0].copy()));
+						for (int j=0;j<loadmodel.objects[k].lineindex.length;j++) {
+							Position[] loadvertex = new Position[loadmodel.objects[k].lineindex[j].linevertexindex.length];
+							for (int i=0;i<loadmodel.objects[k].lineindex[j].linevertexindex.length;i++) {
+								loadvertex[i] = loadmodel.vertexlist[loadmodel.objects[k].lineindex[j].linevertexindex[i]-1];
+								if (i>0) {
+									uniquelinetree.add(new Line(loadvertex[i-1].copy(),loadvertex[i].copy()));
+								}
+							}
+							if (loadmodel.objects[k].lineindex[j].linevertexindex.length==1) {
+								uniquelinetree.add(new Line(loadvertex[0].copy(),loadvertex[0].copy()));
+							}
 						}
 					}
+					this.linelistarray.addAll(uniquelinetree);
 				}
-				this.linelistarray.addAll(uniquelinetree);
-				(new TriangleListUpdater()).start(); 
+				(new TriangleListUpdater()).start();
 			}
 		}
 	}
@@ -732,18 +738,25 @@ public class CADApp implements AppHandler {
 		ArrayList<Triangle> entitylisttrianglearray = new ArrayList<Triangle>();
 		if ((this.entitylist!=null)&&(this.entitylist[0].trianglelist!=null)) {entitylisttrianglearray.addAll(Arrays.asList(this.entitylist[0].trianglelist));}
 		for (int j=0;j<newentitylist.length;j++) {
-			Material foundmat = new Material();
-			foundmat.facecolor = this.drawcolor;
-			foundmat.transparency = this.penciltransparency;
+			Material newmat = new Material();
+			newmat.facecolor = this.drawcolor;
+			newmat.transparency = this.penciltransparency;
+			Material foundmat = newmat;
 			for (int i=0;i<newentitylist[j].trianglelist.length;i++) {
 				int searchindex = entitylisttrianglearray.indexOf(newentitylist[j].trianglelist[i]);
-				if (searchindex>=0) {foundmat = entitylisttrianglearray.get(searchindex).mat;}
+				if (searchindex>=0) {
+					foundmat = entitylisttrianglearray.get(searchindex).mat;
+					if (foundmat==null) {foundmat = newmat;}
+				}
 				newentitylist[j].trianglelist[i].mat = foundmat;
 				newentitylist[j].trianglelist[i].norm = new Direction(0.0f,0.0f,0.0f);
 			}
 			for (int i=0;i<newentitylist[j].surfacelist.length;i++) {
 				int searchindex = entitylisttrianglearray.indexOf(newentitylist[j].surfacelist[i]);
-				if (searchindex>=0) {foundmat = entitylisttrianglearray.get(searchindex).mat;}
+				if (searchindex>=0) {
+					foundmat = entitylisttrianglearray.get(searchindex).mat;
+					if (foundmat==null) {foundmat = newmat;}
+				}
 				newentitylist[j].surfacelist[i].mat = foundmat;
 				newentitylist[j].surfacelist[i].norm = new Direction(0.0f,0.0f,0.0f);
 			}

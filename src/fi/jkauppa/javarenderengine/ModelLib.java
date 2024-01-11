@@ -360,4 +360,66 @@ public class ModelLib {
 		}
 	}
 	
+	public static Triangle[] loadSTLFile(String filename, boolean loadresourcefromjar) {
+		Triangle[] k = null;
+		if (filename!=null) {
+			BufferedReader modelstlfile = null;
+			try {
+				File loadstlfile = new File(filename);
+				if (loadresourcefromjar) {
+					modelstlfile = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream(loadstlfile.getPath().replace(File.separatorChar, '/'))));
+				}else {
+					modelstlfile = new BufferedReader(new FileReader(loadstlfile));
+				}
+				if (modelstlfile!=null) {
+					ArrayList<Triangle> modeltriangles = new ArrayList<Triangle>();
+					String fline = null;
+					String objectname = null;
+					Triangle lasttri = null;
+					Direction lastnorm = null;
+					Position lastpos1 = null;
+					Position lastpos2 = null;
+					Position lastpos3 = null;
+					while((fline=modelstlfile.readLine())!=null) {
+						fline = fline.trim();
+					    if (fline.toLowerCase().startsWith("#")) {
+					    }else if (fline.toLowerCase().startsWith("solid")) {
+					    	String farg = fline.substring(5).trim();
+					    	objectname = farg;
+					    	objectname = objectname.trim(); 
+					    }else if (fline.toLowerCase().startsWith("facet normal ")) {
+					    	String farg = fline.substring(13).trim();
+					    	String[] fargsplit = farg.split(" ");
+					    	lastnorm = new Direction(Double.parseDouble(fargsplit[0]),Double.parseDouble(fargsplit[1]),Double.parseDouble(fargsplit[2]));
+					    }else if (fline.toLowerCase().startsWith("outer loop")) {
+					    }else if (fline.toLowerCase().startsWith("vertex ")) {
+					    	String farg = fline.substring(7).trim();
+					    	String[] fargsplit = farg.split(" ");
+					    	Position newpos = new Position(Double.parseDouble(fargsplit[0]),Double.parseDouble(fargsplit[1]),Double.parseDouble(fargsplit[2]));
+					    	if (lastpos1==null) {
+					    		lastpos1 = newpos; 
+					    	} else if (lastpos2==null) {
+					    		lastpos2 = newpos;
+					    	} else if (lastpos3==null) {
+					    		lastpos3 = newpos;
+						    }
+					    }else if (fline.toLowerCase().startsWith("endloop")) {
+					    	lasttri = new Triangle(lastpos1,lastpos2,lastpos3);
+							lastpos1 = null;
+							lastpos2 = null;
+							lastpos3 = null;
+					    }else if (fline.toLowerCase().startsWith("endfacet")) {
+					    	lasttri.norm = lastnorm;
+					    	modeltriangles.add(lasttri);
+							lastnorm = null;
+					    }else if (fline.toLowerCase().startsWith("endsolid")) {
+					    }
+					}
+					k = modeltriangles.toArray(new Triangle[modeltriangles.size()]);
+				}
+				modelstlfile.close();
+			} catch(Exception ex) {ex.printStackTrace();}
+		}
+		return k;
+	}
 }
