@@ -48,6 +48,10 @@ public class UtilLib {
 			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".obj"));}
 			@Override public String getDescription() {return "OBJ Model file";}
 		}
+		public static class STLFileFilter extends FileFilter {
+			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".stl"));}
+			@Override public String getDescription() {return "STL Model file";}
+		}
 	}
 	public static VolatileImage loadImage(String filename, boolean loadresourcefromjar) {
 		VolatileImage k = null;

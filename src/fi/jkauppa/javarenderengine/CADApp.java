@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeSet;
 import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileFilter;
+
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
 import fi.jkauppa.javarenderengine.MathLib.Coordinate;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
@@ -33,6 +35,7 @@ import fi.jkauppa.javarenderengine.MathLib.Sphere.SphereRenderComparator;
 import fi.jkauppa.javarenderengine.MathLib.Tetrahedron;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
+import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.STLFileFilter;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
 import fi.jkauppa.javarenderengine.ModelLib.Model;
 import fi.jkauppa.javarenderengine.ModelLib.ModelFaceIndex;
@@ -74,6 +77,7 @@ public class CADApp implements AppHandler {
 	private Entity[] entitylist = null;
 	private JFileChooser filechooser = new JFileChooser();
 	private OBJFileFilter objfilefilter = new OBJFileFilter();
+	private STLFileFilter stlfilefilter = new STLFileFilter();
 	private boolean leftkeydown = false;
 	private boolean rightkeydown = false;
 	private boolean upwardkeydown = false;
@@ -91,6 +95,7 @@ public class CADApp implements AppHandler {
 		pgfx.drawLine(0, 0, gridstep-1, 0);
 		pgfx.dispose();
 		this.filechooser.addChoosableFileFilter(this.objfilefilter);
+		this.filechooser.addChoosableFileFilter(this.stlfilefilter);
 		this.filechooser.setFileFilter(this.objfilefilter);
 		this.filechooser.setAcceptAllFileFilterUsed(false);
 	}
@@ -413,70 +418,91 @@ public class CADApp implements AppHandler {
 		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
 			this.backwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_F2) {
+		    int onmask = KeyEvent.SHIFT_DOWN_MASK;
+		    int offmask = KeyEvent.ALT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
+		    boolean f2shiftdown = (e.getModifiersEx() & (onmask | offmask)) == onmask;
 			this.filechooser.setDialogTitle("Save File");
 			this.filechooser.setApproveButtonText("Save");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File savefile = this.filechooser.getSelectedFile();
-				Model savemodel = new Model(savefile.getPath());
-				String saveobjfile = savefile.getPath();
-				String savemtlfile = savefile.getName();
-				if (savemtlfile.toLowerCase().endsWith(".obj")) {
-					savemtlfile = savemtlfile.substring(0, savemtlfile.length()-4).concat(".mtl");
+				FileFilter savefileformat = this.filechooser.getFileFilter();
+				if (savefileformat.equals(this.stlfilefilter)) {
+					Triangle[] savemodel = this.entitylist[0].trianglelist;
+					String savestlfile = savefile.getPath();
+					if (savestlfile.toLowerCase().endsWith(".stl")) {
+						savestlfile = savestlfile.substring(0, savestlfile.length()-4).concat(".stl");
+					} else {
+						savestlfile = savestlfile.concat(".stl");
+					}
+				    if (f2shiftdown) {
+				    	savemodel = this.entitylist[0].surfacelist;
+				    }
+					ModelLib.saveSTLFile(savestlfile, savemodel, "JREOBJ");
 				} else {
-					saveobjfile = saveobjfile.concat(".obj");
-					savemtlfile = savemtlfile.concat(".mtl");
-				}
-				savemodel.mtllib = savemtlfile;
-				Triangle[] copytrianglelist = this.entitylist[0].trianglelist;
-				TreeSet<Material> materiallistarray = new TreeSet<Material>();
-				for (int i=0;i<copytrianglelist.length;i++) {
-					materiallistarray.add(copytrianglelist[i].mat);
-				}
-				savemodel.materials = materiallistarray.toArray(new Material[materiallistarray.size()]);
-				savemodel.objects = new ModelObject[savemodel.materials.length];
-				savemodel.texturecoords = new Coordinate[1];
-				savemodel.texturecoords[0] = new Coordinate(0, 0);
-				savemodel.facenormals = new Direction[1];
-				savemodel.facenormals[0] = new Direction(0, 0, 0);
-				savemodel.vertexlist = MathLib.generateVertexList(this.linelistarray.toArray(new Line[this.linelistarray.size()]));
-				for (int i=0;i<savemodel.materials.length;i++) {
-					savemodel.materials[i].materialname = "JREMAT"+(i+1);
-					savemodel.objects[i] = new ModelObject("JREOBJ"+(i+1));
-					savemodel.objects[i].usemtl = savemodel.materials[i].materialname;
-				}
-				for (int i=0;i<copytrianglelist.length;i++) {
-					ModelFaceVertexIndex[] trianglevertex = new ModelFaceVertexIndex[3];
-					trianglevertex[0] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos1)+1,1,1);
-					trianglevertex[1] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos2)+1,1,1);
-					trianglevertex[2] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos3)+1,1,1);
-					Material copymaterial = copytrianglelist[i].mat;
-					int searchmatindex = Arrays.binarySearch(savemodel.materials, copymaterial);
-					ModelFaceIndex[] objectfaceindex = savemodel.objects[searchmatindex].faceindex;
-					ArrayList<ModelFaceIndex> faceindexarray = (objectfaceindex!=null)?(new ArrayList<ModelFaceIndex>(Arrays.asList(objectfaceindex))):(new ArrayList<ModelFaceIndex>());
-					faceindexarray.add(new ModelFaceIndex(trianglevertex));
-					savemodel.objects[searchmatindex].faceindex = faceindexarray.toArray(new ModelFaceIndex[faceindexarray.size()]);
-				}
-				
-				Line[] uniquelinelist = MathLib.generateNonTriangleLineList(this.linelistarray.toArray(new Line[this.linelistarray.size()]));
-				if (uniquelinelist!=null) {
-					for (int i=0;i<uniquelinelist.length;i++) {
-						if (uniquelinelist[i].pos1.compareTo(uniquelinelist[i].pos2)!=0) {
-							int[] linevertex = new int[2];
-							linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
-							linevertex[1] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos2)+1;
-							ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[0].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[0].lineindex))):(new ArrayList<ModelLineIndex>());
-							lineindexarray.add(new ModelLineIndex(linevertex));
-							savemodel.objects[0].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
-						} else {
-							int[] linevertex = new int[1];
-							linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
-							ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[0].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[0].lineindex))):(new ArrayList<ModelLineIndex>());
-							lineindexarray.add(new ModelLineIndex(linevertex));
-							savemodel.objects[0].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
+					Model savemodel = new Model(savefile.getPath());
+					String saveobjfile = savefile.getPath();
+					String savemtlfile = savefile.getName();
+					if (savemtlfile.toLowerCase().endsWith(".obj")) {
+						savemtlfile = savemtlfile.substring(0, savemtlfile.length()-4).concat(".mtl");
+					} else {
+						saveobjfile = saveobjfile.concat(".obj");
+						savemtlfile = savemtlfile.concat(".mtl");
+					}
+					savemodel.mtllib = savemtlfile;
+					Triangle[] copytrianglelist = this.entitylist[0].trianglelist;
+				    if (f2shiftdown) {
+				    	copytrianglelist = this.entitylist[0].surfacelist;
+				    }
+					TreeSet<Material> materiallistarray = new TreeSet<Material>();
+					for (int i=0;i<copytrianglelist.length;i++) {
+						materiallistarray.add(copytrianglelist[i].mat);
+					}
+					savemodel.materials = materiallistarray.toArray(new Material[materiallistarray.size()]);
+					savemodel.objects = new ModelObject[savemodel.materials.length];
+					savemodel.texturecoords = new Coordinate[1];
+					savemodel.texturecoords[0] = new Coordinate(0, 0);
+					savemodel.facenormals = new Direction[1];
+					savemodel.facenormals[0] = new Direction(0, 0, 0);
+					savemodel.vertexlist = MathLib.generateVertexList(this.linelistarray.toArray(new Line[this.linelistarray.size()]));
+					for (int i=0;i<savemodel.materials.length;i++) {
+						savemodel.materials[i].materialname = "JREMAT"+(i+1);
+						savemodel.objects[i] = new ModelObject("JREOBJ"+(i+1));
+						savemodel.objects[i].usemtl = savemodel.materials[i].materialname;
+					}
+					for (int i=0;i<copytrianglelist.length;i++) {
+						ModelFaceVertexIndex[] trianglevertex = new ModelFaceVertexIndex[3];
+						trianglevertex[0] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos1)+1,1,1);
+						trianglevertex[1] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos2)+1,1,1);
+						trianglevertex[2] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos3)+1,1,1);
+						Material copymaterial = copytrianglelist[i].mat;
+						int searchmatindex = Arrays.binarySearch(savemodel.materials, copymaterial);
+						ModelFaceIndex[] objectfaceindex = savemodel.objects[searchmatindex].faceindex;
+						ArrayList<ModelFaceIndex> faceindexarray = (objectfaceindex!=null)?(new ArrayList<ModelFaceIndex>(Arrays.asList(objectfaceindex))):(new ArrayList<ModelFaceIndex>());
+						faceindexarray.add(new ModelFaceIndex(trianglevertex));
+						savemodel.objects[searchmatindex].faceindex = faceindexarray.toArray(new ModelFaceIndex[faceindexarray.size()]);
+					}
+					
+					Line[] uniquelinelist = MathLib.generateNonTriangleLineList(this.linelistarray.toArray(new Line[this.linelistarray.size()]));
+					if (uniquelinelist!=null) {
+						for (int i=0;i<uniquelinelist.length;i++) {
+							if (uniquelinelist[i].pos1.compareTo(uniquelinelist[i].pos2)!=0) {
+								int[] linevertex = new int[2];
+								linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
+								linevertex[1] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos2)+1;
+								ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[0].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[0].lineindex))):(new ArrayList<ModelLineIndex>());
+								lineindexarray.add(new ModelLineIndex(linevertex));
+								savemodel.objects[0].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
+							} else {
+								int[] linevertex = new int[1];
+								linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
+								ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[0].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[0].lineindex))):(new ArrayList<ModelLineIndex>());
+								lineindexarray.add(new ModelLineIndex(linevertex));
+								savemodel.objects[0].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
+							}
 						}
 					}
+					ModelLib.saveWaveFrontOBJFile(saveobjfile, savemodel);
 				}
-				ModelLib.saveWaveFrontOBJFile(saveobjfile, savemodel);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
 			this.filechooser.setDialogTitle("Load File");
@@ -706,13 +732,20 @@ public class CADApp implements AppHandler {
 		ArrayList<Triangle> entitylisttrianglearray = new ArrayList<Triangle>();
 		if ((this.entitylist!=null)&&(this.entitylist[0].trianglelist!=null)) {entitylisttrianglearray.addAll(Arrays.asList(this.entitylist[0].trianglelist));}
 		for (int j=0;j<newentitylist.length;j++) {
+			Material foundmat = new Material();
+			foundmat.facecolor = this.drawcolor;
+			foundmat.transparency = this.penciltransparency;
 			for (int i=0;i<newentitylist[j].trianglelist.length;i++) {
-				Material foundmat = new Material();
-				foundmat.facecolor = this.drawcolor;
-				foundmat.transparency = this.penciltransparency;
 				int searchindex = entitylisttrianglearray.indexOf(newentitylist[j].trianglelist[i]);
 				if (searchindex>=0) {foundmat = entitylisttrianglearray.get(searchindex).mat;}
 				newentitylist[j].trianglelist[i].mat = foundmat;
+				newentitylist[j].trianglelist[i].norm = new Direction(0.0f,0.0f,0.0f);
+			}
+			for (int i=0;i<newentitylist[j].surfacelist.length;i++) {
+				int searchindex = entitylisttrianglearray.indexOf(newentitylist[j].surfacelist[i]);
+				if (searchindex>=0) {foundmat = entitylisttrianglearray.get(searchindex).mat;}
+				newentitylist[j].surfacelist[i].mat = foundmat;
+				newentitylist[j].surfacelist[i].norm = new Direction(0.0f,0.0f,0.0f);
 			}
 		}
 		this.entitylist = newentitylist;
