@@ -457,13 +457,15 @@ public class CADApp implements AppHandler {
 					TreeSet<Material> materiallistarray = new TreeSet<Material>();
 					TreeSet<Position> vertexlistarray = new TreeSet<Position>();
 					TreeSet<Direction> normallistarray = new TreeSet<Direction>();
-					normallistarray.add(new Direction(0, 0, 0));
 					savemodel.objects = new ModelObject[this.entitylist.length];
+					normallistarray.add(new Direction(0, 0, 0));
 					for (int j=0;j<this.entitylist.length;j++) {
 						savemodel.objects[j] = new ModelObject("JREOBJ"+(j+1));
 						Triangle[] copytrianglelist = this.entitylist[j].trianglelist;
 					    if (f2shiftdown) {
 					    	copytrianglelist = this.entitylist[j].surfacelist;
+					    } else {
+					    	vertexlistarray.addAll(Arrays.asList(this.entitylist[j].vertexlist));
 					    }
 						for (int i=0;i<copytrianglelist.length;i++) {
 							materiallistarray.add(copytrianglelist[i].mat);
@@ -488,9 +490,10 @@ public class CADApp implements AppHandler {
 					    }
 						for (int i=0;i<copytrianglelist.length;i++) {
 							ModelFaceVertexIndex[] trianglevertex = new ModelFaceVertexIndex[3];
-							trianglevertex[0] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos1)+1,1,Arrays.binarySearch(savemodel.facenormals, copytrianglelist[i].norm)+1);
-							trianglevertex[1] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos2)+1,1,Arrays.binarySearch(savemodel.facenormals, copytrianglelist[i].norm)+1);
-							trianglevertex[2] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos3)+1,1,Arrays.binarySearch(savemodel.facenormals, copytrianglelist[i].norm)+1);
+							int trianglefacenormalind = Arrays.binarySearch(savemodel.facenormals, copytrianglelist[i].norm)+1;
+							trianglevertex[0] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos1)+1,1,trianglefacenormalind);
+							trianglevertex[1] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos2)+1,1,trianglefacenormalind);
+							trianglevertex[2] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos3)+1,1,trianglefacenormalind);
 							Material copymaterial = copytrianglelist[i].mat;
 							int searchmatindex = Arrays.binarySearch(savemodel.materials, copymaterial);
 							ModelFaceIndex[] objectfaceindex = savemodel.objects[j].faceindex;
@@ -507,15 +510,15 @@ public class CADApp implements AppHandler {
 									int[] linevertex = new int[2];
 									linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
 									linevertex[1] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos2)+1;
-									ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[0].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[0].lineindex))):(new ArrayList<ModelLineIndex>());
+									ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[j].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[j].lineindex))):(new ArrayList<ModelLineIndex>());
 									lineindexarray.add(new ModelLineIndex(linevertex));
-									savemodel.objects[0].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
+									savemodel.objects[j].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
 								} else {
 									int[] linevertex = new int[1];
 									linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
-									ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[0].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[0].lineindex))):(new ArrayList<ModelLineIndex>());
+									ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[j].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[j].lineindex))):(new ArrayList<ModelLineIndex>());
 									lineindexarray.add(new ModelLineIndex(linevertex));
-									savemodel.objects[0].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
+									savemodel.objects[j].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
 								}
 							}
 						}
@@ -578,6 +581,7 @@ public class CADApp implements AppHandler {
 								if (newentitylistarray.get(newentitylistarray.size()-1).trianglelist!=null) {newtrianglelistarray.addAll(Arrays.asList(newentitylistarray.get(newentitylistarray.size()-1).trianglelist));}
 								Triangle newtriangle = new Triangle(loadvertex[0],loadvertex[1],loadvertex[2]);
 								newtriangle.mat = foundmat;
+								newtriangle.norm = loadmodel.facenormals[loadmodel.objects[k].faceindex[j].facevertexindex[0].normalindex-1];
 								newtrianglelistarray.add(newtriangle);
 								newentitylistarray.get(newentitylistarray.size()-1).trianglelist = newtrianglelistarray.toArray(new Triangle[newtrianglelistarray.size()]);
 							}
@@ -765,7 +769,9 @@ public class CADApp implements AppHandler {
 		ArrayList<Triangle> entitylisttrianglearray = new ArrayList<Triangle>();
 		if (this.entitylist!=null) {
 			for (int i=0;i<this.entitylist.length;i++) {
-				entitylisttrianglearray.addAll(Arrays.asList(this.entitylist[i].trianglelist));
+				if (this.entitylist[i].trianglelist!=null) {
+					entitylisttrianglearray.addAll(Arrays.asList(this.entitylist[i].trianglelist));
+				}
 			}
 		}
 		Line[] copylinelist = linelistarray.toArray(new Line[linelistarray.size()]);
