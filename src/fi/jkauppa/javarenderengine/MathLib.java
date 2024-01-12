@@ -11,7 +11,7 @@ import java.util.TreeSet;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
 
 public class MathLib {
-	public static class Position implements Comparable<Position> {public double x,y,z; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
+	public static class Position implements Comparable<Position> {public double x,y,z,u,v; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
 		@Override public int compareTo(Position o){
 			int k = -1;
 			if (this.z>o.z) {
@@ -41,7 +41,36 @@ public class MathLib {
 		}
 		public Position copy(){return new Position(this.x,this.y,this.z);}
 	}
-	public static class Direction {public double dx,dy,dz; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;} public Direction copy(){return new Direction(this.dx,this.dy,this.dz);}}
+	public static class Direction implements Comparable<Direction> {public double dx,dy,dz; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;}
+		@Override public int compareTo(Direction o){
+			int k = -1;
+			if (this.dz>o.dz) {
+				k = 1;
+			} else if (this.dz==o.dz) {
+				if (this.dy>o.dy) {
+					k = 1;
+				} else if (this.dy==o.dy) {
+					if (this.dx>o.dx) {
+						k = 1;
+					} else if (this.dx==o.dx) {
+						k = 0;
+					}
+				}
+			}
+			return k;
+		}
+		@Override public boolean equals(Object o) {
+			boolean k = false;
+			if (o.getClass().equals(this.getClass())) {
+				Direction os = (Direction)o;
+				if ((this.dx==os.dx)&&(this.dy==os.dy)&&(this.dz==os.dz)) {
+					k = true;
+				}
+			}
+			return k;
+		}
+		public Direction copy(){return new Direction(this.dx,this.dy,this.dz);}
+	}
 	public static class Coordinate {public double u,v; public Coordinate(double ui,double vi){this.u=ui;this.v=vi;}}
 	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}}
 	public static class Sphere implements Comparable<Sphere> {public double x,y,z,r; public int ind=-1; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}
@@ -294,6 +323,7 @@ public class MathLib {
 		public Line[] linelist = null;
 		public Tetrahedron[] tetrahedronlist = null;
 		public Triangle[] surfacelist = null;
+		public Position[] vertexlist = null;
 		public Sphere sphereboundaryvolume = null;
 		public AxisAlignedBoundingBox aabbboundaryvolume = null;
 		@Override public int compareTo(Entity o) {
@@ -1078,12 +1108,12 @@ public class MathLib {
 		}
 		for (Iterator<Entity> i=newentitylistarray.iterator();i.hasNext();) {
 			Entity processent = i.next();
-			Position[] newvertexlist = generateVertexList(processent.linelist);
 			processent.trianglelist = generateTriangleList(processent.linelist);
 			processent.tetrahedronlist = generateTetrahedronList(processent.linelist);
 			processent.surfacelist = generateSurfaceList(processent.linelist);
-			processent.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newvertexlist);
-			processent.sphereboundaryvolume = MathLib.pointCloudCircumSphere(newvertexlist);
+			processent.vertexlist = generateVertexList(processent.linelist);
+			processent.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(processent.vertexlist);
+			processent.sphereboundaryvolume = MathLib.pointCloudCircumSphere(processent.vertexlist);
 			processent.linelist = generateNonTriangleLineList(processent.linelist);
 		}
 		return newentitylistarray.toArray(new Entity[newentitylistarray.size()]);
