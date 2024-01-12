@@ -32,4 +32,5 @@ public class EditorApp implements AppHandler {
 	@Override public void mouseMoved(MouseEvent e) {}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
 	@Override public void drop(DropTargetDropEvent dtde) {}
+	@Override public void setWindow(JavaRenderEngine wh) {}
 }

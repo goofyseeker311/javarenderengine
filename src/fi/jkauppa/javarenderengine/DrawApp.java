@@ -2,6 +2,7 @@ package fi.jkauppa.javarenderengine;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.TexturePaint;
@@ -51,6 +52,7 @@ public class DrawApp implements AppHandler {
 	private GIFFileFilter giffilefilter = new GIFFileFilter();
 	private BMPFileFilter bmpfilefilter = new BMPFileFilter();
 	private WBMPFileFilter wbmpfilefilter = new WBMPFileFilter();
+	private JavaRenderEngine windowhandler = null; 
 	
 	public DrawApp() {
 		BufferedImage bgpatternimage = gc.createCompatibleImage(64, 64, Transparency.OPAQUE);
@@ -495,4 +497,7 @@ public class DrawApp implements AppHandler {
 	    	this.drawPencil(g, drawposx, drawposy, erasemode, overridemode);
 		}
 	}
+
+	@Override public void setWindow(JavaRenderEngine wh) {this.windowhandler=wh; this.windowhandler.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));}
+	
 }

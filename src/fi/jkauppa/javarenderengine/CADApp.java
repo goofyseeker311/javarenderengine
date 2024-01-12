@@ -3,6 +3,7 @@ package fi.jkauppa.javarenderengine;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Rectangle;
@@ -85,6 +86,7 @@ public class CADApp implements AppHandler {
 	private boolean forwardkeydown = false;
 	private boolean backwardkeydown = false;
 	private boolean updatetrianglelist = true;
+	private JavaRenderEngine windowhandler = null; 
 	
 	public CADApp() {
 		Graphics2D pgfx = this.bgpatternimage.createGraphics();
@@ -812,5 +814,7 @@ public class CADApp implements AppHandler {
 			updateEntityList();
 		}
 	}
+
+	@Override public void setWindow(JavaRenderEngine wh) {this.windowhandler=wh; this.windowhandler.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));}
 	
 }
