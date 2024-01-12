@@ -424,14 +424,18 @@ public class CADApp implements AppHandler {
 			    int onmask = KeyEvent.SHIFT_DOWN_MASK;
 			    int offmask = KeyEvent.ALT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
 			    boolean f2shiftdown = (e.getModifiersEx() & (onmask | offmask)) == onmask;
-				Triangle[] copytrianglelist = this.entitylist[0].trianglelist;
-			    if (f2shiftdown) {
-			    	copytrianglelist = this.entitylist[0].surfacelist;
-			    }
 				File savefile = this.filechooser.getSelectedFile();
 				FileFilter savefileformat = this.filechooser.getFileFilter();
 				if (savefileformat.equals(this.stlfilefilter)) {
-					Triangle[] savemodel = copytrianglelist;
+					ArrayList<Triangle> savemodeltrianglearray = new ArrayList<Triangle>();  
+					for (int i=0;i<this.entitylist.length;i++) {
+						Triangle[] copytrianglelist = this.entitylist[i].trianglelist;
+					    if (f2shiftdown) {
+					    	copytrianglelist = this.entitylist[i].surfacelist;
+					    }
+					    savemodeltrianglearray.addAll(Arrays.asList(copytrianglelist));
+					}
+					Triangle[] savemodel = savemodeltrianglearray.toArray(new Triangle[savemodeltrianglearray.size()]);
 					String savestlfile = savefile.getPath();
 					if (savestlfile.toLowerCase().endsWith(".stl")) {
 						savestlfile = savestlfile.substring(0, savestlfile.length()-4).concat(".stl");
@@ -440,6 +444,10 @@ public class CADApp implements AppHandler {
 					}
 					ModelLib.saveSTLFile(savestlfile, savemodel, "JREOBJ");
 				} else {
+					Triangle[] copytrianglelist = this.entitylist[0].trianglelist;
+				    if (f2shiftdown) {
+				    	copytrianglelist = this.entitylist[0].surfacelist;
+				    }
 					Model savemodel = new Model(savefile.getPath());
 					String saveobjfile = savefile.getPath();
 					String savemtlfile = savefile.getName();
@@ -509,8 +517,15 @@ public class CADApp implements AppHandler {
 				FileFilter loadfileformat = this.filechooser.getFileFilter();
 				if (loadfileformat.equals(this.stlfilefilter)) {
 					Entity[] newentitylist = {new Entity()};
-					this.entitylist[0].trianglelist = ModelLib.loadSTLFile(loadfile.getPath(), false);
-					this.linelistarray.addAll(Arrays.asList(MathLib.generateLineList(this.entitylist[0].trianglelist)));
+					newentitylist[0].trianglelist = ModelLib.loadSTLFile(loadfile.getPath(), false);
+					for (int i=0;i<newentitylist[0].trianglelist.length;i++) {
+						if (newentitylist[0].trianglelist[i].mat==null) {
+							Material newmat = new Material();
+							newmat.facecolor = Color.WHITE;
+							newentitylist[0].trianglelist[i].mat = newmat;
+						}
+					}
+					this.linelistarray.addAll(Arrays.asList(MathLib.generateLineList(newentitylist[0].trianglelist)));
 					this.entitylist = newentitylist;
 				} else {
 					ArrayList<Entity> newentitylistarray = new ArrayList<Entity>(); 
