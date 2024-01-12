@@ -1,6 +1,5 @@
 package fi.jkauppa.javarenderengine;
 
-//TODO object handling
 //TODO texture handling
 
 import java.awt.AlphaComposite;
@@ -65,7 +64,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.6.12");
+		this.setTitle("Java Render Engine v1.6.13");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {

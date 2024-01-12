@@ -328,9 +328,7 @@ public class MathLib {
 		public AxisAlignedBoundingBox aabbboundaryvolume = null;
 		public Matrix transform = null;
 		public Position translation = null;
-		@Override public int compareTo(Entity o) {
-			return this.sphereboundaryvolume.compareTo(o.sphereboundaryvolume);
-		}
+		@Override public int compareTo(Entity o) {return this.sphereboundaryvolume.compareTo(o.sphereboundaryvolume);}
 	}
 	public static class Matrix {public double a11,a12,a13,a21,a22,a23,a31,a32,a33;public Matrix(double a11i,double a12i,double a13i,double a21i,double a22i,double a23i,double a31i,double a32i,double a33i){this.a11=a11i;this.a12=a12i;this.a13=a13i;this.a21=a21i;this.a22=a22i;this.a23=a23i;this.a31=a31i;this.a32=a32i;this.a33=a33i;}}
 	
