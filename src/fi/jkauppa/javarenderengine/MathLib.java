@@ -1042,17 +1042,29 @@ public class MathLib {
 	public static Entity[] generateEntityList(Line[] linelist) {
 		ArrayList<Entity> newentitylistarray = new ArrayList<Entity>();
 		for (int j=0;j<linelist.length;j++) {
-			Entity foundent = null;
-			for (Iterator<Entity> i=newentitylistarray.iterator();(i.hasNext())&&(foundent==null);) {
+			Entity foundent1 = null;
+			Entity foundent2 = null;
+			for (Iterator<Entity> i=newentitylistarray.iterator();(i.hasNext())&&((foundent1==null)||(foundent2==null));) {
 				Entity searchent = i.next();
 				if (searchent.linelist!=null) {
 					Position[] searchvert = MathLib.generateVertexList(searchent.linelist);
-					if ((Arrays.binarySearch(searchvert, linelist[j].pos1)>=0)||(Arrays.binarySearch(searchvert, linelist[j].pos2)>=0)) {
-						foundent = searchent; 
+					TreeSet<Position> searchvertarray = new TreeSet<Position>(Arrays.asList(searchvert));
+					if (searchvertarray.contains(linelist[j].pos1)) {
+						foundent1 = searchent; 
+					} else if (searchvertarray.contains(linelist[j].pos2)) {
+						foundent2 = searchent; 
 					}
 				}
 			}
-			if (foundent!=null) {
+			if ((foundent1!=null)&&(foundent2!=null)&&(!foundent1.equals(foundent2))) {
+				TreeSet<Line> newlinelistarray = new TreeSet<Line>(Arrays.asList(foundent1.linelist));
+				newlinelistarray.addAll(Arrays.asList(foundent2.linelist));
+				newlinelistarray.add(linelist[j]);
+				foundent1.linelist = newlinelistarray.toArray(new Line[newlinelistarray.size()]);
+				newentitylistarray.remove(foundent2);
+			} else if ((foundent1!=null)||(foundent2!=null)) {
+				Entity foundent = foundent1; 
+				if (foundent2!=null) {foundent = foundent2;}
 				TreeSet<Line> newlinelistarray = new TreeSet<Line>(Arrays.asList(foundent.linelist));
 				newlinelistarray.add(linelist[j]);
 				foundent.linelist = newlinelistarray.toArray(new Line[newlinelistarray.size()]);

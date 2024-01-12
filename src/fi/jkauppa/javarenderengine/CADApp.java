@@ -735,27 +735,32 @@ public class CADApp implements AppHandler {
 		ArrayList<Triangle> entitylisttrianglearray = new ArrayList<Triangle>();
 		if ((this.entitylist!=null)&&(this.entitylist[0].trianglelist!=null)) {entitylisttrianglearray.addAll(Arrays.asList(this.entitylist[0].trianglelist));}
 		for (int j=0;j<newentitylist.length;j++) {
-			Material newmat = new Material();
-			newmat.facecolor = this.drawcolor;
-			newmat.transparency = this.penciltransparency;
-			Material foundmat = newmat;
 			for (int i=0;i<newentitylist[j].trianglelist.length;i++) {
+				Material foundmat = new Material();
+				foundmat.facecolor = this.drawcolor;
+				foundmat.transparency = this.penciltransparency;
 				int searchindex = entitylisttrianglearray.indexOf(newentitylist[j].trianglelist[i]);
 				if (searchindex>=0) {
-					foundmat = entitylisttrianglearray.get(searchindex).mat;
-					if (foundmat==null) {foundmat = newmat;}
+					Material searchmat = entitylisttrianglearray.get(searchindex).mat;
+					if (searchmat==null) {
+						foundmat = searchmat;
+					}
 				}
 				newentitylist[j].trianglelist[i].mat = foundmat;
 				newentitylist[j].trianglelist[i].norm = new Direction(0.0f,0.0f,0.0f);
 			}
 			for (int i=0;i<newentitylist[j].surfacelist.length;i++) {
+				Material foundmat = new Material();
+				foundmat.facecolor = this.drawcolor;
+				foundmat.transparency = this.penciltransparency;
 				int searchindex = entitylisttrianglearray.indexOf(newentitylist[j].surfacelist[i]);
 				if (searchindex>=0) {
-					foundmat = entitylisttrianglearray.get(searchindex).mat;
-					if (foundmat==null) {foundmat = newmat;}
+					Material searchmat = entitylisttrianglearray.get(searchindex).mat;
+					if (searchmat==null) {
+						foundmat = searchmat;
+					}
 				}
 				newentitylist[j].surfacelist[i].mat = foundmat;
-				newentitylist[j].surfacelist[i].norm = new Direction(0.0f,0.0f,0.0f);
 			}
 		}
 		this.entitylist = newentitylist;
