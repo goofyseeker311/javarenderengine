@@ -68,7 +68,6 @@ public class ModelApp implements AppHandler {
 	private int lastrenderwidth = 0, lastrenderheight = 0;
 	private Cursor customcursor = null;
 	private JavaRenderEngine windowhandler = null; 
-	private boolean processmousemovement = true;
 	
 	public ModelApp() {
 		BufferedImage cursorimage = gc.createCompatibleImage(1, 1, Transparency.TRANSLUCENT);
@@ -402,22 +401,21 @@ public class ModelApp implements AppHandler {
 		int windowcentery = windowscreenlocation.y + windowhalfheight;
 		this.mouselocationx = this.lastrenderwidth/2; 
 		this.mouselocationy = this.lastrenderheight/2; 
-		this.processmousemovement = false;
 		try {
 			Robot mouserobot = new Robot();
 			mouserobot.mouseMove(windowcenterx, windowcentery);
 		} catch (Exception ex) {ex.printStackTrace();}
-		this.processmousemovement = true;
 	}
 	@Override public void mouseMoved(MouseEvent e) {
-		if (this.processmousemovement) {
-			this.mouselastlocationx=this.mouselocationx;this.mouselastlocationy=this.mouselocationy;
-			this.mouselocationx=e.getX();this.mouselocationy=e.getY();
-	    	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
-	    	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-	    	this.camrot.z -= mousedeltax*0.1f;
-	    	this.camrot.x -= mousedeltay*0.1f;
-	    	updateCameraDirections();
+		this.mouselastlocationx=this.mouselocationx;this.mouselastlocationy=this.mouselocationy;
+		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
+    	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
+    	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+    	this.camrot.z -= mousedeltax*0.1f;
+    	this.camrot.x -= mousedeltay*0.1f;
+    	updateCameraDirections();
+		if ((this.mouselocationx<=0)||(this.mouselocationy<=0)||(this.mouselocationx>=(this.lastrenderwidth-1))||(this.mouselocationy>=(this.lastrenderheight-1))) {
+			mouseExited(e);
 		}
 	}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
