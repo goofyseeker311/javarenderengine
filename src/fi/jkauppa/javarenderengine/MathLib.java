@@ -326,6 +326,8 @@ public class MathLib {
 		public Position[] vertexlist = null;
 		public Sphere sphereboundaryvolume = null;
 		public AxisAlignedBoundingBox aabbboundaryvolume = null;
+		public Matrix transform = null;
+		public Position translation = null;
 		@Override public int compareTo(Entity o) {
 			return this.sphereboundaryvolume.compareTo(o.sphereboundaryvolume);
 		}
