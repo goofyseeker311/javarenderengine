@@ -234,7 +234,7 @@ public class MathLib {
 			return k;
 		}
 	}
-	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public Direction norm; public Material mat; public int ind=-1; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;} public Triangle copy(){Triangle k=new Triangle(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z),new Position(this.pos3.x,this.pos3.y,this.pos3.z));k.norm=this.norm;k.mat=this.mat;k.ind=this.ind;return k;}
+	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public Direction norm; public Material mat; public int ind=-1; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;}
 		@Override public int compareTo(Triangle o) {
 			int k = -1;
 			Position[] tposarray = {this.pos1,this.pos2,this.pos3};
@@ -286,6 +286,7 @@ public class MathLib {
 			}
 			return k;
 		}
+		public Triangle copy(){Triangle k=new Triangle(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z),new Position(this.pos3.x,this.pos3.y,this.pos3.z));k.norm=this.norm;k.mat=this.mat;k.ind=this.ind;return k;}
 	}
 	public static class Entity implements Comparable<Entity> {
 		public Entity[] childlist = null;
