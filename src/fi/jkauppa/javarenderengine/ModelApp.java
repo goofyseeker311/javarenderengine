@@ -2,14 +2,19 @@ package fi.jkauppa.javarenderengine;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.Robot;
+import java.awt.Transparency;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.io.File;
 import java.util.Arrays;
@@ -17,6 +22,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.swing.JFileChooser;
+
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
 import fi.jkauppa.javarenderengine.MathLib.Line;
@@ -53,15 +59,24 @@ public class ModelApp implements AppHandler {
 	private boolean backwardkeydown = false;
 	private boolean rollrightkeydown = false;
 	private boolean rollleftkeydown = false;
-	private int mouselastlocationx = -1, mouselastlocationy = -1;  
+	private int mouselastlocationx = -1, mouselastlocationy = -1; 
 	private int mouselocationx = -1, mouselocationy = -1;
 	private double[][] zbuffer = null;
 	private int polygonfillmode = 1;
 	private final double drawdepthscale = 0.00035f;
 	private int origindeltax = 0, origindeltay = 0; 
 	private int lastrenderwidth = 0, lastrenderheight = 0;
+	private Cursor customcursor = null;
+	private JavaRenderEngine windowhandler = null; 
+	private boolean processmousemovement = true;
 	
 	public ModelApp() {
+		BufferedImage cursorimage = gc.createCompatibleImage(1, 1, Transparency.TRANSLUCENT);
+		Graphics2D cgfx = cursorimage.createGraphics();
+		cgfx.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
+		cgfx.drawLine(0, 0, 0, 0);
+		cgfx.dispose();
+		this.customcursor = tk.createCustomCursor(cursorimage, new Point(0,0), "customcursor");
 		this.filechooser.addChoosableFileFilter(this.objfilefilter);
 		this.filechooser.setFileFilter(this.objfilefilter);
 		this.filechooser.setAcceptAllFileFilterUsed(false);
@@ -374,24 +389,40 @@ public class ModelApp implements AppHandler {
 	}
 	
 	@Override public void keyTyped(KeyEvent e) {}
-
-	@Override public void mousePressed(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();mouseDragged(e);}
-	@Override public void mouseDragged(MouseEvent e) {
-		this.mouselastlocationx=this.mouselocationx;this.mouselastlocationy=this.mouselocationy;
-		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
-    	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
-    	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-    	this.camrot.z -= mousedeltax*0.1f;
-    	this.camrot.x -= mousedeltay*0.1f;
-    	updateCameraDirections();
-	}
-	
+	@Override public void mousePressed(MouseEvent e) {}
+	@Override public void mouseDragged(MouseEvent e) {}
 	@Override public void mouseClicked(MouseEvent e) {}
 	@Override public void mouseReleased(MouseEvent e) {}
 	@Override public void mouseEntered(MouseEvent e) {}
-	@Override public void mouseExited(MouseEvent e) {}
-	@Override public void mouseMoved(MouseEvent e) {}
+	@Override public void mouseExited(MouseEvent e) {
+		Point windowscreenlocation = this.windowhandler.getLocationOnScreen();
+		int windowhalfwidth = this.windowhandler.getWidth()/2;
+		int windowhalfheight = this.windowhandler.getHeight()/2;
+		int windowcenterx = windowscreenlocation.x + windowhalfwidth;
+		int windowcentery = windowscreenlocation.y + windowhalfheight;
+		this.mouselocationx = this.lastrenderwidth/2; 
+		this.mouselocationy = this.lastrenderheight/2; 
+		this.processmousemovement = false;
+		try {
+			Robot mouserobot = new Robot();
+			mouserobot.mouseMove(windowcenterx, windowcentery);
+		} catch (Exception ex) {ex.printStackTrace();}
+		this.processmousemovement = true;
+	}
+	@Override public void mouseMoved(MouseEvent e) {
+		if (this.processmousemovement) {
+			this.mouselastlocationx=this.mouselocationx;this.mouselastlocationy=this.mouselocationy;
+			this.mouselocationx=e.getX();this.mouselocationy=e.getY();
+	    	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
+	    	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+	    	this.camrot.z -= mousedeltax*0.1f;
+	    	this.camrot.x -= mousedeltay*0.1f;
+	    	updateCameraDirections();
+		}
+	}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
 	@Override public void drop(DropTargetDropEvent dtde) {}
+
+	@Override public void setWindow(JavaRenderEngine wh) {this.windowhandler=wh;this.windowhandler.setCursor(this.customcursor);}
 
 }

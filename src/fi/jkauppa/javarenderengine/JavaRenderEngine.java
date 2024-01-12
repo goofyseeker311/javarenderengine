@@ -64,7 +64,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.6.13");
+		this.setTitle("Java Render Engine v1.6.14");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -269,15 +269,17 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 
 	private void setActiveApp(AppHandler activeappi) {
 		this.activeapp = activeappi;
+		this.activeapp.setWindow(this);
 	}
 	public interface AppHandler extends ActionListener,KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
-		GraphicsDevice gd = ge.getDefaultScreenDevice ();
-		GraphicsConfiguration gc = gd.getDefaultConfiguration ();
-		Toolkit tk = Toolkit.getDefaultToolkit();
-		Clipboard cb = tk.getSystemClipboard();
+		final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
+		final GraphicsDevice gd = ge.getDefaultScreenDevice ();
+		final GraphicsConfiguration gc = gd.getDefaultConfiguration ();
+		final Toolkit tk = Toolkit.getDefaultToolkit();
+		final Clipboard cb = tk.getSystemClipboard();
 		public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps);
 		public void drop(DropTargetDropEvent dtde);
+		public void setWindow(JavaRenderEngine wh);
 	}
 
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {if (this.activeapp!=null) {this.activeapp.mouseWheelMoved(e);}}
