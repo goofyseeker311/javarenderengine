@@ -1148,8 +1148,8 @@ public class MathLib {
 	}
 	
 	public static AxisAlignedBoundingBox axisAlignedBoundingBox(Position[] vertexlist) {
-		double xmin=Double.MAX_VALUE, ymin=Double.MAX_VALUE, zmin=Double.MAX_VALUE;
-		double xmax=Double.MIN_VALUE, ymax=Double.MIN_VALUE, zmax=Double.MIN_VALUE;
+		double xmin=Double.POSITIVE_INFINITY, ymin=Double.POSITIVE_INFINITY, zmin=Double.POSITIVE_INFINITY;
+		double xmax=Double.NEGATIVE_INFINITY, ymax=Double.NEGATIVE_INFINITY, zmax=Double.NEGATIVE_INFINITY;
 		for (int i=0;i<vertexlist.length;i++) {
 			if (vertexlist[i].x<xmin) {xmin=vertexlist[i].x;}
 			if (vertexlist[i].x>xmax) {xmax=vertexlist[i].x;}

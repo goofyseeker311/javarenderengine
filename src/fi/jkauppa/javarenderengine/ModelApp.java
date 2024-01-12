@@ -147,10 +147,11 @@ public class ModelApp implements AppHandler {
 		}
 		for (int i=0;i<this.zbuffer.length;i++) {Arrays.fill(this.zbuffer[i],Double.MAX_VALUE);}
 		this.vfov = 2.0f*(180.0f/Math.PI)*Math.atan((((double)renderheight)/((double)renderwidth))*Math.tan((this.hfov/2.0f)*(Math.PI/180.0f))); 
-		g.setComposite(AlphaComposite.SrcOver);
+		g.setComposite(AlphaComposite.Src);
 		g.setColor(Color.BLACK);
 		g.setPaint(null);
 		g.fillRect(0, 0, renderwidth, renderheight);
+		g.setComposite(AlphaComposite.SrcOver);
 		Triangle[] copytrianglelist = this.trianglematerialmap.keySet().toArray(new Triangle[this.trianglematerialmap.size()]);
 		if (copytrianglelist.length>0) {
 			Plane[] verticalplanes = MathLib.projectedPlanes(this.campos, renderwidth, hfov, this.cameramat);
