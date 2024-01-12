@@ -457,6 +457,7 @@ public class CADApp implements AppHandler {
 					TreeSet<Material> materiallistarray = new TreeSet<Material>();
 					TreeSet<Position> vertexlistarray = new TreeSet<Position>();
 					TreeSet<Direction> normallistarray = new TreeSet<Direction>();
+					normallistarray.add(new Direction(0, 0, 0));
 					savemodel.objects = new ModelObject[this.entitylist.length];
 					for (int j=0;j<this.entitylist.length;j++) {
 						savemodel.objects[j] = new ModelObject("JREOBJ"+(j+1));
@@ -474,11 +475,7 @@ public class CADApp implements AppHandler {
 					}
 					savemodel.materials = materiallistarray.toArray(new Material[materiallistarray.size()]);
 					savemodel.vertexlist = vertexlistarray.toArray(new Position[vertexlistarray.size()]);
-					//savemodel.facenormals = normallistarray.toArray(new Direction[normallistarray.size()]);
-					//if (savemodel.facenormals.length==0) {
-					//}
-					savemodel.facenormals = new Direction[1];
-					savemodel.facenormals[0] = new Direction(0, 0, 0);
+					savemodel.facenormals = normallistarray.toArray(new Direction[normallistarray.size()]);
 					savemodel.texturecoords = new Coordinate[1];
 					savemodel.texturecoords[0] = new Coordinate(0, 0);
 					for (int i=0;i<savemodel.materials.length;i++) {
@@ -491,16 +488,17 @@ public class CADApp implements AppHandler {
 					    }
 						for (int i=0;i<copytrianglelist.length;i++) {
 							ModelFaceVertexIndex[] trianglevertex = new ModelFaceVertexIndex[3];
-							trianglevertex[0] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos1)+1,1,1);
-							trianglevertex[1] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos2)+1,1,1);
-							trianglevertex[2] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos3)+1,1,1);
+							trianglevertex[0] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos1)+1,1,Arrays.binarySearch(savemodel.facenormals, copytrianglelist[i].norm)+1);
+							trianglevertex[1] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos2)+1,1,Arrays.binarySearch(savemodel.facenormals, copytrianglelist[i].norm)+1);
+							trianglevertex[2] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos3)+1,1,Arrays.binarySearch(savemodel.facenormals, copytrianglelist[i].norm)+1);
 							Material copymaterial = copytrianglelist[i].mat;
 							int searchmatindex = Arrays.binarySearch(savemodel.materials, copymaterial);
 							ModelFaceIndex[] objectfaceindex = savemodel.objects[j].faceindex;
 							ArrayList<ModelFaceIndex> faceindexarray = (objectfaceindex!=null)?(new ArrayList<ModelFaceIndex>(Arrays.asList(objectfaceindex))):(new ArrayList<ModelFaceIndex>());
-							faceindexarray.add(new ModelFaceIndex(trianglevertex));
+							ModelFaceIndex newmodelfaceindex = new ModelFaceIndex(trianglevertex);
+							newmodelfaceindex.usemtl = savemodel.materials[searchmatindex].materialname;
+							faceindexarray.add(newmodelfaceindex);
 							savemodel.objects[j].faceindex = faceindexarray.toArray(new ModelFaceIndex[faceindexarray.size()]);
-							savemodel.objects[j].usemtl = savemodel.materials[searchmatindex].materialname;
 						}
 						if (this.entitylist[j].linelist!=null) {
 							Line[] uniquelinelist = this.entitylist[j].linelist;
@@ -556,13 +554,13 @@ public class CADApp implements AppHandler {
 					}
 					for (int k=0;k<loadmodel.objects.length;k++) {
 						newentitylistarray.add(new Entity());
-						Material foundmat = null;
-						for (int i=0;(i<copymateriallist.length)&&(foundmat==null);i++) {
-							if (loadmodel.objects[k].usemtl.equals(copymateriallist[i].materialname)) {
-								foundmat = copymateriallist[i];
-							}
-						}
 						for (int j=0;j<loadmodel.objects[k].faceindex.length;j++) {
+							Material foundmat = null;
+							for (int i=0;(i<copymateriallist.length)&&(foundmat==null);i++) {
+								if (loadmodel.objects[k].faceindex[j].usemtl.equals(copymateriallist[i].materialname)) {
+									foundmat = copymateriallist[i];
+								}
+							}
 							Position[] loadvertex = new Position[loadmodel.objects[k].faceindex[j].facevertexindex.length];
 							for (int i=0;i<loadmodel.objects[k].faceindex[j].facevertexindex.length;i++) {
 								loadvertex[i] = loadmodel.vertexlist[loadmodel.objects[k].faceindex[j].facevertexindex[i].vertexindex-1];

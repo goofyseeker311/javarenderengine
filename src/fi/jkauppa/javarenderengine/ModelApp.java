@@ -351,17 +351,17 @@ public class ModelApp implements AppHandler {
 				File loadfile = this.filechooser.getSelectedFile();
 				this.model = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
 				for (int j=0;j<model.objects.length;j++) {
-					Material foundmat = null;
-					for (int i=0;(i<this.model.materials.length)&&(foundmat==null);i++) {
-						if (this.model.objects[j].usemtl.equals(this.model.materials[i].materialname)) {
-							foundmat = this.model.materials[i];
-						}
-					}
-					if (foundmat==null) {
-						foundmat = new Material();
-						foundmat.facecolor = Color.WHITE;
-					}
 					for (int i=0;i<model.objects[j].faceindex.length;i++) {
+						Material foundmat = null;
+						for (int n=0;(n<this.model.materials.length)&&(foundmat==null);n++) {
+							if (model.objects[j].faceindex[i].usemtl.equals(this.model.materials[n].materialname)) {
+								foundmat = this.model.materials[n];
+							}
+						}
+						if (foundmat==null) {
+							foundmat = new Material();
+							foundmat.facecolor = Color.WHITE;
+						}
 						Position pos1 = model.vertexlist[model.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
 						Position pos2 = model.vertexlist[model.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
 						Position pos3 = model.vertexlist[model.objects[j].faceindex[i].facevertexindex[2].vertexindex-1];

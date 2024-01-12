@@ -72,6 +72,7 @@ public class ModelLib {
 	}
 	public static class ModelFaceIndex {
 		public ModelFaceVertexIndex[] facevertexindex;
+		public String usemtl;
 		public ModelFaceIndex(ModelFaceVertexIndex[] facevertexindexi){this.facevertexindex=facevertexindexi;}
 	}
 	public static class ModelLineIndex {
@@ -80,10 +81,8 @@ public class ModelLib {
 	}
 	public static class ModelObject {
 		public String objectname;
-		public String usemtl;
 		public ModelFaceIndex[] faceindex;
 		public ModelLineIndex[] lineindex;
-		public Triangle triangles;
 		public ModelObject(String objectnamei) {this.objectname = objectnamei;}
 	}
 	public static class Model {
@@ -116,24 +115,26 @@ public class ModelLib {
 					modelobjfile.write("vt "+model.texturecoords[i].u+" "+model.texturecoords[i].v);
 					modelobjfile.newLine();
 				}
+		    	String lastusemtl = null;
 				for (int k=0;k<model.objects.length;k++) {
 					modelobjfile.newLine();
 					modelobjfile.write("o "+model.objects[k].objectname);
 					modelobjfile.newLine();
-					modelobjfile.write("s 0");
-					modelobjfile.newLine();
-					modelobjfile.write("usemtl "+model.objects[k].usemtl);
-					modelobjfile.newLine();
 					if ((model.objects[k].faceindex!=null)&&(model.objects[k].faceindex.length>0)) {
 						for (int j=0;j<model.objects[k].faceindex.length;j++) {
+							if ((j==0)||(!model.objects[k].faceindex[j].usemtl.equals(lastusemtl))) {
+								modelobjfile.write("usemtl "+model.objects[k].faceindex[j].usemtl);
+								modelobjfile.newLine();
+								lastusemtl = model.objects[k].faceindex[j].usemtl;
+							}
 							modelobjfile.write("f ");
 							for (int i=0;i<model.objects[k].faceindex[j].facevertexindex.length;i++) {
 								if (i>0) {modelobjfile.write(" ");}
 								modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].vertexindex);
 								modelobjfile.write("/");
-								modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].normalindex);
-								modelobjfile.write("/");
 								modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].textureindex);
+								modelobjfile.write("/");
+								modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].normalindex);
 							}
 							modelobjfile.newLine();
 						}
@@ -210,7 +211,8 @@ public class ModelLib {
 					ArrayList<Direction> modelfacenormals = new ArrayList<Direction>();
 					ArrayList<Coordinate> modeltexturecoords = new ArrayList<Coordinate>();
 			    	ArrayList<ModelFaceIndex> modelfaceindex = new ArrayList<ModelFaceIndex>(); 
-			    	ArrayList<ModelLineIndex> modellineindex = new ArrayList<ModelLineIndex>(); 
+			    	ArrayList<ModelLineIndex> modellineindex = new ArrayList<ModelLineIndex>();
+			    	String lastusemtl = null;
 					String fline = null;
 					while((fline=modelobjfile.readLine())!=null) {
 						fline = fline.trim();
@@ -243,7 +245,7 @@ public class ModelLib {
 					    	modeltexturecoords.add(new Coordinate(Double.parseDouble(fargsplit[0]), Double.parseDouble(fargsplit[1])));
 					    }else if (fline.toLowerCase().startsWith("usemtl ")) {
 					    	String farg = fline.substring(7).trim();
-					    	modelobjects.get(modelobjects.size()-1).usemtl = farg;
+					    	lastusemtl = farg;
 					    }else if (fline.toLowerCase().startsWith("l ")) {
 					    	String farg = fline.substring(2).trim();
 					    	String[] fargsplit = farg.split(" ");
@@ -260,7 +262,9 @@ public class ModelLib {
 						    	String[] fargsplit2 = fargsplit[i].split("/");
 						    	modelfacevertexindex.add(new ModelFaceVertexIndex(Integer.parseInt(fargsplit2[0]),Integer.parseInt(fargsplit2[1]),Integer.parseInt(fargsplit2[2])));
 					    	}
-					    	modelfaceindex.add(new ModelFaceIndex(modelfacevertexindex.toArray(new ModelFaceVertexIndex[modelfacevertexindex.size()])));
+					    	ModelFaceIndex newmodelfaceindex = new ModelFaceIndex(modelfacevertexindex.toArray(new ModelFaceVertexIndex[modelfacevertexindex.size()]));
+					    	newmodelfaceindex.usemtl = lastusemtl;
+					    	modelfaceindex.add(newmodelfaceindex);
 					    }
 					}
 			    	if (modelobjects.size()>0) {
