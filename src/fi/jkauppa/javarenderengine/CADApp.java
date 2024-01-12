@@ -507,12 +507,13 @@ public class CADApp implements AppHandler {
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File loadfile = this.filechooser.getSelectedFile();
 				FileFilter loadfileformat = this.filechooser.getFileFilter();
-				Entity[] newentitylist = {new Entity()};
-				this.entitylist = newentitylist;
 				if (loadfileformat.equals(this.stlfilefilter)) {
+					Entity[] newentitylist = {new Entity()};
 					this.entitylist[0].trianglelist = ModelLib.loadSTLFile(loadfile.getPath(), false);
 					this.linelistarray.addAll(Arrays.asList(MathLib.generateLineList(this.entitylist[0].trianglelist)));
+					this.entitylist = newentitylist;
 				} else {
+					ArrayList<Entity> newentitylistarray = new ArrayList<Entity>(); 
 					Model loadmodel = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
 					TreeSet<Line> uniquelinetree = new TreeSet<Line>();
 					ArrayList<Material> materiallisttree = new ArrayList<Material>(Arrays.asList(loadmodel.materials));
@@ -523,6 +524,7 @@ public class CADApp implements AppHandler {
 						}
 					}
 					for (int k=0;k<loadmodel.objects.length;k++) {
+						newentitylistarray.add(new Entity());
 						Material foundmat = null;
 						for (int i=0;(i<copymateriallist.length)&&(foundmat==null);i++) {
 							if (loadmodel.objects[k].usemtl.equals(copymateriallist[i].materialname)) {
@@ -544,11 +546,11 @@ public class CADApp implements AppHandler {
 							}
 							if (loadmodel.objects[k].faceindex[j].facevertexindex.length==3) {
 								ArrayList<Triangle> newtrianglelistarray = new ArrayList<Triangle>();
-								if (this.entitylist[0].trianglelist!=null) {newtrianglelistarray.addAll(Arrays.asList(this.entitylist[0].trianglelist));}
+								if (newentitylistarray.get(newentitylistarray.size()-1).trianglelist!=null) {newtrianglelistarray.addAll(Arrays.asList(newentitylistarray.get(newentitylistarray.size()-1).trianglelist));}
 								Triangle newtriangle = new Triangle(loadvertex[0],loadvertex[1],loadvertex[2]);
 								newtriangle.mat = foundmat;
 								newtrianglelistarray.add(newtriangle);
-								this.entitylist[0].trianglelist = newtrianglelistarray.toArray(new Triangle[newtrianglelistarray.size()]);
+								newentitylistarray.get(newentitylistarray.size()-1).trianglelist = newtrianglelistarray.toArray(new Triangle[newtrianglelistarray.size()]);
 							}
 						}
 						for (int j=0;j<loadmodel.objects[k].lineindex.length;j++) {
@@ -565,6 +567,7 @@ public class CADApp implements AppHandler {
 						}
 					}
 					this.linelistarray.addAll(uniquelinetree);
+					this.entitylist = newentitylistarray.toArray(new Entity[newentitylistarray.size()]);
 				}
 				(new EntityListUpdater()).start();
 			}
