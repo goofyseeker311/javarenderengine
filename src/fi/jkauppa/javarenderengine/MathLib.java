@@ -1131,23 +1131,26 @@ public class MathLib {
 	}
 	
 	public static Triangle[] subDivideTriangle(Triangle[] vtri) {
+		Triangle[] k = null;
 		//TODO two-middle-point sub-division of a triangle
 		if (vtri!=null) {
 			for (int i=0;i<vtri.length;i++) {
 				
 			}
 		}
-		return null;
+		return k;
 	}
 	
-	public static AffineTransform textureTransform(Triangle[] vtri, Polygon[] vpoly) {
+	public static AffineTransform[] textureTransform(Triangle[] vtri, Polygon[] vpoly) {
+		AffineTransform[] k = null;
 		//TODO triangle texture coordinates transform into display polygon triangle
 		if ((vtri!=null)&&(vpoly!=null)&&(vtri.length==vpoly.length)) {
+			k = new AffineTransform[vtri.length];
 			for (int i=0;i<vtri.length;i++) {
 				
 			}
 		}
-		return null;
+		return k;
 	}
 	
 	public static double[] projectedStep(int vres, double vfov) {
