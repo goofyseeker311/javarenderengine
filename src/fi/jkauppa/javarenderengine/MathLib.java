@@ -1147,7 +1147,8 @@ public class MathLib {
 		if ((vtri!=null)&&(vpoly!=null)&&(vtri.length==vpoly.length)) {
 			k = new AffineTransform[vtri.length];
 			for (int i=0;i<vtri.length;i++) {
-				
+				if (vpoly[i].npoints==3) {
+				}
 			}
 		}
 		return k;

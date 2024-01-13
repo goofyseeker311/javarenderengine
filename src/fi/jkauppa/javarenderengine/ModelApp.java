@@ -82,6 +82,10 @@ public class ModelApp implements AppHandler {
 	}
 
 	@Override public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
+		g.setComposite(AlphaComposite.Src);
+		g.setColor(Color.BLACK);
+		g.setPaint(null);
+		g.fillRect(0, 0, renderwidth, renderheight);
 		if (this.polygonfillmode==1) {
 			renderWindowHardware(g, renderwidth, renderheight, deltatimesec, deltatimefps);
 		} else {
@@ -96,12 +100,7 @@ public class ModelApp implements AppHandler {
 			this.lastrenderwidth = renderwidth;
 			this.lastrenderheight = renderheight;
 		}
-		g.scale(1.0f, -1.0f);
-		g.translate(0.0f, -renderheight);
 		g.setComposite(AlphaComposite.SrcOver);
-		g.setColor(Color.BLACK);
-		g.setPaint(null);
-		g.fillRect(0, 0, renderwidth, renderheight);
 		Position renderpos = new Position(-campos.x,-campos.y,-campos.z);
 		Triangle[] copytrianglelist = this.trianglematerialmap.keySet().toArray(new Triangle[this.trianglematerialmap.size()]);
 		for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].ind = i;}
@@ -161,10 +160,8 @@ public class ModelApp implements AppHandler {
 		}
 		for (int i=0;i<this.zbuffer.length;i++) {Arrays.fill(this.zbuffer[i],Double.MAX_VALUE);}
 		this.vfov = 2.0f*(180.0f/Math.PI)*Math.atan((((double)renderheight)/((double)renderwidth))*Math.tan((this.hfov/2.0f)*(Math.PI/180.0f))); 
-		g.setComposite(AlphaComposite.Src);
-		g.setColor(Color.BLACK);
-		g.setPaint(null);
-		g.fillRect(0, 0, renderwidth, renderheight);
+		g.scale(1.0f, -1.0f);
+		g.translate(0.0f, -renderheight);
 		g.setComposite(AlphaComposite.SrcOver);
 		Triangle[] copytrianglelist = this.trianglematerialmap.keySet().toArray(new Triangle[this.trianglematerialmap.size()]);
 		if (copytrianglelist.length>0) {
@@ -293,13 +290,13 @@ public class ModelApp implements AppHandler {
 			this.campos.z -= 20.0f*this.camdirs[0].dz;
 		}
 		if (this.upwardkeydown) {
-			this.campos.x -= 20.0f*this.camdirs[2].dx;
-			this.campos.y -= 20.0f*this.camdirs[2].dy;
-			this.campos.z -= 20.0f*this.camdirs[2].dz;
-		} else if (this.downwardkeydown) {
 			this.campos.x += 20.0f*this.camdirs[2].dx;
 			this.campos.y += 20.0f*this.camdirs[2].dy;
 			this.campos.z += 20.0f*this.camdirs[2].dz;
+		} else if (this.downwardkeydown) {
+			this.campos.x -= 20.0f*this.camdirs[2].dx;
+			this.campos.y -= 20.0f*this.camdirs[2].dy;
+			this.campos.z -= 20.0f*this.camdirs[2].dz;
 		}
 		if (this.rollleftkeydown) {
 			this.camrot.y -= 1.0f;
@@ -411,8 +408,8 @@ public class ModelApp implements AppHandler {
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
     	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
     	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-    	this.camrot.z -= mousedeltax*0.1f;
-    	this.camrot.x -= mousedeltay*0.1f;
+    	this.camrot.z += mousedeltax*0.1f;
+    	this.camrot.x += mousedeltay*0.1f;
     	updateCameraDirections();
 		if ((this.mouselocationx<=0)||(this.mouselocationy<=0)||(this.mouselocationx>=(this.lastrenderwidth-1))||(this.mouselocationy>=(this.lastrenderheight-1))) {
 			mouseExited(e);
