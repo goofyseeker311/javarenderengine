@@ -1123,15 +1123,30 @@ public class MathLib {
 	
 	public static void subTreeEntityList(Entity[] entitylist) {
 		//TODO entity lowest level children octree axis aligned bounding box primitive split into next child level
+		if (entitylist!=null) {
+			for (int i=0;i<entitylist.length;i++) {
+				
+			}
+		}
 	}
 	
 	public static Triangle[] subDivideTriangle(Triangle[] vtri) {
 		//TODO two-middle-point sub-division of a triangle
+		if (vtri!=null) {
+			for (int i=0;i<vtri.length;i++) {
+				
+			}
+		}
 		return null;
 	}
 	
-	public static AffineTransform textureRotation(Triangle[] vtri, Polygon[] vpoly) {
+	public static AffineTransform textureTransform(Triangle[] vtri, Polygon[] vpoly) {
 		//TODO triangle texture coordinates transform into display polygon triangle
+		if ((vtri!=null)&&(vpoly!=null)&&(vtri.length==vpoly.length)) {
+			for (int i=0;i<vtri.length;i++) {
+				
+			}
+		}
 		return null;
 	}
 	
