@@ -389,7 +389,11 @@ public class ModelApp implements AppHandler {
 						tri.pos1.tex = tex1;
 						tri.pos2.tex = tex2;
 						tri.pos3.tex = tex3;
-						this.trianglematerialmap.put(tri, foundmat);
+						Triangle[] stri = {tri};
+						stri = MathLib.subDivideTriangle(stri);
+						for (int n=0;n<stri.length;n++ ) {
+							this.trianglematerialmap.put(stri[n], foundmat);
+						}
 					}
 				}
 			}

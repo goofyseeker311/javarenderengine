@@ -1158,10 +1158,38 @@ public class MathLib {
 	
 	public static Triangle[] subDivideTriangle(Triangle[] vtri) {
 		Triangle[] k = null;
-		//TODO two-middle-point sub-division of a triangle into two (to prevent 4th triangle from being formed on the outside)
 		if (vtri!=null) {
+			k = new Triangle[2*vtri.length];
 			for (int i=0;i<vtri.length;i++) {
-				
+				Position[] trianglepos1 = {vtri[i].pos1,vtri[i].pos1,vtri[i].pos2};
+				Position[] trianglepos2 = {vtri[i].pos2,vtri[i].pos3,vtri[i].pos3};
+				Direction[] trianglelines = vectorFromPoints(trianglepos1, trianglepos2);
+				double[] trianglelineslen = vectorLength(trianglelines);
+				int[] lineindex = UtilLib.indexSort(trianglelineslen);
+				Position newtrianglepoint = new Position(trianglepos1[lineindex[2]].x+0.5f*trianglelines[lineindex[2]].dx, trianglepos1[lineindex[2]].y+0.5f*trianglelines[lineindex[2]].dy, trianglepos1[lineindex[2]].z+0.5f*trianglelines[lineindex[2]].dz);
+				if ((trianglepos1[lineindex[2]].tex!=null)&&(trianglepos2[lineindex[2]].tex!=null)) {
+					newtrianglepoint.tex = new Coordinate(trianglepos1[lineindex[2]].tex.u+0.5f*(trianglepos2[lineindex[2]].tex.u-trianglepos1[lineindex[2]].tex.u),trianglepos1[lineindex[2]].tex.v+0.5f*(trianglepos2[lineindex[2]].tex.v-trianglepos1[lineindex[2]].tex.v));
+				}
+				Triangle newtriangle1 = null;
+				Triangle newtriangle2 = null;
+				if (lineindex[2]==0) {
+					newtriangle1 = new Triangle(newtrianglepoint,vtri[i].pos1,vtri[i].pos3);
+					newtriangle2 = new Triangle(newtrianglepoint,vtri[i].pos2,vtri[i].pos3);
+				} else if (lineindex[2]==1) {
+					newtriangle1 = new Triangle(newtrianglepoint,vtri[i].pos1,vtri[i].pos2);
+					newtriangle2 = new Triangle(newtrianglepoint,vtri[i].pos3,vtri[i].pos2);
+				} else {
+					newtriangle1 = new Triangle(newtrianglepoint,vtri[i].pos2,vtri[i].pos1);
+					newtriangle2 = new Triangle(newtrianglepoint,vtri[i].pos3,vtri[i].pos1);
+				}
+				newtriangle1.ind = vtri[i].ind;
+				newtriangle2.ind = vtri[i].ind;
+				newtriangle1.mat = vtri[i].mat;
+				newtriangle2.mat = vtri[i].mat;
+				newtriangle1.norm = vtri[i].norm;
+				newtriangle2.norm = vtri[i].norm;
+				k[i*2] = newtriangle1;
+				k[i*2+1] = newtriangle2;
 			}
 		}
 		return k;
