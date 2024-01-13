@@ -6,7 +6,6 @@ import java.awt.Cursor;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Polygon;
-import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Transparency;
 import java.awt.dnd.DropTargetDropEvent;
@@ -14,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.io.File;
@@ -24,6 +24,7 @@ import java.util.TreeSet;
 import javax.swing.JFileChooser;
 
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
+import fi.jkauppa.javarenderengine.MathLib.Coordinate;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
 import fi.jkauppa.javarenderengine.MathLib.Line;
 import fi.jkauppa.javarenderengine.MathLib.Matrix;
@@ -146,8 +147,10 @@ public class ModelApp implements AppHandler {
 					g.fill(trianglepolygon);
 				} else { 
 					g.clip(trianglepolygon);
-					Rectangle polygonarea = trianglepolygon.getBounds();
-					g.drawImage(tritexture, polygonarea.x, polygonarea.y, polygonarea.x+polygonarea.width-1, polygonarea.y+polygonarea.height-1, 0, 0, tritexture.getWidth()-1, tritexture.getHeight()-1, null);
+					Triangle[] transformedtriangle = {transformedtrianglelist[i]};
+					Polygon[] drawpolygon = {trianglepolygon};
+					AffineTransform[] texturetransform = MathLib.textureTransform(transformedtriangle, drawpolygon);
+					g.drawImage(tritexture, texturetransform[0], null);
 					g.setClip(null);
 				}
 			}
@@ -376,7 +379,15 @@ public class ModelApp implements AppHandler {
 						Position pos1 = model.vertexlist[model.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
 						Position pos2 = model.vertexlist[model.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
 						Position pos3 = model.vertexlist[model.objects[j].faceindex[i].facevertexindex[2].vertexindex-1];
+						Direction norm = model.facenormals[model.objects[j].faceindex[i].facevertexindex[0].normalindex-1];
+						Coordinate tex1 = model.texturecoords[model.objects[j].faceindex[i].facevertexindex[0].textureindex-1];
+						Coordinate tex2 = model.texturecoords[model.objects[j].faceindex[i].facevertexindex[1].textureindex-1];
+						Coordinate tex3 = model.texturecoords[model.objects[j].faceindex[i].facevertexindex[2].textureindex-1];
 						Triangle tri = new Triangle(new Position(pos1.x,pos1.y,pos1.z),new Position(pos2.x,pos2.y,pos2.z),new Position(pos3.x,pos3.y,pos3.z));
+						tri.norm = norm;
+						tri.pos1.tex = tex1;
+						tri.pos2.tex = tex2;
+						tri.pos3.tex = tex3;
 						this.trianglematerialmap.put(tri, foundmat);
 					}
 				}
