@@ -3,6 +3,7 @@ package fi.jkauppa.javarenderengine;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
+import java.awt.image.VolatileImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -1166,10 +1167,10 @@ public class MathLib {
 		return k;
 	}
 	
-	public static AffineTransform[] textureTransform(Triangle[] vtri, Polygon[] vpoly) {
+	public static AffineTransform[] textureTransform(VolatileImage[] vtexture, Triangle[] vtri, Polygon[] vpoly) {
 		AffineTransform[] k = null;
 		//TODO triangle texture coordinates transform into display polygon triangle
-		if ((vtri!=null)&&(vpoly!=null)&&(vtri.length==vpoly.length)) {
+		if ((vtexture!=null)&&(vtri!=null)&&(vpoly!=null)&&(vtri.length==vpoly.length)&&(vtri.length==vtexture.length)) {
 			k = new AffineTransform[vtri.length];
 			for (int i=0;i<vtri.length;i++) {
 				if (vpoly[i].npoints==3) {
@@ -1178,17 +1179,21 @@ public class MathLib {
 					Direction[] trivec12 = {new Direction(vtri[i].pos2.tex.u-vtri[i].pos1.tex.u,vtri[i].pos2.tex.v-vtri[i].pos1.tex.v,0.0f)};
 					Direction[] trivec13 = {new Direction(vtri[i].pos3.tex.u-vtri[i].pos1.tex.u,vtri[i].pos3.tex.v-vtri[i].pos1.tex.v,0.0f)};
 					Direction[] deltavec1 = {new Direction(vpoly[i].xpoints[0]-vtri[i].pos1.tex.u,vpoly[i].ypoints[0]-vtri[i].pos1.tex.v,0.0f)};
-					double[] polyvec12len = MathLib.vectorLength(polyvec12);
-					double[] polyvec13len = MathLib.vectorLength(polyvec13);
-					double[] trivec12len = MathLib.vectorLength(trivec12);
-					double[] trivec13len = MathLib.vectorLength(trivec13);
+					double[] polyvec12len = vectorLength(polyvec12);
+					double[] polyvec13len = vectorLength(polyvec13);
+					double[] trivec12len = vectorLength(trivec12);
+					double[] trivec13len = vectorLength(trivec13);
 					double[] polyvecangles = vectorAngle(polyvec12, polyvec13);
 					double[] trivecangles = vectorAngle(trivec12, trivec13);
 					Triangle[] vtriangle = {vtri[i]}; 
 					AxisAlignedBoundingBox tribounds = axisAlignedBoundingBox(generateVertexList(vtriangle));
 					Rectangle polybounds = vpoly[i].getBounds();
-					k[i] = new AffineTransform();
-					//k[i].translate(deltavec1[0].dx, deltavec1[0].dy);
+					AffineTransform newtransform = new AffineTransform();
+					double scalefactorx = polybounds.getWidth()/((double)vtexture[i].getWidth());
+					double scalefactory = polybounds.getHeight()/((double)vtexture[i].getHeight());
+					newtransform.translate(polybounds.x, polybounds.y);
+					newtransform.scale(scalefactorx, scalefactory);
+					k[i] = newtransform;
 				}
 			}
 		}
