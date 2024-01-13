@@ -41,7 +41,7 @@ public class MathLib {
 			}
 			return k;
 		}
-		public Position copy(){return new Position(this.x,this.y,this.z);}
+		public Position copy(){Position k=new Position(this.x,this.y,this.z); k.tex=this.tex; return k;}
 	}
 	public static class Direction implements Comparable<Direction> {public double dx,dy,dz; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;}
 		@Override public int compareTo(Direction o){
@@ -224,7 +224,7 @@ public class MathLib {
 			}
 			return k;
 		}
-		public Line copy(){return new Line(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z));}
+		public Line copy(){Line k = new Line(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z)); k.hitind=this.hitind; return k;}
 		public Line swap(){return new Line(this.pos2,this.pos1);}
 		public Line sort(){Line k=this;boolean keeporder=true;if(this.pos1.x>this.pos2.x){keeporder=false;}else if(this.pos1.x==this.pos2.x){if(this.pos1.y>this.pos2.y){keeporder=false;}else if (this.pos1.y==this.pos2.y){if(this.pos1.z>this.pos2.z){keeporder=false;}}}if(!keeporder){k=this.swap();}return k;}
 	}
@@ -342,7 +342,7 @@ public class MathLib {
 			}
 			return k;
 		}
-		public Triangle copy(){Triangle k=new Triangle(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z),new Position(this.pos3.x,this.pos3.y,this.pos3.z));k.norm=this.norm;k.mat=this.mat;k.ind=this.ind;return k;}
+		public Triangle copy(){Triangle k=new Triangle(this.pos1.copy(),this.pos2.copy(),this.pos3.copy());k.norm=this.norm;k.mat=this.mat;k.ind=this.ind;return k;}
 	}
 	public static class Entity implements Comparable<Entity> {
 		public Entity[] childlist = null;
@@ -1177,12 +1177,15 @@ public class MathLib {
 					Direction[] polyvec13 = {new Direction(vpoly[i].xpoints[2]-vpoly[i].xpoints[0],vpoly[i].ypoints[2]-vpoly[i].ypoints[0],0.0f)};
 					Direction[] trivec12 = {new Direction(vtri[i].pos2.tex.u-vtri[i].pos1.tex.u,vtri[i].pos2.tex.v-vtri[i].pos1.tex.v,0.0f)};
 					Direction[] trivec13 = {new Direction(vtri[i].pos3.tex.u-vtri[i].pos1.tex.u,vtri[i].pos3.tex.v-vtri[i].pos1.tex.v,0.0f)};
+					Direction[] deltavec1 = {new Direction(vpoly[i].xpoints[0]-vtri[i].pos1.tex.u,vpoly[i].ypoints[0]-vtri[i].pos1.tex.v,0.0f)};
 					double[] polyvec12len = MathLib.vectorLength(polyvec12);
 					double[] polyvec13len = MathLib.vectorLength(polyvec13);
 					double[] trivec12len = MathLib.vectorLength(trivec12);
 					double[] trivec13len = MathLib.vectorLength(trivec13);
 					double[] polyvecangles = vectorAngle(polyvec12, polyvec13);
 					double[] trivecangles = vectorAngle(trivec12, trivec13);
+					k[i] = new AffineTransform();
+					k[i].translate(deltavec1[0].dx, deltavec1[0].dy);
 				}
 			}
 		}
