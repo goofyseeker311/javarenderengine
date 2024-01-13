@@ -13,7 +13,7 @@ import java.util.TreeSet;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
 
 public class MathLib {
-	public static class Position implements Comparable<Position> {public double x,y,z,u,v; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
+	public static class Position implements Comparable<Position> {public double x,y,z; public Coordinate tex; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
 		@Override public int compareTo(Position o){
 			int k = -1;
 			if (this.z>o.z) {
@@ -73,7 +73,32 @@ public class MathLib {
 		}
 		public Direction copy(){return new Direction(this.dx,this.dy,this.dz);}
 	}
-	public static class Coordinate {public double u,v; public Coordinate(double ui,double vi){this.u=ui;this.v=vi;}}
+	public static class Coordinate implements Comparable<Coordinate> {public double u,v; public Coordinate(double ui,double vi){this.u=ui;this.v=vi;}
+	@Override public int compareTo(Coordinate o){
+		int k = -1;
+		if (this.u>o.u) {
+			k = 1;
+		} else if (this.u==o.u) {
+			if (this.v>o.v) {
+				k = 1;
+			} else if (this.v==o.v) {
+				k = 0;
+			}
+		}
+		return k;
+	}
+	@Override public boolean equals(Object o) {
+		boolean k = false;
+		if (o.getClass().equals(this.getClass())) {
+			Coordinate os = (Coordinate)o;
+			if ((this.u==os.u)&&(this.v==os.v)) {
+				k = true;
+			}
+		}
+		return k;
+	}
+		public Coordinate copy(){return new Coordinate(this.u,this.v);}
+	}
 	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}}
 	public static class Sphere implements Comparable<Sphere> {public double x,y,z,r; public int ind=-1; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}
 		@Override public int compareTo(Sphere o) {
@@ -1148,6 +1173,16 @@ public class MathLib {
 			k = new AffineTransform[vtri.length];
 			for (int i=0;i<vtri.length;i++) {
 				if (vpoly[i].npoints==3) {
+					Direction[] polyvec12 = {new Direction(vpoly[i].xpoints[1]-vpoly[i].xpoints[0],vpoly[i].ypoints[1]-vpoly[i].ypoints[0],0.0f)};
+					Direction[] polyvec13 = {new Direction(vpoly[i].xpoints[2]-vpoly[i].xpoints[0],vpoly[i].ypoints[2]-vpoly[i].ypoints[0],0.0f)};
+					Direction[] trivec12 = {new Direction(vtri[i].pos2.tex.u-vtri[i].pos1.tex.u,vtri[i].pos2.tex.v-vtri[i].pos1.tex.v,0.0f)};
+					Direction[] trivec13 = {new Direction(vtri[i].pos3.tex.u-vtri[i].pos1.tex.u,vtri[i].pos3.tex.v-vtri[i].pos1.tex.v,0.0f)};
+					double[] polyvec12len = MathLib.vectorLength(polyvec12);
+					double[] polyvec13len = MathLib.vectorLength(polyvec13);
+					double[] trivec12len = MathLib.vectorLength(trivec12);
+					double[] trivec13len = MathLib.vectorLength(trivec13);
+					double[] polyvecangles = vectorAngle(polyvec12, polyvec13);
+					double[] trivecangles = vectorAngle(trivec12, trivec13);
 				}
 			}
 		}
