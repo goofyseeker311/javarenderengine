@@ -149,7 +149,8 @@ public class ModelApp implements AppHandler {
 					g.clip(trianglepolygon);
 					Triangle[] transformedtriangle = {transformedtrianglelist[i]};
 					Polygon[] drawpolygon = {trianglepolygon};
-					AffineTransform[] texturetransform = MathLib.textureTransform(transformedtriangle, drawpolygon);
+					VolatileImage[] drawtexture = {tritexture};
+					AffineTransform[] texturetransform = MathLib.textureTransform(drawtexture,transformedtriangle, drawpolygon);
 					g.drawImage(tritexture, texturetransform[0], null);
 					g.setClip(null);
 				}
