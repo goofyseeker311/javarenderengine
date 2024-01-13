@@ -1146,7 +1146,7 @@ public class MathLib {
 		return newentitylistarray.toArray(new Entity[newentitylistarray.size()]);
 	}
 	
-	public static void subTreeEntityList(Entity[] entitylist) {
+	public static void octreeEntityList(Entity[] entitylist) {
 		//TODO entity lowest level children octree axis aligned bounding box primitive split into next child level
 		if (entitylist!=null) {
 			for (int i=0;i<entitylist.length;i++) {
@@ -1157,7 +1157,7 @@ public class MathLib {
 	
 	public static Triangle[] subDivideTriangle(Triangle[] vtri) {
 		Triangle[] k = null;
-		//TODO two-middle-point sub-division of a triangle
+		//TODO two-middle-point sub-division of a triangle into two (to prevent 4th triangle from being formed on the outside)
 		if (vtri!=null) {
 			for (int i=0;i<vtri.length;i++) {
 				
@@ -1184,8 +1184,11 @@ public class MathLib {
 					double[] trivec13len = MathLib.vectorLength(trivec13);
 					double[] polyvecangles = vectorAngle(polyvec12, polyvec13);
 					double[] trivecangles = vectorAngle(trivec12, trivec13);
+					Triangle[] vtriangle = {vtri[i]}; 
+					AxisAlignedBoundingBox tribounds = axisAlignedBoundingBox(generateVertexList(vtriangle));
+					Rectangle polybounds = vpoly[i].getBounds();
 					k[i] = new AffineTransform();
-					k[i].translate(deltavec1[0].dx, deltavec1[0].dy);
+					//k[i].translate(deltavec1[0].dx, deltavec1[0].dy);
 				}
 			}
 		}
