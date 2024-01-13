@@ -691,7 +691,7 @@ public class MathLib {
 		int[] cubeind1 = {3,3,3,3,2,2};
 		int[] cubeind2 = {2,1,2,1,1,1};
 		Direction[] lvec = vectorFromPoints(vpos, vsphere);
-		double[] lvecl = MathLib.vectorLength(lvec);
+		double[] lvecl = vectorLength(lvec);
 		for (int j=0;j<vsphere.length;j++) {
 			double cmradang = (180.0f/Math.PI)*Math.asin(vsphere[j].r/lvecl[j]);
 			if (!Double.isFinite(cmradang)) {cmradang = 180.0f;}
@@ -821,6 +821,65 @@ public class MathLib {
 				HashSet<Integer> newlist = new HashSet<Integer>(Arrays.asList(k[k[j][i]]));
 				newlist.add(j);
 				k[k[j][i]] = newlist.toArray(new Integer[newlist.size()]);
+			}
+		}
+		return k;
+	}
+	
+	public static boolean[] vertexAxisAlignedBoundingBoxIntersection(AxisAlignedBoundingBox vaabb, Position[] vpoint) {
+		boolean[] k = null;
+		if ((vaabb!=null)&&(vpoint!=null)) {
+			k = new boolean[vpoint.length];
+			for (int i=0;i<vpoint.length;i++) {
+				k[i] = false;
+				if ((vpoint[i].x>=vaabb.x1)&&(vpoint[i].x<=vaabb.x2)&&(vpoint[i].y>=vaabb.y1)&&(vpoint[i].y<=vaabb.y2)&&(vpoint[i].z>=vaabb.z1)&&(vpoint[i].z<=vaabb.z2)) {
+					k[i] = true;
+				}
+			}
+		}
+		return k;
+	}
+	public static boolean[] triangleAxisAlignedBoundingBoxIntersection(AxisAlignedBoundingBox vaabb, Triangle[] vtri) {
+		boolean[] k = null;
+		if ((vaabb!=null)&&(vtri!=null)) {
+			k = new boolean[vtri.length];
+			for (int i=0;i<vtri.length;i++) {
+				k[i] = false;
+				Position[] vpoint = {vtri[i].pos1,vtri[i].pos2,vtri[i].pos3};
+				boolean[] vertexint = vertexAxisAlignedBoundingBoxIntersection(vaabb, vpoint);
+				if (vertexint[0]||vertexint[1]||vertexint[2]) {
+					k[i] = true;
+				}
+			}
+		}
+		return k;
+	}
+	public static boolean[] tetrahedronAxisAlignedBoundingBoxIntersection(AxisAlignedBoundingBox vaabb, Tetrahedron[] vtet) {
+		boolean[] k = null;
+		if ((vaabb!=null)&&(vtet!=null)) {
+			k = new boolean[vtet.length];
+			for (int i=0;i<vtet.length;i++) {
+				k[i] = false;
+				Position[] vpoint = {vtet[i].pos1,vtet[i].pos2,vtet[i].pos3,vtet[i].pos4};
+				boolean[] vertexint = vertexAxisAlignedBoundingBoxIntersection(vaabb, vpoint);
+				if (vertexint[0]||vertexint[1]||vertexint[2]||vertexint[3]) {
+					k[i] = true;
+				}
+			}
+		}
+		return k;
+	}
+	public static boolean[] lineAxisAlignedBoundingBoxIntersection(AxisAlignedBoundingBox vaabb, Line[] vline) {
+		boolean[] k = null;
+		if ((vaabb!=null)&&(vline!=null)) {
+			k = new boolean[vline.length];
+			for (int i=0;i<vline.length;i++) {
+				k[i] = false;
+				Position[] vpoint = {vline[i].pos1,vline[i].pos2};
+				boolean[] vertexint = vertexAxisAlignedBoundingBoxIntersection(vaabb, vpoint);
+				if (vertexint[0]||vertexint[1]||vertexint[2]) {
+					k[i] = true;
+				}
 			}
 		}
 		return k;
@@ -1106,7 +1165,7 @@ public class MathLib {
 			for (Iterator<Entity> i=newentitylistarray.iterator();(i.hasNext())&&((foundent1==null)||(foundent2==null));) {
 				Entity searchent = i.next();
 				if (searchent.linelist!=null) {
-					Position[] searchvert = MathLib.generateVertexList(searchent.linelist);
+					Position[] searchvert = generateVertexList(searchent.linelist);
 					TreeSet<Position> searchvertarray = new TreeSet<Position>(Arrays.asList(searchvert));
 					if (searchvertarray.contains(linelist[j].pos1)) {
 						foundent1 = searchent; 
@@ -1137,21 +1196,72 @@ public class MathLib {
 		for (Iterator<Entity> i=newentitylistarray.iterator();i.hasNext();) {
 			Entity processent = i.next();
 			processent.trianglelist = generateTriangleList(processent.linelist);
-			processent.tetrahedronlist = generateTetrahedronList(processent.linelist);
 			processent.surfacelist = generateSurfaceList(processent.linelist);
+			processent.tetrahedronlist = generateTetrahedronList(processent.linelist);
 			processent.vertexlist = generateVertexList(processent.linelist);
-			processent.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(processent.vertexlist);
-			processent.sphereboundaryvolume = MathLib.pointCloudCircumSphere(processent.vertexlist);
 			processent.linelist = generateNonTriangleLineList(processent.linelist);
+			processent.aabbboundaryvolume = axisAlignedBoundingBox(processent.vertexlist);
+			processent.sphereboundaryvolume = pointCloudCircumSphere(processent.vertexlist);
 		}
-		return newentitylistarray.toArray(new Entity[newentitylistarray.size()]);
+		Entity[] entitylist = newentitylistarray.toArray(new Entity[newentitylistarray.size()]); 
+		octreeEntityList(entitylist);
+		return entitylist;
 	}
 	
 	public static void octreeEntityList(Entity[] entitylist) {
-		//TODO entity lowest level children octree axis aligned bounding box primitive split into next child level
 		if (entitylist!=null) {
-			for (int i=0;i<entitylist.length;i++) {
-				
+			for (int j=0;j<entitylist.length;j++) {
+				Entity[] newchildren = {new Entity(),new Entity(),new Entity(),new Entity(),new Entity(),new Entity(),new Entity(),new Entity()}; 
+				double xlimit = (entitylist[j].aabbboundaryvolume.x1+entitylist[j].aabbboundaryvolume.x2)/2.0f;
+				double ylimit = (entitylist[j].aabbboundaryvolume.y1+entitylist[j].aabbboundaryvolume.y2)/2.0f;
+				double zlimit = (entitylist[j].aabbboundaryvolume.z1+entitylist[j].aabbboundaryvolume.z2)/2.0f;
+				newchildren[0].aabbboundaryvolume = new AxisAlignedBoundingBox(entitylist[j].aabbboundaryvolume.x1,entitylist[j].aabbboundaryvolume.y1,entitylist[j].aabbboundaryvolume.z1,xlimit,ylimit,zlimit);
+				newchildren[1].aabbboundaryvolume = new AxisAlignedBoundingBox(xlimit,entitylist[j].aabbboundaryvolume.y1,entitylist[j].aabbboundaryvolume.z1,entitylist[j].aabbboundaryvolume.x2,ylimit,zlimit);
+				newchildren[2].aabbboundaryvolume = new AxisAlignedBoundingBox(entitylist[j].aabbboundaryvolume.x1,ylimit,entitylist[j].aabbboundaryvolume.z1,xlimit,entitylist[j].aabbboundaryvolume.y2,zlimit);
+				newchildren[3].aabbboundaryvolume = new AxisAlignedBoundingBox(xlimit,ylimit,entitylist[j].aabbboundaryvolume.z1,entitylist[j].aabbboundaryvolume.x2,entitylist[j].aabbboundaryvolume.y2,zlimit);
+				newchildren[4].aabbboundaryvolume = new AxisAlignedBoundingBox(entitylist[j].aabbboundaryvolume.x1,entitylist[j].aabbboundaryvolume.y1,zlimit,xlimit,ylimit,entitylist[j].aabbboundaryvolume.z2);
+				newchildren[5].aabbboundaryvolume = new AxisAlignedBoundingBox(xlimit,entitylist[j].aabbboundaryvolume.y1,zlimit,entitylist[j].aabbboundaryvolume.x2,ylimit,entitylist[j].aabbboundaryvolume.z2);
+				newchildren[6].aabbboundaryvolume = new AxisAlignedBoundingBox(entitylist[j].aabbboundaryvolume.x1,ylimit,zlimit,xlimit,entitylist[j].aabbboundaryvolume.y2,entitylist[j].aabbboundaryvolume.z2);
+				newchildren[7].aabbboundaryvolume = new AxisAlignedBoundingBox(xlimit,ylimit,zlimit,entitylist[j].aabbboundaryvolume.x2,entitylist[j].aabbboundaryvolume.y2,entitylist[j].aabbboundaryvolume.z2);
+				ArrayList<Entity> newchildlistarray = new ArrayList<Entity>();
+				for (int n=0;n<newchildren.length;n++) {
+					if (entitylist[j].trianglelist!=null) {
+						boolean[] taabbint = triangleAxisAlignedBoundingBoxIntersection(newchildren[n].aabbboundaryvolume, entitylist[j].trianglelist);
+						ArrayList<Triangle> triintarray = new ArrayList<Triangle>();
+						for (int i=0;i<taabbint.length;i++) {if (taabbint[i]) {triintarray.add(entitylist[j].trianglelist[i]);}}
+						newchildren[n].trianglelist = triintarray.toArray(new Triangle[triintarray.size()]);
+					}
+					if (entitylist[j].surfacelist!=null) {
+						boolean[] saabbint = triangleAxisAlignedBoundingBoxIntersection(newchildren[n].aabbboundaryvolume, entitylist[j].surfacelist);
+						ArrayList<Triangle> surfintarray = new ArrayList<Triangle>();
+						for (int i=0;i<saabbint.length;i++) {if (saabbint[i]) {surfintarray.add(entitylist[j].surfacelist[i]);}}
+						newchildren[n].surfacelist = surfintarray.toArray(new Triangle[surfintarray.size()]);
+					}
+					if (entitylist[j].tetrahedronlist!=null) {
+						boolean[] teaabbint = tetrahedronAxisAlignedBoundingBoxIntersection(newchildren[n].aabbboundaryvolume, entitylist[j].tetrahedronlist);
+						ArrayList<Tetrahedron> tetrintarray = new ArrayList<Tetrahedron>();
+						for (int i=0;i<teaabbint.length;i++) {if (teaabbint[i]) {tetrintarray.add(entitylist[j].tetrahedronlist[i]);}}
+						newchildren[n].tetrahedronlist= tetrintarray.toArray(new Tetrahedron[tetrintarray.size()]);
+					}
+					if (entitylist[j].linelist!=null) {
+						boolean[] laabbint = lineAxisAlignedBoundingBoxIntersection(newchildren[n].aabbboundaryvolume, entitylist[j].linelist);
+						ArrayList<Line> lineintarray = new ArrayList<Line>();
+						for (int i=0;i<laabbint.length;i++) {if (laabbint[i]) {lineintarray.add(entitylist[j].linelist[i]);}}
+						newchildren[n].linelist = lineintarray.toArray(new Line[lineintarray.size()]);
+					}
+					if (entitylist[j].vertexlist!=null) {
+						boolean[] vaabbint = vertexAxisAlignedBoundingBoxIntersection(newchildren[n].aabbboundaryvolume, entitylist[j].vertexlist);
+						ArrayList<Position> vertintarray = new ArrayList<Position>();
+						for (int i=0;i<vaabbint.length;i++) {if (vaabbint[i]) {vertintarray.add(entitylist[j].vertexlist[i]);}}
+						newchildren[n].vertexlist = vertintarray.toArray(new Position[vertintarray.size()]);
+					}
+					if ((newchildren[n].vertexlist!=null)&&(newchildren[n].vertexlist.length>0)) {
+						newchildren[n].aabbboundaryvolume = axisAlignedBoundingBox(newchildren[n].vertexlist);
+						newchildren[n].sphereboundaryvolume = pointCloudCircumSphere(newchildren[n].vertexlist);
+						newchildlistarray.add(newchildren[n]);
+					}
+				}
+				entitylist[j].childlist = newchildlistarray.toArray(new Entity[newchildlistarray.size()]);
 			}
 		}
 	}

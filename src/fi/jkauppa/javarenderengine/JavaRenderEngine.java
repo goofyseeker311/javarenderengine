@@ -64,7 +64,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.6.19");
+		this.setTitle("Java Render Engine v1.6.20");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -219,6 +219,9 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		for (int j=0;j<cmsint.length;j++) {System.out.print("cmsint["+j+"]="); for (int i=0;i<cmsint[0].length;i++) {System.out.print(" "+cmsint[j][i].x+","+cmsint[j][i].y+","+(cmsint[j][i].x+cmsint[j][i].width-1)+","+(cmsint[j][i].y+cmsint[j][i].height-1));} System.out.println();}
 		Triangle[] sdtri = MathLib.subDivideTriangle(ptri);
 		for (int i=0;i<sdtri.length;i++) {System.out.println("sdtri["+i+"]="+sdtri[i].pos1.x+","+sdtri[i].pos1.y+","+sdtri[i].pos1.z+" "+sdtri[i].pos2.x+","+sdtri[i].pos2.y+","+sdtri[i].pos2.z+" "+sdtri[i].pos3.x+","+sdtri[i].pos3.y+","+sdtri[i].pos3.z);}
+		Position[] tpoint = {new Position(0.0f,0.0f,0.0f),new Position(-50.0f,30.0f,45.0f),new Position(-8.0f,3.0f,9.0f),new Position(-6.0f,1.0f,4.0f)};
+		boolean[] aabbpint = MathLib.vertexAxisAlignedBoundingBoxIntersection(aaboundingbox, tpoint);
+		for (int i=0;i<aabbpint.length;i++) {System.out.println("aabbpint[i]="+aabbpint[i]);}
 		
 		new JavaRenderEngine();
 	}
