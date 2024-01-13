@@ -1,6 +1,8 @@
 package fi.jkauppa.javarenderengine;
 
+import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -1117,6 +1119,20 @@ public class MathLib {
 			processent.linelist = generateNonTriangleLineList(processent.linelist);
 		}
 		return newentitylistarray.toArray(new Entity[newentitylistarray.size()]);
+	}
+	
+	public static void subTreeEntityList(Entity[] entitylist) {
+		//TODO entity lowest level children octree axis aligned bounding box primitive split into next child level
+	}
+	
+	public static Triangle[] subDivideTriangle(Triangle[] vtri) {
+		//TODO two-middle-point sub-division of a triangle
+		return null;
+	}
+	
+	public static AffineTransform textureRotation(Triangle[] vtri, Polygon[] vpoly) {
+		//TODO triangle texture coordinates transform into display polygon triangle
+		return null;
 	}
 	
 	public static double[] projectedStep(int vres, double vfov) {
