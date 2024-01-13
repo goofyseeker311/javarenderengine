@@ -64,7 +64,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.6.18");
+		this.setTitle("Java Render Engine v1.6.19");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -217,6 +217,8 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		Rectangle[][] cmsint = MathLib.cubemapSphereIntersection(vpos, vsphere3, 64);
 		for (int j=0;j<cmsint.length;j++) {for (int i=0;i<cmsint[0].length;i++){if(cmsint[j][i]==null){cmsint[j][i]=new Rectangle(-1,-1,1,1);}}}
 		for (int j=0;j<cmsint.length;j++) {System.out.print("cmsint["+j+"]="); for (int i=0;i<cmsint[0].length;i++) {System.out.print(" "+cmsint[j][i].x+","+cmsint[j][i].y+","+(cmsint[j][i].x+cmsint[j][i].width-1)+","+(cmsint[j][i].y+cmsint[j][i].height-1));} System.out.println();}
+		Triangle[] sdtri = MathLib.subDivideTriangle(ptri);
+		for (int i=0;i<sdtri.length;i++) {System.out.println("sdtri["+i+"]="+sdtri[i].pos1.x+","+sdtri[i].pos1.y+","+sdtri[i].pos1.z+" "+sdtri[i].pos2.x+","+sdtri[i].pos2.y+","+sdtri[i].pos2.z+" "+sdtri[i].pos3.x+","+sdtri[i].pos3.y+","+sdtri[i].pos3.z);}
 		
 		new JavaRenderEngine();
 	}
