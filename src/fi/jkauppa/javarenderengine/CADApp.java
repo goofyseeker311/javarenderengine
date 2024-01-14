@@ -10,7 +10,6 @@ import java.awt.Rectangle;
 import java.awt.TexturePaint;
 import java.awt.Transparency;
 import java.awt.dnd.DropTargetDropEvent;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -22,7 +21,7 @@ import java.util.TreeSet;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 
-import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
+import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandlerPanel;
 import fi.jkauppa.javarenderengine.MathLib.Coordinate;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
 import fi.jkauppa.javarenderengine.MathLib.Entity;
@@ -44,7 +43,8 @@ import fi.jkauppa.javarenderengine.ModelLib.ModelFaceVertexIndex;
 import fi.jkauppa.javarenderengine.ModelLib.ModelLineIndex;
 import fi.jkauppa.javarenderengine.ModelLib.ModelObject;
 
-public class CADApp implements AppHandler {
+public class CADApp extends AppHandlerPanel {
+	private static final long serialVersionUID = 1L;
 	private Direction lookdir = new Direction(0,0,-1);
 	private TexturePaint bgpattern = null;
 	private boolean draglinemode = false;
@@ -86,7 +86,6 @@ public class CADApp implements AppHandler {
 	private boolean forwardkeydown = false;
 	private boolean backwardkeydown = false;
 	private boolean updatetrianglelist = true;
-	private JavaRenderEngine windowhandler = null; 
 	
 	public CADApp() {
 		Graphics2D pgfx = this.bgpatternimage.createGraphics();
@@ -100,6 +99,7 @@ public class CADApp implements AppHandler {
 		this.filechooser.addChoosableFileFilter(this.stlfilefilter);
 		this.filechooser.setFileFilter(this.objfilefilter);
 		this.filechooser.setAcceptAllFileFilterUsed(false);
+		this.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 	}
 	@Override
 	public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
@@ -300,7 +300,7 @@ public class CADApp implements AppHandler {
 		return k;
 	}
 	
-	@Override public void actionPerformed(ActionEvent e) {
+	@Override public void timerTick() {
 		if (this.leftkeydown) {
 			this.cameralocationx -= this.gridstep;
 		} else if (this.rightkeydown) {
@@ -814,7 +814,5 @@ public class CADApp implements AppHandler {
 			updateEntityList();
 		}
 	}
-
-	@Override public void setWindow(JavaRenderEngine wh) {this.windowhandler=wh; this.windowhandler.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));}
 	
 }

@@ -9,7 +9,6 @@ import java.awt.Polygon;
 import java.awt.Robot;
 import java.awt.Transparency;
 import java.awt.dnd.DropTargetDropEvent;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -23,7 +22,7 @@ import java.util.TreeSet;
 
 import javax.swing.JFileChooser;
 
-import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
+import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandlerPanel;
 import fi.jkauppa.javarenderengine.MathLib.Coordinate;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
 import fi.jkauppa.javarenderengine.MathLib.Line;
@@ -39,7 +38,8 @@ import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
 import fi.jkauppa.javarenderengine.ModelLib.Model;
 
-public class ModelApp implements AppHandler {
+public class ModelApp extends AppHandlerPanel {
+	private static final long serialVersionUID = 1L;
 	private Model model = null;
 	private TreeMap<Triangle,Material> trianglematerialmap = new TreeMap<Triangle,Material>();
 	private Position campos = new Position(0,0,0);
@@ -68,7 +68,6 @@ public class ModelApp implements AppHandler {
 	private int origindeltax = 0, origindeltay = 0; 
 	private int lastrenderwidth = 0, lastrenderheight = 0;
 	private Cursor customcursor = null;
-	private JavaRenderEngine windowhandler = null; 
 	
 	public ModelApp() {
 		BufferedImage cursorimage = gc.createCompatibleImage(1, 1, Transparency.TRANSLUCENT);
@@ -80,6 +79,7 @@ public class ModelApp implements AppHandler {
 		this.filechooser.addChoosableFileFilter(this.objfilefilter);
 		this.filechooser.setFileFilter(this.objfilefilter);
 		this.filechooser.setAcceptAllFileFilterUsed(false);
+		this.setCursor(this.customcursor);
 	}
 
 	@Override public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
@@ -273,8 +273,8 @@ public class ModelApp implements AppHandler {
 		this.cameramat = camrotmat;
 		this.camdirs = camlookdirs;
 	}
-	
-	@Override public void actionPerformed(ActionEvent e) {
+
+	@Override public void timerTick() {
 		if (this.leftkeydown) {
 			this.campos.x -= 20.0f*this.camdirs[1].dx;
 			this.campos.y -= 20.0f*this.camdirs[1].dy;
@@ -407,9 +407,9 @@ public class ModelApp implements AppHandler {
 	@Override public void mouseReleased(MouseEvent e) {}
 	@Override public void mouseEntered(MouseEvent e) {}
 	@Override public void mouseExited(MouseEvent e) {
-		Point windowscreenlocation = this.windowhandler.getLocationOnScreen();
-		int windowhalfwidth = this.windowhandler.getWidth()/2;
-		int windowhalfheight = this.windowhandler.getHeight()/2;
+		Point windowscreenlocation = this.getLocationOnScreen();
+		int windowhalfwidth = this.getWidth()/2;
+		int windowhalfheight = this.getHeight()/2;
 		int windowcenterx = windowscreenlocation.x + windowhalfwidth;
 		int windowcentery = windowscreenlocation.y + windowhalfheight;
 		this.mouselocationx = this.lastrenderwidth/2; 
@@ -433,7 +433,5 @@ public class ModelApp implements AppHandler {
 	}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
 	@Override public void drop(DropTargetDropEvent dtde) {}
-
-	@Override public void setWindow(JavaRenderEngine wh) {this.windowhandler=wh;this.windowhandler.setCursor(this.customcursor);}
 
 }

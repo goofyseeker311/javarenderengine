@@ -877,7 +877,7 @@ public class MathLib {
 				k[i] = false;
 				Position[] vpoint = {vline[i].pos1,vline[i].pos2};
 				boolean[] vertexint = vertexAxisAlignedBoundingBoxIntersection(vaabb, vpoint);
-				if (vertexint[0]||vertexint[1]||vertexint[2]) {
+				if (vertexint[0]||vertexint[1]) {
 					k[i] = true;
 				}
 			}
