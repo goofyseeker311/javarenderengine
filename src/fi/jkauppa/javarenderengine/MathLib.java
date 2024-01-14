@@ -965,6 +965,7 @@ public class MathLib {
 		return k;
 	}
 	public static boolean[] lineAxisAlignedBoundingBoxIntersection(AxisAlignedBoundingBox vaabb, Line[] vline) {
+		//TODO include intersection lines that completely cross over the axis aligned bounding box, not only those lines that have vertices inside the bounding box 
 		boolean[] k = null;
 		if ((vaabb!=null)&&(vline!=null)) {
 			k = new boolean[vline.length];
@@ -1221,6 +1222,11 @@ public class MathLib {
 		return linelistarray.toArray(new Line[linelistarray.size()]);
 	}
 
+	public static Quad[] generateQuadList(Line[] linelist) {
+		//TODO generate quad list
+		return null;
+	}
+	
 	public static Tetrahedron[] generateTetrahedronList(Line[] linelist) {
 		Triangle[] uniquetrianglelist = generateTriangleList(linelist);
 		TreeSet<Tetrahedron> tetrahedronlist = new TreeSet<Tetrahedron>();
@@ -1386,8 +1392,14 @@ public class MathLib {
 						newchildren[n].vertexlist = vertintarray.toArray(new Position[vertintarray.size()]);
 					}
 					if ((newchildren[n].vertexlist!=null)&&(newchildren[n].vertexlist.length>0)) {
-						newchildren[n].aabbboundaryvolume = axisAlignedBoundingBox(newchildren[n].vertexlist);
-						newchildren[n].sphereboundaryvolume = pointCloudCircumSphere(newchildren[n].vertexlist);
+						double aabbxcenter = (newchildren[n].aabbboundaryvolume.x1+newchildren[n].aabbboundaryvolume.x2)/2.0f;
+						double aabbycenter = (newchildren[n].aabbboundaryvolume.y1+newchildren[n].aabbboundaryvolume.y2)/2.0f;
+						double aabbzcenter = (newchildren[n].aabbboundaryvolume.z1+newchildren[n].aabbboundaryvolume.z2)/2.0f;
+						Position[] aabbcenter = {new Position(aabbxcenter,aabbycenter,aabbzcenter)};
+						Position[] aabbedge = {new Position(newchildren[n].aabbboundaryvolume.x1,newchildren[n].aabbboundaryvolume.y1,newchildren[n].aabbboundaryvolume.z1)};
+						Direction[] aabbdir = vectorFromPoints(aabbcenter, aabbedge);
+						double[] aabbradius = MathLib.vectorLength(aabbdir);
+						newchildren[n].sphereboundaryvolume = new Sphere(aabbxcenter,aabbycenter,aabbzcenter,aabbradius[0]);
 						newchildlistarray.add(newchildren[n]);
 					}
 				}

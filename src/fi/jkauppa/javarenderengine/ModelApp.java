@@ -51,6 +51,7 @@ public class ModelApp extends AppHandlerPanel {
 	private final Direction[] lookdirs = {new Direction(0,0,-1),new Direction(1,0,0),new Direction(0,-1,0)};
 	private Direction[] camdirs = lookdirs;
 	private double hfov = 70.0f, vfov = 43.0f;
+	private double drawdepthscale = 0.0004f;
 	private JFileChooser filechooser = new JFileChooser();
 	private OBJFileFilter objfilefilter = new OBJFileFilter();
 	private boolean leftkeydown = false;
@@ -65,7 +66,6 @@ public class ModelApp extends AppHandlerPanel {
 	private int mouselocationx = -1, mouselocationy = -1;
 	private double[][] zbuffer = null;
 	private int polygonfillmode = 1;
-	private final double drawdepthscale = 0.00035f;
 	private int origindeltax = 0, origindeltay = 0; 
 	private int lastrenderwidth = 0, lastrenderheight = 0;
 	private Cursor customcursor = null;
@@ -120,9 +120,9 @@ public class ModelApp extends AppHandlerPanel {
 		double[] triangleviewangles = MathLib.vectorAngle(this.lookdir, trianglenormals);
 		for (int j=0;j<sortedtrianglespherelist.length;j++) {
 			int i = sortedtrianglespherelist[j].ind;
-			double pos1s = (-transformedtrianglelist[i].pos1.z)*this.drawdepthscale+1;
-			double pos2s = (-transformedtrianglelist[i].pos2.z)*this.drawdepthscale+1;
-			double pos3s = (-transformedtrianglelist[i].pos3.z)*this.drawdepthscale+1;
+			double pos1s = -transformedtrianglelist[i].pos1.z*this.drawdepthscale+1;
+			double pos2s = -transformedtrianglelist[i].pos2.z*this.drawdepthscale+1;
+			double pos3s = -transformedtrianglelist[i].pos3.z*this.drawdepthscale+1;
 			if ((pos1s>0)&&(pos2s>0)&&(pos3s>0)) {
 				int pos1x = (int)Math.round(transformedtrianglelist[i].pos1.x/pos1s)+this.origindeltax;
 				int pos1y = (int)Math.round(transformedtrianglelist[i].pos1.y/pos1s)+this.origindeltay;
