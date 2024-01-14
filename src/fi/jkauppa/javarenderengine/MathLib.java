@@ -186,6 +186,10 @@ public class MathLib {
 		}
 	}
 	public static class AxisAlignedBoundingBox {public double x1,y1,z1,x2,y2,z2; public AxisAlignedBoundingBox(double x1i,double y1i,double z1i,double x2i,double y2i,double z2i){this.x1=x1i;this.y1=y1i;this.z1=z1i;this.x2=x2i;this.y2=y2i;this.z2=z2i;}}
+	public static class Cuboid {public Position poslft,poslbt,posrft,posrbt,poslfb,poslbb,posrfb,posrbb; public Cuboid(Position poslfti,Position poslbti,Position posrfti,Position posrbti,Position poslfbi,Position poslbbi,Position posrfbi,Position posrbbi){this.poslft=poslfti;this.poslbt=poslbti;this.posrft=posrfti;this.posrbt=posrbti;this.poslfb=poslfbi;this.poslbb=poslbbi;this.posrfb=posrfbi;this.posrbb=posrbbi;}}
+	public static class Quad {public Position pos1,pos2,pos3,pos4; public Quad(Position pos1i,Position pos2i,Position pos3i,Position pos4i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;this.pos4=pos4i;}}
+	public static class Arc {public Position origin; public double r,ang1,ang2; public Arc(Position origini, double ri, double ang1i, double ang2i){this.origin=origini;this.r=ri;this.ang1=ang1i;this.ang2=ang2i;}}
+	public static class Ray {public Position pos; public Direction dir; public Ray(Position posi, Direction diri){this.pos=posi;this.dir=diri;}}
 	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}}
 	public static class Line implements Comparable<Line> {public Position pos1,pos2; public int hitind=-1; public Line(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}
 		@Override public int compareTo(Line o){
@@ -574,6 +578,17 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static double[][] rayPointDistance(Position vpos, Direction[] vdir, Position[] vpoint) {
+		double[][] k = null;
+		if ((vpos!=null)&&(vdir!=null)&&(vpoint!=null)) {
+			k = new double[vdir.length][vpoint.length];
+			for (int n=0;n<vdir.length;n++) {
+				//TODO closest distance from point to a line
+				//t0 = (ldir . (point - lpos)) / (ldir . ldir) 
+			}
+		}
+		return k;
+	}
 	public static double[][] rayPlaneDistance(Position vpos, Direction[] vdir, Plane[] vplane) {
 		double[][] k = null;
 		if ((vpos!=null)&&(vdir!=null)&&(vplane!=null)) {
@@ -585,6 +600,14 @@ public class MathLib {
 					k[n][m] = -top[m]/bottom[m];
 				}
 			}
+		}
+		return k;
+	}
+	public static Position[][] rayRayIntersection(Position[] vpos1, Direction[] vdir1, Position[] vpos2, Direction[] vdir2) {
+		Position[][] k = null;
+		if ((vpos1!=null)&&(vdir1!=null)&&(vpos2!=null)&&(vdir2!=null)&&(vpos1.length==vdir1.length)&&(vpos2.length==vdir2.length)) {
+			k = new Position[vdir1.length][vdir2.length];
+			//TODO ray-ray intersection 
 		}
 		return k;
 	}
@@ -618,6 +641,108 @@ public class MathLib {
 						if(isatpoint||withinangles) {
 							k[n][m] = p4[0];
 						}
+					}
+				}
+			}
+		}
+		return k;
+	}
+	public static Position[][] rayQuadIntersection(Position vpos, Direction[] vdir, Quad[] vquad) {
+		Position[][] k = null;
+		if ((vpos!=null)&&(vdir!=null)&&(vquad!=null)) {
+			k = new Position[vdir.length][vquad.length];
+			//TODO ray quad intersection
+		}
+		return k;
+	}
+	public static Line[][] rayAxisAlignedBoundingBoxIntersection(Position vpos, Direction[] vdir, AxisAlignedBoundingBox[] vaabb) {
+		Line[][] k = null;
+		if ((vpos!=null)&&(vdir!=null)&&(vaabb!=null)) {
+			k = new Line[vdir.length][vaabb.length];
+			for (int m=0;m<vaabb.length;m++) {
+				double vaabbxmin=vaabb[m].x1; double vaabbxmax=vaabb[m].x2;
+				if (vaabbxmin>vaabbxmax) {vaabbxmin=vaabb[m].x2;vaabbxmax=vaabb[m].x1;}
+				double vaabbymin=vaabb[m].y1; double vaabbymax=vaabb[m].y2;
+				if (vaabbymin>vaabbymax) {vaabbymin=vaabb[m].y2;vaabbymax=vaabb[m].y1;}
+				double vaabbzmin=vaabb[m].z1;double vaabbzmax=vaabb[m].z2;
+				if (vaabbzmin>vaabbzmax) {vaabbzmin=vaabb[m].z2;vaabbzmax=vaabb[m].z1;}
+				Position vaabbpos1 = new Position(vaabbxmin,vaabbymin,vaabbzmin);
+				Position vaabbpos2 = new Position(vaabbxmax,vaabbymax,vaabbzmax);
+				Direction[] xyzplanenormals = {new Direction(1,0,0),new Direction(0,1,0),new Direction(0,0,1)};
+				Plane[] xyzplanes1 = planeFromNormalAtPoint(vaabbpos1, xyzplanenormals);
+				Plane[] xyzplanes2 = planeFromNormalAtPoint(vaabbpos2, xyzplanenormals);
+				double[][] xyzcp1dist = rayPlaneDistance(vpos, vdir, xyzplanes1);
+				double[][] xyzcp2dist = rayPlaneDistance(vpos, vdir, xyzplanes2);
+				for (int n=0;n<vdir.length;n++) {
+					Position[] xyzplanesint1 = new Position[3]; 
+					Position[] xyzplanesint2 = new Position[3]; 
+					for (int i=0;i<3;i++) {xyzplanesint1[i] = new Position(vpos.x+xyzcp1dist[n][i]*vdir[n].dx,vpos.y+xyzcp1dist[n][i]*vdir[n].dy,vpos.z+xyzcp1dist[n][i]*vdir[n].dz);}
+					for (int i=0;i<3;i++) {xyzplanesint2[i] = new Position(vpos.x+xyzcp2dist[n][i]*vdir[n].dx,vpos.y+xyzcp2dist[n][i]*vdir[n].dy,vpos.z+xyzcp2dist[n][i]*vdir[n].dz);}
+					TreeSet<Position> vaabbplanehitpositions = new TreeSet<Position>(); 
+					if ((xyzplanesint1[0].y>=vaabbpos1.y)&&(xyzplanesint1[0].y<=vaabbpos2.y)&&(xyzplanesint1[0].z>=vaabbpos1.z)&&(xyzplanesint1[0].z<=vaabbpos2.z)) {
+						vaabbplanehitpositions.add(xyzplanesint1[0]);
+					}
+					if ((xyzplanesint1[1].x>=vaabbpos1.x)&&(xyzplanesint1[1].x<=vaabbpos2.x)&&(xyzplanesint1[1].z>=vaabbpos1.z)&&(xyzplanesint1[1].z<=vaabbpos2.z)) {
+						vaabbplanehitpositions.add(xyzplanesint1[1]);
+					}
+					if ((xyzplanesint1[2].x>=vaabbpos1.x)&&(xyzplanesint1[2].x<=vaabbpos2.x)&&(xyzplanesint1[2].y>=vaabbpos1.y)&&(xyzplanesint1[2].y<=vaabbpos2.y)) {
+						vaabbplanehitpositions.add(xyzplanesint1[2]);
+					}
+					if ((xyzplanesint2[0].y>=vaabbpos1.y)&&(xyzplanesint2[0].y<=vaabbpos2.y)&&(xyzplanesint2[0].z>=vaabbpos1.z)&&(xyzplanesint2[0].z<=vaabbpos2.z)) {
+						vaabbplanehitpositions.add(xyzplanesint2[0]);
+					}
+					if ((xyzplanesint2[1].x>=vaabbpos1.x)&&(xyzplanesint2[1].x<=vaabbpos2.x)&&(xyzplanesint2[1].z>=vaabbpos1.z)&&(xyzplanesint2[1].z<=vaabbpos2.z)) {
+						vaabbplanehitpositions.add(xyzplanesint2[1]);
+					}
+					if ((xyzplanesint2[2].x>=vaabbpos1.x)&&(xyzplanesint2[2].x<=vaabbpos2.x)&&(xyzplanesint2[2].y>=vaabbpos1.y)&&(xyzplanesint2[2].y<=vaabbpos2.y)) {
+						vaabbplanehitpositions.add(xyzplanesint2[2]);
+					}
+					Position[] vaabbplanerayhitposlist = vaabbplanehitpositions.toArray(new Position[vaabbplanehitpositions.size()]);
+					if (vaabbplanerayhitposlist.length>1) {
+						k[n][m] = new Line(vaabbplanerayhitposlist[0],vaabbplanerayhitposlist[1]);
+					} else if (vaabbplanerayhitposlist.length>0) {
+						k[n][m] = new Line(vaabbplanerayhitposlist[0],vaabbplanerayhitposlist[0]);
+					}
+				}
+			}
+		}
+		return k;
+	}
+	public static Line[][] rayCuboidIntersection(Position vpos, Direction[] vdir, Cuboid[] vcub) {
+		Line[][] k = null;
+		if ((vpos!=null)&&(vdir!=null)&&(vcub!=null)) {
+			k = new Line[vdir.length][vcub.length];
+			for (int m=0;m<vcub.length;m++) {
+				Triangle vaabbtri1 = new Triangle(vcub[m].poslft,vcub[m].poslbt,vcub[m].posrft);
+				Triangle vaabbtri2 = new Triangle(vcub[m].posrbt,vcub[m].poslbt,vcub[m].posrft);
+				Triangle vaabbtri3 = new Triangle(vcub[m].poslfb,vcub[m].poslbb,vcub[m].posrfb);
+				Triangle vaabbtri4 = new Triangle(vcub[m].posrbb,vcub[m].poslbb,vcub[m].posrfb);
+				Triangle vaabbtri5 = new Triangle(vcub[m].poslft,vcub[m].poslbt,vcub[m].poslfb);
+				Triangle vaabbtri6 = new Triangle(vcub[m].poslbb,vcub[m].poslbt,vcub[m].poslfb);
+				Triangle vaabbtri7 = new Triangle(vcub[m].posrft,vcub[m].posrbt,vcub[m].posrfb);
+				Triangle vaabbtri8 = new Triangle(vcub[m].posrbb,vcub[m].posrbt,vcub[m].posrfb);
+				Triangle vaabbtri9 = new Triangle(vcub[m].poslft,vcub[m].posrft,vcub[m].poslfb);
+				Triangle vaabbtri10 = new Triangle(vcub[m].posrfb,vcub[m].posrft,vcub[m].poslfb);
+				Triangle vaabbtri11 = new Triangle(vcub[m].poslbt,vcub[m].posrbt,vcub[m].poslbb);
+				Triangle vaabbtri12 = new Triangle(vcub[m].posrbb,vcub[m].posrbt,vcub[m].poslbb);
+				Triangle[] vaabbtrilist = {vaabbtri1,vaabbtri2,vaabbtri3,vaabbtri4,vaabbtri5,vaabbtri6,vaabbtri7,vaabbtri8,vaabbtri9,vaabbtri10,vaabbtri11,vaabbtri12};
+				Position[][] vaabbtrirayint = rayTriangleIntersection(vpos, vdir, vaabbtrilist);
+				for (int n=0;n<vaabbtrirayint.length;n++) {
+					Position vaabbtrirayhitpos1 = null; 
+					Position vaabbtrirayhitpos2 = null;
+					for (int i=0;i<vaabbtrirayint[0].length;i++) {
+						if (vaabbtrirayint[n][i]!=null) {
+							if (vaabbtrirayhitpos1==null) {
+								vaabbtrirayhitpos1 = vaabbtrirayint[n][i];
+							} else if (vaabbtrirayhitpos1!=vaabbtrirayint[n][i]) {
+								vaabbtrirayhitpos2 = vaabbtrirayint[n][i];
+							}
+						}
+					}
+					if ((vaabbtrirayhitpos1!=null)&&(vaabbtrirayhitpos2==null)) {
+						k[n][m] = new Line(vaabbtrirayhitpos1,vaabbtrirayhitpos1);
+					} else if ((vaabbtrirayhitpos1!=null)&&(vaabbtrirayhitpos2!=null)) {
+						k[n][m] = new Line(vaabbtrirayhitpos1,vaabbtrirayhitpos2);
 					}
 				}
 			}
@@ -839,6 +964,21 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static boolean[] lineAxisAlignedBoundingBoxIntersection(AxisAlignedBoundingBox vaabb, Line[] vline) {
+		boolean[] k = null;
+		if ((vaabb!=null)&&(vline!=null)) {
+			k = new boolean[vline.length];
+			for (int i=0;i<vline.length;i++) {
+				k[i] = false;
+				Position[] vpoint = {vline[i].pos1,vline[i].pos2};
+				boolean[] vertexint = vertexAxisAlignedBoundingBoxIntersection(vaabb, vpoint);
+				if (vertexint[0]||vertexint[1]) {
+					k[i] = true;
+				}
+			}
+		}
+		return k;
+	}
 	public static boolean[] triangleAxisAlignedBoundingBoxIntersection(AxisAlignedBoundingBox vaabb, Triangle[] vtri) {
 		boolean[] k = null;
 		if ((vaabb!=null)&&(vtri!=null)) {
@@ -863,21 +1003,6 @@ public class MathLib {
 				Position[] vpoint = {vtet[i].pos1,vtet[i].pos2,vtet[i].pos3,vtet[i].pos4};
 				boolean[] vertexint = vertexAxisAlignedBoundingBoxIntersection(vaabb, vpoint);
 				if (vertexint[0]||vertexint[1]||vertexint[2]||vertexint[3]) {
-					k[i] = true;
-				}
-			}
-		}
-		return k;
-	}
-	public static boolean[] lineAxisAlignedBoundingBoxIntersection(AxisAlignedBoundingBox vaabb, Line[] vline) {
-		boolean[] k = null;
-		if ((vaabb!=null)&&(vline!=null)) {
-			k = new boolean[vline.length];
-			for (int i=0;i<vline.length;i++) {
-				k[i] = false;
-				Position[] vpoint = {vline[i].pos1,vline[i].pos2};
-				boolean[] vertexint = vertexAxisAlignedBoundingBoxIntersection(vaabb, vpoint);
-				if (vertexint[0]||vertexint[1]) {
 					k[i] = true;
 				}
 			}
@@ -1127,6 +1252,11 @@ public class MathLib {
 		return tetrahedronlist.toArray(new Tetrahedron[tetrahedronlist.size()]);
 	}
 
+	public static Cuboid[] generateCuboidList(Line[] linelist) {
+		//TODO generate cuboid volume list
+		return null;
+	}
+	
 	public static Triangle[] generateSurfaceList(Line[] linelist) {
 		TreeSet<Triangle> surfacelistarray = new TreeSet<Triangle>(); 
 		Tetrahedron[] newtetrahedronlist = generateTetrahedronList(linelist);
