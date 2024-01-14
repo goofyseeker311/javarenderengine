@@ -33,6 +33,7 @@ import javax.swing.Timer;
 import javax.swing.UIManager;
 
 import fi.jkauppa.javarenderengine.MathLib.AxisAlignedBoundingBox;
+import fi.jkauppa.javarenderengine.MathLib.Cuboid;
 import fi.jkauppa.javarenderengine.MathLib.Direction;
 import fi.jkauppa.javarenderengine.MathLib.Line;
 import fi.jkauppa.javarenderengine.MathLib.Matrix;
@@ -60,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.7.1");
+		this.setTitle("Java Render Engine v1.7.2");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -197,10 +198,10 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		System.out.println("vppdist="+vppdist[0][0]);
 		System.out.println("vppdist2["+vppdist2.length+"]["+vppdist2[0].length+"]="); for (int j=0;j<vppdist2.length;j++) {for (int i=0;i<vppdist2[0].length;i++) {System.out.print(" "+vppdist2[j][i]);}System.out.println();}
 		Position[] vertexlist = {new Position(-5,3,9),new Position(-7,-3,-1),new Position(4,-6,-7),new Position(2,4,11)};
-		AxisAlignedBoundingBox aaboundingbox = MathLib.axisAlignedBoundingBox(vertexlist);
+		AxisAlignedBoundingBox aabb = MathLib.axisAlignedBoundingBox(vertexlist);
 		Sphere pointcloudsphere = MathLib.pointCloudCircumSphere(vertexlist);
 		Sphere[] trianglesphere = MathLib.triangleCircumSphere(ptri);
-		System.out.println("aaboundingbox="+aaboundingbox.x1+","+aaboundingbox.y1+","+aaboundingbox.z1+" "+aaboundingbox.x2+" "+aaboundingbox.y2+" "+aaboundingbox.z2);
+		System.out.println("aabb="+aabb.x1+","+aabb.y1+","+aabb.z1+" "+aabb.x2+" "+aabb.y2+" "+aabb.z2);
 		System.out.println("boundingsphere="+pointcloudsphere.x+","+pointcloudsphere.y+","+pointcloudsphere.z+" "+pointcloudsphere.r);
 		for (int i=0;i<trianglesphere.length;i++) {System.out.println("trianglesphere["+i+"]="+trianglesphere[i].x+" "+trianglesphere[i].y+" "+trianglesphere[i].z+" "+trianglesphere[i].r);}
 		Position vpos = new Position(0,0,0);
@@ -210,8 +211,22 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Triangle[] sdtri = MathLib.subDivideTriangle(ptri);
 		for (int i=0;i<sdtri.length;i++) {System.out.println("sdtri["+i+"]="+sdtri[i].pos1.x+","+sdtri[i].pos1.y+","+sdtri[i].pos1.z+" "+sdtri[i].pos2.x+","+sdtri[i].pos2.y+","+sdtri[i].pos2.z+" "+sdtri[i].pos3.x+","+sdtri[i].pos3.y+","+sdtri[i].pos3.z);}
 		Position[] tpoint = {new Position(0.0f,0.0f,0.0f),new Position(-50.0f,30.0f,45.0f),new Position(-8.0f,3.0f,9.0f),new Position(-6.0f,1.0f,4.0f)};
-		boolean[] aabbpint = MathLib.vertexAxisAlignedBoundingBoxIntersection(aaboundingbox, tpoint);
+		boolean[] aabbpint = MathLib.vertexAxisAlignedBoundingBoxIntersection(aabb, tpoint);
 		for (int i=0;i<aabbpint.length;i++) {System.out.println("aabbpint[i]="+aabbpint[i]);}
+		Direction[] aabbdirlist = {new Direction(1,0,0),new Direction(0,1,0),new Direction(1,1,0)};
+		AxisAlignedBoundingBox[] aabblist = {aabb,aabb};
+		Position cubcam1 = new Position(-10.0f,1.0f,0.0f);
+		Position cubcam2 = new Position(1.0f,-10.0f,0.0f);
+		Cuboid cuboid = new Cuboid(new Position(aabb.x1,aabb.y1,aabb.z1),new Position(aabb.x2,aabb.y1,aabb.z1),new Position(aabb.x1,aabb.y2,aabb.z1),new Position(aabb.x2,aabb.y2,aabb.z1),new Position(aabb.x1,aabb.y1,aabb.z2),new Position(aabb.x2,aabb.y1,aabb.z2),new Position(aabb.x1,aabb.y2,aabb.z2),new Position(aabb.x2,aabb.y2,aabb.z2));
+		Cuboid[] cuboidlist = {cuboid,cuboid};
+		Line[][] raabbint = MathLib.rayAxisAlignedBoundingBoxIntersection(cubcam1, aabbdirlist, aabblist);
+		Line[][] raabbint2 = MathLib.rayAxisAlignedBoundingBoxIntersection(cubcam2, aabbdirlist, aabblist);
+		Line[][] rcubint = MathLib.rayCuboidIntersection(cubcam1, aabbdirlist, cuboidlist);
+		Line[][] rcubint2 = MathLib.rayCuboidIntersection(cubcam2, aabbdirlist, cuboidlist);
+		for (int j=0;j<raabbint.length;j++) {for (int i=0;i<raabbint[0].length;i++) {if (raabbint[j][i]!=null) {System.out.println("raabbint["+j+"]["+i+"]="+raabbint[j][i].pos1.x+","+raabbint[j][i].pos1.y+","+raabbint[j][i].pos1.z+" "+raabbint[j][i].pos2.x+","+raabbint[j][i].pos2.y+","+raabbint[j][i].pos2.z);} else {System.out.println("raabbint["+j+"]["+i+"]=no hit.");}}}
+		for (int j=0;j<raabbint2.length;j++) {for (int i=0;i<raabbint2[0].length;i++) {if (raabbint2[j][i]!=null) {System.out.println("raabbint2["+j+"]["+i+"]="+raabbint2[j][i].pos1.x+","+raabbint2[j][i].pos1.y+","+raabbint2[j][i].pos1.z+" "+raabbint2[j][i].pos2.x+","+raabbint2[j][i].pos2.y+","+raabbint2[j][i].pos2.z);} else {System.out.println("raabbint2["+j+"]["+i+"]=no hit.");}}}
+		for (int j=0;j<rcubint.length;j++) {for (int i=0;i<rcubint[0].length;i++) {if (rcubint[j][i]!=null) {System.out.println("rcubint["+j+"]["+i+"]="+rcubint[j][i].pos1.x+","+rcubint[j][i].pos1.y+","+rcubint[j][i].pos1.z+" "+rcubint[j][i].pos2.x+","+rcubint[j][i].pos2.y+","+rcubint[j][i].pos2.z);} else {System.out.println("rcubint["+j+"]["+i+"]=no hit.");}}}
+		for (int j=0;j<rcubint2.length;j++) {for (int i=0;i<rcubint2[0].length;i++) {if (rcubint2[j][i]!=null) {System.out.println("rcubint2["+j+"]["+i+"]="+rcubint2[j][i].pos1.x+","+rcubint2[j][i].pos1.y+","+rcubint2[j][i].pos1.z+" "+rcubint2[j][i].pos2.x+","+rcubint2[j][i].pos2.y+","+rcubint2[j][i].pos2.z);} else {System.out.println("rcubint2["+j+"]["+i+"]=no hit.");}}}
 		
 		new JavaRenderEngine();
 	}
