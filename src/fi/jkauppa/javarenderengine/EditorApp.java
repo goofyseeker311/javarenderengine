@@ -2,6 +2,7 @@ package fi.jkauppa.javarenderengine;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.KeyEvent;
@@ -13,12 +14,15 @@ import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandlerPanel;
 public class EditorApp extends AppHandlerPanel {
 	private static final long serialVersionUID = 1L;
 	public EditorApp() {}
-	@Override public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
-		g.setComposite(AlphaComposite.Src);
-		g.setColor(Color.WHITE);
-		g.setPaint(null);
-		g.fillRect(0, 0, renderwidth, renderheight);
+	@Override public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		Graphics2D g2 = (Graphics2D)g;
+		g2.setComposite(AlphaComposite.Src);
+		g2.setColor(Color.WHITE);
+		g2.setPaint(null);
+		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
 	}
+	@Override public void timerTick() {}
 	@Override public void keyTyped(KeyEvent e) {}
 	@Override public void keyPressed(KeyEvent e) {}
 	@Override public void keyReleased(KeyEvent e) {}
@@ -31,5 +35,4 @@ public class EditorApp extends AppHandlerPanel {
 	@Override public void mouseMoved(MouseEvent e) {}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
 	@Override public void drop(DropTargetDropEvent dtde) {}
-	@Override public void timerTick() {}
 }

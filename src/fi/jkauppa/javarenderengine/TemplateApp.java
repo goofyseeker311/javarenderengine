@@ -1,6 +1,6 @@
 package fi.jkauppa.javarenderengine;
 
-import java.awt.Graphics2D;
+import java.awt.Graphics;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -11,7 +11,8 @@ import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandlerPanel;
 public class TemplateApp extends AppHandlerPanel {
 	private static final long serialVersionUID = 1L;
 	public TemplateApp() {}
-	@Override public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {}
+	@Override public void paintComponent(Graphics g) {}
+	@Override public void timerTick() {}
 	@Override public void keyTyped(KeyEvent e) {}
 	@Override public void keyPressed(KeyEvent e) {}
 	@Override public void keyReleased(KeyEvent e) {}
@@ -24,5 +25,4 @@ public class TemplateApp extends AppHandlerPanel {
 	@Override public void mouseMoved(MouseEvent e) {}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
 	@Override public void drop(DropTargetDropEvent dtde) {}
-	@Override public void timerTick() {}
 }

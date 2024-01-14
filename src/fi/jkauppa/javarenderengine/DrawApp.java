@@ -3,6 +3,7 @@ package fi.jkauppa.javarenderengine;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.TexturePaint;
@@ -72,15 +73,16 @@ public class DrawApp extends AppHandlerPanel {
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 	}
 	
-	@Override
-	public void renderWindow(Graphics2D g2, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
-		if ((renderbuffer==null)||(renderbuffer.getWidth()!=renderwidth)||(renderbuffer.getHeight()!=renderheight)) {
+	@Override public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		Graphics2D g2 = (Graphics2D)g;
+		if ((renderbuffer==null)||(renderbuffer.getWidth()!=this.getWidth())||(renderbuffer.getHeight()!=this.getHeight())) {
 			VolatileImage oldimage = this.renderbuffer;
-			this.renderbuffer = gc.createCompatibleVolatileImage(renderwidth,renderheight, Transparency.TRANSLUCENT);
-			this.dragbuffer = gc.createCompatibleVolatileImage(renderwidth,renderheight, Transparency.TRANSLUCENT);
+			this.renderbuffer = gc.createCompatibleVolatileImage(this.getWidth(),this.getHeight(), Transparency.TRANSLUCENT);
+			this.dragbuffer = gc.createCompatibleVolatileImage(this.getWidth(),this.getHeight(), Transparency.TRANSLUCENT);
 			Graphics2D gfx = this.renderbuffer.createGraphics();
 			gfx.setComposite(AlphaComposite.Clear);
-			gfx.fillRect(0, 0, renderwidth,renderheight);
+			gfx.fillRect(0, 0, this.getWidth(),this.getHeight());
 			if (oldimage!=null) {
 				gfx.setComposite(AlphaComposite.Src);
 				gfx.drawImage(oldimage, 0, 0, null);
