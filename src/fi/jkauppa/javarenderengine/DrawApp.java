@@ -8,7 +8,6 @@ import java.awt.Rectangle;
 import java.awt.TexturePaint;
 import java.awt.Transparency;
 import java.awt.dnd.DropTargetDropEvent;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -21,14 +20,15 @@ import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 
-import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandler;
+import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandlerPanel;
 import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.BMPFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.GIFFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.JPGFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.PNGFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.WBMPFileFilter;
 
-public class DrawApp implements AppHandler {
+public class DrawApp extends AppHandlerPanel {
+	private static final long serialVersionUID = 1L;
 	private VolatileImage renderbuffer = null;
 	private VolatileImage dragbuffer = null;
 	private TexturePaint bgpattern = null;
@@ -52,7 +52,6 @@ public class DrawApp implements AppHandler {
 	private GIFFileFilter giffilefilter = new GIFFileFilter();
 	private BMPFileFilter bmpfilefilter = new BMPFileFilter();
 	private WBMPFileFilter wbmpfilefilter = new WBMPFileFilter();
-	private JavaRenderEngine windowhandler = null; 
 	
 	public DrawApp() {
 		BufferedImage bgpatternimage = gc.createCompatibleImage(64, 64, Transparency.OPAQUE);
@@ -70,6 +69,7 @@ public class DrawApp implements AppHandler {
 		this.filechooser.addChoosableFileFilter(this.bmpfilefilter);
 		this.filechooser.addChoosableFileFilter(this.wbmpfilefilter);
 		this.filechooser.setFileFilter(this.pngfilefilter);
+		this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 	}
 	
 	@Override
@@ -107,7 +107,7 @@ public class DrawApp implements AppHandler {
 		}
 	}
 
-	@Override public void actionPerformed(ActionEvent e) {}
+	@Override public void timerTick() {}
 	@Override public void keyTyped(KeyEvent e) {}
 	@Override public void keyReleased(KeyEvent e) {}
 	
@@ -497,7 +497,5 @@ public class DrawApp implements AppHandler {
 	    	this.drawPencil(g, drawposx, drawposy, erasemode, overridemode);
 		}
 	}
-
-	@Override public void setWindow(JavaRenderEngine wh) {this.windowhandler=wh; this.windowhandler.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));}
 	
 }

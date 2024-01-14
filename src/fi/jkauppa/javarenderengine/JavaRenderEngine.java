@@ -42,29 +42,26 @@ import fi.jkauppa.javarenderengine.MathLib.Position;
 import fi.jkauppa.javarenderengine.MathLib.Sphere;
 import fi.jkauppa.javarenderengine.MathLib.Triangle;
 
-public class JavaRenderEngine extends JFrame implements KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
+public class JavaRenderEngine extends JFrame implements ActionListener,KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 	private static final long serialVersionUID = 1L;
 	private DrawApp drawapp = new DrawApp();
 	private CADApp cadapp = new CADApp();
 	private ModelApp modelapp = new ModelApp();
 	private EditorApp editorapp = new EditorApp();
 	private GameApp gameapp = new GameApp();
-	private AppHandler activeapp = null;
-	private GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
-	private GraphicsDevice gd = ge.getDefaultScreenDevice ();
-	private GraphicsConfiguration gc = gd.getDefaultConfiguration ();
-	private int imagecanvaswidth = 1920;
-	private int imagecanvasheight= 1080;
-	private RenderPanel renderpanel = new RenderPanel();
-	private boolean windowedmode = true;
+	private AppHandlerPanel activeapp = null;
 	private DropTargetHandler droptargethandler = new DropTargetHandler();
-	private final int fpstarget = 120;
-	private final int fpstargetdelay = (int)Math.floor(1000.0f/(2.0f*(double)fpstarget));
+	private int fpstarget = 120;
+	private int fpstargetdelay = (int)Math.floor(1000.0f/(2.0f*(double)fpstarget));
+	private Timer timer = new Timer(this.fpstargetdelay,this);
+	private final int defaultimagecanvaswidth = 1920;
+	private final int defaultimagecanvasheight= 1080;
+	private boolean windowedmode = true;
 	private VolatileImage logoimage = UtilLib.loadImage("res/icons/logo.png", true);
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.6.20");
+		this.setTitle("Java Render Engine v1.7.0");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -74,16 +71,10 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			this.setLocationByPlatform(true);
 		}
 		this.addKeyListener(this);
-		this.renderpanel.addMouseListener(this);
-		this.renderpanel.addMouseMotionListener(this);
-		this.renderpanel.addMouseWheelListener(this);
-		this.renderpanel.setDropTarget(droptargethandler);
-		this.renderpanel.setPreferredSize(new Dimension(this.imagecanvaswidth,this.imagecanvasheight));
-		this.renderpanel.setSize(this.imagecanvaswidth,this.imagecanvasheight);
-		this.setContentPane(renderpanel);
-		this.pack();
-		this.setVisible(true);
+		this.setDropTarget(this.droptargethandler);
 		this.setActiveApp(drawapp);
+		this.setVisible(true);
+		timer.start();
 	}
 
 	public static void main(String[] args) {
@@ -226,16 +217,17 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		new JavaRenderEngine();
 	}
 	
-	private class RenderPanel extends JPanel implements ActionListener {
+	public static abstract class AppHandlerPanel extends JPanel implements KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 		private static final long serialVersionUID = 1L;
-		private final Timer timer = new Timer(JavaRenderEngine.this.fpstargetdelay,this);
 		private long lastupdate = System.currentTimeMillis();
 		public VolatileImage doublebuffer = null;
-		public RenderPanel() {
-			timer.start();
-		}
-		@Override
-		public void paintComponent(Graphics g) {
+		public GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
+		public GraphicsDevice gd = ge.getDefaultScreenDevice ();
+		public GraphicsConfiguration gc = gd.getDefaultConfiguration ();
+		public Toolkit tk = Toolkit.getDefaultToolkit();
+		public Clipboard cb = tk.getSystemClipboard();
+		
+		@Override public void paintComponent(Graphics g) {
 			super.paintComponent(g);
 			long newupdate = System.currentTimeMillis();
 			long ticktime = newupdate-lastupdate;
@@ -257,14 +249,15 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			}
 			if (this.doublebuffer!=null) {
 				Graphics2D doublebuffergfx = this.doublebuffer.createGraphics();
-				if (JavaRenderEngine.this.activeapp!=null) {
-					JavaRenderEngine.this.activeapp.renderWindow(doublebuffergfx, doublebuffer.getWidth(), doublebuffer.getHeight(), ticktimesec, ticktimefps);
-				}
+				this.renderWindow(doublebuffergfx, doublebuffer.getWidth(), doublebuffer.getHeight(), ticktimesec, ticktimefps);
 				Graphics2D g2 = (Graphics2D)g;
 				g2.drawImage(this.doublebuffer,0,0,null);
 			}
 		}
-		@Override public void actionPerformed(ActionEvent e) {this.repaint();if (JavaRenderEngine.this.activeapp!=null) {JavaRenderEngine.this.activeapp.actionPerformed(e);}}
+		
+		public abstract void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps);
+		public abstract void drop(DropTargetDropEvent dtde);
+		public abstract void timerTick();
 	}
 	
 	private class DropTargetHandler extends DropTarget {
@@ -272,21 +265,25 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 		@Override public synchronized void drop(DropTargetDropEvent dtde) {System.out.println("DropTarget: drop");if (JavaRenderEngine.this.activeapp!=null) {JavaRenderEngine.this.activeapp.drop(dtde);}}
 	}
 
-	private void setActiveApp(AppHandler activeappi) {
+	private void setActiveApp(AppHandlerPanel activeappi) {
+		int appcanvaswidth = this.defaultimagecanvaswidth; 
+		int appcanvasheight = this.defaultimagecanvasheight; 
+		if (this.activeapp!=null) {
+			this.activeapp.removeMouseListener(this);
+			this.activeapp.removeMouseMotionListener(this);
+			this.activeapp.removeMouseWheelListener(this);
+		}
 		this.activeapp = activeappi;
-		this.activeapp.setWindow(this);
+		this.activeapp.addMouseListener(this);
+		this.activeapp.addMouseMotionListener(this);
+		this.activeapp.addMouseWheelListener(this);
+		this.activeapp.setPreferredSize(new Dimension(appcanvaswidth,appcanvasheight));
+		this.activeapp.setSize(appcanvaswidth,appcanvasheight);
+		this.setContentPane(this.activeapp);
+		this.pack();
 	}
-	public interface AppHandler extends ActionListener,KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
-		final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
-		final GraphicsDevice gd = ge.getDefaultScreenDevice ();
-		final GraphicsConfiguration gc = gd.getDefaultConfiguration ();
-		final Toolkit tk = Toolkit.getDefaultToolkit();
-		final Clipboard cb = tk.getSystemClipboard();
-		public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps);
-		public void drop(DropTargetDropEvent dtde);
-		public void setWindow(JavaRenderEngine wh);
-	}
-
+	
+	@Override public void actionPerformed(ActionEvent e) {this.repaint(); if (this.activeapp!=null) {this.activeapp.timerTick();}}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {if (this.activeapp!=null) {this.activeapp.mouseWheelMoved(e);}}
 	@Override public void mouseDragged(MouseEvent e) {if (this.activeapp!=null) {this.activeapp.mouseDragged(e);}}
 	@Override public void mouseMoved(MouseEvent e) {if (this.activeapp!=null) {this.activeapp.mouseMoved(e);}}
@@ -308,32 +305,35 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 			e.consume();
 		}else if ((e.getKeyCode()==KeyEvent.VK_ENTER)&&(altdownmask)) {
 			System.out.println("keyPressed: ALT+VK_ENTER");
-	    	JavaRenderEngine.this.dispose();
+	    	this.dispose();
 	    	if (!windowedmode) {
 	    		windowedmode = true;
-	    		JavaRenderEngine.this.setExtendedState(JavaRenderEngine.this.getExtendedState()&~JFrame.MAXIMIZED_BOTH);
-	    		JavaRenderEngine.this.setUndecorated(false);
+	    		this.setExtendedState(this.getExtendedState()&~JFrame.MAXIMIZED_BOTH);
+	    		this.setUndecorated(false);
+	    		this.activeapp.setPreferredSize(new Dimension(this.defaultimagecanvaswidth,this.defaultimagecanvasheight));
+	    		this.activeapp.setSize(this.defaultimagecanvaswidth,this.defaultimagecanvasheight);
+	    		this.pack();
 	    	}else {
 	    		windowedmode = false;
-	    		JavaRenderEngine.this.setExtendedState(JavaRenderEngine.this.getExtendedState()|JFrame.MAXIMIZED_BOTH);
-	    		JavaRenderEngine.this.setUndecorated(true);
+	    		this.setExtendedState(this.getExtendedState()|JFrame.MAXIMIZED_BOTH);
+	    		this.setUndecorated(true);
 	    	}
-	    	JavaRenderEngine.this.setVisible(true);
+	    	this.setVisible(true);
 		}else if (e.getKeyCode()==KeyEvent.VK_F5) {
 			System.out.println("keyPressed: VK_F5");
-			this.setActiveApp(drawapp);
+			this.setActiveApp(this.drawapp);
 		}else if (e.getKeyCode()==KeyEvent.VK_F6) {
 			System.out.println("keyPressed: VK_F6");
-			this.setActiveApp(cadapp);
+			this.setActiveApp(this.cadapp);
 		}else if (e.getKeyCode()==KeyEvent.VK_F7) {
 			System.out.println("keyPressed: VK_F7");
-			this.setActiveApp(modelapp);
+			this.setActiveApp(this.modelapp);
 		}else if (e.getKeyCode()==KeyEvent.VK_F8) {
 			System.out.println("keyPressed: VK_F8");
-			this.setActiveApp(editorapp);
+			this.setActiveApp(this.editorapp);
 		}else if (e.getKeyCode()==KeyEvent.VK_F9) {
 			System.out.println("keyPressed: VK_F9");
-			this.setActiveApp(gameapp);
+			this.setActiveApp(this.gameapp);
 		}else if (e.getKeyCode()==KeyEvent.VK_F10) {
 			System.out.println("keyPressed: VK_F10");
 			//TODO <tbd>
@@ -350,7 +350,7 @@ public class JavaRenderEngine extends JFrame implements KeyListener,MouseListene
 				screenshotfile = new File("screenshot"+screenshotnum+".png");
 			}
 			try {
-				ImageIO.write(this.renderpanel.doublebuffer.getSnapshot(), "PNG", screenshotfile);
+				ImageIO.write(this.activeapp.doublebuffer.getSnapshot(), "PNG", screenshotfile);
 			} catch (Exception ex) {ex.printStackTrace();}
 		}else {
 			if (this.activeapp!=null) {this.activeapp.keyPressed(e);}
