@@ -4,6 +4,7 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Rectangle;
@@ -101,19 +102,20 @@ public class CADApp extends AppHandlerPanel {
 		this.filechooser.setAcceptAllFileFilterUsed(false);
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 	}
-	@Override
-	public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
+	@Override public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		Graphics2D g2 = (Graphics2D)g;
 		Position renderpos = new Position(-this.cameralocationx,-this.cameralocationy,-this.drawdepth);
 		Matrix rendermat = MathLib.rotationMatrix(-this.camrot.x, -this.camrot.y, -this.camrot.z);
-		this.origindeltax = (int)Math.floor(((double)renderwidth)/2.0f);
-		this.origindeltay = (int)Math.floor(((double)renderheight)/2.0f);
+		this.origindeltax = (int)Math.floor(((double)this.getWidth())/2.0f);
+		this.origindeltay = (int)Math.floor(((double)this.getHeight())/2.0f);
 		this.bgpattern = new TexturePaint(this.bgpatternimage,new Rectangle(this.origindeltax-this.cameralocationx, this.origindeltay-this.cameralocationy, gridstep, gridstep));
-		g.setComposite(AlphaComposite.SrcOver);
-		g.setColor(null);
-		g.setPaint(bgpattern);
-		g.fillRect(0, 0, renderwidth*2, renderheight*2);
-		g.setPaint(null);
-		g.setColor(null);
+		g2.setComposite(AlphaComposite.SrcOver);
+		g2.setColor(null);
+		g2.setPaint(bgpattern);
+		g2.fillRect(0, 0, this.getWidth()*2, this.getHeight()*2);
+		g2.setPaint(null);
+		g2.setColor(null);
 		Triangle mouseoverhittriangle = null;
 		Entity[] entitylistmaphandle = this.entitylist;
 		if (this.polygonfillmode==2) {
@@ -145,7 +147,7 @@ public class CADApp extends AppHandlerPanel {
 							float alphacolor = copymaterial.transparency;
 							if (tricolor==null) {tricolor = Color.WHITE;}
 							float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
-							g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
+							g2.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
 							if ((transformedtrianglelist[i].pos1.z<=0.0f)||(transformedtrianglelist[i].pos2.z<=0.0f)||(transformedtrianglelist[i].pos3.z<=0.0f)) {
 								double pos1s = (-transformedtrianglelist[i].pos1.z)*this.drawdepthscale+1;
 								int pos1x = (int)Math.round(transformedtrianglelist[i].pos1.x/pos1s)+this.origindeltax;
@@ -191,21 +193,21 @@ public class CADApp extends AppHandlerPanel {
 									trianglepolygon.addPoint(pos2x, pos2y);
 									trianglepolygon.addPoint(pos3x, pos3y);
 								}
-								g.fill(trianglepolygon);
-								boolean mouseoverhit = g.hit(new Rectangle(this.mouselocationx,this.mouselocationy,1,1), trianglepolygon, false);
+								g2.fill(trianglepolygon);
+								boolean mouseoverhit = g2.hit(new Rectangle(this.mouselocationx,this.mouselocationy,1,1), trianglepolygon, false);
 								if (mouseoverhit) {
 									mouseoverhittriangle = copytrianglelist[i];
 								}
-								g.setColor(Color.BLACK);
-								g.setStroke(new BasicStroke(this.flatlinestroke));
-								g.draw(trianglepolygon);
+								g2.setColor(Color.BLACK);
+								g2.setStroke(new BasicStroke(this.flatlinestroke));
+								g2.draw(trianglepolygon);
 							}
 						}
 					}
 				}
 			}
 		} else {
-			g.setColor(new Color(0.5f, 0.5f, 0.5f, 0.1f));
+			g2.setColor(new Color(0.5f, 0.5f, 0.5f, 0.1f));
 			if (entitylistmaphandle!=null) {
 				for (int k=0;k<entitylistmaphandle.length;k++) {
 					Tetrahedron[] tetrahedronlist = entitylistmaphandle[k].tetrahedronlist;
@@ -232,7 +234,7 @@ public class CADApp extends AppHandlerPanel {
 									trianglepolygon.addPoint(pos1x, pos1y);
 									trianglepolygon.addPoint(pos2x, pos2y);
 									trianglepolygon.addPoint(pos3x, pos3y);
-									g.fill(trianglepolygon);
+									g2.fill(trianglepolygon);
 								}
 							}
 						}
@@ -249,14 +251,14 @@ public class CADApp extends AppHandlerPanel {
 					double pos2s = (-transformedlinelist[i].pos2.z)*this.drawdepthscale+1;
 					int pos2x = (int)Math.round(transformedlinelist[i].pos2.x/pos2s)+this.origindeltax;
 					int pos2y = (int)Math.round(transformedlinelist[i].pos2.y/pos2s)+this.origindeltay;
-					g.setColor(Color.BLACK);
-					if (Math.abs(transformedlinelist[i].pos1.z)<0.5f){g.setStroke(new BasicStroke(this.vertexstroke+this.vertexfocus));}else{g.setStroke(new BasicStroke(this.vertexstroke));}
-					g.drawOval(pos1x-this.vertexradius, pos1y-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
-					if (Math.abs(transformedlinelist[i].pos2.z)<0.5f){g.setStroke(new BasicStroke(this.vertexstroke+this.vertexfocus));}else{g.setStroke(new BasicStroke(this.vertexstroke));}
-					g.drawOval(pos2x-this.vertexradius, pos2y-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
-					g.setColor(Color.BLUE);
-					g.setStroke(new BasicStroke(this.sketchlinestroke));
-					g.drawLine(pos1x, pos1y, pos2x, pos2y);
+					g2.setColor(Color.BLACK);
+					if (Math.abs(transformedlinelist[i].pos1.z)<0.5f){g2.setStroke(new BasicStroke(this.vertexstroke+this.vertexfocus));}else{g2.setStroke(new BasicStroke(this.vertexstroke));}
+					g2.drawOval(pos1x-this.vertexradius, pos1y-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
+					if (Math.abs(transformedlinelist[i].pos2.z)<0.5f){g2.setStroke(new BasicStroke(this.vertexstroke+this.vertexfocus));}else{g2.setStroke(new BasicStroke(this.vertexstroke));}
+					g2.drawOval(pos2x-this.vertexradius, pos2y-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
+					g2.setColor(Color.BLUE);
+					g2.setStroke(new BasicStroke(this.sketchlinestroke));
+					g2.drawLine(pos1x, pos1y, pos2x, pos2y);
 				}
 			}
 		}
@@ -265,15 +267,15 @@ public class CADApp extends AppHandlerPanel {
 		double posas = -transformedoriginpoints[0].z*this.drawdepthscale+1;
 		double posasz = -transformedoriginpoints[3].z*this.drawdepthscale+1;
 		if (posasz>0) {
-			g.setStroke(new BasicStroke(this.axisstroke));
-			g.setColor(Color.RED);
-			g.drawLine((int)Math.round(transformedoriginpoints[0].x/posas)+this.origindeltax, (int)Math.round(transformedoriginpoints[0].y/posas)+this.origindeltay, (int)Math.round(transformedoriginpoints[1].x/posas)+this.origindeltax, (int)Math.round(transformedoriginpoints[1].y/posas)+this.origindeltay);
-			g.setColor(Color.GREEN);
-			g.drawLine((int)Math.round(transformedoriginpoints[0].x/posas)+this.origindeltax, (int)Math.round(transformedoriginpoints[0].y/posas)+this.origindeltay, (int)Math.round(transformedoriginpoints[2].x/posas)+this.origindeltax, (int)Math.round(transformedoriginpoints[2].y/posas)+this.origindeltay);
-			g.setColor(Color.BLUE);
-			g.drawLine((int)Math.round(transformedoriginpoints[0].x/posas)+this.origindeltax, (int)Math.round(transformedoriginpoints[0].y/posas)+this.origindeltay, (int)Math.round(transformedoriginpoints[3].x/posasz)+this.origindeltax, (int)Math.round(transformedoriginpoints[3].y/posasz)+this.origindeltay);
-			g.setColor(Color.BLACK);
-			g.fillOval((int)Math.round(transformedoriginpoints[0].x/posas)+this.origindeltax-this.vertexradius, (int)Math.round(transformedoriginpoints[0].y/posas)+this.origindeltay-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
+			g2.setStroke(new BasicStroke(this.axisstroke));
+			g2.setColor(Color.RED);
+			g2.drawLine((int)Math.round(transformedoriginpoints[0].x/posas)+this.origindeltax, (int)Math.round(transformedoriginpoints[0].y/posas)+this.origindeltay, (int)Math.round(transformedoriginpoints[1].x/posas)+this.origindeltax, (int)Math.round(transformedoriginpoints[1].y/posas)+this.origindeltay);
+			g2.setColor(Color.GREEN);
+			g2.drawLine((int)Math.round(transformedoriginpoints[0].x/posas)+this.origindeltax, (int)Math.round(transformedoriginpoints[0].y/posas)+this.origindeltay, (int)Math.round(transformedoriginpoints[2].x/posas)+this.origindeltax, (int)Math.round(transformedoriginpoints[2].y/posas)+this.origindeltay);
+			g2.setColor(Color.BLUE);
+			g2.drawLine((int)Math.round(transformedoriginpoints[0].x/posas)+this.origindeltax, (int)Math.round(transformedoriginpoints[0].y/posas)+this.origindeltay, (int)Math.round(transformedoriginpoints[3].x/posasz)+this.origindeltax, (int)Math.round(transformedoriginpoints[3].y/posasz)+this.origindeltay);
+			g2.setColor(Color.BLACK);
+			g2.fillOval((int)Math.round(transformedoriginpoints[0].x/posas)+this.origindeltax-this.vertexradius, (int)Math.round(transformedoriginpoints[0].y/posas)+this.origindeltay-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
 		}
 		this.mouseovertriangle = mouseoverhittriangle;
 	}

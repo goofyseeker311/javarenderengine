@@ -3,6 +3,7 @@ package fi.jkauppa.javarenderengine;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Polygon;
@@ -82,24 +83,26 @@ public class ModelApp extends AppHandlerPanel {
 		this.setCursor(this.customcursor);
 	}
 
-	@Override public void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
-		g.setComposite(AlphaComposite.Src);
-		g.setColor(Color.BLACK);
-		g.setPaint(null);
-		g.fillRect(0, 0, renderwidth, renderheight);
+	@Override public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		Graphics2D g2 = (Graphics2D)g;
+		g2.setComposite(AlphaComposite.Src);
+		g2.setColor(Color.BLACK);
+		g2.setPaint(null);
+		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
 		if (this.polygonfillmode==1) {
-			renderWindowHardware(g, renderwidth, renderheight, deltatimesec, deltatimefps);
+			renderWindowHardware(g2);
 		} else {
-			renderWindowSoftware(g, renderwidth, renderheight, deltatimesec, deltatimefps);
+			renderWindowSoftware(g2);
 		}
 	}
 
-	public void renderWindowHardware(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
-		this.origindeltax = (int)Math.floor(((double)renderwidth)/2.0f);
-		this.origindeltay = (int)Math.floor(((double)renderheight)/2.0f);
-		if ((this.lastrenderwidth!=renderwidth)||(this.lastrenderheight!=renderheight)) {
-			this.lastrenderwidth = renderwidth;
-			this.lastrenderheight = renderheight;
+	public void renderWindowHardware(Graphics2D g) {
+		this.origindeltax = (int)Math.floor(((double)this.getWidth())/2.0f);
+		this.origindeltay = (int)Math.floor(((double)this.getHeight())/2.0f);
+		if ((this.lastrenderwidth!=this.getWidth())||(this.lastrenderheight!=this.getHeight())) {
+			this.lastrenderwidth = this.getWidth();
+			this.lastrenderheight = this.getHeight();
 		}
 		g.setComposite(AlphaComposite.SrcOver);
 		Position renderpos = new Position(-campos.x,-campos.y,-campos.z);
@@ -158,19 +161,19 @@ public class ModelApp extends AppHandlerPanel {
 		}
 	}
 	
-	private void renderWindowSoftware(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps) {
-		if ((this.zbuffer==null)||(this.zbuffer.length!=renderheight)||(this.zbuffer[0].length!=renderwidth)) {
-			this.zbuffer = new double[renderheight][renderwidth];
+	private void renderWindowSoftware(Graphics2D g) {
+		if ((this.zbuffer==null)||(this.zbuffer.length!=this.getHeight())||(this.zbuffer[0].length!=this.getWidth())) {
+			this.zbuffer = new double[this.getHeight()][this.getWidth()];
 		}
 		for (int i=0;i<this.zbuffer.length;i++) {Arrays.fill(this.zbuffer[i],Double.MAX_VALUE);}
-		this.vfov = 2.0f*(180.0f/Math.PI)*Math.atan((((double)renderheight)/((double)renderwidth))*Math.tan((this.hfov/2.0f)*(Math.PI/180.0f))); 
+		this.vfov = 2.0f*(180.0f/Math.PI)*Math.atan((((double)this.getHeight())/((double)this.getWidth()))*Math.tan((this.hfov/2.0f)*(Math.PI/180.0f))); 
 		g.scale(1.0f, -1.0f);
-		g.translate(0.0f, -renderheight);
+		g.translate(0.0f, -this.getHeight());
 		g.setComposite(AlphaComposite.SrcOver);
 		Triangle[] copytrianglelist = this.trianglematerialmap.keySet().toArray(new Triangle[this.trianglematerialmap.size()]);
 		if (copytrianglelist.length>0) {
-			Plane[] verticalplanes = MathLib.projectedPlanes(this.campos, renderwidth, hfov, this.cameramat);
-			double[] verticalangles = MathLib.projectedAngles(renderheight, vfov);
+			Plane[] verticalplanes = MathLib.projectedPlanes(this.campos, this.getWidth(), hfov, this.cameramat);
+			double[] verticalangles = MathLib.projectedAngles(this.getHeight(), vfov);
 			Arrays.sort(verticalangles);
 			Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(verticalplanes, copytrianglelist);		
 			Plane[] triangleplanes = MathLib.planeFromPoints(copytrianglelist);

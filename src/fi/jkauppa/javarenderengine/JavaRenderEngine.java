@@ -2,7 +2,6 @@ package fi.jkauppa.javarenderengine;
 
 //TODO texture handling
 
-import java.awt.AlphaComposite;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -51,8 +50,8 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	private GameApp gameapp = new GameApp();
 	private AppHandlerPanel activeapp = null;
 	private DropTargetHandler droptargethandler = new DropTargetHandler();
-	private int fpstarget = 120;
-	private int fpstargetdelay = (int)Math.floor(1000.0f/(2.0f*(double)fpstarget));
+	private double fpstarget = 120.0f;
+	private int fpstargetdelay = (int)Math.floor(1000.0f/fpstarget);
 	private Timer timer = new Timer(this.fpstargetdelay,this);
 	private final int defaultimagecanvaswidth = 1920;
 	private final int defaultimagecanvasheight= 1080;
@@ -61,7 +60,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.7.0");
+		this.setTitle("Java Render Engine v1.7.1");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -219,8 +218,11 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public static abstract class AppHandlerPanel extends JPanel implements KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 		private static final long serialVersionUID = 1L;
-		private long lastupdate = System.currentTimeMillis();
-		public VolatileImage doublebuffer = null;
+		public long newupdate = System.currentTimeMillis();
+		public long lastupdate = newupdate;
+		public long ticktime = 0;
+		public double ticktimesec = 0.0f;
+		public double ticktimefps = 0.0f;
 		public GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
 		public GraphicsDevice gd = ge.getDefaultScreenDevice ();
 		public GraphicsConfiguration gc = gd.getDefaultConfiguration ();
@@ -229,33 +231,11 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		
 		@Override public void paintComponent(Graphics g) {
 			super.paintComponent(g);
-			long newupdate = System.currentTimeMillis();
-			long ticktime = newupdate-lastupdate;
-			double ticktimesec = (double)ticktime / 1000.0f;
-			double ticktimefps = 1000.0f/(double)ticktime;
-			lastupdate = newupdate;
-			if ((this.doublebuffer==null)||((this.doublebuffer.getWidth()!=this.getWidth())&&(this.doublebuffer.getHeight()!=this.getHeight()))) {
-				System.out.println("Window: Resolution "+this.getWidth()+"x"+this.getHeight());
-				VolatileImage oldimage = this.doublebuffer;
-				this.doublebuffer = gc.createCompatibleVolatileImage(this.getWidth(),this.getHeight(), Transparency.OPAQUE);
-				Graphics2D gfx = this.doublebuffer.createGraphics();
-				gfx.setComposite(AlphaComposite.Clear);
-				gfx.fillRect(0, 0, this.getWidth(),this.getHeight());
-				if (oldimage!=null) {
-					gfx.setComposite(AlphaComposite.Src);
-					gfx.drawImage(oldimage, 0, 0, null);
-				}
-				gfx.dispose();
-			}
-			if (this.doublebuffer!=null) {
-				Graphics2D doublebuffergfx = this.doublebuffer.createGraphics();
-				this.renderWindow(doublebuffergfx, doublebuffer.getWidth(), doublebuffer.getHeight(), ticktimesec, ticktimefps);
-				Graphics2D g2 = (Graphics2D)g;
-				g2.drawImage(this.doublebuffer,0,0,null);
-			}
+			this.newupdate = System.currentTimeMillis();
+			this.ticktime = this.newupdate-this.lastupdate;
+			this.ticktimesec = ((double)this.ticktime)/1000.0f;
+			this.ticktimefps = 1000.0f/((double)this.ticktime);
 		}
-		
-		public abstract void renderWindow(Graphics2D g, int renderwidth, int renderheight, double deltatimesec, double deltatimefps);
 		public abstract void drop(DropTargetDropEvent dtde);
 		public abstract void timerTick();
 	}
@@ -272,6 +252,8 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 			this.activeapp.removeMouseListener(this);
 			this.activeapp.removeMouseMotionListener(this);
 			this.activeapp.removeMouseWheelListener(this);
+			appcanvaswidth = this.activeapp.getWidth();
+			appcanvasheight = this.activeapp.getHeight();
 		}
 		this.activeapp = activeappi;
 		this.activeapp.addMouseListener(this);
@@ -283,7 +265,12 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		this.pack();
 	}
 	
-	@Override public void actionPerformed(ActionEvent e) {this.repaint(); if (this.activeapp!=null) {this.activeapp.timerTick();}}
+	@Override public void actionPerformed(ActionEvent e) {
+		if (this.activeapp!=null) {this.activeapp.timerTick();}
+		Dimension componentsize=this.activeapp.getSize();
+		Rectangle paintregion=new Rectangle(0,0,componentsize.width-1,componentsize.height-1);
+		this.activeapp.paintImmediately(paintregion);
+	}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {if (this.activeapp!=null) {this.activeapp.mouseWheelMoved(e);}}
 	@Override public void mouseDragged(MouseEvent e) {if (this.activeapp!=null) {this.activeapp.mouseDragged(e);}}
 	@Override public void mouseMoved(MouseEvent e) {if (this.activeapp!=null) {this.activeapp.mouseMoved(e);}}
@@ -349,8 +336,12 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 				screenshotnum += 1;
 				screenshotfile = new File("screenshot"+screenshotnum+".png");
 			}
+			VolatileImage componentimage = this.activeapp.gc.createCompatibleVolatileImage(this.activeapp.getWidth(),this.activeapp.getHeight(), Transparency.OPAQUE);
+			Graphics2D gfx = componentimage.createGraphics();
+			this.activeapp.paintComponent(gfx);
+			gfx.dispose();
 			try {
-				ImageIO.write(this.activeapp.doublebuffer.getSnapshot(), "PNG", screenshotfile);
+				ImageIO.write(componentimage.getSnapshot(), "PNG", screenshotfile);
 			} catch (Exception ex) {ex.printStackTrace();}
 		}else {
 			if (this.activeapp!=null) {this.activeapp.keyPressed(e);}
