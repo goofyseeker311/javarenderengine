@@ -1129,7 +1129,7 @@ public class MathLib {
 						Position[] aabbcenter = {new Position(aabbxcenter,aabbycenter,aabbzcenter)};
 						Position[] aabbedge = {new Position(newchildren[n].aabbboundaryvolume.x1,newchildren[n].aabbboundaryvolume.y1,newchildren[n].aabbboundaryvolume.z1)};
 						Direction[] aabbdir = vectorFromPoints(aabbcenter, aabbedge);
-						double[] aabbradius = MathLib.vectorLength(aabbdir);
+						double[] aabbradius = vectorLength(aabbdir);
 						newchildren[n].sphereboundaryvolume = new Sphere(aabbxcenter,aabbycenter,aabbzcenter,aabbradius[0]);
 						newchildlistarray.add(newchildren[n]);
 					}
@@ -1226,7 +1226,17 @@ public class MathLib {
 		for (int i=0;i<vres;i++){k[i]=(180.0f/Math.PI)*Math.atan(hd[i]);}
 		return k;
 	}
-	public static Direction[] projectedDirections(Matrix vmat) {
+	public static Direction[] projectedCameraDirections(Matrix vmat) {
+		Direction[] rightdirupvectors = new Direction[3];
+		Direction dirvector = new Direction(0,0,-1);
+		Direction rightvector = new Direction(1,0,0);
+		Direction upvector = new Direction(0,-1,0);
+		rightdirupvectors[0] = dirvector;
+		rightdirupvectors[1] = rightvector;
+		rightdirupvectors[2] = upvector;
+	    return matrixMultiply(rightdirupvectors, vmat);
+	}
+	public static Direction[] projectedPlaneDirections(Matrix vmat) {
 		Direction[] rightdirupvectors = new Direction[3];
 		Direction dirvector = new Direction(0,0,-1);
 		Direction rightvector = new Direction(0,1,0);
@@ -1245,25 +1255,153 @@ public class MathLib {
 	    fwdvectors = normalizeVector(fwdvectors);
 	    return matrixMultiply(fwdvectors, vmat);
 	}
-	public static Plane[] projectedPoints(Position vpos, int vres, double vfov, Matrix vmat) {
-		//TODO projected points based on the angles to the view planes
-		return null;
+	public static Coordinate[] projectedPoints(Position vpos, Position[] vpoint, int hres, double hfov, int vres, double vfov, Matrix vmat) {
+		Coordinate[] k = null;
+		if ((vpos!=null)&&(vpoint!=null)&&(vmat!=null)) {
+			k = new Coordinate[vpoint.length];
+			double halfhfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(hfov/2.0f)));
+			double halfvfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(vfov/2.0f)));
+			int halfhres = (int)Math.round(((double)hres)/2.0f);
+			int halfvres = (int)Math.round(((double)vres)/2.0f);
+			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
+			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
+			double[][] fwdintpointsdist = pointPlaneDistance(vpoint, dirrightupplanes);
+			for (int i=0;i<vpoint.length;i++) {
+				if (fwdintpointsdist[i][0]>0) {
+					double hind = halfhfovmult*halfhres*(fwdintpointsdist[i][1]/fwdintpointsdist[i][0])+halfhres;
+					double vind = halfvfovmult*halfvres*(fwdintpointsdist[i][2]/fwdintpointsdist[i][0])+halfvres;
+					k[i] = new Coordinate(hind,vind);
+				}
+			}
+		}
+		return k;
 	}
-	public static Plane[] projectedLines(Position vpos, int vres, double vfov, Matrix vmat) {
-		//TODO projected line point based on the angles to the view planes
-		return null;
+	public static Coordinate[][] projectedLines(Position vpos, Line[] vline, int hres, double hfov, int vres, double vfov, Matrix vmat) {
+		Coordinate[][] k = null;
+		if ((vpos!=null)&&(vline!=null)&&(vmat!=null)) {
+			k = new Coordinate[vline.length][2];
+			double halfhfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(hfov/2.0f)));
+			double halfvfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(vfov/2.0f)));
+			int halfhres = (int)Math.round(((double)hres)/2.0f);
+			int halfvres = (int)Math.round(((double)vres)/2.0f);
+			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
+			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
+			Position[] vlinepoint1 = new Position[vline.length];
+			Position[] vlinepoint2 = new Position[vline.length];
+			for (int i=0;i<vline.length;i++) {
+				vlinepoint1[i]=vline[i].pos1;
+				vlinepoint2[i]=vline[i].pos2;
+			}
+			double[][] fwdintpointsdist1 = pointPlaneDistance(vlinepoint1, dirrightupplanes);
+			double[][] fwdintpointsdist2 = pointPlaneDistance(vlinepoint2, dirrightupplanes);
+			for (int i=0;i<vline.length;i++) {
+				if (fwdintpointsdist1[i][0]>0) {
+					double hind = halfhfovmult*halfhres*fwdintpointsdist1[i][1]/fwdintpointsdist1[i][0]+halfhres;
+					double vind = halfvfovmult*halfvres*fwdintpointsdist1[i][2]/fwdintpointsdist1[i][0]+halfvres;
+					k[i][0] = new Coordinate(hind,vind);
+				}
+				if (fwdintpointsdist2[i][0]>0) {
+					double hind = halfhfovmult*halfhres*fwdintpointsdist2[i][1]/fwdintpointsdist2[i][0]+halfhres;
+					double vind = halfvfovmult*halfvres*fwdintpointsdist2[i][2]/fwdintpointsdist2[i][0]+halfvres;
+					k[i][1] = new Coordinate(hind,vind);
+				}
+			}
+		}
+		return k;
 	}
-	public static Plane[] projectedTriangles(Position vpos, int vres, double vfov, Matrix vmat) {
-		//TODO projected triangle points based on the angles to the view planes
-		return null;
+	public static Coordinate[][] projectedTriangles(Position vpos, Triangle[] vtri, int hres, double hfov, int vres, double vfov, Matrix vmat) {
+		Coordinate[][] k = null;
+		if ((vpos!=null)&&(vtri!=null)&&(vmat!=null)) {
+			k = new Coordinate[vtri.length][3];
+			double halfhfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(hfov/2.0f)));
+			double halfvfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(vfov/2.0f)));
+			int halfhres = (int)Math.round(((double)hres)/2.0f);
+			int halfvres = (int)Math.round(((double)vres)/2.0f);
+			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
+			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
+			Position[] vtripoint1 = new Position[vtri.length];
+			Position[] vtripoint2 = new Position[vtri.length];
+			Position[] vtripoint3 = new Position[vtri.length];
+			for (int i=0;i<vtri.length;i++) {
+				vtripoint1[i]=vtri[i].pos1;
+				vtripoint2[i]=vtri[i].pos2;
+				vtripoint3[i]=vtri[i].pos3;
+			}
+			double[][] fwdintpointsdist1 = pointPlaneDistance(vtripoint1, dirrightupplanes);
+			double[][] fwdintpointsdist2 = pointPlaneDistance(vtripoint2, dirrightupplanes);
+			double[][] fwdintpointsdist3 = pointPlaneDistance(vtripoint3, dirrightupplanes);
+			for (int i=0;i<vtri.length;i++) {
+				if (fwdintpointsdist1[i][0]>0) {
+					double hind = halfhfovmult*halfhres*fwdintpointsdist1[i][1]/fwdintpointsdist1[i][0]+halfhres;
+					double vind = halfvfovmult*halfvres*fwdintpointsdist1[i][2]/fwdintpointsdist1[i][0]+halfvres;
+					k[i][0] = new Coordinate(hind,vind);
+				}
+				if (fwdintpointsdist2[i][0]>0) {
+					double hind = halfhfovmult*halfhres*fwdintpointsdist2[i][1]/fwdintpointsdist2[i][0]+halfhres;
+					double vind = halfvfovmult*halfvres*fwdintpointsdist2[i][2]/fwdintpointsdist2[i][0]+halfvres;
+					k[i][1] = new Coordinate(hind,vind);
+				}
+				if (fwdintpointsdist3[i][0]>0) {
+					double hind = halfhfovmult*halfhres*fwdintpointsdist3[i][1]/fwdintpointsdist3[i][0]+halfhres;
+					double vind = halfvfovmult*halfvres*fwdintpointsdist3[i][2]/fwdintpointsdist3[i][0]+halfvres;
+					k[i][2] = new Coordinate(hind,vind);
+				}
+			}
+		}
+		return k;
 	}
-	public static Plane[] projectedQuads(Position vpos, int vres, double vfov, Matrix vmat) {
-		//TODO projected quad points based on the angles to the view planes
-		return null;
+	public static Coordinate[][] projectedQuads(Position vpos, Quad[] vquad, int hres, double hfov, int vres, double vfov, Matrix vmat) {
+		Coordinate[][] k = null;
+		if ((vpos!=null)&&(vquad!=null)&&(vmat!=null)) {
+			k = new Coordinate[vquad.length][4];
+			double halfhfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(hfov/2.0f)));
+			double halfvfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(vfov/2.0f)));
+			int halfhres = (int)Math.round(((double)(hres-1))/2.0f);
+			int halfvres = (int)Math.round(((double)(vres-1))/2.0f);
+			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
+			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
+			Position[] vquadpoint1 = new Position[vquad.length];
+			Position[] vquadpoint2 = new Position[vquad.length];
+			Position[] vquadpoint3 = new Position[vquad.length];
+			Position[] vquadpoint4 = new Position[vquad.length];
+			for (int i=0;i<vquad.length;i++) {
+				vquadpoint1[i]=vquad[i].pos1;
+				vquadpoint2[i]=vquad[i].pos2;
+				vquadpoint3[i]=vquad[i].pos3;
+				vquadpoint4[i]=vquad[i].pos4;
+			}
+			double[][] fwdintpointsdist1 = pointPlaneDistance(vquadpoint1, dirrightupplanes);
+			double[][] fwdintpointsdist2 = pointPlaneDistance(vquadpoint2, dirrightupplanes);
+			double[][] fwdintpointsdist3 = pointPlaneDistance(vquadpoint3, dirrightupplanes);
+			double[][] fwdintpointsdist4 = pointPlaneDistance(vquadpoint4, dirrightupplanes);
+			for (int i=0;i<vquad.length;i++) {
+				if (fwdintpointsdist1[i][0]>0) {
+					double hind = halfhfovmult*halfhres*fwdintpointsdist1[i][1]/fwdintpointsdist1[i][0]+halfhres;
+					double vind = halfvfovmult*halfvres*fwdintpointsdist1[i][2]/fwdintpointsdist1[i][0]+halfvres;
+					k[i][0] = new Coordinate(hind,vind);
+				}
+				if (fwdintpointsdist2[i][0]>0) {
+					double hind = halfhfovmult*halfhres*fwdintpointsdist2[i][1]/fwdintpointsdist2[i][0]+halfhres;
+					double vind = halfvfovmult*halfvres*fwdintpointsdist2[i][2]/fwdintpointsdist2[i][0]+halfvres;
+					k[i][1] = new Coordinate(hind,vind);
+				}
+				if (fwdintpointsdist3[i][0]>0) {
+					double hind = halfhfovmult*halfhres*fwdintpointsdist3[i][1]/fwdintpointsdist3[i][0]+halfhres;
+					double vind = halfvfovmult*halfvres*fwdintpointsdist3[i][2]/fwdintpointsdist3[i][0]+halfvres;
+					k[i][2] = new Coordinate(hind,vind);
+				}
+				if (fwdintpointsdist4[i][0]>0) {
+					double hind = halfhfovmult*halfhres*fwdintpointsdist4[i][1]/fwdintpointsdist4[i][0]+halfhres;
+					double vind = halfvfovmult*halfvres*fwdintpointsdist4[i][2]/fwdintpointsdist4[i][0]+halfvres;
+					k[i][3] = new Coordinate(hind,vind);
+				}
+			}
+		}
+		return k;
 	}
 	public static Plane[] projectedPlanes(Position vpos, int vres, double vfov, Matrix vmat) {
 		Direction[] fwdvectors = projectedVectors(vres, vfov, vmat);
-		Direction[] dirrightupvectors = projectedDirections(vmat);
+		Direction[] dirrightupvectors = projectedPlaneDirections(vmat);
 		Direction rightvector = dirrightupvectors[1];
 		Direction[] planenormalvectors = vectorCross(fwdvectors,rightvector);
 		planenormalvectors = normalizeVector(planenormalvectors);

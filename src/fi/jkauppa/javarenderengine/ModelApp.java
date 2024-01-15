@@ -48,9 +48,10 @@ public class ModelApp extends AppHandlerPanel {
 	private Matrix cameramat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 	private Matrix rendermat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 	private final Direction lookdir = new Direction(0,0,-1);
-	private final Direction[] lookdirs = {new Direction(0,0,-1),new Direction(1,0,0),new Direction(0,-1,0)};
+	private final Direction[] lookdirs = MathLib.projectedCameraDirections(cameramat);
 	private Direction[] camdirs = lookdirs;
-	private double hfov = 70.0f, vfov = 43.0f;
+	private double hfov = 70.0f;
+	private double vfov = 43.0f;
 	private double drawdepthscale = 0.0004f;
 	private JFileChooser filechooser = new JFileChooser();
 	private OBJFileFilter objfilefilter = new OBJFileFilter();
@@ -85,35 +86,106 @@ public class ModelApp extends AppHandlerPanel {
 
 	@Override public void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		Graphics2D g2 = (Graphics2D)g;
-		g2.setComposite(AlphaComposite.Src);
-		g2.setColor(Color.BLACK);
-		g2.setPaint(null);
-		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
-		if (this.polygonfillmode==1) {
-			renderWindowHardware(g2);
-		} else {
-			renderWindowSoftware(g2);
-		}
-	}
-
-	public void renderWindowHardware(Graphics2D g) {
 		this.origindeltax = (int)Math.floor(((double)this.getWidth())/2.0f);
 		this.origindeltay = (int)Math.floor(((double)this.getHeight())/2.0f);
 		if ((this.lastrenderwidth!=this.getWidth())||(this.lastrenderheight!=this.getHeight())) {
 			this.lastrenderwidth = this.getWidth();
 			this.lastrenderheight = this.getHeight();
 		}
-		g.setComposite(AlphaComposite.SrcOver);
-		Position renderpos = new Position(-campos.x,-campos.y,-campos.z);
+		Graphics2D g2 = (Graphics2D)g;
+		g2.setComposite(AlphaComposite.Src);
+		g2.setColor(Color.BLACK);
+		g2.setPaint(null);
+		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
+		g2.setComposite(AlphaComposite.SrcOver);
+		this.vfov = 2.0f*(180.0f/Math.PI)*Math.atan((((double)this.getHeight())/((double)this.getWidth()))*Math.tan((this.hfov/2.0f)*(Math.PI/180.0f)));
+		if (this.polygonfillmode==1) {
+			renderWindow(g2);
+		} else if (this.polygonfillmode==2) {
+			renderWindowHardware(g2);
+		} else {
+			renderWindowSoftware(g2);
+		}
+	}
+
+	private void renderWindow(Graphics2D g) {
+		g.scale(1.0f, -1.0f);
+		g.translate(0.0f, -this.getHeight());
 		if (this.entitylist!=null) {
 			Sphere[] entityspherelist = new Sphere[this.entitylist.length]; 
 			for (int k=0;k<this.entitylist.length;k++) {
 				entityspherelist[k] = this.entitylist[k].sphereboundaryvolume;
 				entityspherelist[k].ind = k;
 			}
+			TreeSet<Sphere> sortedentityspheretree = new TreeSet<Sphere>(new SphereDistanceComparator(this.campos));
+			sortedentityspheretree.addAll(Arrays.asList(entityspherelist));
+			Sphere[] sortedentityspherelist = sortedentityspheretree.toArray(new Sphere[sortedentityspheretree.size()]);
+			for (int k=0;k<sortedentityspherelist.length;k++) {
+				Triangle[] copytrianglelist = this.entitylist[sortedentityspherelist[k].ind].trianglelist;
+				if (copytrianglelist.length>0) {
+					Plane[] triangleplanes = MathLib.planeFromPoints(copytrianglelist);
+					Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
+					double[] triangleviewangles = MathLib.vectorAngle(this.camdirs[0], trianglenormals);
+					Color[] trianglecolor = new Color[copytrianglelist.length];
+					for (int i=0;i<copytrianglelist.length;i++) {
+						double triangleviewangle = triangleviewangles[i];
+						if (triangleviewangle>90.0f) {triangleviewangle = 180.0f-triangleviewangle;}
+						float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
+						Material copymaterial = copytrianglelist[i].mat;
+						Color tricolor = copymaterial.facecolor;
+						float alphacolor = copymaterial.transparency;
+						if (tricolor==null) {tricolor = Color.WHITE;}
+						float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
+						trianglecolor[i] = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
+					}
+					Sphere[] copytrianglepherelist = MathLib.triangleCircumSphere(copytrianglelist);
+					for (int i=0;i<copytrianglepherelist.length;i++) {copytrianglepherelist[i].ind = i;}
+					TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereDistanceComparator(this.campos));
+					sortedtrianglespheretree.addAll(Arrays.asList(copytrianglepherelist));
+					Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
+					Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangles(this.campos, copytrianglelist, this.getWidth(), this.hfov, this.getHeight(), this.vfov, this.cameramat);
+					for (int i=0;i<sortedtrianglespherelist.length;i++) {
+						Coordinate coord1 = copytrianglelistcoords[sortedtrianglespherelist[i].ind][0];
+						Coordinate coord2 = copytrianglelistcoords[sortedtrianglespherelist[i].ind][1];
+						Coordinate coord3 = copytrianglelistcoords[sortedtrianglespherelist[i].ind][2];
+						if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)) {
+							int it = sortedtrianglespherelist[i].ind;
+							Triangle copytriangle = copytrianglelist[it];
+							Polygon trianglepolygon = new Polygon();
+							trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
+							trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
+							trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
+							Material copymaterial = copytriangle.mat;
+							g.setColor(trianglecolor[it]);
+							VolatileImage tritexture = copymaterial.fileimage;
+							if (tritexture==null) {
+								g.fill(trianglepolygon);
+							} else {
+								g.clip(trianglepolygon);
+								Triangle[] sortedtriangle = {copytriangle};
+								Polygon[] drawpolygon = {trianglepolygon};
+								VolatileImage[] drawtexture = {tritexture};
+								AffineTransform[] texturetransform = MathLib.textureTransform(drawtexture, sortedtriangle, drawpolygon);
+								g.drawImage(tritexture, texturetransform[0], null);
+								g.setClip(null);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	public void renderWindowHardware(Graphics2D g) {
+		if (this.entitylist!=null) {
+			Position renderpos = new Position(-campos.x,-campos.y,-campos.z);
+			Sphere[] entityspherelist = new Sphere[this.entitylist.length]; 
+			for (int k=0;k<this.entitylist.length;k++) {
+				entityspherelist[k] = this.entitylist[k].sphereboundaryvolume;
+				entityspherelist[k].ind = k;
+			}
 			Sphere[] transformedentityspherelist = MathLib.translate(entityspherelist, renderpos);
-			transformedentityspherelist = MathLib.matrixMultiply(transformedentityspherelist, rendermat);
+			transformedentityspherelist = MathLib.matrixMultiply(transformedentityspherelist, this.rendermat);
 			TreeSet<Sphere> sortedentityspheretree = new TreeSet<Sphere>(new SphereRenderComparator());
 			sortedentityspheretree.addAll(Arrays.asList(transformedentityspherelist));
 			Sphere[] sortedentityspherelist = sortedentityspheretree.toArray(new Sphere[sortedentityspheretree.size()]);
@@ -121,7 +193,7 @@ public class ModelApp extends AppHandlerPanel {
 				Triangle[] copytrianglelist = this.entitylist[sortedentityspherelist[k].ind].trianglelist;
 				for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].ind = i;}
 				Triangle[] transformedtrianglelist = MathLib.translate(copytrianglelist, renderpos);
-				transformedtrianglelist = MathLib.matrixMultiply(transformedtrianglelist, rendermat);
+				transformedtrianglelist = MathLib.matrixMultiply(transformedtrianglelist, this.rendermat);
 				Sphere[] transformedtrianglespherelist = MathLib.triangleCircumSphere(transformedtrianglelist);
 				for (int i=0;i<transformedtrianglespherelist.length;i++) {transformedtrianglespherelist[i].ind = i;}
 				TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereRenderComparator());
@@ -160,7 +232,7 @@ public class ModelApp extends AppHandlerPanel {
 						VolatileImage tritexture = copymaterial.fileimage;
 						if (tritexture==null) {
 							g.fill(trianglepolygon);
-						} else { 
+						} else {
 							g.clip(trianglepolygon);
 							Triangle[] transformedtriangle = {transformedtrianglelist[i]};
 							Polygon[] drawpolygon = {trianglepolygon};
@@ -180,20 +252,16 @@ public class ModelApp extends AppHandlerPanel {
 			this.zbuffer = new double[this.getHeight()][this.getWidth()];
 		}
 		for (int i=0;i<this.zbuffer.length;i++) {Arrays.fill(this.zbuffer[i],Double.MAX_VALUE);}
-		this.vfov = 2.0f*(180.0f/Math.PI)*Math.atan((((double)this.getHeight())/((double)this.getWidth()))*Math.tan((this.hfov/2.0f)*(Math.PI/180.0f))); 
 		g.scale(1.0f, -1.0f);
 		g.translate(0.0f, -this.getHeight());
-		g.setComposite(AlphaComposite.SrcOver);
 		if (this.entitylist!=null) {
 			Sphere[] entityspherelist = new Sphere[this.entitylist.length]; 
 			for (int k=0;k<this.entitylist.length;k++) {
 				entityspherelist[k] = this.entitylist[k].sphereboundaryvolume;
 				entityspherelist[k].ind = k;
 			}
-			Sphere[] transformedentityspherelist = MathLib.translate(entityspherelist, this.campos);
-			transformedentityspherelist = MathLib.matrixMultiply(transformedentityspherelist, rendermat);
-			TreeSet<Sphere> sortedentityspheretree = new TreeSet<Sphere>(new SphereRenderComparator());
-			sortedentityspheretree.addAll(Arrays.asList(transformedentityspherelist));
+			TreeSet<Sphere> sortedentityspheretree = new TreeSet<Sphere>(new SphereDistanceComparator(this.campos));
+			sortedentityspheretree.addAll(Arrays.asList(entityspherelist));
 			Sphere[] sortedentityspherelist = sortedentityspheretree.toArray(new Sphere[sortedentityspheretree.size()]);
 			for (int k=0;k<sortedentityspherelist.length;k++) {
 				Triangle[] copytrianglelist = this.entitylist[sortedentityspherelist[k].ind].trianglelist;
@@ -386,7 +454,7 @@ public class ModelApp extends AppHandlerPanel {
 			this.rollrightkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
 			this.polygonfillmode += 1;
-			if (this.polygonfillmode>2) {
+			if (this.polygonfillmode>3) {
 				this.polygonfillmode = 1;
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
