@@ -118,13 +118,13 @@ public class UtilLib {
 		return k;
 	}
 	
-	public static VolatileImage renderProjectedView(Position campos, Entity[] entitylist, int renderwidth, int renderheight, int hfov, int vfov, Matrix viewrot) {
+	public static VolatileImage renderProjectedView(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot) {
 		return null;
 	}
-	public static VolatileImage renderProjectedViewH(Position campos, Entity[] entitylist, int renderwidth, int renderheight, int hfov, int vfov, Matrix viewrot) {
+	public static VolatileImage renderProjectedViewH(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot) {
 		return null;
 	}
-	public static VolatileImage renderProjectedViewS(Position campos, Entity[] entitylist, int renderwidth, int renderheight, int hfov, int vfov, Matrix viewrot) {
+	public static VolatileImage renderProjectedViewS(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot) {
 		return null;
 	}
 	
