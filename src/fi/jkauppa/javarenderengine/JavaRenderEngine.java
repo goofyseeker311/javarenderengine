@@ -33,6 +33,7 @@ import javax.swing.Timer;
 import javax.swing.UIManager;
 
 import fi.jkauppa.javarenderengine.ModelLib.AxisAlignedBoundingBox;
+import fi.jkauppa.javarenderengine.ModelLib.Coordinate;
 import fi.jkauppa.javarenderengine.ModelLib.Cuboid;
 import fi.jkauppa.javarenderengine.ModelLib.Direction;
 import fi.jkauppa.javarenderengine.ModelLib.Line;
@@ -61,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.7.4");
+		this.setTitle("Java Render Engine v1.7.5");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -171,8 +172,8 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		for (int i=0;i<pang.length;i++) {System.out.println("pang["+i+"]="+pang[i]);}
 		double[] prjstep = MathLib.projectedStep(64, 70.0f);
 		double[] prjangles = MathLib.projectedAngles(64, 70.0f);
-		Direction[] prjdirs = MathLib.projectedDirections(matrot1);
-		Direction[] prjdirs2 = MathLib.projectedDirections(matrot2);
+		Direction[] prjdirs = MathLib.projectedPlaneDirections(matrot1);
+		Direction[] prjdirs2 = MathLib.projectedPlaneDirections(matrot2);
 		Direction[] prjvectors = MathLib.projectedVectors(64, 70.0f, matrot1);
 		Plane[] prjplane = MathLib.projectedPlanes(campos, 64, 70.0f, matrot1);
 		Plane[] prjplane2 = MathLib.projectedPlanes(campos2[0], 64, 70.0f, matrot2);
@@ -227,6 +228,11 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		for (int j=0;j<raabbint2.length;j++) {for (int i=0;i<raabbint2[0].length;i++) {if (raabbint2[j][i]!=null) {System.out.println("raabbint2["+j+"]["+i+"]="+raabbint2[j][i].pos1.x+","+raabbint2[j][i].pos1.y+","+raabbint2[j][i].pos1.z+" "+raabbint2[j][i].pos2.x+","+raabbint2[j][i].pos2.y+","+raabbint2[j][i].pos2.z);} else {System.out.println("raabbint2["+j+"]["+i+"]=no hit.");}}}
 		for (int j=0;j<rcubint.length;j++) {for (int i=0;i<rcubint[0].length;i++) {if (rcubint[j][i]!=null) {System.out.println("rcubint["+j+"]["+i+"]="+rcubint[j][i].pos1.x+","+rcubint[j][i].pos1.y+","+rcubint[j][i].pos1.z+" "+rcubint[j][i].pos2.x+","+rcubint[j][i].pos2.y+","+rcubint[j][i].pos2.z);} else {System.out.println("rcubint["+j+"]["+i+"]=no hit.");}}}
 		for (int j=0;j<rcubint2.length;j++) {for (int i=0;i<rcubint2[0].length;i++) {if (rcubint2[j][i]!=null) {System.out.println("rcubint2["+j+"]["+i+"]="+rcubint2[j][i].pos1.x+","+rcubint2[j][i].pos1.y+","+rcubint2[j][i].pos1.z+" "+rcubint2[j][i].pos2.x+","+rcubint2[j][i].pos2.y+","+rcubint2[j][i].pos2.z);} else {System.out.println("rcubint2["+j+"]["+i+"]=no hit.");}}}
+		Position prjpoint = new Position(0.0f,0.0f,0.0f);
+		Position[] prjpoints = {new Position(5.0f,0.0f,0.0f),new Position(5.0f,0.0f,-5.0f),new Position(0.0f,0.0f,-5.0f)};
+		Matrix prjmat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
+		Coordinate[] prjcoords = MathLib.projectedPoints(prjpoint, prjpoints, 64, 90.0f, 64, 90.0f, prjmat);
+		for (int i=0;i<prjcoords.length;i++) { if(prjcoords[i]!=null){System.out.println("prjcoords[i]="+prjcoords[i].u+" "+prjcoords[i].v);}else{System.out.println("prjcoords[i]=not visible.");}}
 		
 		new JavaRenderEngine();
 	}
