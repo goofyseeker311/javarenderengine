@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.7.5");
+		this.setTitle("Java Render Engine v1.7.6");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -289,7 +289,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	@Override public void actionPerformed(ActionEvent e) {
 		if (this.activeapp!=null) {this.activeapp.timerTick();}
 		Dimension componentsize=this.activeapp.getSize();
-		Rectangle paintregion=new Rectangle(0,0,componentsize.width-1,componentsize.height-1);
+		Rectangle paintregion=new Rectangle(0,0,componentsize.width,componentsize.height);
 		this.activeapp.paintImmediately(paintregion);
 	}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {if (this.activeapp!=null) {this.activeapp.mouseWheelMoved(e);}}
