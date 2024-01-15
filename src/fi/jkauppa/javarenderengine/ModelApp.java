@@ -17,32 +17,32 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.swing.JFileChooser;
 
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandlerPanel;
-import fi.jkauppa.javarenderengine.MathLib.Coordinate;
-import fi.jkauppa.javarenderengine.MathLib.Direction;
-import fi.jkauppa.javarenderengine.MathLib.Line;
-import fi.jkauppa.javarenderengine.MathLib.Matrix;
-import fi.jkauppa.javarenderengine.MathLib.Plane;
-import fi.jkauppa.javarenderengine.MathLib.Position;
-import fi.jkauppa.javarenderengine.MathLib.Rotation;
-import fi.jkauppa.javarenderengine.MathLib.Sphere;
-import fi.jkauppa.javarenderengine.MathLib.Triangle;
-import fi.jkauppa.javarenderengine.MathLib.Sphere.SphereDistanceComparator;
-import fi.jkauppa.javarenderengine.MathLib.Sphere.SphereRenderComparator;
-import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
+import fi.jkauppa.javarenderengine.ModelLib.Coordinate;
+import fi.jkauppa.javarenderengine.ModelLib.Direction;
+import fi.jkauppa.javarenderengine.ModelLib.Entity;
+import fi.jkauppa.javarenderengine.ModelLib.Line;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
+import fi.jkauppa.javarenderengine.ModelLib.Matrix;
+import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
+import fi.jkauppa.javarenderengine.ModelLib.Plane;
+import fi.jkauppa.javarenderengine.ModelLib.Position;
+import fi.jkauppa.javarenderengine.ModelLib.Rotation;
+import fi.jkauppa.javarenderengine.ModelLib.Sphere;
+import fi.jkauppa.javarenderengine.ModelLib.Sphere.SphereDistanceComparator;
+import fi.jkauppa.javarenderengine.ModelLib.Sphere.SphereRenderComparator;
+import fi.jkauppa.javarenderengine.ModelLib.Triangle;
 import fi.jkauppa.javarenderengine.ModelLib.Model;
 
 public class ModelApp extends AppHandlerPanel {
 	private static final long serialVersionUID = 1L;
-	private Model model = null;
-	private TreeMap<Triangle,Material> trianglematerialmap = new TreeMap<Triangle,Material>();
+	private Entity[] entitylist = null;
 	private Position campos = new Position(0,0,0);
 	private Rotation camrot = new Rotation(0.0f, 0.0f, 0.0f);
 	private Matrix cameramat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
@@ -106,56 +106,70 @@ public class ModelApp extends AppHandlerPanel {
 		}
 		g.setComposite(AlphaComposite.SrcOver);
 		Position renderpos = new Position(-campos.x,-campos.y,-campos.z);
-		Triangle[] copytrianglelist = this.trianglematerialmap.keySet().toArray(new Triangle[this.trianglematerialmap.size()]);
-		for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].ind = i;}
-		Triangle[] transformedtrianglelist = MathLib.translate(copytrianglelist, renderpos);
-		transformedtrianglelist = MathLib.matrixMultiply(transformedtrianglelist, rendermat);
-		Sphere[] transformedtrianglespherelist = MathLib.triangleCircumSphere(transformedtrianglelist);
-		for (int i=0;i<transformedtrianglespherelist.length;i++) {transformedtrianglespherelist[i].ind = i;}
-		TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereRenderComparator());
-		sortedtrianglespheretree.addAll(Arrays.asList(transformedtrianglespherelist));
-		Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
-		Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
-		Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
-		double[] triangleviewangles = MathLib.vectorAngle(this.lookdir, trianglenormals);
-		for (int j=0;j<sortedtrianglespherelist.length;j++) {
-			int i = sortedtrianglespherelist[j].ind;
-			double pos1s = -transformedtrianglelist[i].pos1.z*this.drawdepthscale+1;
-			double pos2s = -transformedtrianglelist[i].pos2.z*this.drawdepthscale+1;
-			double pos3s = -transformedtrianglelist[i].pos3.z*this.drawdepthscale+1;
-			if ((pos1s>0)&&(pos2s>0)&&(pos3s>0)) {
-				int pos1x = (int)Math.round(transformedtrianglelist[i].pos1.x/pos1s)+this.origindeltax;
-				int pos1y = (int)Math.round(transformedtrianglelist[i].pos1.y/pos1s)+this.origindeltay;
-				int pos2x = (int)Math.round(transformedtrianglelist[i].pos2.x/pos2s)+this.origindeltax;
-				int pos2y = (int)Math.round(transformedtrianglelist[i].pos2.y/pos2s)+this.origindeltay;
-				int pos3x = (int)Math.round(transformedtrianglelist[i].pos3.x/pos3s)+this.origindeltax;
-				int pos3y = (int)Math.round(transformedtrianglelist[i].pos3.y/pos3s)+this.origindeltay;
-				Polygon trianglepolygon = new Polygon();
-				trianglepolygon.addPoint(pos1x, pos1y);
-				trianglepolygon.addPoint(pos2x, pos2y);
-				trianglepolygon.addPoint(pos3x, pos3y);
-				double triangleviewangle = triangleviewangles[i];
-				if (triangleviewangle>90.0f) {
-					triangleviewangle = 180-triangleviewangle;
-				}
-				float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
-				Material copymaterial = this.trianglematerialmap.get(copytrianglelist[transformedtrianglelist[i].ind]);
-				Color tricolor = copymaterial.facecolor;
-				float alphacolor = copymaterial.transparency;
-				if (tricolor==null) {tricolor = Color.WHITE;}
-				float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
-				g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
-				VolatileImage tritexture = copymaterial.fileimage;
-				if (tritexture==null) {
-					g.fill(trianglepolygon);
-				} else { 
-					g.clip(trianglepolygon);
-					Triangle[] transformedtriangle = {transformedtrianglelist[i]};
-					Polygon[] drawpolygon = {trianglepolygon};
-					VolatileImage[] drawtexture = {tritexture};
-					AffineTransform[] texturetransform = MathLib.textureTransform(drawtexture,transformedtriangle, drawpolygon);
-					g.drawImage(tritexture, texturetransform[0], null);
-					g.setClip(null);
+		if (this.entitylist!=null) {
+			Sphere[] entityspherelist = new Sphere[this.entitylist.length]; 
+			for (int k=0;k<this.entitylist.length;k++) {
+				entityspherelist[k] = this.entitylist[k].sphereboundaryvolume;
+				entityspherelist[k].ind = k;
+			}
+			Sphere[] transformedentityspherelist = MathLib.translate(entityspherelist, renderpos);
+			transformedentityspherelist = MathLib.matrixMultiply(transformedentityspherelist, rendermat);
+			TreeSet<Sphere> sortedentityspheretree = new TreeSet<Sphere>(new SphereRenderComparator());
+			sortedentityspheretree.addAll(Arrays.asList(transformedentityspherelist));
+			Sphere[] sortedentityspherelist = sortedentityspheretree.toArray(new Sphere[sortedentityspheretree.size()]);
+			for (int k=0;k<sortedentityspherelist.length;k++) {
+				Triangle[] copytrianglelist = this.entitylist[sortedentityspherelist[k].ind].trianglelist;
+				for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].ind = i;}
+				Triangle[] transformedtrianglelist = MathLib.translate(copytrianglelist, renderpos);
+				transformedtrianglelist = MathLib.matrixMultiply(transformedtrianglelist, rendermat);
+				Sphere[] transformedtrianglespherelist = MathLib.triangleCircumSphere(transformedtrianglelist);
+				for (int i=0;i<transformedtrianglespherelist.length;i++) {transformedtrianglespherelist[i].ind = i;}
+				TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereRenderComparator());
+				sortedtrianglespheretree.addAll(Arrays.asList(transformedtrianglespherelist));
+				Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
+				Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
+				Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
+				double[] triangleviewangles = MathLib.vectorAngle(this.lookdir, trianglenormals);
+				for (int j=0;j<sortedtrianglespherelist.length;j++) {
+					int i = sortedtrianglespherelist[j].ind;
+					double pos1s = -transformedtrianglelist[i].pos1.z*this.drawdepthscale+1;
+					double pos2s = -transformedtrianglelist[i].pos2.z*this.drawdepthscale+1;
+					double pos3s = -transformedtrianglelist[i].pos3.z*this.drawdepthscale+1;
+					if ((pos1s>0)&&(pos2s>0)&&(pos3s>0)) {
+						int pos1x = (int)Math.round(transformedtrianglelist[i].pos1.x/pos1s)+this.origindeltax;
+						int pos1y = (int)Math.round(transformedtrianglelist[i].pos1.y/pos1s)+this.origindeltay;
+						int pos2x = (int)Math.round(transformedtrianglelist[i].pos2.x/pos2s)+this.origindeltax;
+						int pos2y = (int)Math.round(transformedtrianglelist[i].pos2.y/pos2s)+this.origindeltay;
+						int pos3x = (int)Math.round(transformedtrianglelist[i].pos3.x/pos3s)+this.origindeltax;
+						int pos3y = (int)Math.round(transformedtrianglelist[i].pos3.y/pos3s)+this.origindeltay;
+						Polygon trianglepolygon = new Polygon();
+						trianglepolygon.addPoint(pos1x, pos1y);
+						trianglepolygon.addPoint(pos2x, pos2y);
+						trianglepolygon.addPoint(pos3x, pos3y);
+						double triangleviewangle = triangleviewangles[i];
+						if (triangleviewangle>90.0f) {
+							triangleviewangle = 180-triangleviewangle;
+						}
+						float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
+						Material copymaterial = copytrianglelist[transformedtrianglelist[i].ind].mat;
+						Color tricolor = copymaterial.facecolor;
+						float alphacolor = copymaterial.transparency;
+						if (tricolor==null) {tricolor = Color.WHITE;}
+						float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
+						g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
+						VolatileImage tritexture = copymaterial.fileimage;
+						if (tritexture==null) {
+							g.fill(trianglepolygon);
+						} else { 
+							g.clip(trianglepolygon);
+							Triangle[] transformedtriangle = {transformedtrianglelist[i]};
+							Polygon[] drawpolygon = {trianglepolygon};
+							VolatileImage[] drawtexture = {tritexture};
+							AffineTransform[] texturetransform = MathLib.textureTransform(drawtexture,transformedtriangle, drawpolygon);
+							g.drawImage(tritexture, texturetransform[0], null);
+							g.setClip(null);
+						}
+					}
 				}
 			}
 		}
@@ -170,83 +184,97 @@ public class ModelApp extends AppHandlerPanel {
 		g.scale(1.0f, -1.0f);
 		g.translate(0.0f, -this.getHeight());
 		g.setComposite(AlphaComposite.SrcOver);
-		Triangle[] copytrianglelist = this.trianglematerialmap.keySet().toArray(new Triangle[this.trianglematerialmap.size()]);
-		if (copytrianglelist.length>0) {
-			Plane[] verticalplanes = MathLib.projectedPlanes(this.campos, this.getWidth(), hfov, this.cameramat);
-			double[] verticalangles = MathLib.projectedAngles(this.getHeight(), vfov);
-			Arrays.sort(verticalangles);
-			Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(verticalplanes, copytrianglelist);		
-			Plane[] triangleplanes = MathLib.planeFromPoints(copytrianglelist);
-			Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
-			double[] triangleviewangles = MathLib.vectorAngle(this.camdirs[0], trianglenormals);
-			Direction[] camfwddir = {this.camdirs[0]};
-			Direction[] camupdir = {this.camdirs[2]};
-			Plane[] camfwdplane = MathLib.planeFromNormalAtPoint(this.campos, camfwddir);
-			Plane[] camupplane = MathLib.planeFromNormalAtPoint(this.campos, camupdir);
-			Color[] trianglecolor = new Color[copytrianglelist.length];
-			for (int i=0;i<copytrianglelist.length;i++) {
-				double triangleviewangle = triangleviewangles[i];
-				if (triangleviewangle>90.0f) {triangleviewangle = 180.0f-triangleviewangle;}
-				float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
-				Material copymaterial = this.trianglematerialmap.get(copytrianglelist[i]);
-				Color tricolor = copymaterial.facecolor;
-				float alphacolor = copymaterial.transparency;
-				if (tricolor==null) {tricolor = Color.WHITE;}
-				float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
-				trianglecolor[i] = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
+		if (this.entitylist!=null) {
+			Sphere[] entityspherelist = new Sphere[this.entitylist.length]; 
+			for (int k=0;k<this.entitylist.length;k++) {
+				entityspherelist[k] = this.entitylist[k].sphereboundaryvolume;
+				entityspherelist[k].ind = k;
 			}
-			Sphere[] copytrianglepherelist = MathLib.triangleCircumSphere(copytrianglelist);
-			for (int i=0;i<copytrianglepherelist.length;i++) {copytrianglepherelist[i].ind = i;}
-			TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereDistanceComparator(this.campos));
-			sortedtrianglespheretree.addAll(Arrays.asList(copytrianglepherelist));
-			Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
-			for (int j=0;j<vertplanetriangleint.length;j++) {
-				for (int i=0;i<sortedtrianglespherelist.length;i++) {
-					int it = sortedtrianglespherelist[i].ind;
-					Line triangleint = vertplanetriangleint[j][it];
-					if (triangleint!=null) {
-						g.setColor(trianglecolor[it]);
-						Position[] triangleintpoints = {triangleint.pos1, triangleint.pos2};
-						double[][] trianglefwdintpointsdist = MathLib.pointPlaneDistance(triangleintpoints, camfwdplane);
-						if ((trianglefwdintpointsdist[0][0]>0)||(trianglefwdintpointsdist[1][0]>0)) {
-							Line drawline = triangleint;
-							Line[] triangleintarray = {triangleint};
-							Position[][] lineviewint = MathLib.planeLineIntersection(camfwdplane, triangleintarray);
-							if (lineviewint[0][0]!=null) {
-								if (trianglefwdintpointsdist[0][0]>0) {
-									drawline = new Line(triangleint.pos1, lineviewint[0][0]);
-								} else if (trianglefwdintpointsdist[1][0]>0) {
-									drawline = new Line(triangleint.pos2, lineviewint[0][0]);
-								}
-							}
-							Position[] drawlinepoints = {drawline.pos1, drawline.pos2};
-							double[][] drawlinefwdintpointsdist = MathLib.pointPlaneDistance(drawlinepoints, camfwdplane);
-							double[][] drawlineupintpointsdist = MathLib.pointPlaneDistance(drawlinepoints, camupplane);
-							double drawangle1 = (180.0f/Math.PI)*Math.atan(drawlineupintpointsdist[0][0]/Math.abs(drawlinefwdintpointsdist[0][0]));
-							double drawangle2 = (180.0f/Math.PI)*Math.atan(drawlineupintpointsdist[1][0]/Math.abs(drawlinefwdintpointsdist[1][0]));
-							double[] angles = {drawangle1, drawangle2};
-							int[] anglesind = UtilLib.indexSort(angles);
-							double[] anglessort = UtilLib.indexValues(angles, anglesind);
-							Position[] sortlinepoints = {drawlinepoints[anglesind[0]], drawlinepoints[anglesind[1]]}; 
-							if (!Double.isFinite(anglessort[0])) {anglessort[0] = -180.0f;}
-							if (!Double.isFinite(anglessort[1])) {anglessort[1] = 180.0f;}
-							Direction[] drawvector = MathLib.vectorFromPoints(this.campos, sortlinepoints);
-							double[] drawdistance = MathLib.vectorLength(drawvector);
-							double drawdistancedelta = drawdistance[1]-drawdistance[0];
-							int startind = Arrays.binarySearch(verticalangles, anglessort[0]);
-							int endind = Arrays.binarySearch(verticalangles, anglessort[1]);
-							if ((startind!=-(verticalangles.length+1))&&(endind!=-1)) {
-								if (startind<0) {startind = -startind-1; }
-								if (endind<0) {endind = -endind-1;}
-								if (startind>=verticalangles.length) {startind = verticalangles.length-1; }
-								if (endind>=verticalangles.length) {endind = verticalangles.length-1; }
-								int indcount = endind - startind + 1;
-								double drawstep = drawdistancedelta/((double)indcount);
-								for (int n=startind;n<=endind;n++) {
-									double stepdistance = drawdistance[0] + drawstep*(n-startind);  
-									if (stepdistance<this.zbuffer[n][j]) {
-										this.zbuffer[n][j] = stepdistance;
-										g.drawLine(j, n, j, n);
+			Sphere[] transformedentityspherelist = MathLib.translate(entityspherelist, this.campos);
+			transformedentityspherelist = MathLib.matrixMultiply(transformedentityspherelist, rendermat);
+			TreeSet<Sphere> sortedentityspheretree = new TreeSet<Sphere>(new SphereRenderComparator());
+			sortedentityspheretree.addAll(Arrays.asList(transformedentityspherelist));
+			Sphere[] sortedentityspherelist = sortedentityspheretree.toArray(new Sphere[sortedentityspheretree.size()]);
+			for (int k=0;k<sortedentityspherelist.length;k++) {
+				Triangle[] copytrianglelist = this.entitylist[sortedentityspherelist[k].ind].trianglelist;
+				if (copytrianglelist.length>0) {
+					Plane[] verticalplanes = MathLib.projectedPlanes(this.campos, this.getWidth(), hfov, this.cameramat);
+					double[] verticalangles = MathLib.projectedAngles(this.getHeight(), vfov);
+					Arrays.sort(verticalangles);
+					Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(verticalplanes, copytrianglelist);		
+					Plane[] triangleplanes = MathLib.planeFromPoints(copytrianglelist);
+					Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
+					double[] triangleviewangles = MathLib.vectorAngle(this.camdirs[0], trianglenormals);
+					Direction[] camfwddir = {this.camdirs[0]};
+					Direction[] camupdir = {this.camdirs[2]};
+					Plane[] camfwdplane = MathLib.planeFromNormalAtPoint(this.campos, camfwddir);
+					Plane[] camupplane = MathLib.planeFromNormalAtPoint(this.campos, camupdir);
+					Color[] trianglecolor = new Color[copytrianglelist.length];
+					for (int i=0;i<copytrianglelist.length;i++) {
+						double triangleviewangle = triangleviewangles[i];
+						if (triangleviewangle>90.0f) {triangleviewangle = 180.0f-triangleviewangle;}
+						float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
+						Material copymaterial = copytrianglelist[i].mat;
+						Color tricolor = copymaterial.facecolor;
+						float alphacolor = copymaterial.transparency;
+						if (tricolor==null) {tricolor = Color.WHITE;}
+						float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
+						trianglecolor[i] = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
+					}
+					Sphere[] copytrianglepherelist = MathLib.triangleCircumSphere(copytrianglelist);
+					for (int i=0;i<copytrianglepherelist.length;i++) {copytrianglepherelist[i].ind = i;}
+					TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereDistanceComparator(this.campos));
+					sortedtrianglespheretree.addAll(Arrays.asList(copytrianglepherelist));
+					Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
+					for (int j=0;j<vertplanetriangleint.length;j++) {
+						for (int i=0;i<sortedtrianglespherelist.length;i++) {
+							int it = sortedtrianglespherelist[i].ind;
+							Line triangleint = vertplanetriangleint[j][it];
+							if (triangleint!=null) {
+								g.setColor(trianglecolor[it]);
+								Position[] triangleintpoints = {triangleint.pos1, triangleint.pos2};
+								double[][] trianglefwdintpointsdist = MathLib.pointPlaneDistance(triangleintpoints, camfwdplane);
+								if ((trianglefwdintpointsdist[0][0]>0)||(trianglefwdintpointsdist[1][0]>0)) {
+									Line drawline = triangleint;
+									Line[] triangleintarray = {triangleint};
+									Position[][] lineviewint = MathLib.planeLineIntersection(camfwdplane, triangleintarray);
+									if (lineviewint[0][0]!=null) {
+										if (trianglefwdintpointsdist[0][0]>0) {
+											drawline = new Line(triangleint.pos1, lineviewint[0][0]);
+										} else if (trianglefwdintpointsdist[1][0]>0) {
+											drawline = new Line(triangleint.pos2, lineviewint[0][0]);
+										}
+									}
+									Position[] drawlinepoints = {drawline.pos1, drawline.pos2};
+									double[][] drawlinefwdintpointsdist = MathLib.pointPlaneDistance(drawlinepoints, camfwdplane);
+									double[][] drawlineupintpointsdist = MathLib.pointPlaneDistance(drawlinepoints, camupplane);
+									double drawangle1 = (180.0f/Math.PI)*Math.atan(drawlineupintpointsdist[0][0]/Math.abs(drawlinefwdintpointsdist[0][0]));
+									double drawangle2 = (180.0f/Math.PI)*Math.atan(drawlineupintpointsdist[1][0]/Math.abs(drawlinefwdintpointsdist[1][0]));
+									double[] angles = {drawangle1, drawangle2};
+									int[] anglesind = UtilLib.indexSort(angles);
+									double[] anglessort = UtilLib.indexValues(angles, anglesind);
+									Position[] sortlinepoints = {drawlinepoints[anglesind[0]], drawlinepoints[anglesind[1]]}; 
+									if (!Double.isFinite(anglessort[0])) {anglessort[0] = -180.0f;}
+									if (!Double.isFinite(anglessort[1])) {anglessort[1] = 180.0f;}
+									Direction[] drawvector = MathLib.vectorFromPoints(this.campos, sortlinepoints);
+									double[] drawdistance = MathLib.vectorLength(drawvector);
+									double drawdistancedelta = drawdistance[1]-drawdistance[0];
+									int startind = Arrays.binarySearch(verticalangles, anglessort[0]);
+									int endind = Arrays.binarySearch(verticalangles, anglessort[1]);
+									if ((startind!=-(verticalangles.length+1))&&(endind!=-1)) {
+										if (startind<0) {startind = -startind-1; }
+										if (endind<0) {endind = -endind-1;}
+										if (startind>=verticalangles.length) {startind = verticalangles.length-1; }
+										if (endind>=verticalangles.length) {endind = verticalangles.length-1; }
+										int indcount = endind - startind + 1;
+										double drawstep = drawdistancedelta/((double)indcount);
+										for (int n=startind;n<=endind;n++) {
+											double stepdistance = drawdistance[0] + drawstep*(n-startind);  
+											if (stepdistance<this.zbuffer[n][j]) {
+												this.zbuffer[n][j] = stepdistance;
+												g.drawLine(j, n, j, n);
+											}
+										}
 									}
 								}
 							}
@@ -336,8 +364,7 @@ public class ModelApp extends AppHandlerPanel {
 	
 	@Override public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
-			this.model = null;
-			this.trianglematerialmap.clear();
+			this.entitylist = null;
 			this.campos = new Position(0,0,0);
 			this.camrot = new Rotation(0,0,0);
 			updateCameraDirections();
@@ -367,38 +394,52 @@ public class ModelApp extends AppHandlerPanel {
 			this.filechooser.setApproveButtonText("Load");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File loadfile = this.filechooser.getSelectedFile();
-				this.model = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
-				for (int j=0;j<model.objects.length;j++) {
-					for (int i=0;i<model.objects[j].faceindex.length;i++) {
-						Material foundmat = null;
-						for (int n=0;(n<this.model.materials.length)&&(foundmat==null);n++) {
-							if (model.objects[j].faceindex[i].usemtl.equals(this.model.materials[n].materialname)) {
-								foundmat = this.model.materials[n];
+				Model loadmodel = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
+				ArrayList<Entity> newentitylist = new ArrayList<Entity>();
+				for (int j=0;j<loadmodel.objects.length;j++) {
+					Entity newentity = new Entity();
+					ArrayList<Triangle> newtrianglelistarray = new ArrayList<Triangle>();
+					for (int i=0;i<loadmodel.objects[j].faceindex.length;i++) {
+						if (loadmodel.objects[j].faceindex[i].facevertexindex.length==3) {
+							Material foundmat = null;
+							for (int n=0;(n<loadmodel.materials.length)&&(foundmat==null);n++) {
+								if (loadmodel.objects[j].faceindex[i].usemtl.equals(loadmodel.materials[n].materialname)) {
+									foundmat = loadmodel.materials[n];
+								}
+							}
+							if (foundmat==null) {
+								foundmat = new Material();
+								foundmat.facecolor = Color.WHITE;
+							}
+							Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
+							Position pos2 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
+							Position pos3 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[2].vertexindex-1];
+							Direction norm = loadmodel.facenormals[loadmodel.objects[j].faceindex[i].facevertexindex[0].normalindex-1];
+							Coordinate tex1 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[0].textureindex-1];
+							Coordinate tex2 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[1].textureindex-1];
+							Coordinate tex3 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[2].textureindex-1];
+							Triangle tri = new Triangle(new Position(pos1.x,pos1.y,pos1.z),new Position(pos2.x,pos2.y,pos2.z),new Position(pos3.x,pos3.y,pos3.z));
+							tri.norm = norm;
+							tri.pos1.tex = tex1;
+							tri.pos2.tex = tex2;
+							tri.pos3.tex = tex3;
+							Triangle[] stri = {tri};
+							stri = MathLib.subDivideTriangle(stri);
+							for (int n=0;n<stri.length;n++ ) {
+								stri[n].mat = foundmat;
+								newtrianglelistarray.add(stri[n]);
 							}
 						}
-						if (foundmat==null) {
-							foundmat = new Material();
-							foundmat.facecolor = Color.WHITE;
-						}
-						Position pos1 = model.vertexlist[model.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
-						Position pos2 = model.vertexlist[model.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
-						Position pos3 = model.vertexlist[model.objects[j].faceindex[i].facevertexindex[2].vertexindex-1];
-						Direction norm = model.facenormals[model.objects[j].faceindex[i].facevertexindex[0].normalindex-1];
-						Coordinate tex1 = model.texturecoords[model.objects[j].faceindex[i].facevertexindex[0].textureindex-1];
-						Coordinate tex2 = model.texturecoords[model.objects[j].faceindex[i].facevertexindex[1].textureindex-1];
-						Coordinate tex3 = model.texturecoords[model.objects[j].faceindex[i].facevertexindex[2].textureindex-1];
-						Triangle tri = new Triangle(new Position(pos1.x,pos1.y,pos1.z),new Position(pos2.x,pos2.y,pos2.z),new Position(pos3.x,pos3.y,pos3.z));
-						tri.norm = norm;
-						tri.pos1.tex = tex1;
-						tri.pos2.tex = tex2;
-						tri.pos3.tex = tex3;
-						Triangle[] stri = {tri};
-						stri = MathLib.subDivideTriangle(stri);
-						for (int n=0;n<stri.length;n++ ) {
-							this.trianglematerialmap.put(stri[n], foundmat);
-						}
+					}
+					newentity.trianglelist = newtrianglelistarray.toArray(new Triangle[newtrianglelistarray.size()]);
+					if (newentity.trianglelist.length>0) {
+						newentity.vertexlist = MathLib.generateVertexList(newentity.trianglelist);
+						newentity.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newentity.vertexlist);
+						newentity.sphereboundaryvolume = MathLib.pointCloudCircumSphere(newentity.vertexlist);
+						newentitylist.add(newentity);
 					}
 				}
+				this.entitylist = newentitylist.toArray(new Entity[newentitylist.size()]);
 			}
 		}
 	}

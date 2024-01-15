@@ -6,364 +6,25 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.VolatileImage;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.TreeSet;
 
-import fi.jkauppa.javarenderengine.ModelLib.Material;
+import fi.jkauppa.javarenderengine.ModelLib.AxisAlignedBoundingBox;
+import fi.jkauppa.javarenderengine.ModelLib.Coordinate;
+import fi.jkauppa.javarenderengine.ModelLib.Cuboid;
+import fi.jkauppa.javarenderengine.ModelLib.Direction;
+import fi.jkauppa.javarenderengine.ModelLib.Entity;
+import fi.jkauppa.javarenderengine.ModelLib.Line;
+import fi.jkauppa.javarenderengine.ModelLib.Matrix;
+import fi.jkauppa.javarenderengine.ModelLib.Plane;
+import fi.jkauppa.javarenderengine.ModelLib.Position;
+import fi.jkauppa.javarenderengine.ModelLib.Quad;
+import fi.jkauppa.javarenderengine.ModelLib.Sphere;
+import fi.jkauppa.javarenderengine.ModelLib.Tetrahedron;
+import fi.jkauppa.javarenderengine.ModelLib.Triangle;
 
 public class MathLib {
-	public static class Position implements Comparable<Position> {public double x,y,z; public Coordinate tex; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
-		@Override public int compareTo(Position o){
-			int k = -1;
-			if (this.z>o.z) {
-				k = 1;
-			} else if (this.z==o.z) {
-				if (this.y>o.y) {
-					k = 1;
-				} else if (this.y==o.y) {
-					if (this.x>o.x) {
-						k = 1;
-					} else if (this.x==o.x) {
-						k = 0;
-					}
-				}
-			}
-			return k;
-		}
-		@Override public boolean equals(Object o) {
-			boolean k = false;
-			if (o.getClass().equals(this.getClass())) {
-				Position os = (Position)o;
-				if ((this.x==os.x)&&(this.y==os.y)&&(this.z==os.z)) {
-					k = true;
-				}
-			}
-			return k;
-		}
-		public Position copy(){Position k=new Position(this.x,this.y,this.z); k.tex=this.tex; return k;}
-	}
-	public static class Direction implements Comparable<Direction> {public double dx,dy,dz; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;}
-		@Override public int compareTo(Direction o){
-			int k = -1;
-			if (this.dz>o.dz) {
-				k = 1;
-			} else if (this.dz==o.dz) {
-				if (this.dy>o.dy) {
-					k = 1;
-				} else if (this.dy==o.dy) {
-					if (this.dx>o.dx) {
-						k = 1;
-					} else if (this.dx==o.dx) {
-						k = 0;
-					}
-				}
-			}
-			return k;
-		}
-		@Override public boolean equals(Object o) {
-			boolean k = false;
-			if (o.getClass().equals(this.getClass())) {
-				Direction os = (Direction)o;
-				if ((this.dx==os.dx)&&(this.dy==os.dy)&&(this.dz==os.dz)) {
-					k = true;
-				}
-			}
-			return k;
-		}
-		public Direction copy(){return new Direction(this.dx,this.dy,this.dz);}
-	}
-	public static class Coordinate implements Comparable<Coordinate> {public double u,v; public Coordinate(double ui,double vi){this.u=ui;this.v=vi;}
-	@Override public int compareTo(Coordinate o){
-		int k = -1;
-		if (this.u>o.u) {
-			k = 1;
-		} else if (this.u==o.u) {
-			if (this.v>o.v) {
-				k = 1;
-			} else if (this.v==o.v) {
-				k = 0;
-			}
-		}
-		return k;
-	}
-	@Override public boolean equals(Object o) {
-		boolean k = false;
-		if (o.getClass().equals(this.getClass())) {
-			Coordinate os = (Coordinate)o;
-			if ((this.u==os.u)&&(this.v==os.v)) {
-				k = true;
-			}
-		}
-		return k;
-	}
-		public Coordinate copy(){return new Coordinate(this.u,this.v);}
-	}
-	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}}
-	public static class Sphere implements Comparable<Sphere> {public double x,y,z,r; public int ind=-1; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}
-		@Override public int compareTo(Sphere o) {
-			int k = -1;
-			if (this.z>o.z) {
-				k = 1;
-			} else if (this.z==o.z) {
-				if (this.y>o.y) {
-					k = 1;
-				} else if (this.y==o.y) {
-					if (this.x>o.x) {
-						k = 1;
-					} else if (this.x==o.x) {
-						if (this.r>o.r) {
-							k = 1;
-						} else if (this.r==o.r) {
-							k = 0;
-						}
-					}
-				}
-			}
-			return k;
-		}
-		@Override public boolean equals(Object o) {
-			boolean k = false;
-			if (o.getClass().equals(this.getClass())) {
-				Sphere os = (Sphere)o;
-				if ((this.x==os.x)&&(this.y==os.y)&&(this.z==os.z)&&(this.r==os.r)) {
-					k = true;
-				}
-			}
-			return k;
-		}
-		public static class SphereRenderComparator implements Comparator<Sphere> {
-			@Override public int compare(Sphere o1, Sphere o2) {
-				int k = -1;
-				if (o1.z>o2.z) {
-					k = 1;
-				} else if (o1.z==o2.z) {
-					double ydiff = o1.y-o2.y;
-					double xdiff = o1.x-o2.x;
-					if (Math.abs(ydiff)>Math.abs(xdiff)) {
-						if (Math.abs(o1.y)>Math.abs(o2.y)) {
-							k = 1;
-						} else if (o1.y==o2.y) {
-							if (Math.abs(o1.x)>Math.abs(o2.x)) {
-								k = 1;
-							} else if (o1.x==o2.x) {
-								k = 0;
-							}
-						}
-					} else {
-						if (Math.abs(o1.x)>Math.abs(o2.x)) {
-							k = 1;
-						} else if (o1.x==o2.x) {
-							if (Math.abs(o1.y)>Math.abs(o2.y)) {
-								k = 1;
-							} else if (o1.y==o2.y) {
-								k = 0;
-							}
-						}
-					}
-				}
-				return k;
-			}
-			
-		}
-		public static class SphereDistanceComparator implements Comparator<Sphere> {
-			public Position origin;
-			public SphereDistanceComparator(Position origini) {this.origin = origini;}
-			@Override public int compare(Sphere o1, Sphere o2) {
-				int k = 1;
-				Sphere[] spheres = {o1,o2};
-				Direction[] spheredir = vectorFromPoints(this.origin, spheres);
-				double[] spheredist = vectorLength(spheredir);				
-				if (spheredist[0]>spheredist[1]) {
-					k = -1;
-				} else if (spheredist[0]==spheredist[1]) {
-					k = 0;
-				}
-				return k;
-			}
-			
-		}
-	}
-	public static class AxisAlignedBoundingBox {public double x1,y1,z1,x2,y2,z2; public AxisAlignedBoundingBox(double x1i,double y1i,double z1i,double x2i,double y2i,double z2i){this.x1=x1i;this.y1=y1i;this.z1=z1i;this.x2=x2i;this.y2=y2i;this.z2=z2i;}}
-	public static class Cuboid {public Position poslft,poslbt,posrft,posrbt,poslfb,poslbb,posrfb,posrbb; public Cuboid(Position poslfti,Position poslbti,Position posrfti,Position posrbti,Position poslfbi,Position poslbbi,Position posrfbi,Position posrbbi){this.poslft=poslfti;this.poslbt=poslbti;this.posrft=posrfti;this.posrbt=posrbti;this.poslfb=poslfbi;this.poslbb=poslbbi;this.posrfb=posrfbi;this.posrbb=posrbbi;}}
-	public static class Quad {public Position pos1,pos2,pos3,pos4; public Quad(Position pos1i,Position pos2i,Position pos3i,Position pos4i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;this.pos4=pos4i;}}
-	public static class Arc {public Position origin; public double r,ang1,ang2; public Arc(Position origini, double ri, double ang1i, double ang2i){this.origin=origini;this.r=ri;this.ang1=ang1i;this.ang2=ang2i;}}
-	public static class Ray {public Position pos; public Direction dir; public Ray(Position posi, Direction diri){this.pos=posi;this.dir=diri;}}
-	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}}
-	public static class Line implements Comparable<Line> {public Position pos1,pos2; public int hitind=-1; public Line(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}
-		@Override public int compareTo(Line o){
-			int k=-1;
-			Line ts=this.sort();
-			Line os=o.sort();
-			if (ts.pos1.z>os.pos1.z) {
-				k=1;
-			}else if (ts.pos1.z==os.pos1.z) {
-				if(ts.pos1.y>os.pos1.y){
-					k=1;
-				}else if (ts.pos1.y==os.pos1.y) {
-					if(ts.pos1.x>os.pos1.x) {
-						k=1;
-					} else if (ts.pos1.x==os.pos1.x) {
-						if(ts.pos2.z>os.pos2.z) {
-							k=1;
-						} else if (ts.pos2.z==os.pos2.z) {
-							if(ts.pos2.y>os.pos2.y) {
-								k=1;
-							} else if (ts.pos2.y==os.pos2.y) {
-								if (ts.pos2.x>os.pos2.x) {
-									k=1;
-								} else if (ts.pos2.x==os.pos2.x) {
-									k=0;
-								}}}}}}
-			return k;
-		}
-		@Override public boolean equals(Object o) {
-			boolean k = false;
-			if (o.getClass().equals(this.getClass())) {
-				Line os = ((Line)o).sort();
-				Line ts=this.sort();
-				if ((ts.pos1.x==os.pos1.x)&&(this.pos1.y==os.pos1.y)&&(this.pos1.z==os.pos1.z)&&(ts.pos2.x==os.pos2.x)&&(this.pos2.y==os.pos2.y)&&(this.pos2.z==os.pos2.z)) {
-					k = true;
-				}
-			}
-			return k;
-		}
-		public Line copy(){Line k = new Line(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z)); k.hitind=this.hitind; return k;}
-		public Line swap(){return new Line(this.pos2,this.pos1);}
-		public Line sort(){Line k=this;boolean keeporder=true;if(this.pos1.x>this.pos2.x){keeporder=false;}else if(this.pos1.x==this.pos2.x){if(this.pos1.y>this.pos2.y){keeporder=false;}else if (this.pos1.y==this.pos2.y){if(this.pos1.z>this.pos2.z){keeporder=false;}}}if(!keeporder){k=this.swap();}return k;}
-	}
-	public static class Tetrahedron implements Comparable<Tetrahedron> {public Position pos1,pos2,pos3,pos4; public Tetrahedron(Position pos1i,Position pos2i, Position pos3i,Position pos4i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;this.pos4=pos4i;}
-		@Override public int compareTo(Tetrahedron o) {
-			int k = -1;
-			Position[] tposarray = {this.pos1,this.pos2,this.pos3,this.pos4};
-			Position[] oposarray = {o.pos1,o.pos2,o.pos3,o.pos4};
-			Arrays.sort(tposarray);
-			Arrays.sort(oposarray);
-			if (tposarray[0].z>oposarray[0].z) {
-				k = 1;
-			} else if (tposarray[0].z==oposarray[0].z) {
-				if (tposarray[1].z>oposarray[1].z) {
-					k = 1;
-				} else if (tposarray[1].z==oposarray[1].z) {
-					if (tposarray[2].z>oposarray[2].z) {
-						k = 1;
-					} else if (tposarray[2].z==oposarray[2].z) {
-						if (tposarray[3].z>oposarray[3].z) {
-							k = 1;
-						} else if (tposarray[3].z==oposarray[3].z) {
-							if (tposarray[0].y>oposarray[0].y) {
-								k = 1;
-							} else if (tposarray[0].y==oposarray[0].y) {
-								if (tposarray[1].y>oposarray[1].y) {
-									k = 1;
-								} else if (tposarray[1].y==oposarray[1].y) {
-									if (tposarray[2].y>oposarray[2].y) {
-										k = 1;
-									} else if (tposarray[2].y==oposarray[2].y) {
-										if (tposarray[3].y>oposarray[3].y) {
-											k = 1;
-										} else if (tposarray[3].y==oposarray[3].y) {
-											if (tposarray[0].x>oposarray[0].x) {
-												k = 1;
-											} else if (tposarray[0].x==oposarray[0].x) {
-												if (tposarray[1].x>oposarray[1].x) {
-													k = 1;
-												} else if (tposarray[1].x==oposarray[1].x) {
-													if (tposarray[2].x>oposarray[2].x) {
-														k = 1;
-													} else if (tposarray[2].x==oposarray[2].x) {
-														if (tposarray[3].x>oposarray[3].x) {
-															k = 1;
-														} else if (tposarray[3].x==oposarray[3].x) {
-															k = 0;
-														}}}}}}}}}}}}
-			return k;
-		}
-		@Override public boolean equals(Object o) {
-			boolean k = false;
-			if (o.getClass().equals(this.getClass())) {
-				Tetrahedron co = (Tetrahedron)o;
-				Position[] tposarray = {this.pos1,this.pos2,this.pos3,this.pos4};
-				Position[] oposarray = {co.pos1,co.pos2,co.pos3,this.pos4};
-				Arrays.sort(tposarray);
-				Arrays.sort(oposarray);
-				if ((tposarray[0].compareTo(oposarray[0])==0)&&(tposarray[1].compareTo(oposarray[1])==0)&&(tposarray[2].compareTo(oposarray[2])==0)&&(tposarray[3].compareTo(oposarray[3])==0)) {
-					k = true;
-				}
-			}
-			return k;
-		}
-	}
-	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public Direction norm; public Material mat; public int ind=-1; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;}
-		@Override public int compareTo(Triangle o) {
-			int k = -1;
-			Position[] tposarray = {this.pos1,this.pos2,this.pos3};
-			Position[] oposarray = {o.pos1,o.pos2,o.pos3};
-			Arrays.sort(tposarray);
-			Arrays.sort(oposarray);
-			if (tposarray[0].z>oposarray[0].z) {
-				k = 1;
-			} else if (tposarray[0].z==oposarray[0].z) {
-				if (tposarray[1].z>oposarray[1].z) {
-					k = 1;
-				} else if (tposarray[1].z==oposarray[1].z) {
-					if (tposarray[2].z>oposarray[2].z) {
-						k = 1;
-					} else if (tposarray[2].z==oposarray[2].z) {
-						if (tposarray[0].y>oposarray[0].y) {
-							k = 1;
-						} else if (tposarray[0].y==oposarray[0].y) {
-							if (tposarray[1].y>oposarray[1].y) {
-								k = 1;
-							} else if (tposarray[1].y==oposarray[1].y) {
-								if (tposarray[2].y>oposarray[2].y) {
-									k = 1;
-								} else if (tposarray[2].y==oposarray[2].y) {
-									if (tposarray[0].x>oposarray[0].x) {
-										k = 1;
-									} else if (tposarray[0].x==oposarray[0].x) {
-										if (tposarray[1].x>oposarray[1].x) {
-											k = 1;
-										} else if (tposarray[1].x==oposarray[1].x) {
-											if (tposarray[2].x>oposarray[2].x) {
-												k = 1;
-											} else if (tposarray[2].x==oposarray[2].x) {
-												k = 0;
-											}}}}}}}}}
-			return k;
-		}
-		@Override public boolean equals(Object o) {
-			boolean k = false;
-			if (o.getClass().equals(this.getClass())) {
-				Triangle co = (Triangle)o;
-				Position[] tposarray = {this.pos1,this.pos2,this.pos3};
-				Position[] oposarray = {co.pos1,co.pos2,co.pos3};
-				Arrays.sort(tposarray);
-				Arrays.sort(oposarray);
-				if ((tposarray[0].compareTo(oposarray[0])==0)&&(tposarray[1].compareTo(oposarray[1])==0)&&(tposarray[2].compareTo(oposarray[2])==0)) {
-					k = true;
-				}
-			}
-			return k;
-		}
-		public Triangle copy(){Triangle k=new Triangle(this.pos1.copy(),this.pos2.copy(),this.pos3.copy());k.norm=this.norm;k.mat=this.mat;k.ind=this.ind;return k;}
-	}
-	public static class Entity implements Comparable<Entity> {
-		public Entity[] childlist = null;
-		public Triangle[] trianglelist = null;
-		public Line[] linelist = null;
-		public Tetrahedron[] tetrahedronlist = null;
-		public Triangle[] surfacelist = null;
-		public Position[] vertexlist = null;
-		public Sphere sphereboundaryvolume = null;
-		public AxisAlignedBoundingBox aabbboundaryvolume = null;
-		public Matrix transform = null;
-		public Position translation = null;
-		@Override public int compareTo(Entity o) {return this.sphereboundaryvolume.compareTo(o.sphereboundaryvolume);}
-	}
-	public static class Matrix {public double a11,a12,a13,a21,a22,a23,a31,a32,a33;public Matrix(double a11i,double a12i,double a13i,double a21i,double a22i,double a23i,double a31i,double a32i,double a33i){this.a11=a11i;this.a12=a12i;this.a13=a13i;this.a21=a21i;this.a22=a22i;this.a23=a23i;this.a31=a31i;this.a32=a32i;this.a33=a33i;}}
-	
 	public static double[] vectorDot(Direction[] vdir, Position vpoint){double[] k=null; if((vdir!=null)&&(vpoint!=null)){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vpoint.x+vdir[n].dy*vpoint.y+vdir[n].dz*vpoint.z;}}return k;}
 	public static double[] vectorDot(Direction[] vdir, Position[] vpoint){double[] k=null; if((vdir!=null)&&(vpoint!=null)&&(vdir.length==vpoint.length)){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vpoint[n].x+vdir[n].dy*vpoint[n].y+vdir[n].dz*vpoint[n].z;}}return k;}
 	public static double[] vectorDot(Direction vdir1, Direction[] vdir2){double[] k=null; if((vdir1!=null)&&(vdir2!=null)){k=new double[vdir2.length];for(int n=0;n<vdir2.length;n++){k[n] = vdir1.dx*vdir2[n].dx+vdir1.dy*vdir2[n].dy+vdir1.dz*vdir2[n].dz;}}return k;}
@@ -1070,6 +731,19 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static Sphere[] matrixMultiply(Sphere[] vsph, Matrix vmat) {
+		Sphere[] k = null;
+		if ((vsph!=null)&&(vmat!=null)) {
+			k = new Sphere[vsph.length];
+			for (int n=0;n<vsph.length;n++) {
+				k[n] = vsph[n].copy();
+				k[n].x = vsph[n].x*vmat.a11+vsph[n].y*vmat.a12+vsph[n].z*vmat.a13;
+				k[n].y = vsph[n].x*vmat.a21+vsph[n].y*vmat.a22+vsph[n].z*vmat.a23;
+				k[n].z = vsph[n].x*vmat.a31+vsph[n].y*vmat.a32+vsph[n].z*vmat.a33;
+			}
+		}
+		return k;
+	}
 	public static Triangle[] matrixMultiply(Triangle[] vtri, Matrix vmat) {
 		Triangle[] k = null;
 		if ((vtri!=null)&&(vmat!=null)) {
@@ -1089,15 +763,37 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static Quad[] matrixMultiply(Quad[] vquad, Matrix vmat) {
+		Quad[] k = null;
+		if ((vquad!=null)&&(vmat!=null)) {
+			k = new Quad[vquad.length];
+			for (int n=0;n<vquad.length;n++) {
+				k[n] = vquad[n].copy();
+				k[n].pos1.x = vquad[n].pos1.x*vmat.a11+vquad[n].pos1.y*vmat.a12+vquad[n].pos1.z*vmat.a13;
+				k[n].pos1.y = vquad[n].pos1.x*vmat.a21+vquad[n].pos1.y*vmat.a22+vquad[n].pos1.z*vmat.a23;
+				k[n].pos1.z = vquad[n].pos1.x*vmat.a31+vquad[n].pos1.y*vmat.a32+vquad[n].pos1.z*vmat.a33;
+				k[n].pos2.x = vquad[n].pos2.x*vmat.a11+vquad[n].pos2.y*vmat.a12+vquad[n].pos2.z*vmat.a13;
+				k[n].pos2.y = vquad[n].pos2.x*vmat.a21+vquad[n].pos2.y*vmat.a22+vquad[n].pos2.z*vmat.a23;
+				k[n].pos2.z = vquad[n].pos2.x*vmat.a31+vquad[n].pos2.y*vmat.a32+vquad[n].pos2.z*vmat.a33;
+				k[n].pos3.x = vquad[n].pos3.x*vmat.a11+vquad[n].pos3.y*vmat.a12+vquad[n].pos3.z*vmat.a13;
+				k[n].pos3.y = vquad[n].pos3.x*vmat.a21+vquad[n].pos3.y*vmat.a22+vquad[n].pos3.z*vmat.a23;
+				k[n].pos3.z = vquad[n].pos3.x*vmat.a31+vquad[n].pos3.y*vmat.a32+vquad[n].pos3.z*vmat.a33;
+				k[n].pos4.x = vquad[n].pos4.x*vmat.a11+vquad[n].pos4.y*vmat.a12+vquad[n].pos4.z*vmat.a13;
+				k[n].pos4.y = vquad[n].pos4.x*vmat.a21+vquad[n].pos4.y*vmat.a22+vquad[n].pos4.z*vmat.a23;
+				k[n].pos4.z = vquad[n].pos4.x*vmat.a31+vquad[n].pos4.y*vmat.a32+vquad[n].pos4.z*vmat.a33;
+			}
+		}
+		return k;
+	}
 	public static Position[] translate(Position[] vpoint, Position vpos) {
 		Position[] k = null;
 		if ((vpoint!=null)&&(vpos!=null)) {
 			k = new Position[vpoint.length];
 			for (int n=0;n<vpoint.length;n++) {
 				k[n] = vpoint[n].copy();
-				k[n].x = k[n].x+vpos.x;
-				k[n].y = k[n].y+vpos.y;
-				k[n].z = k[n].z+vpos.z;
+				k[n].x = vpoint[n].x+vpos.x;
+				k[n].y = vpoint[n].y+vpos.y;
+				k[n].z = vpoint[n].z+vpos.z;
 			}
 		}
 		return k;
@@ -1108,9 +804,9 @@ public class MathLib {
 			k = new Direction[vdir.length];
 			for (int n=0;n<vdir.length;n++) {
 				k[n] = vdir[n].copy();
-				k[n].dx = k[n].dx+vpos.x;
-				k[n].dy = k[n].dy+vpos.y;
-				k[n].dz = k[n].dz+vpos.z;
+				k[n].dx = vdir[n].dx+vpos.x;
+				k[n].dy = vdir[n].dy+vpos.y;
+				k[n].dz = vdir[n].dz+vpos.z;
 			}
 		}
 		return k;
@@ -1121,12 +817,25 @@ public class MathLib {
 			k = new Line[vline.length];
 			for (int n=0;n<vline.length;n++) {
 				k[n] = vline[n].copy();
-				k[n].pos1.x = k[n].pos1.x+vpos.x;
-				k[n].pos1.y = k[n].pos1.y+vpos.y;
-				k[n].pos1.z = k[n].pos1.z+vpos.z;
-				k[n].pos2.x = k[n].pos2.x+vpos.x;
-				k[n].pos2.y = k[n].pos2.y+vpos.y;
-				k[n].pos2.z = k[n].pos2.z+vpos.z;
+				k[n].pos1.x = vline[n].pos1.x+vpos.x;
+				k[n].pos1.y = vline[n].pos1.y+vpos.y;
+				k[n].pos1.z = vline[n].pos1.z+vpos.z;
+				k[n].pos2.x = vline[n].pos2.x+vpos.x;
+				k[n].pos2.y = vline[n].pos2.y+vpos.y;
+				k[n].pos2.z = vline[n].pos2.z+vpos.z;
+			}
+		}
+		return k;
+	}
+	public static Sphere[] translate(Sphere[] vsph, Position vpos) {
+		Sphere[] k = null;
+		if ((vsph!=null)&&(vpos!=null)) {
+			k = new Sphere[vsph.length];
+			for (int n=0;n<vsph.length;n++) {
+				k[n] = vsph[n].copy();
+				k[n].x = vsph[n].x+vpos.x;
+				k[n].y = vsph[n].y+vpos.y;
+				k[n].z = vsph[n].z+vpos.z;
 			}
 		}
 		return k;
@@ -1137,15 +846,37 @@ public class MathLib {
 			k = new Triangle[vtri.length];
 			for (int n=0;n<vtri.length;n++) {
 				k[n] = vtri[n].copy();
-				k[n].pos1.x = k[n].pos1.x+vpos.x;
-				k[n].pos1.y = k[n].pos1.y+vpos.y;
-				k[n].pos1.z = k[n].pos1.z+vpos.z;
-				k[n].pos2.x = k[n].pos2.x+vpos.x;
-				k[n].pos2.y = k[n].pos2.y+vpos.y;
-				k[n].pos2.z = k[n].pos2.z+vpos.z;
-				k[n].pos3.x = k[n].pos3.x+vpos.x;
-				k[n].pos3.y = k[n].pos3.y+vpos.y;
-				k[n].pos3.z = k[n].pos3.z+vpos.z;
+				k[n].pos1.x = vtri[n].pos1.x+vpos.x;
+				k[n].pos1.y = vtri[n].pos1.y+vpos.y;
+				k[n].pos1.z = vtri[n].pos1.z+vpos.z;
+				k[n].pos2.x = vtri[n].pos2.x+vpos.x;
+				k[n].pos2.y = vtri[n].pos2.y+vpos.y;
+				k[n].pos2.z = vtri[n].pos2.z+vpos.z;
+				k[n].pos3.x = vtri[n].pos3.x+vpos.x;
+				k[n].pos3.y = vtri[n].pos3.y+vpos.y;
+				k[n].pos3.z = vtri[n].pos3.z+vpos.z;
+			}
+		}
+		return k;
+	}
+	public static Quad[] translate(Quad[] vquad, Position vpos) {
+		Quad[] k = null;
+		if ((vquad!=null)&&(vpos!=null)) {
+			k = new Quad[vquad.length];
+			for (int n=0;n<vquad.length;n++) {
+				k[n] = vquad[n].copy();
+				k[n].pos1.x = vquad[n].pos1.x+vpos.x;
+				k[n].pos1.y = vquad[n].pos1.y+vpos.y;
+				k[n].pos1.z = vquad[n].pos1.z+vpos.z;
+				k[n].pos2.x = vquad[n].pos2.x+vpos.x;
+				k[n].pos2.y = vquad[n].pos2.y+vpos.y;
+				k[n].pos2.z = vquad[n].pos2.z+vpos.z;
+				k[n].pos3.x = vquad[n].pos3.x+vpos.x;
+				k[n].pos3.y = vquad[n].pos3.y+vpos.y;
+				k[n].pos3.z = vquad[n].pos3.z+vpos.z;
+				k[n].pos4.x = vquad[n].pos4.x+vpos.x;
+				k[n].pos4.y = vquad[n].pos4.y+vpos.y;
+				k[n].pos4.z = vquad[n].pos4.z+vpos.z;
 			}
 		}
 		return k;
@@ -1340,11 +1071,11 @@ public class MathLib {
 			processent.sphereboundaryvolume = pointCloudCircumSphere(processent.vertexlist);
 		}
 		Entity[] entitylist = newentitylistarray.toArray(new Entity[newentitylistarray.size()]); 
-		octreeEntityList(entitylist);
+		generateEntityListOctree(entitylist);
 		return entitylist;
 	}
 	
-	public static void octreeEntityList(Entity[] entitylist) {
+	public static void generateEntityListOctree(Entity[] entitylist) {
 		if (entitylist!=null) {
 			for (int j=0;j<entitylist.length;j++) {
 				Entity[] newchildren = {new Entity(),new Entity(),new Entity(),new Entity(),new Entity(),new Entity(),new Entity(),new Entity()}; 
@@ -1513,6 +1244,22 @@ public class MathLib {
 	    }
 	    fwdvectors = normalizeVector(fwdvectors);
 	    return matrixMultiply(fwdvectors, vmat);
+	}
+	public static Plane[] projectedPoints(Position vpos, int vres, double vfov, Matrix vmat) {
+		//TODO projected points based on the angles to the view planes
+		return null;
+	}
+	public static Plane[] projectedLines(Position vpos, int vres, double vfov, Matrix vmat) {
+		//TODO projected line point based on the angles to the view planes
+		return null;
+	}
+	public static Plane[] projectedTriangles(Position vpos, int vres, double vfov, Matrix vmat) {
+		//TODO projected triangle points based on the angles to the view planes
+		return null;
+	}
+	public static Plane[] projectedQuads(Position vpos, int vres, double vfov, Matrix vmat) {
+		//TODO projected quad points based on the angles to the view planes
+		return null;
 	}
 	public static Plane[] projectedPlanes(Position vpos, int vres, double vfov, Matrix vmat) {
 		Direction[] fwdvectors = projectedVectors(vres, vfov, vmat);
