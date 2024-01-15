@@ -32,15 +32,15 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.UIManager;
 
-import fi.jkauppa.javarenderengine.MathLib.AxisAlignedBoundingBox;
-import fi.jkauppa.javarenderengine.MathLib.Cuboid;
-import fi.jkauppa.javarenderengine.MathLib.Direction;
-import fi.jkauppa.javarenderengine.MathLib.Line;
-import fi.jkauppa.javarenderengine.MathLib.Matrix;
-import fi.jkauppa.javarenderengine.MathLib.Plane;
-import fi.jkauppa.javarenderengine.MathLib.Position;
-import fi.jkauppa.javarenderengine.MathLib.Sphere;
-import fi.jkauppa.javarenderengine.MathLib.Triangle;
+import fi.jkauppa.javarenderengine.ModelLib.AxisAlignedBoundingBox;
+import fi.jkauppa.javarenderengine.ModelLib.Cuboid;
+import fi.jkauppa.javarenderengine.ModelLib.Direction;
+import fi.jkauppa.javarenderengine.ModelLib.Line;
+import fi.jkauppa.javarenderengine.ModelLib.Matrix;
+import fi.jkauppa.javarenderengine.ModelLib.Plane;
+import fi.jkauppa.javarenderengine.ModelLib.Position;
+import fi.jkauppa.javarenderengine.ModelLib.Sphere;
+import fi.jkauppa.javarenderengine.ModelLib.Triangle;
 
 public class JavaRenderEngine extends JFrame implements ActionListener,KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 	private static final long serialVersionUID = 1L;
@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.7.3");
+		this.setTitle("Java Render Engine v1.7.4");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
