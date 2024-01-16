@@ -778,7 +778,15 @@ public class CADApp extends AppHandlerPanel {
         	updateCameraDirections();
     	}
 	}
-	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
+	@Override public void mouseWheelMoved(MouseWheelEvent e) {
+		double movementstep = e.getWheelRotation();
+		if (this.snaplinemode) {
+			movementstep = this.gridstep*e.getWheelRotation();
+		}
+		this.campos.x -= movementstep*this.camdirs[0].dx;
+		this.campos.y -= movementstep*this.camdirs[0].dy;
+		this.campos.z -= movementstep*this.camdirs[0].dz;
+	}
 	@Override public void mouseClicked(MouseEvent e) {}
 	@Override public void mouseEntered(MouseEvent e) {}
 	@Override public void mouseExited(MouseEvent e) {}
