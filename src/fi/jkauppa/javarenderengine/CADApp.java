@@ -14,6 +14,7 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -56,6 +57,8 @@ public class CADApp extends AppHandlerPanel {
 	private int polygonfillmode = 1;
 	private int selecteddragvertex = 0;
 	private Triangle mouseovertriangle = null;
+	private Position mouseoververtex = null;
+	private Line mouseoverline = null;
 	private int mouselocationx = 0, mouselocationy = 0;
 	private int mouselastlocationx = -1, mouselastlocationy = -1; 
 	private int origindeltax = 0, origindeltay = 0;
@@ -126,6 +129,8 @@ public class CADApp extends AppHandlerPanel {
 		this.vfov = 2.0f*(180.0f/Math.PI)*Math.atan((((double)this.getHeight())/((double)this.getWidth()))*Math.tan((this.hfov/2.0f)*(Math.PI/180.0f)));
 		this.editplanedistance = (((double)this.getWidth())/2.0f)/Math.tan((Math.PI/180.0f)*(this.hfov/2.0f));
 		Triangle mouseoverhittriangle = null;
+		Position mouseoverhitvertex = null;
+		Line mouseoverhitline = null;
 		Entity[] entitylistmaphandle = this.entitylist;
 		if (this.polygonfillmode==2) {
 			if (entitylistmaphandle!=null) {
@@ -172,7 +177,7 @@ public class CADApp extends AppHandlerPanel {
 								trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
 								trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
 								g2.fill(trianglepolygon);
-								boolean mouseoverhit = g2.hit(new Rectangle(this.mouselocationx,this.mouselocationy,1,1), trianglepolygon, false);
+								boolean mouseoverhit = g2.hit(new Rectangle(this.mouselocationx-this.vertexradius,this.mouselocationy-this.vertexradius,3,3), trianglepolygon, false);
 								if (mouseoverhit) {
 									int entitytriangleind = Math.floorDiv(i, 2);
 									mouseoverhittriangle = entitytrianglelist[entitytriangleind];
@@ -229,6 +234,19 @@ public class CADApp extends AppHandlerPanel {
 						g2.setColor(Color.BLUE);
 						g2.setStroke(new BasicStroke(this.sketchlinestroke));
 						g2.drawLine((int)Math.round(coord1.u), (int)Math.round(coord1.v), (int)Math.round(coord2.u), (int)Math.round(coord2.v));
+						boolean mouseoverhit1 = g2.hit(new Rectangle(this.mouselocationx-this.vertexradius,this.mouselocationy-this.vertexradius,3,3), new Rectangle((int)Math.round(coord1.u)-this.vertexradius,(int)Math.round(coord1.v)-this.vertexradius,3,3), false);
+						boolean mouseoverhit2 = g2.hit(new Rectangle(this.mouselocationx-this.vertexradius,this.mouselocationy-this.vertexradius,3,3), new Rectangle((int)Math.round(coord2.u)-this.vertexradius,(int)Math.round(coord2.v)-this.vertexradius,3,3), false);
+						boolean mouseoverhitL = g2.hit(new Rectangle(this.mouselocationx-this.vertexradius,this.mouselocationy-this.vertexradius,3,3), new Line2D.Double((int)Math.round(coord1.u),(int)Math.round(coord1.v),(int)Math.round(coord2.u),(int)Math.round(coord2.v)), false);
+						if (mouseoverhit1) {
+							mouseoverhitvertex = copylinelist[i].pos1;
+							mouseoverhitvertex.ind = 2*i;
+						} else if (mouseoverhit2) {
+							mouseoverhitvertex = copylinelist[i].pos2;
+							mouseoverhitvertex.ind = 2*i+1;
+						}
+						if (mouseoverhitL) {
+							mouseoverhitline = copylinelist[i];
+						}
 					}
 				}
 			}
@@ -251,6 +269,8 @@ public class CADApp extends AppHandlerPanel {
 			g2.fillOval((int)Math.round(coord1.u)-this.vertexradius, (int)Math.round(coord1.v)-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
 		}
 		this.mouseovertriangle = mouseoverhittriangle;
+		this.mouseoververtex = mouseoverhitvertex;
+		this.mouseoverline = mouseoverhitline;
 	}
 
 	private int snapToGrid(int coordinate) {
@@ -634,7 +654,10 @@ public class CADApp extends AppHandlerPanel {
 	    boolean mouse1ctrldown = ((e.getModifiersEx() & (onmask1ctrldown | offmask1ctrldown)) == onmask1ctrldown);
     	if (mouse1ctrldown) {
     		int vertexatmouse = getVertexAtMouse();
-			if (vertexatmouse!=-1) {
+			if (this.mouseoververtex!=null) {
+				this.draglinemode = true;
+				this.selecteddragvertex = this.mouseoververtex.ind; 
+			} else if (vertexatmouse!=-1) {
 				this.draglinemode = true;
 				this.selecteddragvertex = vertexatmouse;
 			}
@@ -650,13 +673,15 @@ public class CADApp extends AppHandlerPanel {
 	    		mouserelativelocationx = snapToGrid(this.mouselocationx-this.origindeltax);
 	    		mouserelativelocationy = snapToGrid(this.mouselocationy-this.origindeltay);
 				int snaptovertex = getVertexAtMouse();
-				if (snaptovertex!=-1) {
+				if (this.mouseoververtex!=null) {
+					this.drawstartpos = this.mouseoververtex.copy(); 
+				} else if (snaptovertex!=-1) {
     				int snaptovertexlinenum = Math.floorDiv(snaptovertex,2);
     				boolean snaptovertexfirstvertex = Math.floorMod(snaptovertex,2)==0;
     				if (snaptovertexfirstvertex) {
-    					this.drawstartpos = this.linelistarray.get(snaptovertexlinenum).pos1;
+    					this.drawstartpos = this.linelistarray.get(snaptovertexlinenum).pos1.copy();
 	    			} else {
-    					this.drawstartpos = this.linelistarray.get(snaptovertexlinenum).pos2;
+    					this.drawstartpos = this.linelistarray.get(snaptovertexlinenum).pos2.copy();
 	    			}
 				}
 			}
@@ -666,21 +691,10 @@ public class CADApp extends AppHandlerPanel {
 			if (this.drawstartpos==null) {
 				this.drawstartpos = drawposarray[0];
 			}
-			this.linelistarray.add(new Line(drawstartpos, drawposarray[0]));
+			this.linelistarray.add(new Line(this.drawstartpos, drawposarray[0]));
 			this.draglinemode = true;
 			this.selecteddragvertex = (this.linelistarray.size()-1)*2+1;
 			this.updatetrianglelist = true;
-    	}
-	    int onmask3altdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    int offmask3altdown = MouseEvent.CTRL_DOWN_MASK;
-	    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3altdown | offmask3altdown)) == onmask3altdown);
-    	if (mouse3altdown) {
-    		int vertexatmouse = getVertexAtMouse();
-			if (vertexatmouse!=-1) {
-				int linenum = Math.floorDiv(vertexatmouse,2);
-				this.linelistarray.remove(linenum);
-				this.updatetrianglelist = true;
-			}
     	}
 		mouseDragged(e);
 	}
@@ -744,13 +758,15 @@ public class CADApp extends AppHandlerPanel {
 				}
 				if (this.snaplinemode) {
 					int snaptovertex = getVertexAtMouse();
-					if (snaptovertex!=-1) {
+					if (this.mouseoververtex!=null) {
+						drawlocation = this.mouseoververtex.copy(); 
+					} else if (snaptovertex!=-1) {
 	    				int snaptovertexlinenum = Math.floorDiv(snaptovertex,2);
 	    				boolean snaptovertexfirstvertex = Math.floorMod(snaptovertex,2)==0;
 	    				if (snaptovertexfirstvertex) {
-	    					drawlocation = this.linelistarray.get(snaptovertexlinenum).pos1;
+	    					drawlocation = this.linelistarray.get(snaptovertexlinenum).pos1.copy();
 		    			} else {
-		    				drawlocation = this.linelistarray.get(snaptovertexlinenum).pos2;
+		    				drawlocation = this.linelistarray.get(snaptovertexlinenum).pos2.copy();
 		    			}
 					}
 				}
@@ -771,7 +787,7 @@ public class CADApp extends AppHandlerPanel {
     		}
 		}
 	    int onmask3down = MouseEvent.BUTTON3_DOWN_MASK;
-	    int offmask3down = 0;
+	    int offmask3down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse3down = ((e.getModifiersEx() & (onmask3down | offmask3down)) == onmask3down);
     	if (mouse3down) {
     		double movementstep = 1.0f;
@@ -783,6 +799,20 @@ public class CADApp extends AppHandlerPanel {
         	this.camrot.z -= mousedeltax*(movementstep/((double)this.gridstep))*0.1f;
         	this.camrot.x -= mousedeltay*(movementstep/((double)this.gridstep))*0.1f;
         	updateCameraDirections();
+    	}
+	    int onmask3altdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    int offmask3altdown = MouseEvent.CTRL_DOWN_MASK;
+	    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3altdown | offmask3altdown)) == onmask3altdown);
+    	if (mouse3altdown) {
+    		int vertexatmouse = getVertexAtMouse();
+    		if (this.mouseoverline!=null) {
+				this.linelistarray.remove(this.mouseoverline);
+				this.updatetrianglelist = true;
+    		} else if (vertexatmouse!=-1) {
+				int linenum = Math.floorDiv(vertexatmouse,2);
+				this.linelistarray.remove(linenum);
+				this.updatetrianglelist = true;
+			}
     	}
 	}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {

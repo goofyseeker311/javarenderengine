@@ -434,13 +434,13 @@ public class MathLib {
 					if (ptlhit12|ptlhit13|ptlhit23) {
 						if (ptlhit12&&ptlhit13) {
 							k[n][m] = new Line(ptlint12[0],ptlint13[0]);
-							k[n][m].hitind = 0;
+							k[n][m].ind = 0;
 						} else if (ptlhit12&&ptlhit23) {
 							k[n][m] = new Line(ptlint12[0],ptlint23[0]);
-							k[n][m].hitind = 1;
+							k[n][m].ind = 1;
 						} else if (ptlhit13&&ptlhit23) {
 							k[n][m] = new Line(ptlint13[0],ptlint23[0]);
-							k[n][m].hitind = 2;
+							k[n][m].ind = 2;
 						}
 					}
 				}
