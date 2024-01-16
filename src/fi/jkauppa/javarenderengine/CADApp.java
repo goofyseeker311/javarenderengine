@@ -18,6 +18,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.TreeSet;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
@@ -609,6 +610,12 @@ public class CADApp extends AppHandlerPanel {
 						}
 					}
 					this.linelistarray.addAll(uniquelinetree);
+					for (Iterator<Entity> i=newentitylistarray.iterator();i.hasNext();) {
+						Entity nextentity = i.next();
+						nextentity.vertexlist = MathLib.generateVertexList(nextentity.trianglelist);
+						nextentity.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(nextentity.vertexlist);
+						nextentity.sphereboundaryvolume = MathLib.pointCloudCircumSphere(nextentity.vertexlist);
+					}
 					this.entitylist = newentitylistarray.toArray(new Entity[newentitylistarray.size()]);
 				}
 				(new EntityListUpdater()).start();
