@@ -55,7 +55,8 @@ SHIFT-LMB         -- rgba-color picker at cursor
 ALT-DRAG-LMB      -- vector line drag draw
 ALT-RMB           -- remove line vertex
 CTRL-DRAG-LMB     -- move line vertex
-SHIFT             -- toggle snap to grid
+DRAG-RMB          -- change forward looking movement direction
+SHIFT             -- toggle snap to grid/vertex and speed movement
 MWHEEL            -- draw height change (minmax)
 NUMPAD+           -- draw height positive (minmax)
 NUMPAD-           -- draw height negative (minmax)
@@ -73,7 +74,7 @@ F3                -- load model file dialog
 
 Model App Keys:
 BACKSPACE         -- remove loaded model and reset camera location
-MOUSE-DRAG        -- change looking movement forward direction
+MOUSE-MOVE        -- change forward looking movement direction
 WASD              -- camera location change forward/left/backward/right (minmax)
 C-SPACE           -- camera height change down/up (minmax)
 QE                -- camera tilt change left/right (looping)
