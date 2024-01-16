@@ -1185,25 +1185,40 @@ public class MathLib {
 			k = new AffineTransform[vtri.length];
 			for (int i=0;i<vtri.length;i++) {
 				if (vpoly[i].npoints==3) {
+					double[] vtritexu = {vtri[i].pos1.tex.u*vtexture[i].getWidth(),vtri[i].pos2.tex.u*vtexture[i].getWidth(),vtri[i].pos3.tex.u*vtexture[i].getWidth()};
+					double[] vtritexv = {vtri[i].pos1.tex.v*vtexture[i].getHeight(),vtri[i].pos2.tex.v*vtexture[i].getHeight(),vtri[i].pos3.tex.v*vtexture[i].getHeight()};
 					Direction[] polyvec12 = {new Direction(vpoly[i].xpoints[1]-vpoly[i].xpoints[0],vpoly[i].ypoints[1]-vpoly[i].ypoints[0],0.0f)};
 					Direction[] polyvec13 = {new Direction(vpoly[i].xpoints[2]-vpoly[i].xpoints[0],vpoly[i].ypoints[2]-vpoly[i].ypoints[0],0.0f)};
-					Direction[] trivec12 = {new Direction(vtri[i].pos2.tex.u-vtri[i].pos1.tex.u,vtri[i].pos2.tex.v-vtri[i].pos1.tex.v,0.0f)};
-					Direction[] trivec13 = {new Direction(vtri[i].pos3.tex.u-vtri[i].pos1.tex.u,vtri[i].pos3.tex.v-vtri[i].pos1.tex.v,0.0f)};
-					Direction[] deltavec1 = {new Direction(vpoly[i].xpoints[0]-vtri[i].pos1.tex.u,vpoly[i].ypoints[0]-vtri[i].pos1.tex.v,0.0f)};
+					Direction[] trivec12 = {new Direction(vtritexu[1]-vtritexu[0],vtritexv[1]-vtritexv[0],0.0f)};
+					Direction[] trivec13 = {new Direction(vtritexu[2]-vtritexu[0],vtritexv[2]-vtritexv[0],0.0f)};
+					Direction[] deltavec = {new Direction(vpoly[i].xpoints[0]-vtritexu[0],vpoly[i].ypoints[0]-vtritexv[0],0.0f)};
+					Direction[] upvec = {new Direction(0.0f,1.0f,0.0f)};
 					double[] polyvec12len = vectorLength(polyvec12);
 					double[] polyvec13len = vectorLength(polyvec13);
 					double[] trivec12len = vectorLength(trivec12);
 					double[] trivec13len = vectorLength(trivec13);
 					double[] polyvecangles = vectorAngle(polyvec12, polyvec13);
 					double[] trivecangles = vectorAngle(trivec12, trivec13);
+					double[] polyvec12upangle = vectorAngle(polyvec12, upvec);
+					double[] trivec12upangle = vectorAngle(trivec12, upvec);
+					polyvec12upangle[0]=(polyvec12[0].dx<0?-1.0f:1.0)*polyvec12upangle[0];
+					trivec12upangle[0]=(trivec12[0].dx<0?-1.0f:1.0)*trivec12upangle[0];
 					Triangle[] vtriangle = {vtri[i]}; 
 					AxisAlignedBoundingBox tribounds = axisAlignedBoundingBox(generateVertexList(vtriangle));
 					Rectangle polybounds = vpoly[i].getBounds();
 					AffineTransform newtransform = new AffineTransform();
-					double scalefactorx = polybounds.getWidth()/((double)vtexture[i].getWidth());
-					double scalefactory = polybounds.getHeight()/((double)vtexture[i].getHeight());
-					newtransform.translate(polybounds.x, polybounds.y);
-					newtransform.scale(scalefactorx, scalefactory);
+					//double scalefactorx = polybounds.getWidth()/((double)vtexture[i].getWidth());
+					//double scalefactory = polybounds.getHeight()/((double)vtexture[i].getHeight());
+					//newtransform.translate(polybounds.x, polybounds.y);
+					//newtransform.scale(scalefactorx, scalefactory);
+					//newtransform.rotate((Math.PI/180.0f)*trivec12upangle[0], vpoly[i].xpoints[0], vpoly[i].ypoints[0]);
+					newtransform.translate(deltavec[0].dx, deltavec[0].dy);
+					//newtransform.rotate(-(Math.PI/180.0f)*trivec12upangle[0], vtritexu[0], vtritexv[0]);
+					//newtransform.shear(0.0f,Math.cos((Math.PI/180.0f)*trivecangles[0]));
+					//newtransform.scale(1.0f,-1.0f);
+					//newtransform.scale(polyvec12len[0]/trivec12len[0],-polyvec13len[0]/trivec13len[0]);
+					//newtransform.shear(0.0f,-Math.cos((Math.PI/180.0f)*polyvecangles[0]));
+					//newtransform.rotate((Math.PI/180.0f)*polyvec12upangle[0], vtritexu[0], vtritexv[0]);
 					k[i] = newtransform;
 				}
 			}

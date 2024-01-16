@@ -181,40 +181,6 @@ public class ModelLib {
 			return k;
 		}
 		public Sphere copy(){Sphere k = new Sphere(this.x,this.y,this.z,this.r); k.ind=this.ind; return k;}
-		public static class SphereRenderComparator implements Comparator<Sphere> {
-			@Override public int compare(Sphere o1, Sphere o2) {
-				int k = -1;
-				if (o1.z>o2.z) {
-					k = 1;
-				} else if (o1.z==o2.z) {
-					double ydiff = o1.y-o2.y;
-					double xdiff = o1.x-o2.x;
-					if (Math.abs(ydiff)>Math.abs(xdiff)) {
-						if (Math.abs(o1.y)>Math.abs(o2.y)) {
-							k = 1;
-						} else if (o1.y==o2.y) {
-							if (Math.abs(o1.x)>Math.abs(o2.x)) {
-								k = 1;
-							} else if (o1.x==o2.x) {
-								k = 0;
-							}
-						}
-					} else {
-						if (Math.abs(o1.x)>Math.abs(o2.x)) {
-							k = 1;
-						} else if (o1.x==o2.x) {
-							if (Math.abs(o1.y)>Math.abs(o2.y)) {
-								k = 1;
-							} else if (o1.y==o2.y) {
-								k = 0;
-							}
-						}
-					}
-				}
-				return k;
-			}
-			
-		}
 		public static class SphereDistanceComparator implements Comparator<Sphere> {
 			public Position origin;
 			public SphereDistanceComparator(Position origini) {this.origin = origini;}
@@ -237,6 +203,7 @@ public class ModelLib {
 	public static class Cuboid {public Position poslft,poslbt,posrft,posrbt,poslfb,poslbb,posrfb,posrbb; public Cuboid(Position poslfti,Position poslbti,Position posrfti,Position posrbti,Position poslfbi,Position poslbbi,Position posrfbi,Position posrbbi){this.poslft=poslfti;this.poslbt=poslbti;this.posrft=posrfti;this.posrbt=posrbti;this.poslfb=poslfbi;this.poslbb=poslbbi;this.posrfb=posrfbi;this.posrbb=posrbbi;}}
 	public static class Quad {public Position pos1,pos2,pos3,pos4; public Quad(Position pos1i,Position pos2i,Position pos3i,Position pos4i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;this.pos4=pos4i;} public Quad copy(){Quad k = new Quad(this.pos1.copy(),this.pos2.copy(),this.pos3.copy(),this.pos4.copy()); return k;}}
 	public static class Arc {public Position origin; public double r,ang1,ang2; public Arc(Position origini, double ri, double ang1i, double ang2i){this.origin=origini;this.r=ri;this.ang1=ang1i;this.ang2=ang2i;}}
+	public static class Circle {public Position origin; public double r; public Circle(Position origini, double ri){this.origin=origini;this.r=ri;}}
 	public static class Ray {public Position pos; public Direction dir; public Ray(Position posi, Direction diri){this.pos=posi;this.dir=diri;}}
 	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}}
 	public static class Line implements Comparable<Line> {public Position pos1,pos2; public int hitind=-1; public Line(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}
