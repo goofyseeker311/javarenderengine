@@ -881,6 +881,102 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static Position[] translate(Position[] vpoint, Direction vdir, double mult) {
+		Position[] k = null;
+		if ((vpoint!=null)&&(vdir!=null)) {
+			k = new Position[vpoint.length];
+			for (int n=0;n<vpoint.length;n++) {
+				k[n] = vpoint[n].copy();
+				k[n].x = vpoint[n].x+mult*vdir.dx;
+				k[n].y = vpoint[n].y+mult*vdir.dy;
+				k[n].z = vpoint[n].z+mult*vdir.dz;
+			}
+		}
+		return k;
+	}
+	public static Direction[] translate(Direction[] vvec, Direction vdir, double mult) {
+		Direction[] k = null;
+		if ((vvec!=null)&&(vdir!=null)) {
+			k = new Direction[vvec.length];
+			for (int n=0;n<vvec.length;n++) {
+				k[n] = vvec[n].copy();
+				k[n].dx = vvec[n].dx+mult*vdir.dx;
+				k[n].dy = vvec[n].dy+mult*vdir.dy;
+				k[n].dz = vvec[n].dz+mult*vdir.dz;
+			}
+		}
+		return k;
+	}
+	public static Line[] translate(Line[] vline, Direction vdir, double mult) {
+		Line[] k = null;
+		if ((vline!=null)&&(vdir!=null)) {
+			k = new Line[vline.length];
+			for (int n=0;n<vline.length;n++) {
+				k[n] = vline[n].copy();
+				k[n].pos1.x = vline[n].pos1.x+mult*vdir.dx;
+				k[n].pos1.y = vline[n].pos1.y+mult*vdir.dy;
+				k[n].pos1.z = vline[n].pos1.z+mult*vdir.dz;
+				k[n].pos2.x = vline[n].pos2.x+mult*vdir.dx;
+				k[n].pos2.y = vline[n].pos2.y+mult*vdir.dy;
+				k[n].pos2.z = vline[n].pos2.z+mult*vdir.dz;
+			}
+		}
+		return k;
+	}
+	public static Sphere[] translate(Sphere[] vsph, Direction vdir, double mult) {
+		Sphere[] k = null;
+		if ((vsph!=null)&&(vdir!=null)) {
+			k = new Sphere[vsph.length];
+			for (int n=0;n<vsph.length;n++) {
+				k[n] = vsph[n].copy();
+				k[n].x = vsph[n].x+mult*vdir.dx;
+				k[n].y = vsph[n].y+mult*vdir.dy;
+				k[n].z = vsph[n].z+mult*vdir.dz;
+			}
+		}
+		return k;
+	}
+	public static Triangle[] translate(Triangle[] vtri, Direction vdir, double mult) {
+		Triangle[] k = null;
+		if ((vtri!=null)&&(vdir!=null)) {
+			k = new Triangle[vtri.length];
+			for (int n=0;n<vtri.length;n++) {
+				k[n] = vtri[n].copy();
+				k[n].pos1.x = vtri[n].pos1.x+mult*vdir.dx;
+				k[n].pos1.y = vtri[n].pos1.y+mult*vdir.dy;
+				k[n].pos1.z = vtri[n].pos1.z+mult*vdir.dz;
+				k[n].pos2.x = vtri[n].pos2.x+mult*vdir.dx;
+				k[n].pos2.y = vtri[n].pos2.y+mult*vdir.dy;
+				k[n].pos2.z = vtri[n].pos2.z+mult*vdir.dz;
+				k[n].pos3.x = vtri[n].pos3.x+mult*vdir.dx;
+				k[n].pos3.y = vtri[n].pos3.y+mult*vdir.dy;
+				k[n].pos3.z = vtri[n].pos3.z+mult*vdir.dz;
+			}
+		}
+		return k;
+	}
+	public static Quad[] translate(Quad[] vquad, Direction vdir, double mult) {
+		Quad[] k = null;
+		if ((vquad!=null)&&(vdir!=null)) {
+			k = new Quad[vquad.length];
+			for (int n=0;n<vquad.length;n++) {
+				k[n] = vquad[n].copy();
+				k[n].pos1.x = vquad[n].pos1.x+mult*vdir.dx;
+				k[n].pos1.y = vquad[n].pos1.y+mult*vdir.dy;
+				k[n].pos1.z = vquad[n].pos1.z+mult*vdir.dz;
+				k[n].pos2.x = vquad[n].pos2.x+mult*vdir.dx;
+				k[n].pos2.y = vquad[n].pos2.y+mult*vdir.dy;
+				k[n].pos2.z = vquad[n].pos2.z+mult*vdir.dz;
+				k[n].pos3.x = vquad[n].pos3.x+mult*vdir.dx;
+				k[n].pos3.y = vquad[n].pos3.y+mult*vdir.dy;
+				k[n].pos3.z = vquad[n].pos3.z+mult*vdir.dz;
+				k[n].pos4.x = vquad[n].pos4.x+mult*vdir.dx;
+				k[n].pos4.y = vquad[n].pos4.y+mult*vdir.dy;
+				k[n].pos4.z = vquad[n].pos4.z+mult*vdir.dz;
+			}
+		}
+		return k;
+	}
 	public static Matrix rotationMatrix(double xaxisr, double yaxisr, double zaxisr) {
 		double xaxisrrad=xaxisr*(Math.PI/180.0f); double yaxisrrad=yaxisr*(Math.PI/180.0f); double zaxisrrad=zaxisr*(Math.PI/180.0f);
 		Matrix xrot = new Matrix(1,0,0,0,Math.cos(xaxisrrad),-Math.sin(xaxisrrad),0,Math.sin(xaxisrrad),Math.cos(xaxisrrad));
