@@ -59,7 +59,7 @@ public class CADApp extends AppHandlerPanel {
 	private double editplanedistance = 1000.0f;
 	private double editgridlength = 200.0f;
 	private Position editpos = new Position(0.0f,0.0f,-this.editplanedistance);
-	private Position campos = new Position(0,0,0);
+	private Position campos = new Position(0,0,this.editplanedistance);
 	private Rotation camrot = new Rotation(0.0f, 0.0f, 0.0f);
 	private Matrix cameramat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 	private final Direction[] lookdirs = MathLib.projectedCameraDirections(cameramat);
@@ -268,7 +268,7 @@ public class CADApp extends AppHandlerPanel {
 		Position[] camposarray = {this.campos};
 		Position[] mousesphereposarray = MathLib.translate(camposarray, this.camdirs[1], mouserelativelocationx);
 		mousesphereposarray = MathLib.translate(mousesphereposarray, this.camdirs[2], mouserelativelocationy);
-		Sphere[] vsphere1 = new Sphere[1]; vsphere1[0] = new Sphere(mousesphereposarray[0].x, mousesphereposarray[0].y, mousesphereposarray[0].z, this.pointdist); 
+		Sphere[] vsphere1 = new Sphere[1]; vsphere1[0] = new Sphere(mousesphereposarray[0].x, mousesphereposarray[0].y, mousesphereposarray[0].z, 0.0f); 
 		Sphere[] vsphere2 = new Sphere[2*this.linelistarray.size()];
 		for (int i=0;i<linelistarray.size();i++) {
 			vsphere2[2*i] = new Sphere(linelistarray.get(i).pos1.x, linelistarray.get(i).pos1.y, linelistarray.get(i).pos1.z, this.vertexradius);
@@ -365,7 +365,7 @@ public class CADApp extends AppHandlerPanel {
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
 			this.linelistarray.clear();
 			this.entitylist = null;
-			this.campos = new Position(0.0f,0.0f,0.0f);
+			this.campos = new Position(0.0f,0.0f,this.editplanedistance);
 			this.camrot = new Rotation(0.0f,0.0f,0.0f);
 		} else if (e.getKeyCode()==KeyEvent.VK_INSERT) {
 			this.drawcolorhsb[0] += 0.01f;
@@ -770,10 +770,14 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask3down = 0;
 	    boolean mouse3down = ((e.getModifiersEx() & (onmask3down | offmask3down)) == onmask3down);
     	if (mouse3down) {
+    		double movementstep = 1.0f;
+    		if (this.snaplinemode) {
+    			movementstep = this.gridstep;
+    		}
         	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
         	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-        	this.camrot.z -= mousedeltax*0.1f;
-        	this.camrot.x -= mousedeltay*0.1f;
+        	this.camrot.z -= mousedeltax*(movementstep/((double)this.gridstep))*0.1f;
+        	this.camrot.x -= mousedeltay*(movementstep/((double)this.gridstep))*0.1f;
         	updateCameraDirections();
     	}
 	}
