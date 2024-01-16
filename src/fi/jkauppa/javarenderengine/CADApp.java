@@ -8,10 +8,13 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.TexturePaint;
+import java.awt.Transparency;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +33,6 @@ import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.STLFileFilter;
 import fi.jkauppa.javarenderengine.ModelLib.Plane;
 import fi.jkauppa.javarenderengine.ModelLib.Position;
-import fi.jkauppa.javarenderengine.ModelLib.Quad;
 import fi.jkauppa.javarenderengine.ModelLib.Rotation;
 import fi.jkauppa.javarenderengine.ModelLib.Sphere;
 import fi.jkauppa.javarenderengine.ModelLib.Sphere.SphereDistanceComparator;
@@ -44,6 +46,7 @@ import fi.jkauppa.javarenderengine.ModelLib.ModelObject;
 
 public class CADApp extends AppHandlerPanel {
 	private static final long serialVersionUID = 1L;
+	private TexturePaint bgpattern = null;
 	private boolean draglinemode = false;
 	private boolean snaplinemode = false;
 	private Color drawcolor = Color.BLACK;
@@ -57,7 +60,6 @@ public class CADApp extends AppHandlerPanel {
 	private int origindeltax = 0, origindeltay = 0;
 	private Position drawstartpos = new Position(0,0,0);
 	private double editplanedistance = 1000.0f;
-	private double editgridlength = 200.0f;
 	private Position editpos = new Position(0.0f,0.0f,-this.editplanedistance);
 	private Position campos = new Position(0,0,this.editplanedistance);
 	private Rotation camrot = new Rotation(0.0f, 0.0f, 0.0f);
@@ -75,9 +77,9 @@ public class CADApp extends AppHandlerPanel {
 	private final int vertexstroke = 2;
 	private final int vertexfocus = 3;
 	private final int sketchlinestroke = 2;
-	private final int gridlinestroke = 2;
 	private final int gridstep = 20;
 	private final double pointdist = 1.0f;
+	private BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
 	private ArrayList<Line> linelistarray = new ArrayList<Line>();
 	private Entity[] entitylist = null;
 	private JFileChooser filechooser = new JFileChooser();
@@ -94,6 +96,13 @@ public class CADApp extends AppHandlerPanel {
 	private boolean updatetrianglelist = true;
 	
 	public CADApp() {
+		Graphics2D pgfx = this.bgpatternimage.createGraphics();
+		pgfx.setColor(Color.WHITE);
+		pgfx.fillRect(0, 0, this.bgpatternimage.getWidth(), this.bgpatternimage.getHeight());
+		pgfx.setColor(Color.BLACK);
+		pgfx.drawLine(0, 0, 0, gridstep-1);
+		pgfx.drawLine(0, 0, gridstep-1, 0);
+		pgfx.dispose();
 		this.filechooser.addChoosableFileFilter(this.objfilefilter);
 		this.filechooser.addChoosableFileFilter(this.stlfilefilter);
 		this.filechooser.setFileFilter(this.objfilefilter);
@@ -105,9 +114,10 @@ public class CADApp extends AppHandlerPanel {
 		Graphics2D g2 = (Graphics2D)g;
 		this.origindeltax = (int)Math.floor(((double)this.getWidth())/2.0f);
 		this.origindeltay = (int)Math.floor(((double)this.getHeight())/2.0f);
+		this.bgpattern = new TexturePaint(this.bgpatternimage,new Rectangle(this.origindeltax, this.origindeltay, gridstep, gridstep));
 		g2.setComposite(AlphaComposite.Src);
-		g2.setColor(Color.WHITE);
-		g2.setPaint(null);
+		g2.setColor(null);
+		g2.setPaint(bgpattern);
 		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
 		g2.setPaint(null);
 		g2.setColor(null);
@@ -126,8 +136,9 @@ public class CADApp extends AppHandlerPanel {
 				sortedentityspheretree.addAll(Arrays.asList(entityspherelist));
 				Sphere[] sortedentityspherelist = sortedentityspheretree.toArray(new Sphere[sortedentityspheretree.size()]);
 				for (int k=0;k<sortedentityspherelist.length;k++) {
-					Triangle[] copytrianglelist = MathLib.subDivideTriangle(entitylistmaphandle[sortedentityspherelist[k].ind].trianglelist);
-					if (copytrianglelist.length>0) {
+					Triangle[] entitytrianglelist = entitylistmaphandle[sortedentityspherelist[k].ind].trianglelist;
+					if (entitytrianglelist.length>0) {
+						Triangle[] copytrianglelist = MathLib.subDivideTriangle(entitytrianglelist);
 						for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].ind = i;}
 						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
 						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
@@ -161,7 +172,8 @@ public class CADApp extends AppHandlerPanel {
 								g2.fill(trianglepolygon);
 								boolean mouseoverhit = g2.hit(new Rectangle(this.mouselocationx,this.mouselocationy,1,1), trianglepolygon, false);
 								if (mouseoverhit) {
-									mouseoverhittriangle = copytriangle;
+									int entitytriangleind = Math.floorDiv(i, 2);
+									mouseoverhittriangle = entitytrianglelist[entitytriangleind];
 								}
 							}
 						}
@@ -217,25 +229,6 @@ public class CADApp extends AppHandlerPanel {
 						g2.drawLine((int)Math.round(coord1.u), (int)Math.round(coord1.v), (int)Math.round(coord2.u), (int)Math.round(coord2.v));
 					}
 				}
-			}
-			Position[] editgridquadpointarray = {this.editpos};
-			Position[] editgridquadpoint1array = MathLib.translate(MathLib.translate(editgridquadpointarray, this.camdirs[1], this.editgridlength), this.camdirs[2], this.editgridlength);
-			Position[] editgridquadpoint2array = MathLib.translate(MathLib.translate(editgridquadpointarray, this.camdirs[1], this.editgridlength), this.camdirs[2], -this.editgridlength);
-			Position[] editgridquadpoint3array = MathLib.translate(MathLib.translate(editgridquadpointarray, this.camdirs[1], -this.editgridlength), this.camdirs[2], -this.editgridlength);
-			Position[] editgridquadpoint4array = MathLib.translate(MathLib.translate(editgridquadpointarray, this.camdirs[1], -this.editgridlength), this.camdirs[2], this.editgridlength);
-			Quad[] editgridquad = {new Quad(editgridquadpoint1array[0],editgridquadpoint2array[0],editgridquadpoint3array[0],editgridquadpoint4array[0])};
-			Coordinate[][] quadlistcoords = MathLib.projectedQuads(this.campos, editgridquad, this.getWidth(), this.hfov, this.getHeight(), this.vfov, this.cameramat);
-			Coordinate coord1 = quadlistcoords[0][0];
-			Coordinate coord2 = quadlistcoords[0][1];
-			Coordinate coord3 = quadlistcoords[0][2];
-			Coordinate coord4 = quadlistcoords[0][3];
-			if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)&&(coord4!=null)) {
-				g2.setColor(Color.BLACK);
-				g2.setStroke(new BasicStroke(this.gridlinestroke));
-				g2.drawLine((int)Math.round(coord1.u), (int)Math.round(coord1.v), (int)Math.round(coord2.u), (int)Math.round(coord2.v));
-				g2.drawLine((int)Math.round(coord2.u), (int)Math.round(coord2.v), (int)Math.round(coord3.u), (int)Math.round(coord3.v));
-				g2.drawLine((int)Math.round(coord3.u), (int)Math.round(coord3.v), (int)Math.round(coord4.u), (int)Math.round(coord4.v));
-				g2.drawLine((int)Math.round(coord4.u), (int)Math.round(coord4.v), (int)Math.round(coord1.u), (int)Math.round(coord1.v));
 			}
 		}
 		Position[] originpoints = {new Position(0,0,0),new Position(this.originlinewidth,0,0),new Position(0,this.originlineheight,0),new Position(0,0,this.originlinedepth)}; 
@@ -659,8 +652,8 @@ public class CADApp extends AppHandlerPanel {
 	    			}
 				}
 			}
-			Position[] camposarray = {this.campos};
-			Position[] drawposarray = MathLib.translate(camposarray, this.camdirs[1], mouserelativelocationx);
+			Position[] editposarray = {this.editpos};
+			Position[] drawposarray = MathLib.translate(editposarray, this.camdirs[1], mouserelativelocationx);
 			drawposarray = MathLib.translate(drawposarray, this.camdirs[2], mouserelativelocationy);
 			this.linelistarray.add(new Line(drawstartpos, drawposarray[0]));
 			this.draglinemode = true;
@@ -751,8 +744,8 @@ public class CADApp extends AppHandlerPanel {
 					}
 				}
 				if (drawlocation==null) {
-					Position[] camposarray = {this.campos};
-					Position[] drawposarray = MathLib.translate(camposarray, this.camdirs[1], mouserelativelocationx);
+					Position[] editposarray = {this.editpos};
+					Position[] drawposarray = MathLib.translate(editposarray, this.camdirs[1], mouserelativelocationx);
 					drawposarray = MathLib.translate(drawposarray, this.camdirs[2], mouserelativelocationy);
 	    			drawlocation = drawposarray[0];
 				}
