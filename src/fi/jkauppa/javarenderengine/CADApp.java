@@ -58,9 +58,9 @@ public class CADApp extends AppHandlerPanel {
 	private int mouselocationx = 0, mouselocationy = 0;
 	private int mouselastlocationx = -1, mouselastlocationy = -1; 
 	private int origindeltax = 0, origindeltay = 0;
+	private double editplanedistance = 1371.0f;
 	private Position drawstartpos = new Position(0,0,0);
-	private double editplanedistance = 1000.0f;
-	private Position editpos = new Position(0.0f,0.0f,-this.editplanedistance);
+	private Position editpos = new Position(0.0f,0.0f,0.0f);
 	private Position campos = new Position(0,0,this.editplanedistance);
 	private Rotation camrot = new Rotation(0.0f, 0.0f, 0.0f);
 	private Matrix cameramat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
@@ -123,6 +123,7 @@ public class CADApp extends AppHandlerPanel {
 		g2.setColor(null);
 		g2.setComposite(AlphaComposite.SrcOver);
 		this.vfov = 2.0f*(180.0f/Math.PI)*Math.atan((((double)this.getHeight())/((double)this.getWidth()))*Math.tan((this.hfov/2.0f)*(Math.PI/180.0f)));
+		this.editplanedistance = (((double)this.getWidth())/2.0f)/Math.tan((Math.PI/180.0f)*(this.hfov/2.0f));
 		Triangle mouseoverhittriangle = null;
 		Entity[] entitylistmaphandle = this.entitylist;
 		if (this.polygonfillmode==2) {
@@ -621,7 +622,6 @@ public class CADApp extends AppHandlerPanel {
 	}
 	@Override public void mousePressed(MouseEvent e) {
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
-		this.drawstartpos = this.campos;
 	    int onmask1ctrldown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    int offmask1ctrldown = MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse1ctrldown = ((e.getModifiersEx() & (onmask1ctrldown | offmask1ctrldown)) == onmask1ctrldown);
@@ -636,6 +636,7 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask1alt = MouseEvent.CTRL_DOWN_MASK;
 	    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1alt | offmask1alt)) == onmask1alt);
     	if (mouse1altdown) {
+    		this.drawstartpos = null;
     		double mouserelativelocationx = this.mouselocationx-this.origindeltax;
     		double mouserelativelocationy = this.mouselocationy-this.origindeltay;
 			if (this.snaplinemode) {
@@ -655,6 +656,9 @@ public class CADApp extends AppHandlerPanel {
 			Position[] editposarray = {this.editpos};
 			Position[] drawposarray = MathLib.translate(editposarray, this.camdirs[1], mouserelativelocationx);
 			drawposarray = MathLib.translate(drawposarray, this.camdirs[2], mouserelativelocationy);
+			if (this.drawstartpos==null) {
+				this.drawstartpos = drawposarray[0];
+			}
 			this.linelistarray.add(new Line(drawstartpos, drawposarray[0]));
 			this.draglinemode = true;
 			this.selecteddragvertex = (this.linelistarray.size()-1)*2+1;
