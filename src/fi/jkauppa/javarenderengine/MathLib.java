@@ -881,6 +881,102 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static Position[] translate(Position[] vpoint, Direction vdir, double mult) {
+		Position[] k = null;
+		if ((vpoint!=null)&&(vdir!=null)) {
+			k = new Position[vpoint.length];
+			for (int n=0;n<vpoint.length;n++) {
+				k[n] = vpoint[n].copy();
+				k[n].x = vpoint[n].x+mult*vdir.dx;
+				k[n].y = vpoint[n].y+mult*vdir.dy;
+				k[n].z = vpoint[n].z+mult*vdir.dz;
+			}
+		}
+		return k;
+	}
+	public static Direction[] translate(Direction[] vvec, Direction vdir, double mult) {
+		Direction[] k = null;
+		if ((vvec!=null)&&(vdir!=null)) {
+			k = new Direction[vvec.length];
+			for (int n=0;n<vvec.length;n++) {
+				k[n] = vvec[n].copy();
+				k[n].dx = vvec[n].dx+mult*vdir.dx;
+				k[n].dy = vvec[n].dy+mult*vdir.dy;
+				k[n].dz = vvec[n].dz+mult*vdir.dz;
+			}
+		}
+		return k;
+	}
+	public static Line[] translate(Line[] vline, Direction vdir, double mult) {
+		Line[] k = null;
+		if ((vline!=null)&&(vdir!=null)) {
+			k = new Line[vline.length];
+			for (int n=0;n<vline.length;n++) {
+				k[n] = vline[n].copy();
+				k[n].pos1.x = vline[n].pos1.x+mult*vdir.dx;
+				k[n].pos1.y = vline[n].pos1.y+mult*vdir.dy;
+				k[n].pos1.z = vline[n].pos1.z+mult*vdir.dz;
+				k[n].pos2.x = vline[n].pos2.x+mult*vdir.dx;
+				k[n].pos2.y = vline[n].pos2.y+mult*vdir.dy;
+				k[n].pos2.z = vline[n].pos2.z+mult*vdir.dz;
+			}
+		}
+		return k;
+	}
+	public static Sphere[] translate(Sphere[] vsph, Direction vdir, double mult) {
+		Sphere[] k = null;
+		if ((vsph!=null)&&(vdir!=null)) {
+			k = new Sphere[vsph.length];
+			for (int n=0;n<vsph.length;n++) {
+				k[n] = vsph[n].copy();
+				k[n].x = vsph[n].x+mult*vdir.dx;
+				k[n].y = vsph[n].y+mult*vdir.dy;
+				k[n].z = vsph[n].z+mult*vdir.dz;
+			}
+		}
+		return k;
+	}
+	public static Triangle[] translate(Triangle[] vtri, Direction vdir, double mult) {
+		Triangle[] k = null;
+		if ((vtri!=null)&&(vdir!=null)) {
+			k = new Triangle[vtri.length];
+			for (int n=0;n<vtri.length;n++) {
+				k[n] = vtri[n].copy();
+				k[n].pos1.x = vtri[n].pos1.x+mult*vdir.dx;
+				k[n].pos1.y = vtri[n].pos1.y+mult*vdir.dy;
+				k[n].pos1.z = vtri[n].pos1.z+mult*vdir.dz;
+				k[n].pos2.x = vtri[n].pos2.x+mult*vdir.dx;
+				k[n].pos2.y = vtri[n].pos2.y+mult*vdir.dy;
+				k[n].pos2.z = vtri[n].pos2.z+mult*vdir.dz;
+				k[n].pos3.x = vtri[n].pos3.x+mult*vdir.dx;
+				k[n].pos3.y = vtri[n].pos3.y+mult*vdir.dy;
+				k[n].pos3.z = vtri[n].pos3.z+mult*vdir.dz;
+			}
+		}
+		return k;
+	}
+	public static Quad[] translate(Quad[] vquad, Direction vdir, double mult) {
+		Quad[] k = null;
+		if ((vquad!=null)&&(vdir!=null)) {
+			k = new Quad[vquad.length];
+			for (int n=0;n<vquad.length;n++) {
+				k[n] = vquad[n].copy();
+				k[n].pos1.x = vquad[n].pos1.x+mult*vdir.dx;
+				k[n].pos1.y = vquad[n].pos1.y+mult*vdir.dy;
+				k[n].pos1.z = vquad[n].pos1.z+mult*vdir.dz;
+				k[n].pos2.x = vquad[n].pos2.x+mult*vdir.dx;
+				k[n].pos2.y = vquad[n].pos2.y+mult*vdir.dy;
+				k[n].pos2.z = vquad[n].pos2.z+mult*vdir.dz;
+				k[n].pos3.x = vquad[n].pos3.x+mult*vdir.dx;
+				k[n].pos3.y = vquad[n].pos3.y+mult*vdir.dy;
+				k[n].pos3.z = vquad[n].pos3.z+mult*vdir.dz;
+				k[n].pos4.x = vquad[n].pos4.x+mult*vdir.dx;
+				k[n].pos4.y = vquad[n].pos4.y+mult*vdir.dy;
+				k[n].pos4.z = vquad[n].pos4.z+mult*vdir.dz;
+			}
+		}
+		return k;
+	}
 	public static Matrix rotationMatrix(double xaxisr, double yaxisr, double zaxisr) {
 		double xaxisrrad=xaxisr*(Math.PI/180.0f); double yaxisrrad=yaxisr*(Math.PI/180.0f); double zaxisrrad=zaxisr*(Math.PI/180.0f);
 		Matrix xrot = new Matrix(1,0,0,0,Math.cos(xaxisrrad),-Math.sin(xaxisrrad),0,Math.sin(xaxisrrad),Math.cos(xaxisrrad));
@@ -1185,25 +1281,40 @@ public class MathLib {
 			k = new AffineTransform[vtri.length];
 			for (int i=0;i<vtri.length;i++) {
 				if (vpoly[i].npoints==3) {
+					double[] vtritexu = {vtri[i].pos1.tex.u*vtexture[i].getWidth(),vtri[i].pos2.tex.u*vtexture[i].getWidth(),vtri[i].pos3.tex.u*vtexture[i].getWidth()};
+					double[] vtritexv = {vtri[i].pos1.tex.v*vtexture[i].getHeight(),vtri[i].pos2.tex.v*vtexture[i].getHeight(),vtri[i].pos3.tex.v*vtexture[i].getHeight()};
 					Direction[] polyvec12 = {new Direction(vpoly[i].xpoints[1]-vpoly[i].xpoints[0],vpoly[i].ypoints[1]-vpoly[i].ypoints[0],0.0f)};
 					Direction[] polyvec13 = {new Direction(vpoly[i].xpoints[2]-vpoly[i].xpoints[0],vpoly[i].ypoints[2]-vpoly[i].ypoints[0],0.0f)};
-					Direction[] trivec12 = {new Direction(vtri[i].pos2.tex.u-vtri[i].pos1.tex.u,vtri[i].pos2.tex.v-vtri[i].pos1.tex.v,0.0f)};
-					Direction[] trivec13 = {new Direction(vtri[i].pos3.tex.u-vtri[i].pos1.tex.u,vtri[i].pos3.tex.v-vtri[i].pos1.tex.v,0.0f)};
-					Direction[] deltavec1 = {new Direction(vpoly[i].xpoints[0]-vtri[i].pos1.tex.u,vpoly[i].ypoints[0]-vtri[i].pos1.tex.v,0.0f)};
+					Direction[] trivec12 = {new Direction(vtritexu[1]-vtritexu[0],vtritexv[1]-vtritexv[0],0.0f)};
+					Direction[] trivec13 = {new Direction(vtritexu[2]-vtritexu[0],vtritexv[2]-vtritexv[0],0.0f)};
+					Direction[] deltavec = {new Direction(vpoly[i].xpoints[0]-vtritexu[0],vpoly[i].ypoints[0]-vtritexv[0],0.0f)};
+					Direction[] upvec = {new Direction(0.0f,1.0f,0.0f)};
 					double[] polyvec12len = vectorLength(polyvec12);
 					double[] polyvec13len = vectorLength(polyvec13);
 					double[] trivec12len = vectorLength(trivec12);
 					double[] trivec13len = vectorLength(trivec13);
 					double[] polyvecangles = vectorAngle(polyvec12, polyvec13);
 					double[] trivecangles = vectorAngle(trivec12, trivec13);
+					double[] polyvec12upangle = vectorAngle(polyvec12, upvec);
+					double[] trivec12upangle = vectorAngle(trivec12, upvec);
+					polyvec12upangle[0]=(polyvec12[0].dx<0?-1.0f:1.0)*polyvec12upangle[0];
+					trivec12upangle[0]=(trivec12[0].dx<0?-1.0f:1.0)*trivec12upangle[0];
 					Triangle[] vtriangle = {vtri[i]}; 
 					AxisAlignedBoundingBox tribounds = axisAlignedBoundingBox(generateVertexList(vtriangle));
 					Rectangle polybounds = vpoly[i].getBounds();
 					AffineTransform newtransform = new AffineTransform();
-					double scalefactorx = polybounds.getWidth()/((double)vtexture[i].getWidth());
-					double scalefactory = polybounds.getHeight()/((double)vtexture[i].getHeight());
-					newtransform.translate(polybounds.x, polybounds.y);
-					newtransform.scale(scalefactorx, scalefactory);
+					//double scalefactorx = polybounds.getWidth()/((double)vtexture[i].getWidth());
+					//double scalefactory = polybounds.getHeight()/((double)vtexture[i].getHeight());
+					//newtransform.translate(polybounds.x, polybounds.y);
+					//newtransform.scale(scalefactorx, scalefactory);
+					//newtransform.rotate((Math.PI/180.0f)*trivec12upangle[0], vpoly[i].xpoints[0], vpoly[i].ypoints[0]);
+					newtransform.translate(deltavec[0].dx, deltavec[0].dy);
+					//newtransform.rotate(-(Math.PI/180.0f)*trivec12upangle[0], vtritexu[0], vtritexv[0]);
+					//newtransform.shear(0.0f,Math.cos((Math.PI/180.0f)*trivecangles[0]));
+					//newtransform.scale(1.0f,-1.0f);
+					//newtransform.scale(polyvec12len[0]/trivec12len[0],-polyvec13len[0]/trivec13len[0]);
+					//newtransform.shear(0.0f,-Math.cos((Math.PI/180.0f)*polyvecangles[0]));
+					//newtransform.rotate((Math.PI/180.0f)*polyvec12upangle[0], vtritexu[0], vtritexv[0]);
 					k[i] = newtransform;
 				}
 			}

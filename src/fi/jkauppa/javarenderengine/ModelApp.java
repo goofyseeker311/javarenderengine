@@ -36,7 +36,6 @@ import fi.jkauppa.javarenderengine.ModelLib.Position;
 import fi.jkauppa.javarenderengine.ModelLib.Rotation;
 import fi.jkauppa.javarenderengine.ModelLib.Sphere;
 import fi.jkauppa.javarenderengine.ModelLib.Sphere.SphereDistanceComparator;
-import fi.jkauppa.javarenderengine.ModelLib.Sphere.SphereRenderComparator;
 import fi.jkauppa.javarenderengine.ModelLib.Triangle;
 import fi.jkauppa.javarenderengine.ModelLib.Model;
 
@@ -46,13 +45,10 @@ public class ModelApp extends AppHandlerPanel {
 	private Position campos = new Position(0,0,0);
 	private Rotation camrot = new Rotation(0.0f, 0.0f, 0.0f);
 	private Matrix cameramat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
-	private Matrix rendermat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
-	private final Direction lookdir = new Direction(0,0,-1);
 	private final Direction[] lookdirs = MathLib.projectedCameraDirections(cameramat);
 	private Direction[] camdirs = lookdirs;
 	private double hfov = 70.0f;
 	private double vfov = 43.0f;
-	private double drawdepthscale = 0.0004f;
 	private JFileChooser filechooser = new JFileChooser();
 	private OBJFileFilter objfilefilter = new OBJFileFilter();
 	private boolean leftkeydown = false;
@@ -67,7 +63,6 @@ public class ModelApp extends AppHandlerPanel {
 	private int mouselocationx = -1, mouselocationy = -1;
 	private double[][] zbuffer = null;
 	private int polygonfillmode = 1;
-	private int origindeltax = 0, origindeltay = 0; 
 	private int lastrenderwidth = 0, lastrenderheight = 0;
 	private Cursor customcursor = null;
 	
@@ -86,8 +81,6 @@ public class ModelApp extends AppHandlerPanel {
 
 	@Override public void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		this.origindeltax = (int)Math.floor(((double)this.getWidth())/2.0f);
-		this.origindeltay = (int)Math.floor(((double)this.getHeight())/2.0f);
 		if ((this.lastrenderwidth!=this.getWidth())||(this.lastrenderheight!=this.getHeight())) {
 			this.lastrenderwidth = this.getWidth();
 			this.lastrenderheight = this.getHeight();
@@ -101,16 +94,12 @@ public class ModelApp extends AppHandlerPanel {
 		this.vfov = 2.0f*(180.0f/Math.PI)*Math.atan((((double)this.getHeight())/((double)this.getWidth()))*Math.tan((this.hfov/2.0f)*(Math.PI/180.0f)));
 		if (this.polygonfillmode==1) {
 			renderWindow(g2);
-		} else if (this.polygonfillmode==2) {
-			renderWindowHardware(g2);
 		} else {
 			renderWindowSoftware(g2);
 		}
 	}
 
 	private void renderWindow(Graphics2D g) {
-		g.scale(1.0f, -1.0f);
-		g.translate(0.0f, -this.getHeight());
 		if (this.entitylist!=null) {
 			Sphere[] entityspherelist = new Sphere[this.entitylist.length]; 
 			for (int k=0;k<this.entitylist.length;k++) {
@@ -176,84 +165,11 @@ public class ModelApp extends AppHandlerPanel {
 		}
 	}
 	
-	public void renderWindowHardware(Graphics2D g) {
-		if (this.entitylist!=null) {
-			Position renderpos = new Position(-campos.x,-campos.y,-campos.z);
-			Sphere[] entityspherelist = new Sphere[this.entitylist.length]; 
-			for (int k=0;k<this.entitylist.length;k++) {
-				entityspherelist[k] = this.entitylist[k].sphereboundaryvolume;
-				entityspherelist[k].ind = k;
-			}
-			Sphere[] transformedentityspherelist = MathLib.translate(entityspherelist, renderpos);
-			transformedentityspherelist = MathLib.matrixMultiply(transformedentityspherelist, this.rendermat);
-			TreeSet<Sphere> sortedentityspheretree = new TreeSet<Sphere>(new SphereRenderComparator());
-			sortedentityspheretree.addAll(Arrays.asList(transformedentityspherelist));
-			Sphere[] sortedentityspherelist = sortedentityspheretree.toArray(new Sphere[sortedentityspheretree.size()]);
-			for (int k=0;k<sortedentityspherelist.length;k++) {
-				Triangle[] copytrianglelist = this.entitylist[sortedentityspherelist[k].ind].trianglelist;
-				for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].ind = i;}
-				Triangle[] transformedtrianglelist = MathLib.translate(copytrianglelist, renderpos);
-				transformedtrianglelist = MathLib.matrixMultiply(transformedtrianglelist, this.rendermat);
-				Sphere[] transformedtrianglespherelist = MathLib.triangleCircumSphere(transformedtrianglelist);
-				for (int i=0;i<transformedtrianglespherelist.length;i++) {transformedtrianglespherelist[i].ind = i;}
-				TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereRenderComparator());
-				sortedtrianglespheretree.addAll(Arrays.asList(transformedtrianglespherelist));
-				Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
-				Plane[] triangleplanes = MathLib.planeFromPoints(transformedtrianglelist);
-				Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
-				double[] triangleviewangles = MathLib.vectorAngle(this.lookdir, trianglenormals);
-				for (int j=0;j<sortedtrianglespherelist.length;j++) {
-					int i = sortedtrianglespherelist[j].ind;
-					double pos1s = -transformedtrianglelist[i].pos1.z*this.drawdepthscale+1;
-					double pos2s = -transformedtrianglelist[i].pos2.z*this.drawdepthscale+1;
-					double pos3s = -transformedtrianglelist[i].pos3.z*this.drawdepthscale+1;
-					if ((pos1s>0)&&(pos2s>0)&&(pos3s>0)) {
-						int pos1x = (int)Math.round(transformedtrianglelist[i].pos1.x/pos1s)+this.origindeltax;
-						int pos1y = (int)Math.round(transformedtrianglelist[i].pos1.y/pos1s)+this.origindeltay;
-						int pos2x = (int)Math.round(transformedtrianglelist[i].pos2.x/pos2s)+this.origindeltax;
-						int pos2y = (int)Math.round(transformedtrianglelist[i].pos2.y/pos2s)+this.origindeltay;
-						int pos3x = (int)Math.round(transformedtrianglelist[i].pos3.x/pos3s)+this.origindeltax;
-						int pos3y = (int)Math.round(transformedtrianglelist[i].pos3.y/pos3s)+this.origindeltay;
-						Polygon trianglepolygon = new Polygon();
-						trianglepolygon.addPoint(pos1x, pos1y);
-						trianglepolygon.addPoint(pos2x, pos2y);
-						trianglepolygon.addPoint(pos3x, pos3y);
-						double triangleviewangle = triangleviewangles[i];
-						if (triangleviewangle>90.0f) {
-							triangleviewangle = 180-triangleviewangle;
-						}
-						float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
-						Material copymaterial = copytrianglelist[transformedtrianglelist[i].ind].mat;
-						Color tricolor = copymaterial.facecolor;
-						float alphacolor = copymaterial.transparency;
-						if (tricolor==null) {tricolor = Color.WHITE;}
-						float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
-						g.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
-						VolatileImage tritexture = copymaterial.fileimage;
-						if (tritexture==null) {
-							g.fill(trianglepolygon);
-						} else {
-							g.clip(trianglepolygon);
-							Triangle[] transformedtriangle = {transformedtrianglelist[i]};
-							Polygon[] drawpolygon = {trianglepolygon};
-							VolatileImage[] drawtexture = {tritexture};
-							AffineTransform[] texturetransform = MathLib.textureTransform(drawtexture,transformedtriangle, drawpolygon);
-							g.drawImage(tritexture, texturetransform[0], null);
-							g.setClip(null);
-						}
-					}
-				}
-			}
-		}
-	}
-	
 	private void renderWindowSoftware(Graphics2D g) {
 		if ((this.zbuffer==null)||(this.zbuffer.length!=this.getHeight())||(this.zbuffer[0].length!=this.getWidth())) {
 			this.zbuffer = new double[this.getHeight()][this.getWidth()];
 		}
 		for (int i=0;i<this.zbuffer.length;i++) {Arrays.fill(this.zbuffer[i],Double.MAX_VALUE);}
-		g.scale(1.0f, -1.0f);
-		g.translate(0.0f, -this.getHeight());
 		if (this.entitylist!=null) {
 			Sphere[] entityspherelist = new Sphere[this.entitylist.length]; 
 			for (int k=0;k<this.entitylist.length;k++) {
@@ -357,18 +273,11 @@ public class ModelApp extends AppHandlerPanel {
 		Matrix camrotmatz = MathLib.rotationMatrix(0.0f, 0.0f, this.camrot.z);
 		Matrix camrotmaty = MathLib.rotationMatrix(0.0f, this.camrot.y, 0.0f);
 		Matrix camrotmatx = MathLib.rotationMatrix(this.camrot.x, 0.0f, 0.0f);
-		Matrix renderrotmatx = MathLib.rotationMatrix(-this.camrot.x, 0.0f, 0.0f);
-		Matrix renderrotmaty = MathLib.rotationMatrix(0.0f, -this.camrot.y, 0.0f);
-		Matrix renderrotmatz = MathLib.rotationMatrix(0.0f, 0.0f, -this.camrot.z);
 		Matrix eyeonemat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 		Matrix camrotmat = MathLib.matrixMultiply(eyeonemat, camrotmatz);
 		camrotmat = MathLib.matrixMultiply(camrotmat, camrotmaty);
 		camrotmat = MathLib.matrixMultiply(camrotmat, camrotmatx);
-		Matrix renderrotmat = MathLib.matrixMultiply(eyeonemat, renderrotmatx);
-		renderrotmat = MathLib.matrixMultiply(renderrotmat, renderrotmaty);
-		renderrotmat = MathLib.matrixMultiply(renderrotmat, renderrotmatz);
 		Direction[] camlookdirs = MathLib.matrixMultiply(this.lookdirs, camrotmat);
-		this.rendermat = renderrotmat;
 		this.cameramat = camrotmat;
 		this.camdirs = camlookdirs;
 	}
@@ -393,13 +302,13 @@ public class ModelApp extends AppHandlerPanel {
 			this.campos.z -= 20.0f*this.camdirs[0].dz;
 		}
 		if (this.upwardkeydown) {
-			this.campos.x += 20.0f*this.camdirs[2].dx;
-			this.campos.y += 20.0f*this.camdirs[2].dy;
-			this.campos.z += 20.0f*this.camdirs[2].dz;
-		} else if (this.downwardkeydown) {
 			this.campos.x -= 20.0f*this.camdirs[2].dx;
 			this.campos.y -= 20.0f*this.camdirs[2].dy;
 			this.campos.z -= 20.0f*this.camdirs[2].dz;
+		} else if (this.downwardkeydown) {
+			this.campos.x += 20.0f*this.camdirs[2].dx;
+			this.campos.y += 20.0f*this.camdirs[2].dy;
+			this.campos.z += 20.0f*this.camdirs[2].dz;
 		}
 		if (this.rollleftkeydown) {
 			this.camrot.y -= 1.0f;
@@ -454,7 +363,7 @@ public class ModelApp extends AppHandlerPanel {
 			this.rollrightkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
 			this.polygonfillmode += 1;
-			if (this.polygonfillmode>3) {
+			if (this.polygonfillmode>2) {
 				this.polygonfillmode = 1;
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
@@ -536,8 +445,8 @@ public class ModelApp extends AppHandlerPanel {
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
     	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
     	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-    	this.camrot.z += mousedeltax*0.1f;
-    	this.camrot.x += mousedeltay*0.1f;
+    	this.camrot.z -= mousedeltax*0.1f;
+    	this.camrot.x -= mousedeltay*0.1f;
     	updateCameraDirections();
 		if ((this.mouselocationx<=0)||(this.mouselocationy<=0)||(this.mouselocationx>=(this.lastrenderwidth-1))||(this.mouselocationy>=(this.lastrenderheight-1))) {
 			mouseExited(e);
