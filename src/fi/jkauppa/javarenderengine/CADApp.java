@@ -259,8 +259,8 @@ public class CADApp extends AppHandlerPanel {
 		int k = -1;
 		double mouserelativelocationx = this.mouselocationx-this.origindeltax;
 		double mouserelativelocationy = this.mouselocationy-this.origindeltay;
-		Position[] camposarray = {this.campos};
-		Position[] mousesphereposarray = MathLib.translate(camposarray, this.camdirs[1], mouserelativelocationx);
+		Position[] editposarray = {this.editpos};
+		Position[] mousesphereposarray = MathLib.translate(editposarray, this.camdirs[1], mouserelativelocationx);
 		mousesphereposarray = MathLib.translate(mousesphereposarray, this.camdirs[2], mouserelativelocationy);
 		Sphere[] vsphere1 = new Sphere[1]; vsphere1[0] = new Sphere(mousesphereposarray[0].x, mousesphereposarray[0].y, mousesphereposarray[0].z, 0.0f); 
 		Sphere[] vsphere2 = new Sphere[2*this.linelistarray.size()];
