@@ -6,13 +6,16 @@ import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Transparency;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.awt.image.VolatileImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,15 +62,11 @@ public class ModelApp extends AppHandlerPanel {
 	private int mouselastlocationx = -1, mouselastlocationy = -1; 
 	private int mouselocationx = -1, mouselocationy = -1;
 	private int polygonfillmode = 1;
-	private int lastrenderwidth = 0, lastrenderheight = 0;
+	private BufferedImage cursorimage = gc.createCompatibleImage(1, 1, Transparency.TRANSLUCENT);
 	private Cursor customcursor = null;
 	
 	public ModelApp() {
-		BufferedImage cursorimage = gc.createCompatibleImage(1, 1, Transparency.TRANSLUCENT);
-		Graphics2D cgfx = cursorimage.createGraphics();
-		cgfx.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
-		cgfx.drawLine(0, 0, 0, 0);
-		cgfx.dispose();
+		cursorimage.setRGB(0, 0, (new Color(0.0f,0.0f,0.0f,0.0f)).getRGB());
 		this.customcursor = tk.createCustomCursor(cursorimage, new Point(0,0), "customcursor");
 		this.filechooser.addChoosableFileFilter(this.objfilefilter);
 		this.filechooser.setFileFilter(this.objfilefilter);
@@ -77,14 +76,11 @@ public class ModelApp extends AppHandlerPanel {
 
 	@Override public void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		if ((this.lastrenderwidth!=this.getWidth())||(this.lastrenderheight!=this.getHeight())) {
-			this.lastrenderwidth = this.getWidth();
-			this.lastrenderheight = this.getHeight();
-		}
 		Graphics2D g2 = (Graphics2D)g;
 		g2.setComposite(AlphaComposite.Src);
 		g2.setColor(Color.BLACK);
 		g2.setPaint(null);
+		g2.setClip(null);
 		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
 		g2.setComposite(AlphaComposite.SrcOver);
 		this.vfov = 2.0f*(180.0f/Math.PI)*Math.atan((((double)this.getHeight())/((double)this.getWidth()))*Math.tan((this.hfov/2.0f)*(Math.PI/180.0f)));
@@ -138,8 +134,8 @@ public class ModelApp extends AppHandlerPanel {
 									if (tricolor==null) {tricolor = Color.WHITE;}
 									float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
 									Color trianglecolor = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
-									g.setColor(trianglecolor);
-									//VolatileImage tritexture = copymaterial.fileimage;
+									g2.setColor(trianglecolor);
+									VolatileImage tritexture = copymaterial.fileimage;
 									Position[] drawlinepoints = {drawline.pos1, drawline.pos2};
 									double[][] fwdintpointsdist = MathLib.pointPlaneDistance(drawlinepoints, camfwdplane);
 									double[][] upintpointsdist = MathLib.pointPlaneDistance(drawlinepoints, camupplane);
@@ -150,19 +146,29 @@ public class ModelApp extends AppHandlerPanel {
 									double[] vpixelysort = UtilLib.indexValues(vpixelys, vpixelyinds);
 									int vpixelyind1 = (int)Math.ceil(vpixelysort[0]); 
 									int vpixelyind2 = (int)Math.floor(vpixelysort[1]); 
-									//Position[] sortlinepoints = {drawlinepoints[vpixelinds[0]], drawlinepoints[vpixelinds[1]]}; 
-									//Direction[] drawvector = MathLib.vectorFromPoints(this.campos, sortlinepoints);
-									//double[] drawdistance = MathLib.vectorLength(drawvector);
-									//double drawdistancedelta = drawdistance[1]-drawdistance[0];
-									//Coordinate[] drawlineuvs = {sortlinepoints[0].tex, sortlinepoints[1].tex};
-									//double udelta = drawlineuvs[1].u - drawlineuvs[0].u;
-									//double vdelta = drawlineuvs[1].v - drawlineuvs[0].v;
+									Coordinate[] drawlineuvs = {drawlinepoints[vpixelyinds[0]].tex, drawlinepoints[vpixelyinds[1]].tex}; 
 									if ((vpixelyind2>=0)&&(vpixelyind1<=this.getHeight())) {
-										if (vpixelyind1<0) {vpixelyind1=0;}
-										if (vpixelyind1>this.getHeight()) {vpixelyind1=this.getHeight();}
-										if (vpixelyind2<0) {vpixelyind2=0;}
-										if (vpixelyind2>this.getHeight()) {vpixelyind2=this.getHeight();}
-										g.drawLine(j, vpixelyind1, j, vpixelyind2);
+										if (tritexture==null) {
+											g2.drawLine(j, vpixelyind1, j, vpixelyind2);
+										} else {
+											Position[] lineuvpoint1 = {new Position(drawlineuvs[0].u*tritexture.getWidth(),drawlineuvs[0].v*tritexture.getHeight(),0.0f)};
+											Position[] lineuvpoint2 = {new Position(drawlineuvs[1].u*tritexture.getWidth(),drawlineuvs[1].v*tritexture.getHeight(),0.0f)};
+											Position[] linescanpoint1 = {new Position(j,vpixelyind1,0.0f)};
+											Position[] linescanpoint2 = {new Position(j,vpixelyind2,0.0f)};
+											Direction[] lineuvvector = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2); 
+											Direction[] linescanvector = {new Direction(0.0f,1.0f,0.0f)};
+											Direction[] lineuvscanvector1 = MathLib.vectorFromPoints(lineuvpoint1, linescanpoint1);
+											double[] lineuvscanangle = MathLib.vectorAngle(lineuvvector, linescanvector);
+											if (lineuvvector[0].dx<0) {lineuvscanangle[0]*=-1.0f;}
+											double[] lineuvlength = MathLib.vectorLength(lineuvvector);
+											double[] linescanlength = MathLib.vectorLength(linescanvector);
+											AffineTransform texat = new AffineTransform();
+											Rectangle lineclip = new Rectangle(j, vpixelyind1, 1, vpixelyind2-vpixelyind1+1);
+											g2.setClip(null);
+											g2.clip(lineclip);
+											g2.drawImage(tritexture, texat, null);
+											g2.setClip(null);
+										}
 									}
 								}
 							}

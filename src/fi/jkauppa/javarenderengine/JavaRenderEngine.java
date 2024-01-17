@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.8.8");
+		this.setTitle("Java Render Engine v1.8.9");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -239,6 +239,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public static abstract class AppHandlerPanel extends JPanel implements KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 		private static final long serialVersionUID = 1L;
+		public int lastrenderwidth = 0, lastrenderheight = 0;
 		public long newupdate = System.currentTimeMillis();
 		public long lastupdate = newupdate;
 		public long ticktime = 0;
@@ -252,6 +253,11 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		
 		@Override public void paintComponent(Graphics g) {
 			super.paintComponent(g);
+			if ((this.lastrenderwidth!=this.getWidth())||(this.lastrenderheight!=this.getHeight())) {
+				this.lastrenderwidth = this.getWidth();
+				this.lastrenderheight = this.getHeight();
+				System.out.println("Window: Resolution "+this.getWidth()+"x"+this.getHeight());
+			}
 			this.newupdate = System.currentTimeMillis();
 			this.ticktime = this.newupdate-this.lastupdate;
 			this.ticktimesec = ((double)this.ticktime)/1000.0f;
