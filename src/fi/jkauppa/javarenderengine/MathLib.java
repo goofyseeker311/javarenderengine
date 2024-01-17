@@ -1303,18 +1303,12 @@ public class MathLib {
 					AxisAlignedBoundingBox tribounds = axisAlignedBoundingBox(generateVertexList(vtriangle));
 					Rectangle polybounds = vpoly[i].getBounds();
 					AffineTransform newtransform = new AffineTransform();
-					//double scalefactorx = polybounds.getWidth()/((double)vtexture[i].getWidth());
-					//double scalefactory = polybounds.getHeight()/((double)vtexture[i].getHeight());
-					//newtransform.translate(polybounds.x, polybounds.y);
-					//newtransform.scale(scalefactorx, scalefactory);
-					//newtransform.rotate((Math.PI/180.0f)*trivec12upangle[0], vpoly[i].xpoints[0], vpoly[i].ypoints[0]);
 					newtransform.translate(deltavec[0].dx, deltavec[0].dy);
-					//newtransform.rotate(-(Math.PI/180.0f)*trivec12upangle[0], vtritexu[0], vtritexv[0]);
-					//newtransform.shear(0.0f,Math.cos((Math.PI/180.0f)*trivecangles[0]));
-					//newtransform.scale(1.0f,-1.0f);
-					//newtransform.scale(polyvec12len[0]/trivec12len[0],-polyvec13len[0]/trivec13len[0]);
-					//newtransform.shear(0.0f,-Math.cos((Math.PI/180.0f)*polyvecangles[0]));
-					//newtransform.rotate((Math.PI/180.0f)*polyvec12upangle[0], vtritexu[0], vtritexv[0]);
+					//newtransform.scale(polyvec13len[0]/trivec13len[0],polyvec12len[0]/trivec12len[0]);
+					newtransform.rotate((Math.PI/180.0f)*trivec12upangle[0], vtritexu[0], vtritexv[0]);
+					//newtransform.shear(0.0f,-Math.sin(Math.PI/180.0f)*(trivecangles[0]));
+					//newtransform.shear(0.0f,Math.sin(Math.PI/180.0f)*(polyvecangles[0]));
+					newtransform.rotate(-(Math.PI/180.0f)*polyvec12upangle[0], vtritexu[0], vtritexv[0]);
 					k[i] = newtransform;
 				}
 			}
