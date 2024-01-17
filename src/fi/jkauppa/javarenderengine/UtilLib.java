@@ -121,11 +121,5 @@ public class UtilLib {
 	public static VolatileImage renderProjectedView(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot) {
 		return null;
 	}
-	public static VolatileImage renderProjectedViewH(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot) {
-		return null;
-	}
-	public static VolatileImage renderProjectedViewS(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot) {
-		return null;
-	}
 	
 }
