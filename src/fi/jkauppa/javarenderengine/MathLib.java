@@ -1,9 +1,6 @@
 package fi.jkauppa.javarenderengine;
 
-import java.awt.Polygon;
 import java.awt.Rectangle;
-import java.awt.geom.AffineTransform;
-import java.awt.image.VolatileImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -425,21 +422,32 @@ public class MathLib {
 				double[][] ptd13 = rayPlaneDistance(vtri[m].pos1, vtri13, vplane);
 				double[][] ptd23 = rayPlaneDistance(vtri[m].pos2, vtri23, vplane);
 				for (int n=0;n<vplane.length;n++) {
-					Position[] ptlint12 = new Position[1]; ptlint12[0] = new Position(vtri[m].pos1.x+ptd12[0][n]*vtri12[0].dx,vtri[m].pos1.y+ptd12[0][n]*vtri12[0].dy,vtri[m].pos1.z+ptd12[0][n]*vtri12[0].dz);
-					Position[] ptlint13 = new Position[1]; ptlint13[0] = new Position(vtri[m].pos1.x+ptd13[0][n]*vtri13[0].dx,vtri[m].pos1.y+ptd13[0][n]*vtri13[0].dy,vtri[m].pos1.z+ptd13[0][n]*vtri13[0].dz);
-					Position[] ptlint23 = new Position[1]; ptlint23[0] = new Position(vtri[m].pos2.x+ptd23[0][n]*vtri23[0].dx,vtri[m].pos2.y+ptd23[0][n]*vtri23[0].dy,vtri[m].pos2.z+ptd23[0][n]*vtri23[0].dz);
 					boolean ptlhit12 = (ptd12[0][n]>=0)&(ptd12[0][n]<=1);
 					boolean ptlhit13 = (ptd13[0][n]>=0)&(ptd13[0][n]<=1);
 					boolean ptlhit23 = (ptd23[0][n]>=0)&(ptd23[0][n]<=1);
 					if (ptlhit12|ptlhit13|ptlhit23) {
+						Position ptlint12 = new Position(vtri[m].pos1.x+ptd12[0][n]*vtri12[0].dx,vtri[m].pos1.y+ptd12[0][n]*vtri12[0].dy,vtri[m].pos1.z+ptd12[0][n]*vtri12[0].dz);
+						Position ptlint13 = new Position(vtri[m].pos1.x+ptd13[0][n]*vtri13[0].dx,vtri[m].pos1.y+ptd13[0][n]*vtri13[0].dy,vtri[m].pos1.z+ptd13[0][n]*vtri13[0].dz);
+						Position ptlint23 = new Position(vtri[m].pos2.x+ptd23[0][n]*vtri23[0].dx,vtri[m].pos2.y+ptd23[0][n]*vtri23[0].dy,vtri[m].pos2.z+ptd23[0][n]*vtri23[0].dz);
+						if ((vtri[m].pos1.tex!=null)&&(vtri[m].pos2.tex!=null)&&(vtri[m].pos3.tex!=null)) {
+							double udelta12 = vtri[m].pos2.tex.u-vtri[m].pos1.tex.u;
+							double vdelta12 = vtri[m].pos2.tex.v-vtri[m].pos1.tex.v;
+							double udelta13 = vtri[m].pos3.tex.u-vtri[m].pos1.tex.u;
+							double vdelta13 = vtri[m].pos3.tex.v-vtri[m].pos1.tex.v;
+							double udelta23 = vtri[m].pos3.tex.u-vtri[m].pos2.tex.u;
+							double vdelta23 = vtri[m].pos3.tex.v-vtri[m].pos2.tex.v;
+							ptlint12.tex = new Coordinate(vtri[m].pos1.tex.u+ptd12[0][n]*udelta12,vtri[m].pos1.tex.v+ptd12[0][n]*vdelta12);
+							ptlint13.tex = new Coordinate(vtri[m].pos1.tex.u+ptd13[0][n]*udelta13,vtri[m].pos1.tex.v+ptd13[0][n]*vdelta13);
+							ptlint23.tex = new Coordinate(vtri[m].pos2.tex.u+ptd23[0][n]*udelta23,vtri[m].pos3.tex.v+ptd23[0][n]*vdelta23);
+						}
 						if (ptlhit12&&ptlhit13) {
-							k[n][m] = new Line(ptlint12[0],ptlint13[0]);
+							k[n][m] = new Line(ptlint12,ptlint13);
 							k[n][m].ind = 0;
 						} else if (ptlhit12&&ptlhit23) {
-							k[n][m] = new Line(ptlint12[0],ptlint23[0]);
+							k[n][m] = new Line(ptlint12,ptlint23);
 							k[n][m].ind = 1;
 						} else if (ptlhit13&&ptlhit23) {
-							k[n][m] = new Line(ptlint13[0],ptlint23[0]);
+							k[n][m] = new Line(ptlint13,ptlint23);
 							k[n][m].ind = 2;
 						}
 					}
@@ -458,10 +466,14 @@ public class MathLib {
 				Direction[] vline12 = vectorFromPoints(p1, p2);
 				double[][] ptd1 = rayPlaneDistance(vline[m].pos1, vline12, vplane);
 				for (int n=0;n<vplane.length;n++) {
-					Position[] ptlint1 = new Position[1]; ptlint1[0] = new Position(vline[m].pos1.x+ptd1[0][n]*vline12[0].dx,vline[m].pos1.y+ptd1[0][n]*vline12[0].dy,vline[m].pos1.z+ptd1[0][n]*vline12[0].dz);
-					boolean ptlhit1 = (ptd1[0][n]>=0)&(ptd1[0][n]<=1);
-					if (ptlhit1) {
-						k[n][m] = ptlint1[0];
+					if ((ptd1[0][n]>=0)&(ptd1[0][n]<=1)) {
+						Position ptlint = new Position(vline[m].pos1.x+ptd1[0][n]*vline12[0].dx,vline[m].pos1.y+ptd1[0][n]*vline12[0].dy,vline[m].pos1.z+ptd1[0][n]*vline12[0].dz);
+						if ((vline[m].pos1.tex!=null)&&(vline[m].pos2.tex!=null)) {
+							double udelta = vline[m].pos2.tex.u-vline[m].pos1.tex.u;
+							double vdelta = vline[m].pos2.tex.v-vline[m].pos1.tex.v;
+							ptlint.tex = new Coordinate(vline[m].pos1.tex.u+ptd1[0][n]*udelta,vline[m].pos1.tex.v+ptd1[0][n]*vdelta);
+						}
+						k[n][m] = ptlint;
 					}
 				}
 			}
@@ -1269,48 +1281,6 @@ public class MathLib {
 				newtriangle2.norm = vtri[i].norm;
 				k[i*2] = newtriangle1;
 				k[i*2+1] = newtriangle2;
-			}
-		}
-		return k;
-	}
-	
-	public static AffineTransform[] textureTransform(VolatileImage[] vtexture, Triangle[] vtri, Polygon[] vpoly) {
-		AffineTransform[] k = null;
-		//TODO triangle texture coordinates transform into display polygon triangle
-		if ((vtexture!=null)&&(vtri!=null)&&(vpoly!=null)&&(vtri.length==vpoly.length)&&(vtri.length==vtexture.length)) {
-			k = new AffineTransform[vtri.length];
-			for (int i=0;i<vtri.length;i++) {
-				if (vpoly[i].npoints==3) {
-					double[] vtritexu = {vtri[i].pos1.tex.u*vtexture[i].getWidth(),vtri[i].pos2.tex.u*vtexture[i].getWidth(),vtri[i].pos3.tex.u*vtexture[i].getWidth()};
-					double[] vtritexv = {vtri[i].pos1.tex.v*vtexture[i].getHeight(),vtri[i].pos2.tex.v*vtexture[i].getHeight(),vtri[i].pos3.tex.v*vtexture[i].getHeight()};
-					Direction[] polyvec12 = {new Direction(vpoly[i].xpoints[1]-vpoly[i].xpoints[0],vpoly[i].ypoints[1]-vpoly[i].ypoints[0],0.0f)};
-					Direction[] polyvec13 = {new Direction(vpoly[i].xpoints[2]-vpoly[i].xpoints[0],vpoly[i].ypoints[2]-vpoly[i].ypoints[0],0.0f)};
-					Direction[] trivec12 = {new Direction(vtritexu[1]-vtritexu[0],vtritexv[1]-vtritexv[0],0.0f)};
-					Direction[] trivec13 = {new Direction(vtritexu[2]-vtritexu[0],vtritexv[2]-vtritexv[0],0.0f)};
-					Direction[] deltavec = {new Direction(vpoly[i].xpoints[0]-vtritexu[0],vpoly[i].ypoints[0]-vtritexv[0],0.0f)};
-					Direction[] upvec = {new Direction(0.0f,1.0f,0.0f)};
-					double[] polyvec12len = vectorLength(polyvec12);
-					double[] polyvec13len = vectorLength(polyvec13);
-					double[] trivec12len = vectorLength(trivec12);
-					double[] trivec13len = vectorLength(trivec13);
-					double[] polyvecangles = vectorAngle(polyvec12, polyvec13);
-					double[] trivecangles = vectorAngle(trivec12, trivec13);
-					double[] polyvec12upangle = vectorAngle(polyvec12, upvec);
-					double[] trivec12upangle = vectorAngle(trivec12, upvec);
-					polyvec12upangle[0]=(polyvec12[0].dx<0?-1.0f:1.0)*polyvec12upangle[0];
-					trivec12upangle[0]=(trivec12[0].dx<0?-1.0f:1.0)*trivec12upangle[0];
-					Triangle[] vtriangle = {vtri[i]}; 
-					AxisAlignedBoundingBox tribounds = axisAlignedBoundingBox(generateVertexList(vtriangle));
-					Rectangle polybounds = vpoly[i].getBounds();
-					AffineTransform newtransform = new AffineTransform();
-					newtransform.translate(deltavec[0].dx, deltavec[0].dy);
-					//newtransform.scale(polyvec13len[0]/trivec13len[0],polyvec12len[0]/trivec12len[0]);
-					newtransform.rotate((Math.PI/180.0f)*trivec12upangle[0], vtritexu[0], vtritexv[0]);
-					//newtransform.shear(0.0f,-Math.sin(Math.PI/180.0f)*(trivecangles[0]));
-					//newtransform.shear(0.0f,Math.sin(Math.PI/180.0f)*(polyvecangles[0]));
-					newtransform.rotate(-(Math.PI/180.0f)*polyvec12upangle[0], vtritexu[0], vtritexv[0]);
-					k[i] = newtransform;
-				}
 			}
 		}
 		return k;
