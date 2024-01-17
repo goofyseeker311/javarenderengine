@@ -299,11 +299,15 @@ public class ModelLib {
 			boolean k = false;
 			if (o.getClass().equals(this.getClass())) {
 				Tetrahedron co = (Tetrahedron)o;
-				Position[] tposarray = {this.pos1,this.pos2,this.pos3,this.pos4};
-				Position[] oposarray = {co.pos1,co.pos2,co.pos3,this.pos4};
-				Arrays.sort(tposarray);
-				Arrays.sort(oposarray);
-				if ((tposarray[0].compareTo(oposarray[0])==0)&&(tposarray[1].compareTo(oposarray[1])==0)&&(tposarray[2].compareTo(oposarray[2])==0)&&(tposarray[3].compareTo(oposarray[3])==0)) {
+				Position[] tp = {this.pos1,this.pos2,this.pos3,this.pos4};
+				Position[] op = {co.pos1,co.pos2,co.pos3,this.pos4};
+				Arrays.sort(tp);
+				Arrays.sort(op);
+				boolean arraytest1 = (tp[0].x==op[0].x)&&(tp[0].y==op[0].y)&&(tp[0].z==op[0].z);
+				boolean arraytest2 = (tp[1].x==op[1].x)&&(tp[1].y==op[1].y)&&(tp[1].z==op[1].z);
+				boolean arraytest3 = (tp[2].x==op[2].x)&&(tp[2].y==op[2].y)&&(tp[2].z==op[2].z);
+				boolean arraytest4 = (tp[3].x==op[3].x)&&(tp[3].y==op[3].y)&&(tp[3].z==op[3].z);
+				if ((arraytest1)&&(arraytest2)&&(arraytest3)&&(arraytest4)) {
 					k = true;
 				}
 			}
