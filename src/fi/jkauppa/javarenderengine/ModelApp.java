@@ -169,8 +169,11 @@ public class ModelApp extends AppHandlerPanel {
 		if ((this.zbuffer==null)||(this.zbuffer.length!=this.getHeight())||(this.zbuffer[0].length!=this.getWidth())) {
 			this.zbuffer = new double[this.getHeight()][this.getWidth()];
 		}
-		for (int i=0;i<this.zbuffer.length;i++) {Arrays.fill(this.zbuffer[i],Double.MAX_VALUE);}
+		for (int i=0;i<this.zbuffer.length;i++) {Arrays.fill(this.zbuffer[i],Double.POSITIVE_INFINITY);}
 		if (this.entitylist!=null) {
+			Plane[] verticalplanes = MathLib.projectedPlanes(this.campos, this.getWidth(), hfov, this.cameramat);
+			double[] verticalangles = MathLib.projectedAngles(this.getHeight(), vfov);
+			Arrays.sort(verticalangles);
 			Sphere[] entityspherelist = new Sphere[this.entitylist.length]; 
 			for (int k=0;k<this.entitylist.length;k++) {
 				entityspherelist[k] = this.entitylist[k].sphereboundaryvolume;
@@ -182,9 +185,6 @@ public class ModelApp extends AppHandlerPanel {
 			for (int k=0;k<sortedentityspherelist.length;k++) {
 				Triangle[] copytrianglelist = this.entitylist[sortedentityspherelist[k].ind].trianglelist;
 				if (copytrianglelist.length>0) {
-					Plane[] verticalplanes = MathLib.projectedPlanes(this.campos, this.getWidth(), hfov, this.cameramat);
-					double[] verticalangles = MathLib.projectedAngles(this.getHeight(), vfov);
-					Arrays.sort(verticalangles);
 					Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(verticalplanes, copytrianglelist);		
 					Plane[] triangleplanes = MathLib.planeFromPoints(copytrianglelist);
 					Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);

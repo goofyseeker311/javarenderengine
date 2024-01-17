@@ -61,6 +61,29 @@ public class ModelLib {
 			return k;
 		}
 	}
+	public static class Cubemap {
+		public VolatileImage top=null,bottom=null,left=null,right=null,forward=null,backward=null;
+		public int vres = 0; 
+		public Cubemap(int vresi) {
+			this.vres = vresi;
+			this.top = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
+			this.bottom = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
+			this.left = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
+			this.right = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
+			this.forward = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
+			this.backward = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
+		}
+	}
+	public static class Spheremap {
+		public VolatileImage equirectangular = null;
+		public int hres = 0, vres = 0; 
+		public Spheremap(int hresi, int vresi) {
+			this.hres = hresi;
+			this.vres = vresi;
+			this.equirectangular = gc.createCompatibleVolatileImage(this.hres,this.vres,Transparency.TRANSLUCENT);
+		}
+	}
+	
 	public static class Position implements Comparable<Position> {public double x,y,z; public Coordinate tex; public Material mat; public int ind=-1; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
 		@Override public int compareTo(Position o){
 			int k = -1;
