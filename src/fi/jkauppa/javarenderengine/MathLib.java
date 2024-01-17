@@ -1102,11 +1102,11 @@ public class MathLib {
 			Plane[] tetrahedronsideplanes = planeFromPoints(tetrahedronsides);
 			Position[] tetrahedronsidepoints = {newtetrahedronlist[j].pos4,newtetrahedronlist[j].pos3,newtetrahedronlist[j].pos2,newtetrahedronlist[j].pos1};
 			for (int i=0;i<tetrahedronsides.length;i++) {
-				Plane[] tetrahedronsideplane = {tetrahedronsideplanes[i]};
 				Direction tetrahedronsideplanenormal = new Direction(tetrahedronsideplanes[i].a,tetrahedronsideplanes[i].b,tetrahedronsideplanes[i].c);
-				Direction[] tetrahedronsideplanenormalarray = {tetrahedronsideplanenormal};
-				double[][] tetrahedronsideplanepointdist = rayPlaneDistance(tetrahedronsidepoints[i], tetrahedronsideplanenormalarray, tetrahedronsideplane);
-				if (tetrahedronsideplanepointdist[0][0]<0) {
+				Position[] tetrahedronsidepoint = {tetrahedronsidepoints[i]};
+				Plane[] tetrahedronsideplane = {tetrahedronsideplanes[i]};
+				double[][] tetrahedronsideplanepointdist = pointPlaneDistance(tetrahedronsidepoint, tetrahedronsideplane);
+				if (tetrahedronsideplanepointdist[0][0]>0) {
 					tetrahedronsideplanenormal = new Direction(-tetrahedronsideplanes[i].a,-tetrahedronsideplanes[i].b,-tetrahedronsideplanes[i].c);
 				}
 				tetrahedronsides[i].norm = tetrahedronsideplanenormal;
