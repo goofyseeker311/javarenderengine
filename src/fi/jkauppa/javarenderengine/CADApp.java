@@ -573,6 +573,10 @@ public class CADApp extends AppHandlerPanel {
 						}
 					}
 					this.linelistarray.addAll(Arrays.asList(MathLib.generateLineList(newentitylist[0].trianglelist)));
+					Line[] linelist = linelistarray.toArray(new Line[linelistarray.size()]);
+					newentitylist[0].vertexlist = MathLib.generateVertexList(linelist);
+					newentitylist[0].aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newentitylist[0].vertexlist);
+					newentitylist[0].sphereboundaryvolume = MathLib.pointCloudCircumSphere(newentitylist[0].vertexlist);
 					this.entitylist = newentitylist;
 				} else {
 					ArrayList<Entity> newentitylistarray = new ArrayList<Entity>(); 
@@ -630,9 +634,10 @@ public class CADApp extends AppHandlerPanel {
 						}
 					}
 					this.linelistarray.addAll(uniquelinetree);
+					Line[] linelist = linelistarray.toArray(new Line[linelistarray.size()]);
 					for (Iterator<Entity> i=newentitylistarray.iterator();i.hasNext();) {
 						Entity nextentity = i.next();
-						nextentity.vertexlist = MathLib.generateVertexList(nextentity.trianglelist);
+						nextentity.vertexlist = MathLib.generateVertexList(linelist);
 						nextentity.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(nextentity.vertexlist);
 						nextentity.sphereboundaryvolume = MathLib.pointCloudCircumSphere(nextentity.vertexlist);
 					}
