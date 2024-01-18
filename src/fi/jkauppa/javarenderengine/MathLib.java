@@ -240,9 +240,13 @@ public class MathLib {
 		double[][] k = null;
 		if ((vpos!=null)&&(vdir!=null)&&(vpoint!=null)) {
 			k = new double[vdir.length][vpoint.length];
+			Direction[] pospointdir = vectorFromPoints(vpos, vpoint);
+			double[] bottom = vectorDot(vdir, vdir);
 			for (int n=0;n<vdir.length;n++) {
-				//TODO closest distance from point to a line
-				//t0 = (ldir . (point - lpos)) / (ldir . ldir) 
+				double[] top = vectorDot(vdir[n], pospointdir);
+				for (int m=0;m<vpoint.length;m++) {
+					k[n][m] = top[m]/bottom[n];
+				}
 			}
 		}
 		return k;
@@ -277,11 +281,11 @@ public class MathLib {
 			double[][] tpdist = rayPlaneDistance(vpos, vdir, tplanes);
 			for (int n=0;n<vdir.length;n++) {
 				for (int m=0;m<vtri.length;m++) {
-					if ((!Double.isInfinite(tpdist[n][m]))&&(tpdist[n][m]>=0)) {
-						Position[] p4 = new Position[1]; p4[0] = new Position(vpos.x+vdir[n].dx*tpdist[n][m],vpos.y+vdir[n].dy*tpdist[n][m],vpos.z+vdir[n].dz*tpdist[n][m]);
-						Position[] p1 = new Position[1]; p1[0] = vtri[m].pos1;
-						Position[] p2 = new Position[1]; p2[0] = vtri[m].pos2;
-						Position[] p3 = new Position[1]; p3[0] = vtri[m].pos3;
+					if ((Double.isFinite(tpdist[n][m]))&&(tpdist[n][m]>=0)) {
+						Position[] p4 = {new Position(vpos.x+vdir[n].dx*tpdist[n][m],vpos.y+vdir[n].dy*tpdist[n][m],vpos.z+vdir[n].dz*tpdist[n][m])};
+						Position[] p1 = {vtri[m].pos1};
+						Position[] p2 = {vtri[m].pos2};
+						Position[] p3 = {vtri[m].pos3};
 						Direction[] v12 = vectorFromPoints(p1, p2); Direction[] v21 = vectorFromPoints(p2, p1);
 						Direction[] v13 = vectorFromPoints(p1, p3); Direction[] v31 = vectorFromPoints(p3, p1);
 						Direction[] v23 = vectorFromPoints(p2, p3); Direction[] v32 = vectorFromPoints(p3, p2);
@@ -294,6 +298,9 @@ public class MathLib {
 						double[] h12 = vectorAngle(v12,t1); double[] h13 = vectorAngle(v13,t1);
 						double[] h21 = vectorAngle(v21,t2); double[] h23 = vectorAngle(v23,t2);
 						double[] h31 = vectorAngle(v31,t3); double[] h32 = vectorAngle(v32,t3);
+						if ((p1[0].tex!=null)&&(p2[0].tex!=null)&&(p3[0].tex!=null)) {
+							
+						}
 						boolean isatpoint = ((t1[0].dx==0)&&(t1[0].dy==0)&&(t1[0].dz==0))||((t2[0].dx==0)&&(t2[0].dy==0)&&(t2[0].dz==0))||((t3[0].dx==0)&&(t3[0].dy==0)&&(t3[0].dz==0));
 						boolean withinangles = (h12[0]<=a1[0])&&(h13[0]<=a1[0])&&(h21[0]<=a2[0])&&(h23[0]<=a2[0])&&(h31[0]<=a3[0])&&(h32[0]<=a3[0]);
 						if(isatpoint||withinangles) {
@@ -438,7 +445,7 @@ public class MathLib {
 							double vdelta23 = vtri[m].pos3.tex.v-vtri[m].pos2.tex.v;
 							ptlint12.tex = new Coordinate(vtri[m].pos1.tex.u+ptd12[0][n]*udelta12,vtri[m].pos1.tex.v+ptd12[0][n]*vdelta12);
 							ptlint13.tex = new Coordinate(vtri[m].pos1.tex.u+ptd13[0][n]*udelta13,vtri[m].pos1.tex.v+ptd13[0][n]*vdelta13);
-							ptlint23.tex = new Coordinate(vtri[m].pos2.tex.u+ptd23[0][n]*udelta23,vtri[m].pos3.tex.v+ptd23[0][n]*vdelta23);
+							ptlint23.tex = new Coordinate(vtri[m].pos2.tex.u+ptd23[0][n]*udelta23,vtri[m].pos2.tex.v+ptd23[0][n]*vdelta23);
 						}
 						if (ptlhit12&&ptlhit13) {
 							k[n][m] = new Line(ptlint12,ptlint13);

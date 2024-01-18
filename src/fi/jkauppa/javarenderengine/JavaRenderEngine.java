@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.8.9");
+		this.setTitle("Java Render Engine v1.8.10");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -85,10 +85,13 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		try {UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());} catch (Exception ex) {}
         
 		Position campos=new Position(0.0f,0.0f,0.0f);
-		Position[] camposa=new Position[1]; camposa[0]=campos;
+		Position[] camposa = {campos};
 		Position[] campos2 = {new Position(1.0f,2.0f,3.0f), new Position(1.0f,2.0f,3.0f)};
 		Position[] campos3 = {new Position(1.0f,0.0f,0.0f), new Position(1.0f,0.0f,0.0f)};
 		Position[] campos4 = {new Position(1.0f,0.0f,0.0f), new Position(1.0f,1.0f,0.0f), new Position(1.0f,0.0f,1.0f)};
+		campos4[0].tex = new Coordinate(0.0f,0.0f);
+		campos4[1].tex = new Coordinate(1.0f,0.0f);
+		campos4[2].tex = new Coordinate(0.0f,1.0f);
 		System.out.println("campos: "+campos.x+" "+campos.y+" "+campos.z);
 		Direction[] camvec = MathLib.vectorFromPoints(campos2, campos3);
 		for (int i=0;i<camvec.length;i++) {System.out.println("camvec: "+camvec[i].dx+" "+camvec[i].dy+" "+camvec[i].dz);}
@@ -129,9 +132,10 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		double[] camdirang = MathLib.vectorAngle(camdir2, camdir3);
 		for (int i=0;i<camdirang.length;i++) {System.out.println("camdirang: "+camdirang[i]);}
 		Position[][] camrtint = MathLib.rayTriangleIntersection(campos, camdir3, ptri);
-		for (int i=0;i<camrtint.length;i++) {for (int j=0;j<camrtint[i].length;j++) {if(camrtint[i][j]!=null) {System.out.println("camrtint["+i+"]["+j+"]: "+camrtint[i][j].x+" "+camrtint[i][j].y+" "+camrtint[i][j].z);}else{System.out.println("camrtint["+i+"]["+j+"]: no hit.");}}}
+		for (int i=0;i<camrtint.length;i++) {for (int j=0;j<camrtint[i].length;j++) {if(camrtint[i][j]!=null) {System.out.println("camrtint["+i+"]["+j+"]: "+camrtint[i][j].x+" "+camrtint[i][j].y+" "+camrtint[i][j].z+")");}else{System.out.println("camrtint["+i+"]["+j+"]: no hit.");}}}
+		//for (int i=0;i<camrtint.length;i++) {for (int j=0;j<camrtint[i].length;j++) {if(camrtint[i][j]!=null) {System.out.println("camrtint["+i+"]["+j+"]: "+camrtint[i][j].x+" "+camrtint[i][j].y+" "+camrtint[i][j].z+" ("+camrtint[i][j].tex.u+" "+camrtint[i][j].tex.v+")");}else{System.out.println("camrtint["+i+"]["+j+"]: no hit.");}}}
 		Line[][] camptint = MathLib.planeTriangleIntersection(camplane, ptri);
-		for (int i=0;i<camptint.length;i++) {for (int j=0;j<camptint[i].length;j++) {if(camptint[i][j]!=null) {System.out.println("camptint["+i+"]["+j+"]: "+camptint[i][j].pos1.x+" "+camptint[i][j].pos1.y+" "+camptint[i][j].pos1.z+", "+camptint[i][j].pos2.x+" "+camptint[i][j].pos2.y+" "+camptint[i][j].pos2.z);}else{System.out.println("camptint["+i+"]["+j+"]: no hit.");}}}
+		for (int i=0;i<camptint.length;i++) {for (int j=0;j<camptint[i].length;j++) {if(camptint[i][j]!=null) {System.out.println("camptint["+i+"]["+j+"]: "+camptint[i][j].pos1.x+" "+camptint[i][j].pos1.y+" "+camptint[i][j].pos1.z+" ("+camptint[i][j].pos1.tex.u+" "+camptint[i][j].pos1.tex.v+"), "+camptint[i][j].pos2.x+" "+camptint[i][j].pos2.y+" "+camptint[i][j].pos2.z+" ("+camptint[i][j].pos2.tex.u+" "+camptint[i][j].pos2.tex.v+")");}else{System.out.println("camptint["+i+"]["+j+"]: no hit.");}}}
 		Matrix mat1 = new Matrix(1,0,0,0,1,0,0,0,1);
 		Matrix mat2 = new Matrix(0.6124,0.6124,0.5000,0.3536,0.3536,-0.8660,-0.7071,0.7071,0);
 		Matrix matout1 = MathLib.matrixMultiply(mat1, mat2);
@@ -233,6 +237,11 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Matrix prjmat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 		Coordinate[] prjcoords = MathLib.projectedPoints(prjpoint, prjpoints, 64, 90.0f, 64, 90.0f, prjmat);
 		for (int i=0;i<prjcoords.length;i++) { if(prjcoords[i]!=null){System.out.println("prjcoords[i]="+prjcoords[i].u+" "+prjcoords[i].v);}else{System.out.println("prjcoords[i]=not visible.");}}
+		Position rpdpos = new Position(0.0f,0.0f,0.0f); 
+		Direction[] rpddir = {new Direction(1.0f,0.0f,0.0f),new Direction(1.0f,0.0f,1.0f)};
+		Position[] rpdpoint = {new Position(1.0f,0.0f,0.0f),new Position(1.0f,0.0f,0.0f),new Position(1.0f,0.0f,0.0f)};
+		double[][] rptdist = MathLib.rayPointDistance(rpdpos, rpddir, rpdpoint);
+		for (int j=0;j<rptdist.length;j++) {for (int i=0;i<rptdist[0].length;i++) {System.out.println("rptdist["+j+"]["+i+"]= "+rptdist[j][i]);}}
 		
 		new JavaRenderEngine();
 	}
