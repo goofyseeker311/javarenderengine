@@ -97,7 +97,6 @@ public class CADApp extends AppHandlerPanel {
 	private boolean backwardkeydown = false;
 	private boolean rollrightkeydown = false;
 	private boolean rollleftkeydown = false;
-	private boolean updatetrianglelist = true;
 	
 	public CADApp() {
 		Graphics2D pgfx = this.bgpatternimage.createGraphics();
@@ -699,7 +698,7 @@ public class CADApp extends AppHandlerPanel {
 			this.linelistarray.add(new Line(this.drawstartpos, drawposarray[0]));
 			this.draglinemode = true;
 			this.selecteddragvertex = (this.linelistarray.size()-1)*2+1;
-			this.updatetrianglelist = true;
+			(new EntityListUpdater()).start();
     	}
 		mouseDragged(e);
 	}
@@ -712,10 +711,6 @@ public class CADApp extends AppHandlerPanel {
 					this.draglinemode = false;
 				}
 			}
-		}
-		if (this.updatetrianglelist) {
-			this.updatetrianglelist = false;
-			(new EntityListUpdater()).start(); 
 		}
 	}
 	
@@ -788,7 +783,7 @@ public class CADApp extends AppHandlerPanel {
     			} else {
 					this.linelistarray.get(linenum).pos2 = drawlocation;
     			}
-				this.updatetrianglelist = true;
+				(new EntityListUpdater()).start();
     		}
 		}
 	    int onmask3down = MouseEvent.BUTTON3_DOWN_MASK;
@@ -812,11 +807,11 @@ public class CADApp extends AppHandlerPanel {
     		int vertexatmouse = getVertexAtMouse();
     		if (this.mouseoverline!=null) {
 				this.linelistarray.remove(this.mouseoverline);
-				this.updatetrianglelist = true;
+				(new EntityListUpdater()).start();
     		} else if (vertexatmouse!=-1) {
 				int linenum = Math.floorDiv(vertexatmouse,2);
 				this.linelistarray.remove(linenum);
-				this.updatetrianglelist = true;
+				(new EntityListUpdater()).start();
 			}
     	}
 	}
