@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.8.12");
+		this.setTitle("Java Render Engine v1.8.13");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -238,10 +238,13 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Coordinate[] prjcoords = MathLib.projectedPoints(prjpoint, prjpoints, 64, 90.0f, 64, 90.0f, prjmat);
 		for (int i=0;i<prjcoords.length;i++) { if(prjcoords[i]!=null){System.out.println("prjcoords[i]="+prjcoords[i].u+" "+prjcoords[i].v);}else{System.out.println("prjcoords[i]=not visible.");}}
 		Position rpdpos = new Position(0.0f,0.0f,0.0f); 
+		Position rpdpos2 = new Position(0.0f,0.0f,1.0f); 
 		Direction[] rpddir = {new Direction(1.0f,0.0f,0.0f),new Direction(1.0f,0.0f,1.0f)};
 		Position[] rpdpoint = {new Position(1.0f,0.0f,0.0f),new Position(1.0f,0.0f,0.0f),new Position(1.0f,0.0f,0.0f)};
 		double[][] rptdist = MathLib.rayPointDistance(rpdpos, rpddir, rpdpoint);
+		double[][] rptdist2 = MathLib.rayPointDistance(rpdpos2, rpddir, rpdpoint);
 		for (int j=0;j<rptdist.length;j++) {for (int i=0;i<rptdist[0].length;i++) {System.out.println("rptdist["+j+"]["+i+"]= "+rptdist[j][i]);}}
+		for (int j=0;j<rptdist2.length;j++) {for (int i=0;i<rptdist2[0].length;i++) {System.out.println("rptdist2["+j+"]["+i+"]= "+rptdist2[j][i]);}}
 		
 		new JavaRenderEngine();
 	}

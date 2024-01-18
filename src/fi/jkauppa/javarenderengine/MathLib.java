@@ -241,11 +241,16 @@ public class MathLib {
 		if ((vpos!=null)&&(vdir!=null)&&(vpoint!=null)) {
 			k = new double[vdir.length][vpoint.length];
 			Direction[] pospointdir = vectorFromPoints(vpos, vpoint);
-			double[] bottom = vectorLength(vdir);
+			double[] bottom = vectorDot(vdir,vdir);
 			for (int n=0;n<vdir.length;n++) {
 				double[] top = vectorDot(vdir[n], pospointdir);
 				for (int m=0;m<vpoint.length;m++) {
-					k[n][m] = top[m]/bottom[n];
+					double vdirmult = top[m]/bottom[n];
+					Position[] vclosestraypos = {new Position(vpos.x+vdirmult*vdir[n].dx,vpos.y+vdirmult*vdir[n].dy,vpos.z+vdirmult*vdir[n].dz)};
+					Position[] vtargetpoint = {vpoint[m]};
+					Direction[] vclosestdir = vectorFromPoints(vclosestraypos, vtargetpoint);
+					double[] vclosestlen = vectorLength(vclosestdir);
+					k[n][m] = vclosestlen[0];
 				}
 			}
 		}
