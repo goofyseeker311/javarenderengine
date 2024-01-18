@@ -127,7 +127,7 @@ public class ModelApp extends AppHandlerPanel {
 							Line drawline = vertplanetriangleint[j][it];
 							if (drawline!=null) {
 								Position[] triangleintpoints = {drawline.pos1, drawline.pos2};
-								double[][] trianglefwdintpointsdist = MathLib.pointPlaneDistance(triangleintpoints, camfwdplane);
+								double[][] trianglefwdintpointsdist = MathLib.planePointDistance(triangleintpoints, camfwdplane);
 								if ((trianglefwdintpointsdist[0][0]>0)&&(trianglefwdintpointsdist[1][0]>0)) {
 									Material copymaterial = copytrianglelist[it].mat;
 									float shadingmultiplier = triangleshadingmultipliers[it];
@@ -139,8 +139,8 @@ public class ModelApp extends AppHandlerPanel {
 									VolatileImage tritexture = copymaterial.fileimage;
 									BufferedImage tritextureimage = copymaterial.snapimage;
 									Position[] drawlinepoints = {drawline.pos1, drawline.pos2};
-									double[][] fwdintpointsdist = MathLib.pointPlaneDistance(drawlinepoints, camfwdplane);
-									double[][] upintpointsdist = MathLib.pointPlaneDistance(drawlinepoints, camupplane);
+									double[][] fwdintpointsdist = MathLib.planePointDistance(drawlinepoints, camfwdplane);
+									double[][] upintpointsdist = MathLib.planePointDistance(drawlinepoints, camupplane);
 									double vpixely1 = halfvfovmult*halfvres*(upintpointsdist[0][0]/fwdintpointsdist[0][0])+halfvres;
 									double vpixely2 = halfvfovmult*halfvres*(upintpointsdist[1][0]/fwdintpointsdist[1][0])+halfvres;
 									double[] vpixelys = {vpixely1, vpixely2};
