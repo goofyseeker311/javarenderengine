@@ -241,13 +241,12 @@ public class MathLib {
 		if ((vpos!=null)&&(vdir!=null)&&(vpoint!=null)) {
 			k = new double[vdir.length][vpoint.length];
 			Direction[] raypospointdir = vectorFromPoints(vpos, vpoint);
+			double[] vdirlength = vectorLength(vdir);
 			for (int n=0;n<vdir.length;n++) {
-				double[] raypospointdirdot = vectorDot(vdir[n],raypospointdir);
+				Direction[] vdircross = vectorCross(vdir[n], raypospointdir);
+				double[] vdircrosslen = vectorLength(vdircross); 
 				for (int m=0;m<vpoint.length;m++) {
-					Direction raypospointdirdotvec = new Direction(vdir[n].dx*raypospointdirdot[m],vdir[n].dy*raypospointdirdot[m],vdir[n].dz*raypospointdirdot[m]);
-					Direction[] raypospointdirdotvecdif = {new Direction(raypospointdir[m].dx-raypospointdirdotvec.dx,raypospointdir[m].dy-raypospointdirdotvec.dy,raypospointdir[m].dz-raypospointdirdotvec.dz)};
-					double[] raypospointdirdotvecdiflen = vectorLength(raypospointdirdotvecdif);
-					k[n][m] = raypospointdirdotvecdiflen[0];
+					k[n][m] = vdircrosslen[m]/vdirlength[n];
 				}
 			}
 		}
