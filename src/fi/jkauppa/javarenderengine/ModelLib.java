@@ -29,6 +29,7 @@ public class ModelLib {
 	public static class Material implements Comparable<Material> {
 		public String materialname;
 		public VolatileImage fileimage;
+		public BufferedImage snapimage;
 		public String filename;
 		public Color facecolor = null;
 		public float transparency = 1.0f;

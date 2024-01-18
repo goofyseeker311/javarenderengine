@@ -6,14 +6,12 @@ import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Transparency;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.io.File;
@@ -61,7 +59,7 @@ public class ModelApp extends AppHandlerPanel {
 	private boolean rollleftkeydown = false;
 	private int mouselastlocationx = -1, mouselastlocationy = -1; 
 	private int mouselocationx = -1, mouselocationy = -1;
-	private int polygonfillmode = 1;
+	private double[][] zbuffer = null;
 	private BufferedImage cursorimage = gc.createCompatibleImage(1, 1, Transparency.TRANSLUCENT);
 	private Cursor customcursor = null;
 	
@@ -84,6 +82,10 @@ public class ModelApp extends AppHandlerPanel {
 		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
 		g2.setComposite(AlphaComposite.SrcOver);
 		this.vfov = 2.0f*(180.0f/Math.PI)*Math.atan((((double)this.getHeight())/((double)this.getWidth()))*Math.tan((this.hfov/2.0f)*(Math.PI/180.0f)));
+		if ((this.zbuffer==null)||(this.zbuffer.length!=this.getHeight())||(this.zbuffer[0].length!=this.getWidth())) {
+			this.zbuffer = new double[this.getHeight()][this.getWidth()];
+		}
+		for (int i=0;i<this.zbuffer.length;i++) {Arrays.fill(this.zbuffer[i],Double.POSITIVE_INFINITY);}
 		if (this.entitylist!=null) {
 			Plane[] verticalplanes = MathLib.projectedPlanes(this.campos, this.getWidth(), hfov, this.cameramat);
 			double[] verticalangles = MathLib.projectedAngles(this.getHeight(), vfov);
@@ -134,8 +136,8 @@ public class ModelApp extends AppHandlerPanel {
 									if (tricolor==null) {tricolor = Color.WHITE;}
 									float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
 									Color trianglecolor = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
-									g2.setColor(trianglecolor);
 									VolatileImage tritexture = copymaterial.fileimage;
+									BufferedImage tritextureimage = copymaterial.snapimage;
 									Position[] drawlinepoints = {drawline.pos1, drawline.pos2};
 									double[][] fwdintpointsdist = MathLib.pointPlaneDistance(drawlinepoints, camfwdplane);
 									double[][] upintpointsdist = MathLib.pointPlaneDistance(drawlinepoints, camupplane);
@@ -144,33 +146,46 @@ public class ModelApp extends AppHandlerPanel {
 									double[] vpixelys = {vpixely1, vpixely2};
 									int[] vpixelyinds = UtilLib.indexSort(vpixelys);
 									double[] vpixelysort = UtilLib.indexValues(vpixelys, vpixelyinds);
+									Position[] vpixelpoints = {drawlinepoints[vpixelyinds[0]], drawlinepoints[vpixelyinds[1]]};
 									int vpixelyind1 = (int)Math.ceil(vpixelysort[0]); 
 									int vpixelyind2 = (int)Math.floor(vpixelysort[1]); 
-									Coordinate[] drawlineuvs = {drawlinepoints[vpixelyinds[0]].tex, drawlinepoints[vpixelyinds[1]].tex}; 
+									int vpixelydelta = vpixelyind2-vpixelyind1;
+									int vpixelysteps = vpixelydelta+1;
+									int vpixelystart = vpixelyind1;
+									int vpixelyend = vpixelyind2;
+									Direction[] drawvector = MathLib.vectorFromPoints(this.campos, vpixelpoints);
+									double[] drawvectordistance = MathLib.vectorLength(drawvector);
+									double drawvectordistancedelta = drawvectordistance[1]-drawvectordistance[0];
+									double drawvectordistancedeltastep = drawvectordistancedelta/vpixelysteps;
 									if ((vpixelyind2>=0)&&(vpixelyind1<=this.getHeight())) {
-										if (tritexture==null) {
-											g2.drawLine(j, vpixelyind1, j, vpixelyind2);
+										if (vpixelystart<0) {vpixelystart=0;}
+										if (vpixelyend>=this.getHeight()) {vpixelyend=this.getHeight()-1;}
+										if (tritexture!=null) {
+											Position[] lineuvpoint1 = {new Position(vpixelpoints[0].tex.u*(tritexture.getWidth()-1),(1.0f-vpixelpoints[0].tex.v)*(tritexture.getHeight()-1),0.0f)};
+											Position[] lineuvpoint2 = {new Position(vpixelpoints[1].tex.u*(tritexture.getWidth()-1),(1.0f-vpixelpoints[1].tex.v)*(tritexture.getHeight()-1),0.0f)};
+											Direction[] lineuvvector = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
+											Direction lineuvvectorstep = new Direction(lineuvvector[0].dx/vpixelysteps,lineuvvector[0].dy/vpixelysteps,lineuvvector[0].dz/vpixelysteps);
+											for (int n=vpixelystart;n<=vpixelyend;n++) {
+												double drawdistance = drawvectordistance[0]+(n-vpixelyind1)*drawvectordistancedeltastep;
+												if (drawdistance<this.zbuffer[n][j]) {
+													this.zbuffer[n][j] = drawdistance;
+													Position[] lineuv = MathLib.translate(lineuvpoint1, lineuvvectorstep, n-vpixelyind1);
+													int lineuvx = (int)Math.round(lineuv[0].x);
+													int lineuvy = (int)Math.round(lineuv[0].y);
+													Color texcolor = new Color(tritextureimage.getRGB(lineuvx, lineuvy));
+													g2.setColor(texcolor);
+													g2.drawLine(j, n, j, n);
+												}
+											}
 										} else {
-											Position[] lineuvpoint1 = {new Position(drawlineuvs[0].u*tritexture.getWidth(),drawlineuvs[0].v*tritexture.getHeight(),0.0f)};
-											Position[] lineuvpoint2 = {new Position(drawlineuvs[1].u*tritexture.getWidth(),drawlineuvs[1].v*tritexture.getHeight(),0.0f)};
-											Position[] linescanpoint1 = {new Position(j,vpixelyind1,0.0f)};
-											Position[] linescanpoint2 = {new Position(j,vpixelyind2,0.0f)};
-											Direction[] lineuvvector = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2); 
-											Direction[] linescanvector = {new Direction(0.0f,1.0f,0.0f)};
-											Direction[] lineuvscanvector1 = MathLib.vectorFromPoints(lineuvpoint1, linescanpoint1);
-											double[] lineuvscanangle = MathLib.vectorAngle(lineuvvector, linescanvector);
-											if (lineuvvector[0].dx<0) {lineuvscanangle[0]*=-1.0f;}
-											double[] lineuvlength = MathLib.vectorLength(lineuvvector);
-											double[] linescanlength = MathLib.vectorLength(linescanvector);
-											AffineTransform texat = new AffineTransform();
-											texat.translate(lineuvscanvector1[0].dx, lineuvscanvector1[0].dy);
-											texat.rotate((Math.PI/180.0f)*lineuvscanangle[0]);
-											texat.scale(1.0f, linescanlength[0]/lineuvlength[0]);
-											Rectangle lineclip = new Rectangle(j, vpixelyind1, 1, vpixelyind2-vpixelyind1+1);
-											g2.setClip(null);
-											g2.clip(lineclip);
-											g2.drawImage(tritexture, texat, null);
-											g2.setClip(null);
+											g2.setColor(trianglecolor);
+											for (int n=vpixelystart;n<=vpixelyend;n++) {
+												double drawdistance = drawvectordistance[0]+(n-vpixelyind1)*drawvectordistancedeltastep;
+												if (drawdistance<this.zbuffer[n][j]) {
+													this.zbuffer[n][j] = drawdistance;
+													g2.drawLine(j, n, j, n);
+												}
+											}
 										}
 									}
 								}
@@ -274,11 +289,6 @@ public class ModelApp extends AppHandlerPanel {
 			this.rollleftkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_E) {
 			this.rollrightkeydown = true;
-		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
-			this.polygonfillmode += 1;
-			if (this.polygonfillmode>2) {
-				this.polygonfillmode = 1;
-			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
 			this.filechooser.setDialogTitle("Load File");
 			this.filechooser.setApproveButtonText("Load");
@@ -295,6 +305,9 @@ public class ModelApp extends AppHandlerPanel {
 							for (int n=0;(n<loadmodel.materials.length)&&(foundmat==null);n++) {
 								if (loadmodel.objects[j].faceindex[i].usemtl.equals(loadmodel.materials[n].materialname)) {
 									foundmat = loadmodel.materials[n];
+									if (foundmat.fileimage!=null) {
+										foundmat.snapimage = foundmat.fileimage.getSnapshot();
+									}
 								}
 							}
 							if (foundmat==null) {
