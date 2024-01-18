@@ -240,17 +240,13 @@ public class MathLib {
 		double[][] k = null;
 		if ((vpos!=null)&&(vdir!=null)&&(vpoint!=null)) {
 			k = new double[vdir.length][vpoint.length];
-			Direction[] pospointdir = vectorFromPoints(vpos, vpoint);
-			double[] bottom = vectorDot(vdir,vdir);
+			Direction[] raypospointdir = vectorFromPoints(vpos, vpoint);
+			double[] vdirlength = vectorLength(vdir);
 			for (int n=0;n<vdir.length;n++) {
-				double[] top = vectorDot(vdir[n], pospointdir);
+				Direction[] vdircross = vectorCross(vdir[n], raypospointdir);
+				double[] vdircrosslen = vectorLength(vdircross); 
 				for (int m=0;m<vpoint.length;m++) {
-					double vdirmult = top[m]/bottom[n];
-					Position[] vclosestraypos = {new Position(vpos.x+vdirmult*vdir[n].dx,vpos.y+vdirmult*vdir[n].dy,vpos.z+vdirmult*vdir[n].dz)};
-					Position[] vtargetpoint = {vpoint[m]};
-					Direction[] vclosestdir = vectorFromPoints(vclosestraypos, vtargetpoint);
-					double[] vclosestlen = vectorLength(vclosestdir);
-					k[n][m] = vclosestlen[0];
+					k[n][m] = vdircrosslen[m]/vdirlength[n];
 				}
 			}
 		}
