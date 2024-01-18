@@ -221,7 +221,7 @@ public class CADApp extends AppHandlerPanel {
 			Plane[] editdirplane = {this.editplanes[0]};
 			for (int i=0;i<copylinelist.length;i++) {
 				Position[] linepoints = {copylinelist[i].pos1, copylinelist[i].pos2};
-				double[][] linepointdists = MathLib.pointPlaneDistance(linepoints, editdirplane);
+				double[][] linepointdists = MathLib.planePointDistance(linepoints, editdirplane);
 				if ((linepointdists[0][0]>=0)||(linepointdists[1][0]>=0)) {
 					Coordinate coord1 = copylinelistcoords[i][0];
 					Coordinate coord2 = copylinelistcoords[i][1];

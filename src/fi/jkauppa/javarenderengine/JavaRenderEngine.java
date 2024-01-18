@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.8.11");
+		this.setTitle("Java Render Engine v1.8.12");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -198,8 +198,8 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Position[] vplanepoint = {new Position(1,1,0)};
 		Direction[] vplanenormal = {new Direction(-1,-1,0)};
 		Plane[] vplane = MathLib.planeFromNormalAtPoint(vplanepoint, vplanenormal);
-		double[][] vppdist = MathLib.pointPlaneDistance(vpoint, vplane);
-		double[][] vppdist2 = MathLib.pointPlaneDistance(campos2, tplane2);
+		double[][] vppdist = MathLib.planePointDistance(vpoint, vplane);
+		double[][] vppdist2 = MathLib.planePointDistance(campos2, tplane2);
 		System.out.println("vppdist="+vppdist[0][0]);
 		System.out.println("vppdist2["+vppdist2.length+"]["+vppdist2[0].length+"]="); for (int j=0;j<vppdist2.length;j++) {for (int i=0;i<vppdist2[0].length;i++) {System.out.print(" "+vppdist2[j][i]);}System.out.println();}
 		Position[] vertexlist = {new Position(-5,3,9),new Position(-7,-3,-1),new Position(4,-6,-7),new Position(2,4,11)};

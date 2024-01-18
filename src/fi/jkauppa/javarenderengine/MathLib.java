@@ -218,7 +218,7 @@ public class MathLib {
 		}
 		return k;
 	}
-	public static double[][] pointPlaneDistance(Position[] vpoint, Plane[] vplane) {
+	public static double[][] planePointDistance(Position[] vpoint, Plane[] vplane) {
 		double[][] k = null;
 		if ((vpoint!=null)&&(vplane!=null)) {
 			Direction[] vplanedir = new Direction[vplane.length];
@@ -241,7 +241,7 @@ public class MathLib {
 		if ((vpos!=null)&&(vdir!=null)&&(vpoint!=null)) {
 			k = new double[vdir.length][vpoint.length];
 			Direction[] pospointdir = vectorFromPoints(vpos, vpoint);
-			double[] bottom = vectorDot(vdir, vdir);
+			double[] bottom = vectorLength(vdir);
 			for (int n=0;n<vdir.length;n++) {
 				double[] top = vectorDot(vdir[n], pospointdir);
 				for (int m=0;m<vpoint.length;m++) {
@@ -1124,7 +1124,7 @@ public class MathLib {
 				Direction tetrahedronsideplanenormal = new Direction(tetrahedronsideplanes[i].a,tetrahedronsideplanes[i].b,tetrahedronsideplanes[i].c);
 				Position[] tetrahedronsidepoint = {tetrahedronsidepoints[i]};
 				Plane[] tetrahedronsideplane = {tetrahedronsideplanes[i]};
-				double[][] tetrahedronsideplanepointdist = pointPlaneDistance(tetrahedronsidepoint, tetrahedronsideplane);
+				double[][] tetrahedronsideplanepointdist = planePointDistance(tetrahedronsidepoint, tetrahedronsideplane);
 				if (tetrahedronsideplanepointdist[0][0]>0) {
 					tetrahedronsideplanenormal = new Direction(-tetrahedronsideplanes[i].a,-tetrahedronsideplanes[i].b,-tetrahedronsideplanes[i].c);
 				}
@@ -1347,7 +1347,7 @@ public class MathLib {
 			int halfvres = (int)Math.round(((double)vres)/2.0f);
 			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
 			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
-			double[][] fwdintpointsdist = pointPlaneDistance(vpoint, dirrightupplanes);
+			double[][] fwdintpointsdist = planePointDistance(vpoint, dirrightupplanes);
 			for (int i=0;i<vpoint.length;i++) {
 				if (fwdintpointsdist[i][0]>0) {
 					double hind = halfhfovmult*halfhres*(fwdintpointsdist[i][1]/fwdintpointsdist[i][0])+halfhres;
@@ -1374,8 +1374,8 @@ public class MathLib {
 				vlinepoint1[i]=vline[i].pos1;
 				vlinepoint2[i]=vline[i].pos2;
 			}
-			double[][] fwdintpointsdist1 = pointPlaneDistance(vlinepoint1, dirrightupplanes);
-			double[][] fwdintpointsdist2 = pointPlaneDistance(vlinepoint2, dirrightupplanes);
+			double[][] fwdintpointsdist1 = planePointDistance(vlinepoint1, dirrightupplanes);
+			double[][] fwdintpointsdist2 = planePointDistance(vlinepoint2, dirrightupplanes);
 			for (int i=0;i<vline.length;i++) {
 				if (fwdintpointsdist1[i][0]>0) {
 					double hind = halfhfovmult*halfhres*fwdintpointsdist1[i][1]/fwdintpointsdist1[i][0]+halfhres;
@@ -1409,9 +1409,9 @@ public class MathLib {
 				vtripoint2[i]=vtri[i].pos2;
 				vtripoint3[i]=vtri[i].pos3;
 			}
-			double[][] fwdintpointsdist1 = pointPlaneDistance(vtripoint1, dirrightupplanes);
-			double[][] fwdintpointsdist2 = pointPlaneDistance(vtripoint2, dirrightupplanes);
-			double[][] fwdintpointsdist3 = pointPlaneDistance(vtripoint3, dirrightupplanes);
+			double[][] fwdintpointsdist1 = planePointDistance(vtripoint1, dirrightupplanes);
+			double[][] fwdintpointsdist2 = planePointDistance(vtripoint2, dirrightupplanes);
+			double[][] fwdintpointsdist3 = planePointDistance(vtripoint3, dirrightupplanes);
 			for (int i=0;i<vtri.length;i++) {
 				if (fwdintpointsdist1[i][0]>0) {
 					double hind = halfhfovmult*halfhres*fwdintpointsdist1[i][1]/fwdintpointsdist1[i][0]+halfhres;
@@ -1452,10 +1452,10 @@ public class MathLib {
 				vquadpoint3[i]=vquad[i].pos3;
 				vquadpoint4[i]=vquad[i].pos4;
 			}
-			double[][] fwdintpointsdist1 = pointPlaneDistance(vquadpoint1, dirrightupplanes);
-			double[][] fwdintpointsdist2 = pointPlaneDistance(vquadpoint2, dirrightupplanes);
-			double[][] fwdintpointsdist3 = pointPlaneDistance(vquadpoint3, dirrightupplanes);
-			double[][] fwdintpointsdist4 = pointPlaneDistance(vquadpoint4, dirrightupplanes);
+			double[][] fwdintpointsdist1 = planePointDistance(vquadpoint1, dirrightupplanes);
+			double[][] fwdintpointsdist2 = planePointDistance(vquadpoint2, dirrightupplanes);
+			double[][] fwdintpointsdist3 = planePointDistance(vquadpoint3, dirrightupplanes);
+			double[][] fwdintpointsdist4 = planePointDistance(vquadpoint4, dirrightupplanes);
 			for (int i=0;i<vquad.length;i++) {
 				if (fwdintpointsdist1[i][0]>0) {
 					double hind = halfhfovmult*halfhres*fwdintpointsdist1[i][1]/fwdintpointsdist1[i][0]+halfhres;
