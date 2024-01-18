@@ -48,7 +48,9 @@ SHIFT-F3          -- load image file as pencil brush dialog
 
 CAD App Keys:
 ENTER             -- changes between polygon flat/textured/none fill modes (looping)
-WASD              -- camera location change up/left/down/right (minmax)
+WASD              -- camera location change forward/left/backward/right (minmax)
+C-SPACE           -- camera height change down/up (minmax)
+QE                -- camera tilt change left/right (looping)
 BACKSPACE         -- removes all vector lines
 DRAG-LMB          -- black/hsba-color drag triangle paint
 SHIFT-LMB         -- rgba-color picker at cursor
@@ -56,10 +58,11 @@ ALT-DRAG-LMB      -- vector line drag draw
 ALT-RMB           -- remove line vertex
 CTRL-DRAG-LMB     -- move line vertex
 DRAG-RMB          -- change forward looking movement direction
-SHIFT             -- toggle snap to grid/vertex and speed movement
-MWHEEL            -- draw height change (minmax)
-NUMPAD+           -- draw height positive (minmax)
-NUMPAD-           -- draw height negative (minmax)
+DRAG-MWH          -- camera location view position pan (minmax)
+SHIFT             -- toggle snap to grid/vertex, drag multiple vertex, and speed movement
+MWHEEL            -- draw forward position change (minmax)
+NUMPAD+           -- draw forward position change positive (minmax)
+NUMPAD-           -- draw forward position change negative (minmax)
 INSERT            -- hue positive change (looping)
 DELETE            -- hue negative change (looping)
 HOME              -- saturation positive change (minmax)
