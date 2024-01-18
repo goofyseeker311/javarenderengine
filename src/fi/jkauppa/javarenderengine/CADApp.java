@@ -326,9 +326,9 @@ public class CADApp extends AppHandlerPanel {
 			this.campos.z += movementstep*this.camdirs[2].dz;
 		}
 		if (this.rollleftkeydown) {
-			this.camrot.y -= 1.0f;
+			this.camrot.y -= (movementstep/((double)this.gridstep));
 		} else if (this.rollrightkeydown) {
-			this.camrot.y += 1.0f;
+			this.camrot.y += (movementstep/((double)this.gridstep));
 		}
 		updateCameraDirections();
 	}
@@ -349,6 +349,14 @@ public class CADApp extends AppHandlerPanel {
 			this.upwardkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_C) {
 			this.downwardkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_Q) {
+			this.rollleftkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_E) {
+			this.rollrightkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
+			this.forwardkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
+			this.backwardkeydown = false;
 		}
 	}
 	@Override public void keyPressed(KeyEvent e) {
@@ -422,6 +430,14 @@ public class CADApp extends AppHandlerPanel {
 			this.upwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_C) {
 			this.downwardkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_Q) {
+			this.rollleftkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_E) {
+			this.rollrightkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
+			this.forwardkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
+			this.backwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_F2) {
 			this.filechooser.setDialogTitle("Save File");
 			this.filechooser.setApproveButtonText("Save");
