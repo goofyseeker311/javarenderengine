@@ -163,6 +163,9 @@ public class ModelApp extends AppHandlerPanel {
 											double[] lineuvlength = MathLib.vectorLength(lineuvvector);
 											double[] linescanlength = MathLib.vectorLength(linescanvector);
 											AffineTransform texat = new AffineTransform();
+											texat.translate(lineuvscanvector1[0].dx, lineuvscanvector1[0].dy);
+											texat.rotate((Math.PI/180.0f)*lineuvscanangle[0]);
+											texat.scale(1.0f, linescanlength[0]/lineuvlength[0]);
 											Rectangle lineclip = new Rectangle(j, vpixelyind1, 1, vpixelyind2-vpixelyind1+1);
 											g2.setClip(null);
 											g2.clip(lineclip);
