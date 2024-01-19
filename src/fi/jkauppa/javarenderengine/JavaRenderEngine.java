@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.8.17");
+		this.setTitle("Java Render Engine v1.8.18");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -132,8 +132,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		double[] camdirang = MathLib.vectorAngle(camdir2, camdir3);
 		for (int i=0;i<camdirang.length;i++) {System.out.println("camdirang: "+camdirang[i]);}
 		Position[][] camrtint = MathLib.rayTriangleIntersection(campos, camdir3, ptri);
-		for (int i=0;i<camrtint.length;i++) {for (int j=0;j<camrtint[i].length;j++) {if(camrtint[i][j]!=null) {System.out.println("camrtint["+i+"]["+j+"]: "+camrtint[i][j].x+" "+camrtint[i][j].y+" "+camrtint[i][j].z+")");}else{System.out.println("camrtint["+i+"]["+j+"]: no hit.");}}}
-		//for (int i=0;i<camrtint.length;i++) {for (int j=0;j<camrtint[i].length;j++) {if(camrtint[i][j]!=null) {System.out.println("camrtint["+i+"]["+j+"]: "+camrtint[i][j].x+" "+camrtint[i][j].y+" "+camrtint[i][j].z+" ("+camrtint[i][j].tex.u+" "+camrtint[i][j].tex.v+")");}else{System.out.println("camrtint["+i+"]["+j+"]: no hit.");}}}
+		for (int i=0;i<camrtint.length;i++) {for (int j=0;j<camrtint[i].length;j++) {if(camrtint[i][j]!=null) {System.out.println("camrtint["+i+"]["+j+"]: "+camrtint[i][j].x+" "+camrtint[i][j].y+" "+camrtint[i][j].z+" ("+camrtint[i][j].tex.u+" "+camrtint[i][j].tex.v+")");}else{System.out.println("camrtint["+i+"]["+j+"]: no hit.");}}}
 		Line[][] camptint = MathLib.planeTriangleIntersection(camplane, ptri);
 		for (int i=0;i<camptint.length;i++) {for (int j=0;j<camptint[i].length;j++) {if(camptint[i][j]!=null) {System.out.println("camptint["+i+"]["+j+"]: "+camptint[i][j].pos1.x+" "+camptint[i][j].pos1.y+" "+camptint[i][j].pos1.z+" ("+camptint[i][j].pos1.tex.u+" "+camptint[i][j].pos1.tex.v+"), "+camptint[i][j].pos2.x+" "+camptint[i][j].pos2.y+" "+camptint[i][j].pos2.z+" ("+camptint[i][j].pos2.tex.u+" "+camptint[i][j].pos2.tex.v+")");}else{System.out.println("camptint["+i+"]["+j+"]: no hit.");}}}
 		Matrix mat1 = new Matrix(1,0,0,0,1,0,0,0,1);
