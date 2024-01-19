@@ -147,6 +147,8 @@ public class ModelApp extends AppHandlerPanel {
 									int[] vpixelyinds = UtilLib.indexSort(vpixelys);
 									double[] vpixelysort = UtilLib.indexValues(vpixelys, vpixelyinds);
 									Position[] vpixelpoints = {drawlinepoints[vpixelyinds[0]], drawlinepoints[vpixelyinds[1]]};
+									Position[] vpixelpoint1 = {vpixelpoints[0]};
+									Position[] vpixelpoint2 = {vpixelpoints[1]};
 									int vpixelyind1 = (int)Math.ceil(vpixelysort[0]); 
 									int vpixelyind2 = (int)Math.floor(vpixelysort[1]); 
 									int vpixelydelta = vpixelyind2-vpixelyind1;
@@ -160,16 +162,15 @@ public class ModelApp extends AppHandlerPanel {
 									if ((vpixelyind2>=0)&&(vpixelyind1<=this.getHeight())) {
 										if (vpixelystart<0) {vpixelystart=0;}
 										if (vpixelyend>=this.getHeight()) {vpixelyend=this.getHeight()-1;}
+										/*
 										if (tritexture!=null) {
 											Position[] lineuvpoint1 = {new Position(vpixelpoints[0].tex.u*(tritexture.getWidth()-1),(1.0f-vpixelpoints[0].tex.v)*(tritexture.getHeight()-1),0.0f)};
 											Position[] lineuvpoint2 = {new Position(vpixelpoints[1].tex.u*(tritexture.getWidth()-1),(1.0f-vpixelpoints[1].tex.v)*(tritexture.getHeight()-1),0.0f)};
-											Direction[] lineuvvector = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
-											Direction lineuvvectorstep = new Direction(lineuvvector[0].dx/vpixelysteps,lineuvvector[0].dy/vpixelysteps,lineuvvector[0].dz/vpixelysteps);
 											for (int n=vpixelystart;n<=vpixelyend;n++) {
-												double drawdistance = drawvectordistance[0]+(n-vpixelyind1)*drawvectordistancedeltastep;
+												int nstepind = (n-vpixelyind1);
 												if (drawdistance<this.zbuffer[n][j]) {
 													this.zbuffer[n][j] = drawdistance;
-													Position[] lineuv = MathLib.translate(lineuvpoint1, lineuvvectorstep, n-vpixelyind1);
+													Position[] lineuv = 0;
 													int lineuvx = (int)Math.round(lineuv[0].x);
 													int lineuvy = (int)Math.round(lineuv[0].y);
 													Color texcolor = new Color(tritextureimage.getRGB(lineuvx, lineuvy));
@@ -178,6 +179,7 @@ public class ModelApp extends AppHandlerPanel {
 												}
 											}
 										} else {
+										*/
 											g2.setColor(trianglecolor);
 											for (int n=vpixelystart;n<=vpixelyend;n++) {
 												double drawdistance = drawvectordistance[0]+(n-vpixelyind1)*drawvectordistancedeltastep;
@@ -186,7 +188,9 @@ public class ModelApp extends AppHandlerPanel {
 													g2.drawLine(j, n, j, n);
 												}
 											}
+										/*
 										}
+										*/
 									}
 								}
 							}

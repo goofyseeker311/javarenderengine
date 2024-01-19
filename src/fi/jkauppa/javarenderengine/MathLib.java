@@ -290,21 +290,43 @@ public class MathLib {
 						Direction[] v12 = vectorFromPoints(p1, p2); Direction[] v21 = vectorFromPoints(p2, p1);
 						Direction[] v13 = vectorFromPoints(p1, p3); Direction[] v31 = vectorFromPoints(p3, p1);
 						Direction[] v23 = vectorFromPoints(p2, p3); Direction[] v32 = vectorFromPoints(p3, p2);
+						double[] vl12 = vectorLength(v12);
+						double[] vl13 = vectorLength(v13);
 						double[] a1 = vectorAngle(v12,v13);
 						double[] a2 = vectorAngle(v21,v23);
 						double[] a3 = vectorAngle(v31,v32);
+						double[] ai1 = vectorAngle(v21,v13);
 						Direction[] t1 = vectorFromPoints(p1, p4);
 						Direction[] t2 = vectorFromPoints(p2, p4);
 						Direction[] t3 = vectorFromPoints(p3, p4);
+						double[] tl1 = vectorLength(t1);
 						double[] h12 = vectorAngle(v12,t1); double[] h13 = vectorAngle(v13,t1);
 						double[] h21 = vectorAngle(v21,t2); double[] h23 = vectorAngle(v23,t2);
 						double[] h31 = vectorAngle(v31,t3); double[] h32 = vectorAngle(v32,t3);
-						if ((p1[0].tex!=null)&&(p2[0].tex!=null)&&(p3[0].tex!=null)) {
-							
-						}
-						boolean isatpoint = ((t1[0].dx==0)&&(t1[0].dy==0)&&(t1[0].dz==0))||((t2[0].dx==0)&&(t2[0].dy==0)&&(t2[0].dz==0))||((t3[0].dx==0)&&(t3[0].dy==0)&&(t3[0].dz==0));
+						boolean isatpoint1 = (t1[0].dx==0)&&(t1[0].dy==0)&&(t1[0].dz==0);
+						boolean isatpoint2 = (t2[0].dx==0)&&(t2[0].dy==0)&&(t2[0].dz==0);
+						boolean isatpoint3 = (t3[0].dx==0)&&(t3[0].dy==0)&&(t3[0].dz==0);
 						boolean withinangles = (h12[0]<=a1[0])&&(h13[0]<=a1[0])&&(h21[0]<=a2[0])&&(h23[0]<=a2[0])&&(h31[0]<=a3[0])&&(h32[0]<=a3[0]);
-						if(isatpoint||withinangles) {
+						if(isatpoint1||isatpoint2||isatpoint3||withinangles) {
+							if ((p1[0].tex!=null)&&(p2[0].tex!=null)&&(p3[0].tex!=null)) {
+								if (isatpoint1) {
+									p4[0].tex = p1[0].tex.copy();
+								} else if (isatpoint2) {
+									p4[0].tex = p2[0].tex.copy();
+								} else if (isatpoint3) {
+									p4[0].tex = p3[0].tex.copy();
+								} else {
+									double n12len = tl1[0]*(Math.sin((Math.PI/180.0f)*h13[0])/Math.sin((Math.PI/180.0f)*ai1[0]));
+									double n13len = tl1[0]*(Math.sin((Math.PI/180.0f)*h12[0])/Math.sin((Math.PI/180.0f)*ai1[0]));
+									double n12mult = n12len/vl12[0];
+									double n13mult = n13len/vl13[0];
+									double u12delta = p2[0].tex.u-p1[0].tex.u;
+									double v12delta = p2[0].tex.v-p1[0].tex.v;
+									double u13delta = p3[0].tex.u-p1[0].tex.u;
+									double v13delta = p3[0].tex.v-p1[0].tex.v;
+									p4[0].tex = new Coordinate(p1[0].tex.u+u12delta*n12mult+u13delta*n13mult,p1[0].tex.v+v12delta*n12mult+v13delta*n13mult);
+								}
+							}
 							k[n][m] = p4[0];
 						}
 					}
