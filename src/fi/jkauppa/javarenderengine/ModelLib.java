@@ -62,26 +62,69 @@ public class ModelLib {
 			return k;
 		}
 	}
+	public static class Camera {
+		public Position pos;
+		public Matrix rot;
+		public Direction[][] rays;
+		public Plane[] planes;
+	}
 	public static class Cubemap {
-		public VolatileImage top=null,bottom=null,left=null,right=null,forward=null,backward=null;
-		public int vres = 0; 
-		public Cubemap(int vresi) {
+		public VolatileImage topimage=null,bottomimage=null,leftimage=null,rightimage=null,forwardimage=null,backwardimage=null;
+		public Camera topview=null,bottomview=null,leftview=null,rightview=null,forwardview=null,backwardview=null;
+		public Matrix topmatrix = MathLib.rotationMatrix(180.0f, 0.0f, 0.0f);
+		public Matrix bottommatrix = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
+		public Matrix forwardmatrix = MathLib.rotationMatrix(90.0f, 0.0f, 0.0f);
+		public Matrix rightmatrix = MathLib.matrixMultiply(MathLib.rotationMatrix(0.0f, 0.0f, 90.0f), forwardmatrix);
+		public Matrix backwardmatrix = MathLib.matrixMultiply(MathLib.rotationMatrix(0.0f, 0.0f, 180.0f), forwardmatrix);
+		public Matrix leftmatrix = MathLib.matrixMultiply(MathLib.rotationMatrix(0.0f, 0.0f, 270.0f), forwardmatrix);
+		public Position pos = null;
+		public Matrix rot = null;
+		public int vres = 0;
+		public Cubemap(Position posi, int vresi, Matrix roti) {
+			this.pos = posi;
+			this.rot = roti;
 			this.vres = vresi;
-			this.top = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
-			this.bottom = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
-			this.left = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
-			this.right = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
-			this.forward = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
-			this.backward = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
+			this.topimage = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
+			this.bottomimage = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
+			this.leftimage = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
+			this.rightimage = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
+			this.forwardimage = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
+			this.backwardimage = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
+			this.topview = new Camera();
+			this.bottomview = new Camera();
+			this.leftview = new Camera();
+			this.rightview = new Camera();
+			this.forwardview = new Camera();
+			this.backwardview = new Camera();
+			this.topview.pos = this.pos;
+			this.bottomview.pos = this.pos;
+			this.leftview.pos = this.pos;
+			this.rightview.pos = this.pos;
+			this.forwardview.pos = this.pos;
+			this.backwardview.pos = this.pos;
+			this.topview.rot = this.rot;
+			this.bottomview.rot = this.rot;
+			this.leftview.rot = this.rot;
+			this.rightview.rot = this.rot;
+			this.forwardview.rot = this.rot;
+			this.backwardview.rot = this.rot;
+			this.topview.rays = MathLib.projectedRays(vresi, vresi, 90.0f, 90.0f, this.topmatrix);
+			this.bottomview.rays = MathLib.projectedRays(vresi, vresi, 90.0f, 90.0f, this.bottommatrix);
+			this.leftview.rays = MathLib.projectedRays(vresi, vresi, 90.0f, 90.0f, this.leftmatrix);
+			this.rightview.rays = MathLib.projectedRays(vresi, vresi, 90.0f, 90.0f, this.rightmatrix);
+			this.forwardview.rays = MathLib.projectedRays(vresi, vresi, 90.0f, 90.0f, this.forwardmatrix);
+			this.backwardview.rays = MathLib.projectedRays(vresi, vresi, 90.0f, 90.0f, this.backwardmatrix);
 		}
 	}
 	public static class Spheremap {
-		public VolatileImage equirectangular = null;
-		public int hres = 0, vres = 0; 
+		public VolatileImage equirectangularimage = null;
+		public Camera sphereview = null;
+		public int hres = 0, vres = 0;
 		public Spheremap(int hresi, int vresi) {
 			this.hres = hresi;
 			this.vres = vresi;
-			this.equirectangular = gc.createCompatibleVolatileImage(this.hres,this.vres,Transparency.TRANSLUCENT);
+			this.sphereview = new Camera();
+			this.equirectangularimage = gc.createCompatibleVolatileImage(this.hres,this.vres,Transparency.TRANSLUCENT);
 		}
 	}
 	

@@ -130,6 +130,7 @@ public class ModelApp extends AppHandlerPanel {
 								double[][] trianglefwdintpointsdist = MathLib.planePointDistance(triangleintpoints, camfwdplane);
 								if ((trianglefwdintpointsdist[0][0]>0)&&(trianglefwdintpointsdist[1][0]>0)) {
 									Triangle[] copytriangle = {copytrianglelist[it]};
+									Plane[] copytriangleplane = {triangleplanes[it]};
 									Material copymaterial = copytriangle[0].mat;
 									float shadingmultiplier = triangleshadingmultipliers[it];
 									Color tricolor = copymaterial.facecolor;
@@ -164,7 +165,6 @@ public class ModelApp extends AppHandlerPanel {
 									Direction[] vpixelpointdir12 = MathLib.vectorFromPoints(vpixelpoint1, vpixelpoint2);
 									double[] vpixelpointdir12len = MathLib.vectorLength(vpixelpointdir12);
 									double[] vpixelpoint1angle = MathLib.vectorAngle(vpixelpointdir1inv, vpixelpointdir12);
-									Plane[] copytriangleplane = MathLib.planeFromPoints(copytriangle);
 									if ((vpixelyend>=0)&&(vpixelystart<=this.getHeight())) {
 										if (vpixelystart<0) {vpixelystart=0;}
 										if (vpixelyend>=this.getHeight()) {vpixelyend=this.getHeight()-1;}
