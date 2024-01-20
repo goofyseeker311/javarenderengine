@@ -22,6 +22,13 @@ import fi.jkauppa.javarenderengine.ModelLib.Tetrahedron;
 import fi.jkauppa.javarenderengine.ModelLib.Triangle;
 
 public class MathLib {
+	public static double sind(double value) {return Math.sin((Math.PI/180.0f)*value);}
+	public static double asind(double value) {return (180.0f/Math.PI)*Math.asin(value);}
+	public static double cosd(double value) {return Math.cos((Math.PI/180.0f)*value);}
+	public static double acosd(double value) {return (180.0f/Math.PI)*Math.acos(value);}
+	public static double tand(double value) {return Math.tan((Math.PI/180.0f)*value);}
+	public static double atand(double value) {return (180.0f/Math.PI)*Math.atan(value);}
+	
 	public static double[] vectorDot(Direction[] vdir, Position vpoint){double[] k=null; if((vdir!=null)&&(vpoint!=null)){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vpoint.x+vdir[n].dy*vpoint.y+vdir[n].dz*vpoint.z;}}return k;}
 	public static double[] vectorDot(Direction[] vdir, Position[] vpoint){double[] k=null; if((vdir!=null)&&(vpoint!=null)&&(vdir.length==vpoint.length)){k=new double[vdir.length];for(int n=0;n<vdir.length;n++){k[n] = vdir[n].dx*vpoint[n].x+vdir[n].dy*vpoint[n].y+vdir[n].dz*vpoint[n].z;}}return k;}
 	public static double[] vectorDot(Direction vdir1, Direction[] vdir2){double[] k=null; if((vdir1!=null)&&(vdir2!=null)){k=new double[vdir2.length];for(int n=0;n<vdir2.length;n++){k[n] = vdir1.dx*vdir2[n].dx+vdir1.dy*vdir2[n].dy+vdir1.dz*vdir2[n].dz;}}return k;}
@@ -1316,6 +1323,13 @@ public class MathLib {
 		return k;
 	}
 	
+	public static Plane[] spheremapPlanes(Position vpos, int vhres, double vhfov, Matrix vmat) {
+		return null;
+	}
+	public static Direction[][] spheremapRays(int vhres, int vvres, double vhfov, double vvfov, Matrix vmat) {
+		return null;
+	}
+	
 	public static double[] projectedStep(int vres, double vfov) {
 		double[] k = new double[vres];
 		double halfvfov = vfov/2.0f;
@@ -1575,22 +1589,4 @@ public class MathLib {
 		return k;
 	}
 	
-	public static double sind(double value) {
-		return Math.sin((Math.PI/180.0f)*value);
-	}
-	public static double asind(double value) {
-		return (180.0f/Math.PI)*Math.asin(value);
-	}
-	public static double cosd(double value) {
-		return Math.cos((Math.PI/180.0f)*value);
-	}
-	public static double acosd(double value) {
-		return (180.0f/Math.PI)*Math.acos(value);
-	}
-	public static double tand(double value) {
-		return Math.tan((Math.PI/180.0f)*value);
-	}
-	public static double atand(double value) {
-		return (180.0f/Math.PI)*Math.atan(value);
-	}
 }
