@@ -144,6 +144,7 @@ public class ModelLib {
 			return k;
 		}
 		public Direction copy(){return new Direction(this.dx,this.dy,this.dz);}
+		public Direction invert(){return new Direction(-this.dx,-this.dy,-this.dz);}
 	}
 	public static class Coordinate implements Comparable<Coordinate> {public double u,v; public Coordinate(double ui,double vi){this.u=ui;this.v=vi;}
 	@Override public int compareTo(Coordinate o){

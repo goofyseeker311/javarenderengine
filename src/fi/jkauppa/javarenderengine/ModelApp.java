@@ -143,54 +143,59 @@ public class ModelApp extends AppHandlerPanel {
 									double[][] upintpointsdist = MathLib.planePointDistance(drawlinepoints, camupplane);
 									double vpixely1 = halfvfovmult*halfvres*(upintpointsdist[0][0]/fwdintpointsdist[0][0])+halfvres;
 									double vpixely2 = halfvfovmult*halfvres*(upintpointsdist[1][0]/fwdintpointsdist[1][0])+halfvres;
+									double vpixelyang1 = (180.0f/Math.PI)*Math.atan(upintpointsdist[0][0]/fwdintpointsdist[0][0]);
+									double vpixelyang2 = (180.0f/Math.PI)*Math.atan(upintpointsdist[1][0]/fwdintpointsdist[1][0]);
 									double[] vpixelys = {vpixely1, vpixely2};
+									double[] vpixelyangs = {vpixelyang1, vpixelyang2};
 									int[] vpixelyinds = UtilLib.indexSort(vpixelys);
 									double[] vpixelysort = UtilLib.indexValues(vpixelys, vpixelyinds);
 									Position[] vpixelpoints = {drawlinepoints[vpixelyinds[0]], drawlinepoints[vpixelyinds[1]]};
 									Position[] vpixelpoint1 = {vpixelpoints[0]};
 									Position[] vpixelpoint2 = {vpixelpoints[1]};
+									double[] vpixelyangsort = {vpixelyangs[vpixelyinds[0]],vpixelyangs[vpixelyinds[1]]};
+									double vpixelyangsort1 = vpixelyangsort[0]; 
 									int vpixelyind1 = (int)Math.ceil(vpixelysort[0]); 
 									int vpixelyind2 = (int)Math.floor(vpixelysort[1]); 
-									int vpixelydelta = vpixelyind2-vpixelyind1;
-									int vpixelysteps = vpixelydelta+1;
 									int vpixelystart = vpixelyind1;
 									int vpixelyend = vpixelyind2;
-									Direction[] drawvector = MathLib.vectorFromPoints(this.campos, vpixelpoints);
-									double[] drawvectordistance = MathLib.vectorLength(drawvector);
-									double drawvectordistancedelta = drawvectordistance[1]-drawvectordistance[0];
-									double drawvectordistancedeltastep = drawvectordistancedelta/vpixelysteps;
+									Direction[] vpixelpointdir1 = MathLib.vectorFromPoints(this.campos, vpixelpoint1);
+									double[] vpixelpointdirlen1 = MathLib.vectorLength(vpixelpointdir1);
+									Direction[] vpixelpointdir1inv = {vpixelpointdir1[0].invert()};
+									Direction[] vpixelpointdir12 = MathLib.vectorFromPoints(vpixelpoint1, vpixelpoint2);
+									double[] vpixelpointdir12len = MathLib.vectorLength(vpixelpointdir12);
+									double[] vpixelpoint1angle = MathLib.vectorAngle(vpixelpointdir1inv, vpixelpointdir12);
 									if ((vpixelyind2>=0)&&(vpixelyind1<=this.getHeight())) {
 										if (vpixelystart<0) {vpixelystart=0;}
 										if (vpixelyend>=this.getHeight()) {vpixelyend=this.getHeight()-1;}
-										/*
-										if (tritexture!=null) {
-											Position[] lineuvpoint1 = {new Position(vpixelpoints[0].tex.u*(tritexture.getWidth()-1),(1.0f-vpixelpoints[0].tex.v)*(tritexture.getHeight()-1),0.0f)};
-											Position[] lineuvpoint2 = {new Position(vpixelpoints[1].tex.u*(tritexture.getWidth()-1),(1.0f-vpixelpoints[1].tex.v)*(tritexture.getHeight()-1),0.0f)};
-											for (int n=vpixelystart;n<=vpixelyend;n++) {
-												int nstepind = (n-vpixelyind1);
-												if (drawdistance<this.zbuffer[n][j]) {
-													this.zbuffer[n][j] = drawdistance;
-													Position[] lineuv = 0;
+										for (int n=vpixelystart;n<=vpixelyend;n++) {
+											double vpixelcampointangle = (180.0f/Math.PI)*Math.atan((n-halfvres)/(halfvfovmult*halfvres))-vpixelyangsort1;
+											double vpixelpointangle = 180.0f-vpixelpoint1angle[0]-vpixelcampointangle;
+											double vpixelpointlen = vpixelpointdirlen1[0]*(Math.sin((Math.PI/180.0f)*vpixelcampointangle)/Math.sin((Math.PI/180.0f)*vpixelpointangle));
+											double vpixelpointlenfrac = vpixelpointlen/vpixelpointdir12len[0];
+											Position[] pixeldrawpoint = MathLib.translate(vpixelpoint1, vpixelpointdir12[0], vpixelpointlenfrac);
+											Direction[] pixeldrawpointdir = MathLib.vectorFromPoints(this.campos, pixeldrawpoint);
+											double[] pixeldrawpointdirlen = MathLib.vectorLength(pixeldrawpointdir);
+											double drawdistance = pixeldrawpointdirlen[0];
+											if (drawdistance<this.zbuffer[n][j]) {
+												this.zbuffer[n][j] = drawdistance;
+												if (tritexture!=null) {
+													Position[] lineuvpoint1 = {new Position(vpixelpoints[0].tex.u*(tritexture.getWidth()-1),(1.0f-vpixelpoints[0].tex.v)*(tritexture.getHeight()-1),0.0f)};
+													Position[] lineuvpoint2 = {new Position(vpixelpoints[1].tex.u*(tritexture.getWidth()-1),(1.0f-vpixelpoints[1].tex.v)*(tritexture.getHeight()-1),0.0f)};
+													Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
+													Position[] lineuv = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
 													int lineuvx = (int)Math.round(lineuv[0].x);
 													int lineuvy = (int)Math.round(lineuv[0].y);
-													Color texcolor = new Color(tritextureimage.getRGB(lineuvx, lineuvy));
-													g2.setColor(texcolor);
+													if ((lineuvx>=0)&&(lineuvx<tritexture.getWidth())&&(lineuvy>=0)&&(lineuvy<tritexture.getHeight())) {
+														Color texcolor = new Color(tritextureimage.getRGB(lineuvx, lineuvy));
+														g2.setColor(texcolor);
+														g2.drawLine(j, n, j, n);
+													}
+												} else {
+													g2.setColor(trianglecolor);
 													g2.drawLine(j, n, j, n);
 												}
 											}
-										} else {
-										*/
-											g2.setColor(trianglecolor);
-											for (int n=vpixelystart;n<=vpixelyend;n++) {
-												double drawdistance = drawvectordistance[0]+(n-vpixelyind1)*drawvectordistancedeltastep;
-												if (drawdistance<this.zbuffer[n][j]) {
-													this.zbuffer[n][j] = drawdistance;
-													g2.drawLine(j, n, j, n);
-												}
-											}
-										/*
 										}
-										*/
 									}
 								}
 							}

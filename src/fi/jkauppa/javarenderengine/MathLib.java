@@ -1461,8 +1461,8 @@ public class MathLib {
 			k = new Coordinate[vquad.length][4];
 			double halfhfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(hfov/2.0f)));
 			double halfvfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(vfov/2.0f)));
-			int halfhres = (int)Math.round(((double)(hres-1))/2.0f);
-			int halfvres = (int)Math.round(((double)(vres-1))/2.0f);
+			int halfhres = (int)Math.round(((double)hres)/2.0f);
+			int halfvres = (int)Math.round(((double)vres)/2.0f);
 			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
 			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
 			Position[] vquadpoint1 = new Position[vquad.length];

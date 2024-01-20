@@ -143,43 +143,45 @@ public class CADApp extends AppHandlerPanel {
 				Sphere[] sortedentityspherelist = sortedentityspheretree.toArray(new Sphere[sortedentityspheretree.size()]);
 				for (int k=0;k<sortedentityspherelist.length;k++) {
 					Triangle[] entitytrianglelist = entitylistmaphandle[sortedentityspherelist[k].ind].trianglelist;
-					if (entitytrianglelist.length>0) {
-						Triangle[] copytrianglelist = MathLib.subDivideTriangle(entitytrianglelist);
-						for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].ind = i;}
-						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
-						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
-						TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereDistanceComparator(this.campos));
-						sortedtrianglespheretree.addAll(Arrays.asList(copytrianglespherelist));
-						Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
-						Plane[] triangleplanes = MathLib.planeFromPoints(copytrianglelist);
-						Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
-						double[] triangleviewangles = MathLib.vectorAngle(this.camdirs[0], trianglenormals);
-						Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangles(this.campos, copytrianglelist, this.getWidth(), this.hfov, this.getHeight(), this.vfov, this.cameramat);
-						for (int j=0;j<sortedtrianglespherelist.length;j++) {
-							Coordinate coord1 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][0];
-							Coordinate coord2 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][1];
-							Coordinate coord3 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][2];
-							int i = sortedtrianglespherelist[j].ind;
-							Triangle copytriangle = copytrianglelist[i];
-							double triangleviewangle = triangleviewangles[i];
-							if (triangleviewangle>90.0f) {triangleviewangle = 180-triangleviewangle;}
-							float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
-							Material copymaterial = copytriangle.mat;
-							Color tricolor = copymaterial.facecolor;
-							float alphacolor = copymaterial.transparency;
-							if (tricolor==null) {tricolor = Color.WHITE;}
-							float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
-							g2.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
-							if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)) {
-								Polygon trianglepolygon = new Polygon();
-								trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
-								trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
-								trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
-								g2.fill(trianglepolygon);
-								boolean mouseoverhit = g2.hit(new Rectangle(this.mouselocationx-this.vertexradius,this.mouselocationy-this.vertexradius,3,3), trianglepolygon, false);
-								if (mouseoverhit) {
-									int entitytriangleind = Math.floorDiv(i, 2);
-									mouseoverhittriangle.add(entitytrianglelist[entitytriangleind]);
+					if (entitytrianglelist!=null) {
+						if (entitytrianglelist.length>0) {
+							Triangle[] copytrianglelist = MathLib.subDivideTriangle(entitytrianglelist);
+							for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].ind = i;}
+							Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
+							for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
+							TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereDistanceComparator(this.campos));
+							sortedtrianglespheretree.addAll(Arrays.asList(copytrianglespherelist));
+							Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
+							Plane[] triangleplanes = MathLib.planeFromPoints(copytrianglelist);
+							Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
+							double[] triangleviewangles = MathLib.vectorAngle(this.camdirs[0], trianglenormals);
+							Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangles(this.campos, copytrianglelist, this.getWidth(), this.hfov, this.getHeight(), this.vfov, this.cameramat);
+							for (int j=0;j<sortedtrianglespherelist.length;j++) {
+								Coordinate coord1 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][0];
+								Coordinate coord2 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][1];
+								Coordinate coord3 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][2];
+								int i = sortedtrianglespherelist[j].ind;
+								Triangle copytriangle = copytrianglelist[i];
+								double triangleviewangle = triangleviewangles[i];
+								if (triangleviewangle>90.0f) {triangleviewangle = 180-triangleviewangle;}
+								float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
+								Material copymaterial = copytriangle.mat;
+								Color tricolor = copymaterial.facecolor;
+								float alphacolor = copymaterial.transparency;
+								if (tricolor==null) {tricolor = Color.WHITE;}
+								float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
+								g2.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
+								if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)) {
+									Polygon trianglepolygon = new Polygon();
+									trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
+									trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
+									trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
+									g2.fill(trianglepolygon);
+									boolean mouseoverhit = g2.hit(new Rectangle(this.mouselocationx-this.vertexradius,this.mouselocationy-this.vertexradius,3,3), trianglepolygon, false);
+									if (mouseoverhit) {
+										int entitytriangleind = Math.floorDiv(i, 2);
+										mouseoverhittriangle.add(entitytrianglelist[entitytriangleind]);
+									}
 								}
 							}
 						}
@@ -192,7 +194,7 @@ public class CADApp extends AppHandlerPanel {
 				for (int k=0;k<entitylistmaphandle.length;k++) {
 					Tetrahedron[] tetrahedronlist = entitylistmaphandle[k].tetrahedronlist;
 					if (tetrahedronlist!=null) {
-						for (int j=0;j<entitylistmaphandle[k].tetrahedronlist.length;j++) {
+						for (int j=0;j<tetrahedronlist.length;j++) {
 							Triangle[] tetrahedrontrianglelist = new Triangle[4];
 							tetrahedrontrianglelist[0] = new Triangle(tetrahedronlist[j].pos1,tetrahedronlist[j].pos2,tetrahedronlist[j].pos3); 
 							tetrahedrontrianglelist[1] = new Triangle(tetrahedronlist[j].pos1,tetrahedronlist[j].pos2,tetrahedronlist[j].pos4); 
