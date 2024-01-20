@@ -104,7 +104,7 @@ public class MathLib {
 			double[] vdir2length = vectorLength(vdir2);
 			double[] vdir12dot = vectorDot(vdir1,vdir2);
 			for (int n=0;n<vdir2.length;n++) {
-				k[n] = (180.0f/Math.PI)*Math.acos(vdir12dot[n]/(vdir1length[0]*vdir2length[n]));
+				k[n] = acosd(vdir12dot[n]/(vdir1length[0]*vdir2length[n]));
 			}
 		}
 		return k;
@@ -117,7 +117,7 @@ public class MathLib {
 			double[] vdir2length = vectorLength(vdir2);
 			double[] vdir12dot = vectorDot(vdir1,vdir2);
 			for (int n=0;n<vdir1.length;n++) {
-				k[n] = (180.0f/Math.PI)*Math.acos(vdir12dot[n]/(vdir1length[n]*vdir2length[n]));
+				k[n] = acosd(vdir12dot[n]/(vdir1length[n]*vdir2length[n]));
 			}
 		}
 		return k;
@@ -323,8 +323,8 @@ public class MathLib {
 								} else if (isatpoint3) {
 									p4[0].tex = p3[0].tex.copy();
 								} else {
-									double n12len = tl1[0]*(Math.sin((Math.PI/180.0f)*h13[0])/Math.sin((Math.PI/180.0f)*ai1[0]));
-									double n13len = tl1[0]*(Math.sin((Math.PI/180.0f)*h12[0])/Math.sin((Math.PI/180.0f)*ai1[0]));
+									double n12len = tl1[0]*(sind(h13[0])/sind(ai1[0]));
+									double n13len = tl1[0]*(sind(h12[0])/sind(ai1[0]));
 									double n12mult = n12len/vl12[0];
 									double n13mult = n13len/vl13[0];
 									double u12delta = p2[0].tex.u-p1[0].tex.u;
@@ -528,7 +528,7 @@ public class MathLib {
 		Direction[] lvec = vectorFromPoints(vpos, vsphere);
 		double[] lvecl = vectorLength(lvec);
 		for (int j=0;j<vsphere.length;j++) {
-			double cmradang = (180.0f/Math.PI)*Math.asin(vsphere[j].r/lvecl[j]);
+			double cmradang = asind(vsphere[j].r/lvecl[j]);
 			if (!Double.isFinite(cmradang)) {cmradang = 180.0f;}
 			for (int i=0;i<cubedir.length;i++) {
 				Direction[] lvecx = new Direction[2];
@@ -555,8 +555,8 @@ public class MathLib {
 					sign1 = lvec[j].dz<0.0f?-1.0f:1.0f;
 				}
 				Direction[] lvecxn = normalizeVector(lvecx);
-				double lvecxa1 = sign1*(180.0f/Math.PI)*Math.acos(vectorDot(lvecxn[0],cubedir[i])); 
-				double lvecxa2 = sign2*(180.0f/Math.PI)*Math.acos(vectorDot(lvecxn[1],cubedir[i]));
+				double lvecxa1 = sign1*acosd(vectorDot(lvecxn[0],cubedir[i])); 
+				double lvecxa2 = sign2*acosd(vectorDot(lvecxn[1],cubedir[i]));
 				double lvecxa1min = lvecxa1 - cmradang;
 				double lvecxa1max = lvecxa1 + cmradang;
 				double lvecxa2min = lvecxa2 - cmradang;
@@ -1027,10 +1027,9 @@ public class MathLib {
 		return k;
 	}
 	public static Matrix rotationMatrix(double xaxisr, double yaxisr, double zaxisr) {
-		double xaxisrrad=xaxisr*(Math.PI/180.0f); double yaxisrrad=yaxisr*(Math.PI/180.0f); double zaxisrrad=zaxisr*(Math.PI/180.0f);
-		Matrix xrot = new Matrix(1,0,0,0,Math.cos(xaxisrrad),-Math.sin(xaxisrrad),0,Math.sin(xaxisrrad),Math.cos(xaxisrrad));
-		Matrix yrot = new Matrix(Math.cos(yaxisrrad),0,Math.sin(yaxisrrad),0,1,0,-Math.sin(yaxisrrad),0,Math.cos(yaxisrrad));
-		Matrix zrot = new Matrix(Math.cos(zaxisrrad),-Math.sin(zaxisrrad),0,Math.sin(zaxisrrad),Math.cos(zaxisrrad),0,0,0,1);
+		Matrix xrot = new Matrix(1,0,0,0,cosd(xaxisr),-sind(xaxisr),0,sind(xaxisr),cosd(xaxisr));
+		Matrix yrot = new Matrix(cosd(yaxisr),0,sind(yaxisr),0,1,0,-sind(yaxisr),0,cosd(yaxisr));
+		Matrix zrot = new Matrix(cosd(zaxisr),-sind(zaxisr),0,sind(zaxisr),cosd(zaxisr),0,0,0,1);
 		return matrixMultiply(zrot,matrixMultiply(yrot, xrot));
 	}
 	
@@ -1333,7 +1332,7 @@ public class MathLib {
 	public static double[] projectedStep(int vres, double vfov) {
 		double[] k = new double[vres];
 		double halfvfov = vfov/2.0f;
-		double stepmax = Math.abs(Math.tan(halfvfov*(Math.PI/180.0f)));
+		double stepmax = Math.abs(tand(halfvfov));
 		double stepmin = -stepmax;
 		double step = 2.0f/((double)(vres-1))*stepmax;
 		for (int i=0;i<vres;i++){k[i]=stepmin+step*i;}
@@ -1342,7 +1341,7 @@ public class MathLib {
 	public static double[] projectedAngles(int vres, double vfov) {
 		double[] k = new double[vres];
 		double[] hd = projectedStep(vres, vfov);
-		for (int i=0;i<vres;i++){k[i]=(180.0f/Math.PI)*Math.atan(hd[i]);}
+		for (int i=0;i<vres;i++){k[i]=atand(hd[i]);}
 		return k;
 	}
 	public static Direction[] projectedCameraDirections(Matrix vmat) {
@@ -1399,8 +1398,8 @@ public class MathLib {
 		Coordinate[] k = null;
 		if ((vpos!=null)&&(vpoint!=null)&&(vmat!=null)) {
 			k = new Coordinate[vpoint.length];
-			double halfhfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(hfov/2.0f)));
-			double halfvfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(vfov/2.0f)));
+			double halfhfovmult = (1.0f/tand(hfov/2.0f));
+			double halfvfovmult = (1.0f/tand(vfov/2.0f));
 			int halfhres = (int)Math.round(((double)hres)/2.0f);
 			int halfvres = (int)Math.round(((double)vres)/2.0f);
 			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
@@ -1420,8 +1419,8 @@ public class MathLib {
 		Coordinate[][] k = null;
 		if ((vpos!=null)&&(vline!=null)&&(vmat!=null)) {
 			k = new Coordinate[vline.length][2];
-			double halfhfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(hfov/2.0f)));
-			double halfvfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(vfov/2.0f)));
+			double halfhfovmult = (1.0f/tand(hfov/2.0f));
+			double halfvfovmult = (1.0f/tand(vfov/2.0f));
 			int halfhres = (int)Math.round(((double)hres)/2.0f);
 			int halfvres = (int)Math.round(((double)vres)/2.0f);
 			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
@@ -1453,8 +1452,8 @@ public class MathLib {
 		Coordinate[][] k = null;
 		if ((vpos!=null)&&(vtri!=null)&&(vmat!=null)) {
 			k = new Coordinate[vtri.length][3];
-			double halfhfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(hfov/2.0f)));
-			double halfvfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(vfov/2.0f)));
+			double halfhfovmult = (1.0f/tand(hfov/2.0f));
+			double halfvfovmult = (1.0f/tand(vfov/2.0f));
 			int halfhres = (int)Math.round(((double)hres)/2.0f);
 			int halfvres = (int)Math.round(((double)vres)/2.0f);
 			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
@@ -1494,8 +1493,8 @@ public class MathLib {
 		Coordinate[][] k = null;
 		if ((vpos!=null)&&(vquad!=null)&&(vmat!=null)) {
 			k = new Coordinate[vquad.length][4];
-			double halfhfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(hfov/2.0f)));
-			double halfvfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(vfov/2.0f)));
+			double halfhfovmult = (1.0f/tand(hfov/2.0f));
+			double halfvfovmult = (1.0f/tand(vfov/2.0f));
 			int halfhres = (int)Math.round(((double)hres)/2.0f);
 			int halfvres = (int)Math.round(((double)vres)/2.0f);
 			Direction[] dirrightupvectors = projectedCameraDirections(vmat);

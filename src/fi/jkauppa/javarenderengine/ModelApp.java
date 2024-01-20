@@ -81,7 +81,7 @@ public class ModelApp extends AppHandlerPanel {
 		g2.setClip(null);
 		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
 		g2.setComposite(AlphaComposite.SrcOver);
-		this.vfov = 2.0f*(180.0f/Math.PI)*Math.atan((((double)this.getHeight())/((double)this.getWidth()))*Math.tan((this.hfov/2.0f)*(Math.PI/180.0f)));
+		this.vfov = 2.0f*MathLib.atand((((double)this.getHeight())/((double)this.getWidth()))*MathLib.tand(this.hfov/2.0f));
 		if ((this.zbuffer==null)||(this.zbuffer.length!=this.getHeight())||(this.zbuffer[0].length!=this.getWidth())) {
 			this.zbuffer = new double[this.getHeight()][this.getWidth()];
 		}
@@ -90,7 +90,7 @@ public class ModelApp extends AppHandlerPanel {
 			Plane[] verticalplanes = MathLib.projectedPlanes(this.campos, this.getWidth(), hfov, this.cameramat);
 			double[] verticalangles = MathLib.projectedAngles(this.getHeight(), vfov);
 			Direction[][] projectedrays = MathLib.projectedRays(this.getWidth(), this.getHeight(), this.hfov, this.vfov, this.cameramat);
-			double halfvfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(vfov/2.0f)));
+			double halfvfovmult = (1.0f/MathLib.tand(vfov/2.0f));
 			int halfvres = (int)Math.round(((double)this.getHeight())/2.0f);
 			Plane[] camdirrightupplanes = MathLib.planeFromNormalAtPoint(this.campos, this.camdirs);
 			Plane[] camfwdplane = {camdirrightupplanes[0]};
@@ -145,8 +145,8 @@ public class ModelApp extends AppHandlerPanel {
 									double[][] upintpointsdist = MathLib.planePointDistance(drawlinepoints, camupplane);
 									double vpixely1 = halfvfovmult*halfvres*(upintpointsdist[0][0]/fwdintpointsdist[0][0])+halfvres;
 									double vpixely2 = halfvfovmult*halfvres*(upintpointsdist[1][0]/fwdintpointsdist[1][0])+halfvres;
-									double vpixelyang1 = (180.0f/Math.PI)*Math.atan(upintpointsdist[0][0]/fwdintpointsdist[0][0]);
-									double vpixelyang2 = (180.0f/Math.PI)*Math.atan(upintpointsdist[1][0]/fwdintpointsdist[1][0]);
+									double vpixelyang1 = MathLib.atand(upintpointsdist[0][0]/fwdintpointsdist[0][0]);
+									double vpixelyang2 = MathLib.atand(upintpointsdist[1][0]/fwdintpointsdist[1][0]);
 									double[] vpixelys = {vpixely1, vpixely2};
 									double[] vpixelyangs = {vpixelyang1, vpixelyang2};
 									int[] vpixelyinds = UtilLib.indexSort(vpixelys);
@@ -171,7 +171,7 @@ public class ModelApp extends AppHandlerPanel {
 										for (int n=vpixelystart;n<=vpixelyend;n++) {
 											double vpixelcampointangle = verticalangles[n]-vpixelyangsort1;
 											double vpixelpointangle = 180.0f-vpixelpoint1angle[0]-vpixelcampointangle;
-											double vpixelpointlen = vpixelpointdirlen1[0]*(Math.sin((Math.PI/180.0f)*vpixelcampointangle)/Math.sin((Math.PI/180.0f)*vpixelpointangle));
+											double vpixelpointlen = vpixelpointdirlen1[0]*(MathLib.sind(vpixelcampointangle)/MathLib.sind(vpixelpointangle));
 											double vpixelpointlenfrac = vpixelpointlen/vpixelpointdir12len[0];
 											Direction[] pixelray = {projectedrays[n][j]};
 											double[][] copytriangleplanedist = MathLib.rayPlaneDistance(this.campos, pixelray, copytriangleplane);
