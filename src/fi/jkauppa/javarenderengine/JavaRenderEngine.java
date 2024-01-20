@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.8.19");
+		this.setTitle("Java Render Engine v1.8.20");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -244,6 +244,42 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		double[][] rptdist2 = MathLib.rayPointDistance(rpdpos2, rpddir, rpdpoint);
 		for (int j=0;j<rptdist.length;j++) {for (int i=0;i<rptdist[0].length;i++) {System.out.println("rptdist["+j+"]["+i+"]= "+rptdist[j][i]);}}
 		for (int j=0;j<rptdist2.length;j++) {for (int i=0;i<rptdist2[0].length;i++) {System.out.println("rptdist2["+j+"]["+i+"]= "+rptdist2[j][i]);}}
+		double vsindn45 = MathLib.sind(-45.0f); System.out.println("vsindn45="+vsindn45);
+		double vsind0 = MathLib.sind(0.0f); System.out.println("vsind0="+vsind0);
+		double vsind45 = MathLib.sind(45.0f); System.out.println("vsind45="+vsind45);
+		double vsind90 = MathLib.sind(90.0f); System.out.println("vsind90="+vsind90);
+		double vsind180 = MathLib.sind(180.0f); System.out.println("vsind180="+vsind180);
+		double vsind270 = MathLib.sind(270.0f); System.out.println("vsind270="+vsind270);
+		double vsind360 = MathLib.sind(360.0f); System.out.println("vsind360="+vsind360);
+		double vasind0 = MathLib.asind(0.0f); System.out.println("vasind0="+vasind0);
+		double vasindn1 = MathLib.asind(-1.0f); System.out.println("vasindn1="+vasindn1);
+		double vasindnis2 = MathLib.asind(-1.0f/Math.sqrt(2.0f)); System.out.println("vasindnis2="+vasindnis2);
+		double vasindp1 = MathLib.asind(1.0f); System.out.println("vasindp1="+vasindp1);
+		double vasindpis2 = MathLib.asind(1.0f/Math.sqrt(2.0f)); System.out.println("vasindpis2="+vasindpis2);
+		double vcosdn45 = MathLib.cosd(-45.0f); System.out.println("vcosdn45="+vcosdn45);
+		double vcosd0 = MathLib.cosd(0.0f); System.out.println("vcosd0="+vcosd0);
+		double vcosd45 = MathLib.cosd(45.0f); System.out.println("vcosd45="+vcosd45);
+		double vcosd90 = MathLib.cosd(90.0f); System.out.println("vcosd90="+vcosd90);
+		double vcosd180 = MathLib.cosd(180.0f); System.out.println("vcosd180="+vcosd180);
+		double vcosd270 = MathLib.cosd(270.0f); System.out.println("vcosd270="+vcosd270);
+		double vcosd360 = MathLib.cosd(360.0f); System.out.println("vcosd360="+vcosd360);
+		double vacosd0 = MathLib.acosd(0.0f); System.out.println("vacosd0="+vacosd0);
+		double vacosdn1 = MathLib.acosd(-1.0f); System.out.println("vacosdn1="+vacosdn1);
+		double vacosdnis2 = MathLib.acosd(-1.0f/Math.sqrt(2.0f)); System.out.println("vacosdnis2="+vacosdnis2);
+		double vacosdp1 = MathLib.acosd(1.0f); System.out.println("vacosdp1="+vacosdp1);
+		double vacosdpis2 = MathLib.acosd(1.0f/Math.sqrt(2.0f)); System.out.println("vacosdpis2="+vacosdpis2);
+		double vtandn45 = MathLib.tand(-45.0f); System.out.println("vtandn45="+vtandn45);
+		double vtand0 = MathLib.tand(0.0f); System.out.println("vtand0="+vtand0);
+		double vtand45 = MathLib.tand(45.0f); System.out.println("vtand45="+vtand45);
+		double vtand90 = MathLib.tand(90.0f); System.out.println("vtand90="+vtand90);
+		double vtand180 = MathLib.tand(180.0f); System.out.println("vtand180="+vtand180);
+		double vtand270 = MathLib.tand(270.0f); System.out.println("vtand270="+vtand270);
+		double vtand360 = MathLib.tand(360.0f); System.out.println("vtand360="+vtand360);
+		double vatand0 = MathLib.atand(0.0f); System.out.println("vatand0="+vatand0);
+		double vatandn1 = MathLib.atand(-1.0f); System.out.println("vatandn1="+vatandn1);
+		double vatandnis2 = MathLib.atand(-1.0f/Math.sqrt(2.0f)); System.out.println("vatandnis2="+vatandnis2);
+		double vatandp1 = MathLib.atand(1.0f); System.out.println("vatandp1="+vatandp1);
+		double vatandpis2 = MathLib.atand(1.0f/Math.sqrt(2.0f)); System.out.println("vatandpis2="+vatandpis2);
 		
 		new JavaRenderEngine();
 	}

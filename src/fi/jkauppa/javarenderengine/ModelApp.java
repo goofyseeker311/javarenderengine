@@ -89,7 +89,6 @@ public class ModelApp extends AppHandlerPanel {
 		if (this.entitylist!=null) {
 			Plane[] verticalplanes = MathLib.projectedPlanes(this.campos, this.getWidth(), hfov, this.cameramat);
 			double[] verticalangles = MathLib.projectedAngles(this.getHeight(), vfov);
-			Arrays.sort(verticalangles);
 			double halfvfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(vfov/2.0f)));
 			int halfvres = (int)Math.round(((double)this.getHeight())/2.0f);
 			Plane[] camdirrightupplanes = MathLib.planeFromNormalAtPoint(this.campos, this.camdirs);
@@ -152,8 +151,7 @@ public class ModelApp extends AppHandlerPanel {
 									Position[] vpixelpoints = {drawlinepoints[vpixelyinds[0]], drawlinepoints[vpixelyinds[1]]};
 									Position[] vpixelpoint1 = {vpixelpoints[0]};
 									Position[] vpixelpoint2 = {vpixelpoints[1]};
-									double[] vpixelyangsort = {vpixelyangs[vpixelyinds[0]],vpixelyangs[vpixelyinds[1]]};
-									double vpixelyangsort1 = vpixelyangsort[0]; 
+									double vpixelyangsort1 = vpixelyangs[vpixelyinds[0]]; 
 									int vpixelyind1 = (int)Math.ceil(vpixelysort[0]); 
 									int vpixelyind2 = (int)Math.floor(vpixelysort[1]); 
 									int vpixelystart = vpixelyind1;
@@ -168,7 +166,7 @@ public class ModelApp extends AppHandlerPanel {
 										if (vpixelystart<0) {vpixelystart=0;}
 										if (vpixelyend>=this.getHeight()) {vpixelyend=this.getHeight()-1;}
 										for (int n=vpixelystart;n<=vpixelyend;n++) {
-											double vpixelcampointangle = (180.0f/Math.PI)*Math.atan((n-halfvres)/(halfvfovmult*halfvres))-vpixelyangsort1;
+											double vpixelcampointangle = verticalangles[n]-vpixelyangsort1;
 											double vpixelpointangle = 180.0f-vpixelpoint1angle[0]-vpixelcampointangle;
 											double vpixelpointlen = vpixelpointdirlen1[0]*(Math.sin((Math.PI/180.0f)*vpixelcampointangle)/Math.sin((Math.PI/180.0f)*vpixelpointangle));
 											double vpixelpointlenfrac = vpixelpointlen/vpixelpointdir12len[0];
