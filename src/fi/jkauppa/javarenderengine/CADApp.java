@@ -125,8 +125,8 @@ public class CADApp extends AppHandlerPanel {
 		g2.setPaint(null);
 		g2.setColor(null);
 		g2.setComposite(AlphaComposite.SrcOver);
-		this.vfov = 2.0f*(180.0f/Math.PI)*Math.atan((((double)this.getHeight())/((double)this.getWidth()))*Math.tan((this.hfov/2.0f)*(Math.PI/180.0f)));
-		this.editplanedistance = (((double)this.getWidth())/2.0f)/Math.tan((Math.PI/180.0f)*(this.hfov/2.0f));
+		this.vfov = 2.0f*MathLib.atand((((double)this.getHeight())/((double)this.getWidth()))*MathLib.tand((this.hfov/2.0f)));
+		this.editplanedistance = (((double)this.getWidth())/2.0f)/MathLib.tand(this.hfov/2.0f);
 		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
 		ArrayList<Position> mouseoverhitvertex = new ArrayList<Position>(); 
 		ArrayList<Line> mouseoverhitline = new ArrayList<Line>();
