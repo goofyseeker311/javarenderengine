@@ -89,6 +89,7 @@ public class ModelApp extends AppHandlerPanel {
 		if (this.entitylist!=null) {
 			Plane[] verticalplanes = MathLib.projectedPlanes(this.campos, this.getWidth(), hfov, this.cameramat);
 			double[] verticalangles = MathLib.projectedAngles(this.getHeight(), vfov);
+			Direction[][] projectedrays = MathLib.projectedRays(this.getWidth(), this.getHeight(), this.hfov, this.vfov, this.cameramat);
 			double halfvfovmult = (1.0f/Math.tan((Math.PI/180.0f)*(vfov/2.0f)));
 			int halfvres = (int)Math.round(((double)this.getHeight())/2.0f);
 			Plane[] camdirrightupplanes = MathLib.planeFromNormalAtPoint(this.campos, this.camdirs);
@@ -128,7 +129,8 @@ public class ModelApp extends AppHandlerPanel {
 								Position[] triangleintpoints = {drawline.pos1, drawline.pos2};
 								double[][] trianglefwdintpointsdist = MathLib.planePointDistance(triangleintpoints, camfwdplane);
 								if ((trianglefwdintpointsdist[0][0]>0)&&(trianglefwdintpointsdist[1][0]>0)) {
-									Material copymaterial = copytrianglelist[it].mat;
+									Triangle[] copytriangle = {copytrianglelist[it]};
+									Material copymaterial = copytriangle[0].mat;
 									float shadingmultiplier = triangleshadingmultipliers[it];
 									Color tricolor = copymaterial.facecolor;
 									float alphacolor = copymaterial.transparency;
@@ -162,7 +164,8 @@ public class ModelApp extends AppHandlerPanel {
 									Direction[] vpixelpointdir12 = MathLib.vectorFromPoints(vpixelpoint1, vpixelpoint2);
 									double[] vpixelpointdir12len = MathLib.vectorLength(vpixelpointdir12);
 									double[] vpixelpoint1angle = MathLib.vectorAngle(vpixelpointdir1inv, vpixelpointdir12);
-									if ((vpixelyind2>=0)&&(vpixelyind1<=this.getHeight())) {
+									Plane[] copytriangleplane = MathLib.planeFromPoints(copytriangle);
+									if ((vpixelyend>=0)&&(vpixelystart<=this.getHeight())) {
 										if (vpixelystart<0) {vpixelystart=0;}
 										if (vpixelyend>=this.getHeight()) {vpixelyend=this.getHeight()-1;}
 										for (int n=vpixelystart;n<=vpixelyend;n++) {
@@ -170,10 +173,9 @@ public class ModelApp extends AppHandlerPanel {
 											double vpixelpointangle = 180.0f-vpixelpoint1angle[0]-vpixelcampointangle;
 											double vpixelpointlen = vpixelpointdirlen1[0]*(Math.sin((Math.PI/180.0f)*vpixelcampointangle)/Math.sin((Math.PI/180.0f)*vpixelpointangle));
 											double vpixelpointlenfrac = vpixelpointlen/vpixelpointdir12len[0];
-											Position[] pixeldrawpoint = MathLib.translate(vpixelpoint1, vpixelpointdir12[0], vpixelpointlenfrac);
-											Direction[] pixeldrawpointdir = MathLib.vectorFromPoints(this.campos, pixeldrawpoint);
-											double[] pixeldrawpointdirlen = MathLib.vectorLength(pixeldrawpointdir);
-											double drawdistance = pixeldrawpointdirlen[0];
+											Direction[] pixelray = {projectedrays[n][j]};
+											double[][] copytriangleplanedist = MathLib.rayPlaneDistance(this.campos, pixelray, copytriangleplane);
+											double drawdistance = Math.abs(copytriangleplanedist[0][0]);
 											if (drawdistance<this.zbuffer[n][j]) {
 												this.zbuffer[n][j] = drawdistance;
 												if (tritexture!=null) {
