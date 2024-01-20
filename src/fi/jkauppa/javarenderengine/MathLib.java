@@ -1360,6 +1360,27 @@ public class MathLib {
 	    fwdvectors = normalizeVector(fwdvectors);
 	    return matrixMultiply(fwdvectors, vmat);
 	}
+	public static Plane[] projectedPlanes(Position vpos, int vres, double vfov, Matrix vmat) {
+		Direction[] fwdvectors = projectedVectors(vres, vfov, vmat);
+		Direction[] dirrightupvectors = projectedPlaneDirections(vmat);
+		Direction rightvector = dirrightupvectors[1];
+		Direction[] planenormalvectors = vectorCross(fwdvectors,rightvector);
+		planenormalvectors = normalizeVector(planenormalvectors);
+	    return planeFromNormalAtPoint(vpos, planenormalvectors);
+	}
+	public static Direction[][] projectedRays(int vhres, int vvres, double vhfov, double vvfov, Matrix vmat) {
+		Direction[][] k = new Direction[vvres][vhres];
+		double[] hstep = projectedStep(vhres, vhfov);
+		double[] vstep = projectedStep(vvres, vvfov);
+		for (int j=0;j<vvres;j++) {
+			for (int i=0;i<vhres;i++) {
+				k[j][i] = new Direction(hstep[i],-vstep[j],-1);
+			}
+			k[j] = normalizeVector(k[j]);
+			k[j] = matrixMultiply(k[j], vmat);
+		}
+		return k;
+	}
 	public static Coordinate[] projectedPoints(Position vpos, Position[] vpoint, int hres, double hfov, int vres, double vfov, Matrix vmat) {
 		Coordinate[] k = null;
 		if ((vpos!=null)&&(vpoint!=null)&&(vmat!=null)) {
@@ -1501,29 +1522,6 @@ public class MathLib {
 					k[i][3] = new Coordinate(hind,vind);
 				}
 			}
-		}
-		return k;
-	}
-	public static Plane[] projectedPlanes(Position vpos, int vres, double vfov, Matrix vmat) {
-		Direction[] fwdvectors = projectedVectors(vres, vfov, vmat);
-		Direction[] dirrightupvectors = projectedPlaneDirections(vmat);
-		Direction rightvector = dirrightupvectors[1];
-		Direction[] planenormalvectors = vectorCross(fwdvectors,rightvector);
-		planenormalvectors = normalizeVector(planenormalvectors);
-	    return planeFromNormalAtPoint(vpos, planenormalvectors);
-	}
-	public static Direction[][] projectedRays(Position vpos, int vhres, int vvres, double vhfov, double vvfov, Matrix vmat) {
-		Direction[][] k = new Direction[vvres][vhres];
-		double[] hstep = projectedStep(vhres, vhfov);
-		double[] vstep = projectedStep(vvres, vvfov);
-		for (int j=0;j<vvres;j++) {
-			k[j] = new Direction[vvres];
-			for (int i=0;i<vvres;i++) {
-				k[j][i] = new Direction(1,hstep[i],vstep[j]);
-			}
-			k[j] = normalizeVector(k[j]);
-			k[j] = matrixMultiply(k[j], vmat);
-			k[j] = translate(k[j], vpos);
 		}
 		return k;
 	}
