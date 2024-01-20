@@ -1576,4 +1576,23 @@ public class MathLib {
 		}
 		return k;
 	}
+	
+	public static double sind(double value) {
+		return Math.sin((Math.PI/180.0f)*value);
+	}
+	public static double asind(double value) {
+		return (180.0f/Math.PI)*Math.asin(value);
+	}
+	public static double cosd(double value) {
+		return Math.cos((Math.PI/180.0f)*value);
+	}
+	public static double acosd(double value) {
+		return (180.0f/Math.PI)*Math.acos(value);
+	}
+	public static double tand(double value) {
+		return Math.tan((Math.PI/180.0f)*value);
+	}
+	public static double atand(double value) {
+		return (180.0f/Math.PI)*Math.atan(value);
+	}
 }
