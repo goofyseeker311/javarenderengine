@@ -346,7 +346,25 @@ public class MathLib {
 		Position[][] k = null;
 		if ((vpos!=null)&&(vdir!=null)&&(vquad!=null)) {
 			k = new Position[vdir.length][vquad.length];
-			//TODO ray quad intersection
+			for (int m=0;m<vquad.length;m++) {
+				Triangle vaabbtri1 = new Triangle(vquad[m].pos1,vquad[m].pos2,vquad[m].pos3);
+				Triangle vaabbtri2 = new Triangle(vquad[m].pos2,vquad[m].pos3,vquad[m].pos4);
+				Triangle[] vaabbtrilist = {vaabbtri1,vaabbtri2};
+				Position[][] vaabbtrirayint = rayTriangleIntersection(vpos, vdir, vaabbtrilist);
+				for (int n=0;n<vaabbtrirayint.length;n++) {
+					Position vaabbtrirayhitpos1 = null; 
+					for (int i=0;i<vaabbtrirayint[0].length;i++) {
+						if (vaabbtrirayint[n][i]!=null) {
+							if (vaabbtrirayhitpos1==null) {
+								vaabbtrirayhitpos1 = vaabbtrirayint[n][i];
+							}
+						}
+					}
+					if (vaabbtrirayhitpos1!=null) {
+						k[n][m] = vaabbtrirayhitpos1;
+					}
+				}
+			}
 		}
 		return k;
 	}

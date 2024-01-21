@@ -40,6 +40,7 @@ import fi.jkauppa.javarenderengine.ModelLib.Line;
 import fi.jkauppa.javarenderengine.ModelLib.Matrix;
 import fi.jkauppa.javarenderengine.ModelLib.Plane;
 import fi.jkauppa.javarenderengine.ModelLib.Position;
+import fi.jkauppa.javarenderengine.ModelLib.Quad;
 import fi.jkauppa.javarenderengine.ModelLib.Sphere;
 import fi.jkauppa.javarenderengine.ModelLib.Triangle;
 
@@ -62,7 +63,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.8.24");
+		this.setTitle("Java Render Engine v1.8.25");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -280,6 +281,12 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		double vatandnis2 = MathLib.atand(-1.0f/Math.sqrt(2.0f)); System.out.println("vatandnis2="+vatandnis2);
 		double vatandp1 = MathLib.atand(1.0f); System.out.println("vatandp1="+vatandp1);
 		double vatandpis2 = MathLib.atand(1.0f/Math.sqrt(2.0f)); System.out.println("vatandpis2="+vatandpis2);
+		Position vrqipos = new Position(0.0f,0.0f,0.0f);
+		Direction[] vrqidir = {new Direction(1.0f,0.0f,0.0f),new Direction(1.0f,0.0f,1.0f)};
+		Quad vrqiquad = new Quad(new Position(1.0f,0.0f,0.0f),new Position(1.0f,0.0f,1.0f),new Position(1.0f,1.0f,1.0f),new Position(1.0f,1.0f,0.0f));
+		Quad[] vrqiquads = {vrqiquad, vrqiquad, vrqiquad};
+		Position[][] rqint = MathLib.rayQuadIntersection(vrqipos, vrqidir, vrqiquads);
+		for (int j=0;j<rqint.length;j++) {for (int i=0;i<rqint[0].length;i++) {if(rqint[j][i]!=null){System.out.println("rqint["+i+"]["+j+"]="+rqint[j][i].x+" "+rqint[j][i].y+" "+rqint[j][i].z);}else{System.out.println("rqint["+i+"]["+j+"]=no hit.");}}}
 		
 		new JavaRenderEngine();
 	}
