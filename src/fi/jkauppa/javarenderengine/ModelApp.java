@@ -89,7 +89,6 @@ public class ModelApp extends AppHandlerPanel {
 		if (this.entitylist!=null) {
 			Plane[] verticalplanes = MathLib.projectedPlanes(this.campos, this.getWidth(), hfov, this.cameramat);
 			double[] verticalangles = MathLib.projectedAngles(this.getHeight(), vfov);
-			Direction[][] projectedrays = MathLib.projectedRays(this.getWidth(), this.getHeight(), this.hfov, this.vfov, this.cameramat);
 			double halfvfovmult = (1.0f/MathLib.tand(vfov/2.0f));
 			int halfvres = (int)Math.round(((double)this.getHeight())/2.0f);
 			Plane[] camdirrightupplanes = MathLib.planeFromNormalAtPoint(this.campos, this.camdirs);
@@ -130,7 +129,6 @@ public class ModelApp extends AppHandlerPanel {
 								double[][] trianglefwdintpointsdist = MathLib.planePointDistance(triangleintpoints, camfwdplane);
 								if ((trianglefwdintpointsdist[0][0]>0)&&(trianglefwdintpointsdist[1][0]>0)) {
 									Triangle[] copytriangle = {copytrianglelist[it]};
-									Plane[] copytriangleplane = {triangleplanes[it]};
 									Material copymaterial = copytriangle[0].mat;
 									float shadingmultiplier = triangleshadingmultipliers[it];
 									Color tricolor = copymaterial.facecolor;
@@ -154,28 +152,33 @@ public class ModelApp extends AppHandlerPanel {
 									Position[] vpixelpoints = {drawlinepoints[vpixelyinds[0]], drawlinepoints[vpixelyinds[1]]};
 									Position[] vpixelpoint1 = {vpixelpoints[0]};
 									Position[] vpixelpoint2 = {vpixelpoints[1]};
+									Position[] vcamposd = {new Position(0.0f,0.0f,0.0f)};
+									Position[] vpixelpoint1d = {new Position(fwdintpointsdist[vpixelyinds[0]][0],upintpointsdist[vpixelyinds[0]][0],0.0f)};
+									Position[] vpixelpoint2d = {new Position(fwdintpointsdist[vpixelyinds[1]][0],upintpointsdist[vpixelyinds[1]][0],0.0f)};
+									Direction[] vpixelpointdir1d = MathLib.vectorFromPoints(vcamposd, vpixelpoint1d);
+									double[] vpixelpointdirlen1d = MathLib.vectorLength(vpixelpointdir1d);
+									Direction[] vpixelpointdir1invd = {vpixelpointdir1d[0].invert()};
+									Direction[] vpixelpointdir12d = MathLib.vectorFromPoints(vpixelpoint1d, vpixelpoint2d);
+									double[] vpixelpointdir12lend = MathLib.vectorLength(vpixelpointdir12d);
+									double[] vpixelpoint1angled = MathLib.vectorAngle(vpixelpointdir1invd, vpixelpointdir12d);
 									double vpixelyangsort1 = vpixelyangs[vpixelyinds[0]]; 
 									int vpixelyind1 = (int)Math.ceil(vpixelysort[0]); 
 									int vpixelyind2 = (int)Math.floor(vpixelysort[1]); 
 									int vpixelystart = vpixelyind1;
 									int vpixelyend = vpixelyind2;
-									Direction[] vpixelpointdir1 = MathLib.vectorFromPoints(this.campos, vpixelpoint1);
-									double[] vpixelpointdirlen1 = MathLib.vectorLength(vpixelpointdir1);
-									Direction[] vpixelpointdir1inv = {vpixelpointdir1[0].invert()};
 									Direction[] vpixelpointdir12 = MathLib.vectorFromPoints(vpixelpoint1, vpixelpoint2);
-									double[] vpixelpointdir12len = MathLib.vectorLength(vpixelpointdir12);
-									double[] vpixelpoint1angle = MathLib.vectorAngle(vpixelpointdir1inv, vpixelpointdir12);
 									if ((vpixelyend>=0)&&(vpixelystart<=this.getHeight())) {
 										if (vpixelystart<0) {vpixelystart=0;}
 										if (vpixelyend>=this.getHeight()) {vpixelyend=this.getHeight()-1;}
 										for (int n=vpixelystart;n<=vpixelyend;n++) {
 											double vpixelcampointangle = verticalangles[n]-vpixelyangsort1;
-											double vpixelpointangle = 180.0f-vpixelpoint1angle[0]-vpixelcampointangle;
-											double vpixelpointlen = vpixelpointdirlen1[0]*(MathLib.sind(vpixelcampointangle)/MathLib.sind(vpixelpointangle));
-											double vpixelpointlenfrac = vpixelpointlen/vpixelpointdir12len[0];
-											Direction[] pixelray = {projectedrays[n][j]};
-											double[][] copytriangleplanedist = MathLib.rayPlaneDistance(this.campos, pixelray, copytriangleplane);
-											double drawdistance = Math.abs(copytriangleplanedist[0][0]);
+											double vpixelpointangle = 180.0f-vpixelpoint1angled[0]-vpixelcampointangle;
+											double vpixelpointlen = vpixelpointdirlen1d[0]*(MathLib.sind(vpixelcampointangle)/MathLib.sind(vpixelpointangle));
+											double vpixelpointlenfrac = vpixelpointlen/vpixelpointdir12lend[0];
+											Position[] linepoint = MathLib.translate(vpixelpoint1, vpixelpointdir12[0], vpixelpointlenfrac);
+											Direction[] linepointdir = MathLib.vectorFromPoints(this.campos, linepoint);
+											double[] linepointdirlen = MathLib.vectorLength(linepointdir);
+											double drawdistance = Math.abs(linepointdirlen[0]);
 											if (drawdistance<this.zbuffer[n][j]) {
 												this.zbuffer[n][j] = drawdistance;
 												if (tritexture!=null) {
