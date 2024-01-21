@@ -117,14 +117,6 @@ public class CADApp extends AppHandlerPanel {
 		Graphics2D g2 = (Graphics2D)g;
 		this.origindeltax = (int)Math.floor(((double)this.getWidth())/2.0f);
 		this.origindeltay = (int)Math.floor(((double)this.getHeight())/2.0f);
-		this.bgpattern = new TexturePaint(this.bgpatternimage,new Rectangle(this.origindeltax, this.origindeltay, gridstep, gridstep));
-		g2.setComposite(AlphaComposite.Src);
-		g2.setColor(null);
-		g2.setPaint(bgpattern);
-		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
-		g2.setPaint(null);
-		g2.setColor(null);
-		g2.setComposite(AlphaComposite.SrcOver);
 		this.vfov = 2.0f*MathLib.atand((((double)this.getHeight())/((double)this.getWidth()))*MathLib.tand((this.hfov/2.0f)));
 		this.editplanedistance = (((double)this.getWidth())/2.0f)/MathLib.tand(this.hfov/2.0f);
 		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
@@ -132,6 +124,11 @@ public class CADApp extends AppHandlerPanel {
 		ArrayList<Line> mouseoverhitline = new ArrayList<Line>();
 		Entity[] entitylistmaphandle = this.entitylist;
 		if (this.polygonfillmode==2) {
+			g2.setComposite(AlphaComposite.Src);
+			g2.setColor(Color.BLACK);
+			g2.setPaint(null);
+			g2.fillRect(0, 0, this.getWidth(), this.getHeight());
+			g2.setComposite(AlphaComposite.SrcOver);
 			if (entitylistmaphandle!=null) {
 				Sphere[] entityspherelist = new Sphere[entitylistmaphandle.length]; 
 				for (int k=0;k<entitylistmaphandle.length;k++) {
@@ -189,6 +186,13 @@ public class CADApp extends AppHandlerPanel {
 				}
 			}
 		} else {
+			this.bgpattern = new TexturePaint(this.bgpatternimage,new Rectangle(this.origindeltax, this.origindeltay, gridstep, gridstep));
+			g2.setComposite(AlphaComposite.Src);
+			g2.setColor(null);
+			g2.setPaint(bgpattern);
+			g2.fillRect(0, 0, this.getWidth(), this.getHeight());
+			g2.setPaint(null);
+			g2.setComposite(AlphaComposite.SrcOver);
 			g2.setColor(new Color(0.5f, 0.5f, 0.5f, 0.1f));
 			if (entitylistmaphandle!=null) {
 				for (int k=0;k<entitylistmaphandle.length;k++) {
