@@ -16,10 +16,6 @@ import java.util.Arrays;
 import javax.imageio.ImageIO;
 import javax.swing.filechooser.FileFilter;
 
-import fi.jkauppa.javarenderengine.ModelLib.Entity;
-import fi.jkauppa.javarenderengine.ModelLib.Matrix;
-import fi.jkauppa.javarenderengine.ModelLib.Position;
-
 public class UtilLib {
 	private static GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
 	private static GraphicsDevice gd = ge.getDefaultScreenDevice ();
@@ -116,10 +112,6 @@ public class UtilLib {
 			}
 		}
 		return k;
-	}
-	
-	public static VolatileImage renderProjectedView(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot) {
-		return null;
 	}
 	
 }
