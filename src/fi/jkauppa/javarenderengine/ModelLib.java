@@ -1,12 +1,17 @@
 package fi.jkauppa.javarenderengine;
 
 import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.TexturePaint;
 import java.awt.Transparency;
+import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.io.BufferedInputStream;
@@ -72,12 +77,14 @@ public class ModelLib {
 		public double[][] zbuffer = null;
 		public Entity[][] ebuffer = null;
 		public Triangle[][] tbuffer = null;
-		public Camera rendercamera = null;
-	}
-	public static class Camera {
+		public Triangle[] mouseovertriangle = null;
+		public Position[] mouseoververtex = null;
+		public Line[] mouseoverline = null;
+		public int mouselocationx=0,mouselocationy=0; 
 		public Position pos;
 		public Matrix rot;
-		public double hfov=70.0, vfov=43.0f;
+		public int renderwidth=0, renderheight=0; 
+		public double hfov=0.0f, vfov=43.0f;
 		public Direction[] dirs;
 		public Direction[][] rays;
 		public Plane[] planes;
@@ -85,7 +92,7 @@ public class ModelLib {
 	
 	public static class Cubemap {
 		public VolatileImage topimage=null,bottomimage=null,leftimage=null,rightimage=null,forwardimage=null,backwardimage=null;
-		public Camera topview=null,bottomview=null,leftview=null,rightview=null,forwardview=null,backwardview=null;
+		public RenderView topview=null,bottomview=null,leftview=null,rightview=null,forwardview=null,backwardview=null;
 		public Matrix topmatrix = MathLib.rotationMatrix(180.0f, 0.0f, 0.0f);
 		public Matrix bottommatrix = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 		public Matrix forwardmatrix = MathLib.rotationMatrix(90.0f, 0.0f, 0.0f);
@@ -105,12 +112,12 @@ public class ModelLib {
 			this.rightimage = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
 			this.forwardimage = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
 			this.backwardimage = gc.createCompatibleVolatileImage(this.vres,this.vres,Transparency.TRANSLUCENT);
-			this.topview = new Camera();
-			this.bottomview = new Camera();
-			this.leftview = new Camera();
-			this.rightview = new Camera();
-			this.forwardview = new Camera();
-			this.backwardview = new Camera();
+			this.topview = new RenderView();
+			this.bottomview = new RenderView();
+			this.leftview = new RenderView();
+			this.rightview = new RenderView();
+			this.forwardview = new RenderView();
+			this.backwardview = new RenderView();
 			this.topview.pos = this.pos;
 			this.bottomview.pos = this.pos;
 			this.leftview.pos = this.pos;
@@ -133,12 +140,12 @@ public class ModelLib {
 	}
 	public static class Spheremap {
 		public VolatileImage equirectangularimage = null;
-		public Camera sphereview = null;
+		public RenderView sphereview = null;
 		public int hres = 0, vres = 0;
 		public Spheremap(int hresi, int vresi) {
 			this.hres = hresi;
 			this.vres = vresi;
-			this.sphereview = new Camera();
+			this.sphereview = new RenderView();
 			this.equirectangularimage = gc.createCompatibleVolatileImage(this.hres,this.vres,Transparency.TRANSLUCENT);
 		}
 	}
@@ -829,14 +836,16 @@ public class ModelLib {
 		return k;
 	}
 
-	public static RenderView renderProjectedView(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot) {
+	public static RenderView renderProjectedViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot) {
 		RenderView renderview = new RenderView();
-		renderview.rendercamera = new Camera();
-		renderview.rendercamera.pos = campos;
-		renderview.rendercamera.rot = viewrot;
-		renderview.rendercamera.hfov = hfov;
-		renderview.rendercamera.vfov = 2.0f*MathLib.atand((((double)renderheight)/((double)renderwidth))*MathLib.tand(renderview.rendercamera.hfov/2.0f));
-		renderview.rendercamera.dirs = MathLib.projectedCameraDirections(renderview.rendercamera.rot);
+		renderview= new RenderView();
+		renderview.pos = campos;
+		renderview.rot = viewrot;
+		renderview.renderwidth = renderwidth;
+		renderview.renderheight = renderheight;
+		renderview.hfov = hfov;
+		renderview.vfov = 2.0f*MathLib.atand((((double)renderheight)/((double)renderwidth))*MathLib.tand(renderview.hfov/2.0f));
+		renderview.dirs = MathLib.projectedCameraDirections(renderview.rot);
 		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
 		renderview.zbuffer = new double[renderheight][renderwidth];
 		for (int i=0;i<renderview.zbuffer.length;i++) {Arrays.fill(renderview.zbuffer[i],Double.POSITIVE_INFINITY);}
@@ -848,11 +857,11 @@ public class ModelLib {
 		g2.fillRect(0, 0, renderwidth, renderheight);
 		g2.setComposite(AlphaComposite.SrcOver);
 		if (entitylist!=null) {
-			Plane[] verticalplanes = MathLib.projectedPlanes(renderview.rendercamera.pos, renderwidth, hfov, renderview.rendercamera.rot);
+			Plane[] verticalplanes = MathLib.projectedPlanes(renderview.pos, renderwidth, hfov, renderview.rot);
 			double[] verticalangles = MathLib.projectedAngles(renderheight, vfov);
 			double halfvfovmult = (1.0f/MathLib.tand(vfov/2.0f));
 			int halfvres = (int)Math.round(((double)renderheight)/2.0f);
-			Plane[] camdirrightupplanes = MathLib.planeFromNormalAtPoint(renderview.rendercamera.pos, renderview.rendercamera.dirs);
+			Plane[] camdirrightupplanes = MathLib.planeFromNormalAtPoint(renderview.pos, renderview.dirs);
 			Plane[] camfwdplane = {camdirrightupplanes[0]};
 			Plane[] camupplane = {camdirrightupplanes[2]};
 			Sphere[] entityspherelist = new Sphere[entitylist.length]; 
@@ -860,7 +869,7 @@ public class ModelLib {
 				entityspherelist[k] = entitylist[k].sphereboundaryvolume;
 				entityspherelist[k].ind = k;
 			}
-			TreeSet<Sphere> sortedentityspheretree = new TreeSet<Sphere>(new SphereDistanceComparator(renderview.rendercamera.pos));
+			TreeSet<Sphere> sortedentityspheretree = new TreeSet<Sphere>(new SphereDistanceComparator(renderview.pos));
 			sortedentityspheretree.addAll(Arrays.asList(entityspherelist));
 			Sphere[] sortedentityspherelist = sortedentityspheretree.toArray(new Sphere[sortedentityspheretree.size()]);
 			for (int k=0;k<sortedentityspherelist.length;k++) {
@@ -869,7 +878,7 @@ public class ModelLib {
 					Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(verticalplanes, copytrianglelist);		
 					Plane[] triangleplanes = MathLib.planeFromPoints(copytrianglelist);
 					Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
-					double[] triangleviewangles = MathLib.vectorAngle(renderview.rendercamera.dirs[0], trianglenormals);
+					double[] triangleviewangles = MathLib.vectorAngle(renderview.dirs[0], trianglenormals);
 					float[] triangleshadingmultipliers = new float[copytrianglelist.length];
 					for (int i=0;i<copytrianglelist.length;i++) {
 						double triangleviewangle = triangleviewangles[i];
@@ -878,7 +887,7 @@ public class ModelLib {
 					}
 					Sphere[] copytrianglepherelist = MathLib.triangleCircumSphere(copytrianglelist);
 					for (int i=0;i<copytrianglepherelist.length;i++) {copytrianglepherelist[i].ind = i;}
-					TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereDistanceComparator(renderview.rendercamera.pos));
+					TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereDistanceComparator(renderview.pos));
 					sortedtrianglespheretree.addAll(Arrays.asList(copytrianglepherelist));
 					Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
 					for (int j=0;j<vertplanetriangleint.length;j++) {
@@ -937,7 +946,7 @@ public class ModelLib {
 											double vpixelpointlen = vpixelpointdirlen1d[0]*(MathLib.sind(vpixelcampointangle)/MathLib.sind(vpixelpointangle));
 											double vpixelpointlenfrac = vpixelpointlen/vpixelpointdir12lend[0];
 											Position[] linepoint = MathLib.translate(vpixelpoint1, vpixelpointdir12[0], vpixelpointlenfrac);
-											Direction[] linepointdir = MathLib.vectorFromPoints(renderview.rendercamera.pos, linepoint);
+											Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, linepoint);
 											double[] linepointdirlen = MathLib.vectorLength(linepointdir);
 											double drawdistance = Math.abs(linepointdirlen[0]);
 											if (drawdistance<renderview.zbuffer[n][j]) {
@@ -970,5 +979,231 @@ public class ModelLib {
 		}
 		return renderview;
 	}
+
+	public static RenderView renderProjectedPolygonViewHardware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, int mouselocationx, int mouselocationy) {
+		int vertexradius = 2;
+		RenderView renderview = new RenderView();
+		renderview = new RenderView();
+		renderview.mouselocationx = mouselocationx;
+		renderview.mouselocationy = mouselocationy;
+		renderview.pos = campos;
+		renderview.rot = viewrot;
+		renderview.renderwidth = renderwidth;
+		renderview.renderheight = renderheight;
+		renderview.hfov = hfov;
+		renderview.vfov = vfov;
+		renderview.dirs = MathLib.projectedCameraDirections(viewrot);
+		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
+		renderview.zbuffer = new double[renderheight][renderwidth];
+		for (int i=0;i<renderview.zbuffer.length;i++) {Arrays.fill(renderview.zbuffer[i],Double.POSITIVE_INFINITY);}
+		Graphics2D g2 = renderview.renderimage.createGraphics();
+		g2.setComposite(AlphaComposite.Src);
+		g2.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
+		g2.setPaint(null);
+		g2.setClip(null);
+		g2.fillRect(0, 0, renderwidth, renderheight);
+		g2.setComposite(AlphaComposite.SrcOver);
+		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
+		Entity[] entitylistmaphandle = entitylist;
+		g2.setComposite(AlphaComposite.Src);
+		g2.setColor(Color.BLACK);
+		g2.setPaint(null);
+		g2.fillRect(0, 0, renderwidth, renderheight);
+		g2.setComposite(AlphaComposite.SrcOver);
+		if (entitylistmaphandle!=null) {
+			Sphere[] entityspherelist = new Sphere[entitylistmaphandle.length]; 
+			for (int k=0;k<entitylistmaphandle.length;k++) {
+				entityspherelist[k] = entitylistmaphandle[k].sphereboundaryvolume;
+				entityspherelist[k].ind = k;
+			}
+			TreeSet<Sphere> sortedentityspheretree = new TreeSet<Sphere>(new SphereDistanceComparator(campos));
+			sortedentityspheretree.addAll(Arrays.asList(entityspherelist));
+			Sphere[] sortedentityspherelist = sortedentityspheretree.toArray(new Sphere[sortedentityspheretree.size()]);
+			for (int k=0;k<sortedentityspherelist.length;k++) {
+				Triangle[] entitytrianglelist = entitylistmaphandle[sortedentityspherelist[k].ind].trianglelist;
+				if (entitytrianglelist!=null) {
+					if (entitytrianglelist.length>0) {
+						Triangle[] copytrianglelist = MathLib.subDivideTriangle(entitytrianglelist);
+						for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].ind = i;}
+						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
+						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
+						TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereDistanceComparator(campos));
+						sortedtrianglespheretree.addAll(Arrays.asList(copytrianglespherelist));
+						Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
+						Plane[] triangleplanes = MathLib.planeFromPoints(copytrianglelist);
+						Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
+						double[] triangleviewangles = MathLib.vectorAngle(renderview.dirs[0], trianglenormals);
+						Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangles(campos, copytrianglelist, renderwidth, hfov, renderheight, vfov, viewrot);
+						for (int j=0;j<sortedtrianglespherelist.length;j++) {
+							Coordinate coord1 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][0];
+							Coordinate coord2 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][1];
+							Coordinate coord3 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][2];
+							int i = sortedtrianglespherelist[j].ind;
+							Triangle copytriangle = copytrianglelist[i];
+							double triangleviewangle = triangleviewangles[i];
+							if (triangleviewangle>90.0f) {triangleviewangle = 180-triangleviewangle;}
+							float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
+							Material copymaterial = copytriangle.mat;
+							Color tricolor = copymaterial.facecolor;
+							float alphacolor = copymaterial.transparency;
+							if (tricolor==null) {tricolor = Color.WHITE;}
+							float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
+							g2.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
+							if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)) {
+								Polygon trianglepolygon = new Polygon();
+								trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
+								trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
+								trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
+								g2.fill(trianglepolygon);
+								boolean mouseoverhit = g2.hit(new Rectangle(mouselocationx-vertexradius,mouselocationy-vertexradius,3,3), trianglepolygon, false);
+								if (mouseoverhit) {
+									int entitytriangleind = Math.floorDiv(i, 2);
+									mouseoverhittriangle.add(entitytrianglelist[entitytriangleind]);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		renderview.mouseovertriangle = mouseoverhittriangle.toArray(new Triangle[mouseoverhittriangle.size()]);
+		return renderview;
+	}
 	
+	public static RenderView renderProjectedLineViewHardware(Position campos, Entity[] entitylist, Line[] linelist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, int mouselocationx, int mouselocationy) {
+		int originlinelength = 100;
+		int vertexradius = 2;
+		int axisstroke = 2;
+		int vertexstroke = 2;
+		int vertexfocus = 3;
+		int sketchlinestroke = 2;
+		double pointdist = 1.0f;
+		int gridstep = 20;
+		RenderView renderview = new RenderView();
+		renderview = new RenderView();
+		renderview.mouselocationx = mouselocationx;
+		renderview.mouselocationy = mouselocationy;
+		renderview.pos = campos;
+		renderview.rot = viewrot;
+		renderview.renderwidth = renderwidth;
+		renderview.renderheight = renderheight;
+		renderview.hfov = hfov;
+		renderview.vfov = vfov;
+		renderview.dirs = MathLib.projectedCameraDirections(viewrot);
+		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
+		renderview.zbuffer = new double[renderheight][renderwidth];
+		for (int i=0;i<renderview.zbuffer.length;i++) {Arrays.fill(renderview.zbuffer[i],Double.POSITIVE_INFINITY);}
+		double editplanedistance = (((double)renderwidth)/2.0f)/MathLib.tand(hfov/2.0f);
+		Graphics2D g2 = renderview.renderimage.createGraphics();
+		g2.setComposite(AlphaComposite.Src);
+		g2.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
+		g2.setPaint(null);
+		g2.setClip(null);
+		g2.fillRect(0, 0, renderwidth, renderheight);
+		g2.setComposite(AlphaComposite.SrcOver);
+		ArrayList<Position> mouseoverhitvertex = new ArrayList<Position>(); 
+		ArrayList<Line> mouseoverhitline = new ArrayList<Line>();
+		Entity[] entitylistmaphandle = entitylist;
+		BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
+		TexturePaint bgpattern = null;
+		Graphics2D pgfx = bgpatternimage.createGraphics();
+		pgfx.setColor(Color.WHITE);
+		pgfx.fillRect(0, 0, bgpatternimage.getWidth(), bgpatternimage.getHeight());
+		pgfx.setColor(Color.BLACK);
+		pgfx.drawLine(0, 0, 0, gridstep-1);
+		pgfx.drawLine(0, 0, gridstep-1, 0);
+		pgfx.dispose();
+		int origindeltax = (int)Math.floor(((double)renderwidth)/2.0f);
+		int origindeltay = (int)Math.floor(((double)renderheight)/2.0f);
+		bgpattern = new TexturePaint(bgpatternimage,new Rectangle(origindeltax, origindeltay, gridstep, gridstep));
+		g2.setComposite(AlphaComposite.Src);
+		g2.setColor(null);
+		g2.setPaint(bgpattern);
+		g2.fillRect(0, 0, renderwidth, renderheight);
+		g2.setPaint(null);
+		g2.setComposite(AlphaComposite.SrcOver);
+		g2.setColor(new Color(0.5f, 0.5f, 0.5f, 0.1f));
+		if (entitylistmaphandle!=null) {
+			for (int k=0;k<entitylistmaphandle.length;k++) {
+				Tetrahedron[] tetrahedronlist = entitylistmaphandle[k].tetrahedronlist;
+				if (tetrahedronlist!=null) {
+					for (int j=0;j<tetrahedronlist.length;j++) {
+						Triangle[] tetrahedrontrianglelist = new Triangle[4];
+						tetrahedrontrianglelist[0] = new Triangle(tetrahedronlist[j].pos1,tetrahedronlist[j].pos2,tetrahedronlist[j].pos3); 
+						tetrahedrontrianglelist[1] = new Triangle(tetrahedronlist[j].pos1,tetrahedronlist[j].pos2,tetrahedronlist[j].pos4); 
+						tetrahedrontrianglelist[2] = new Triangle(tetrahedronlist[j].pos1,tetrahedronlist[j].pos3,tetrahedronlist[j].pos4); 
+						tetrahedrontrianglelist[3] = new Triangle(tetrahedronlist[j].pos2,tetrahedronlist[j].pos3,tetrahedronlist[j].pos4);
+						Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangles(campos, tetrahedrontrianglelist, renderwidth, hfov, renderheight, vfov, viewrot);
+						for (int i=0;i<tetrahedrontrianglelist.length;i++) {
+							Coordinate coord1 = copytrianglelistcoords[i][0];
+							Coordinate coord2 = copytrianglelistcoords[i][1];
+							Coordinate coord3 = copytrianglelistcoords[i][2];
+							if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)) {
+								Polygon trianglepolygon = new Polygon();
+								trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
+								trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
+								trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
+								g2.fill(trianglepolygon);
+							}
+						}
+					}
+				}
+			}
+		}
+		Coordinate[][] linelistcoords = MathLib.projectedLines(campos, linelist, renderwidth, hfov, renderheight, vfov, viewrot);
+		Position[] camposarray = {campos};
+		Position[] editposarray = MathLib.translate(camposarray, renderview.dirs[0], editplanedistance);
+		Plane[] editplanes = MathLib.planeFromNormalAtPoint(editposarray[0], renderview.dirs);
+		Plane[] editplane = {editplanes[0]};
+		for (int i=0;i<linelist.length;i++) {
+			Position[] linepoints = {linelist[i].pos1, linelist[i].pos2};
+			double[][] linepointdists = MathLib.planePointDistance(linepoints, editplane);
+			if ((linepointdists[0][0]>=0)||(linepointdists[1][0]>=0)) {
+				Coordinate coord1 = linelistcoords[i][0];
+				Coordinate coord2 = linelistcoords[i][1];
+				if ((coord1!=null)&&(coord2!=null)) {
+					g2.setColor(Color.BLACK);
+					if (Math.abs(linepointdists[0][0])<pointdist){g2.setStroke(new BasicStroke(vertexstroke+vertexfocus));}else{g2.setStroke(new BasicStroke(vertexstroke));}
+					g2.drawOval((int)Math.round(coord1.u)-vertexradius, (int)Math.round(coord1.v)-vertexradius, vertexradius*2, vertexradius*2);
+					if (Math.abs(linepointdists[1][0])<pointdist){g2.setStroke(new BasicStroke(vertexstroke+vertexfocus));}else{g2.setStroke(new BasicStroke(vertexstroke));}
+					g2.drawOval((int)Math.round(coord2.u)-vertexradius, (int)Math.round(coord2.v)-vertexradius, vertexradius*2, vertexradius*2);
+					g2.setStroke(new BasicStroke(sketchlinestroke));
+					g2.setColor(Color.BLUE);
+					g2.drawLine((int)Math.round(coord1.u), (int)Math.round(coord1.v), (int)Math.round(coord2.u), (int)Math.round(coord2.v));
+					boolean mouseoverhit1 = g2.hit(new Rectangle(mouselocationx-vertexradius,mouselocationy-vertexradius,3,3), new Rectangle((int)Math.round(coord1.u)-vertexradius,(int)Math.round(coord1.v)-vertexradius,3,3), false);
+					boolean mouseoverhit2 = g2.hit(new Rectangle(mouselocationx-vertexradius,mouselocationy-vertexradius,3,3), new Rectangle((int)Math.round(coord2.u)-vertexradius,(int)Math.round(coord2.v)-vertexradius,3,3), false);
+					boolean mouseoverhitL = g2.hit(new Rectangle(mouselocationx-vertexradius,mouselocationy-vertexradius,3,3), new Line2D.Double((int)Math.round(coord1.u),(int)Math.round(coord1.v),(int)Math.round(coord2.u),(int)Math.round(coord2.v)), false);
+					if (mouseoverhit1) {
+						mouseoverhitvertex.add(linelist[i].pos1);
+					}
+					if (mouseoverhit2) {
+						mouseoverhitvertex.add(linelist[i].pos2);
+					}
+					if (mouseoverhitL) {
+						mouseoverhitline.add(linelist[i]);
+					}
+				}
+			}
+		}
+		Position[] originpoints = {new Position(0,0,0),new Position(originlinelength,0,0),new Position(0,originlinelength,0),new Position(0,0,originlinelength)}; 
+		Coordinate[] originpointscoords = MathLib.projectedPoints(campos, originpoints, renderwidth, hfov, renderheight, vfov, viewrot);
+		Coordinate coord1 = originpointscoords[0];
+		Coordinate coord2 = originpointscoords[1];
+		Coordinate coord3 = originpointscoords[2];
+		Coordinate coord4 = originpointscoords[3];
+		if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)&&(coord4!=null)) {
+			g2.setStroke(new BasicStroke(axisstroke));
+			g2.setColor(Color.RED);
+			g2.drawLine((int)Math.round(coord1.u), (int)Math.round(coord1.v), (int)Math.round(coord2.u), (int)Math.round(coord2.v));
+			g2.setColor(Color.GREEN);
+			g2.drawLine((int)Math.round(coord1.u), (int)Math.round(coord1.v), (int)Math.round(coord3.u), (int)Math.round(coord3.v));
+			g2.setColor(Color.BLUE);
+			g2.drawLine((int)Math.round(coord1.u), (int)Math.round(coord1.v), (int)Math.round(coord4.u), (int)Math.round(coord4.v));
+			g2.setColor(Color.BLACK);
+			g2.fillOval((int)Math.round(coord1.u)-vertexradius, (int)Math.round(coord1.v)-vertexradius, vertexradius*2, vertexradius*2);
+		}
+		renderview.mouseoververtex = mouseoverhitvertex.toArray(new Position[mouseoverhitvertex.size()]);
+		renderview.mouseoverline = mouseoverhitline.toArray(new Line[mouseoverhitline.size()]);
+		return renderview;
+	}
 }
