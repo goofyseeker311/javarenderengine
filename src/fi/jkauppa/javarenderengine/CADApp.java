@@ -1,21 +1,14 @@
 package fi.jkauppa.javarenderengine;
 
 import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Polygon;
-import java.awt.Rectangle;
-import java.awt.TexturePaint;
-import java.awt.Transparency;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.awt.geom.Line2D;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,12 +26,9 @@ import fi.jkauppa.javarenderengine.ModelLib.Material;
 import fi.jkauppa.javarenderengine.ModelLib.Matrix;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.STLFileFilter;
-import fi.jkauppa.javarenderengine.ModelLib.Plane;
 import fi.jkauppa.javarenderengine.ModelLib.Position;
+import fi.jkauppa.javarenderengine.ModelLib.RenderView;
 import fi.jkauppa.javarenderengine.ModelLib.Rotation;
-import fi.jkauppa.javarenderengine.ModelLib.Sphere;
-import fi.jkauppa.javarenderengine.ModelLib.Sphere.SphereDistanceComparator;
-import fi.jkauppa.javarenderengine.ModelLib.Tetrahedron;
 import fi.jkauppa.javarenderengine.ModelLib.Triangle;
 import fi.jkauppa.javarenderengine.ModelLib.Model;
 import fi.jkauppa.javarenderengine.ModelLib.ModelFaceIndex;
@@ -48,11 +38,10 @@ import fi.jkauppa.javarenderengine.ModelLib.ModelObject;
 
 public class CADApp extends AppHandlerPanel {
 	private static final long serialVersionUID = 1L;
-	private TexturePaint bgpattern = null;
 	private boolean draglinemode = false;
 	private boolean snaplinemode = false;
-	private Color drawcolor = Color.BLACK;
-	private float[] drawcolorhsb = {0.0f, 1.0f, 0.0f};
+	private Color drawcolor = Color.WHITE;
+	private float[] drawcolorhsb = {0.0f, 1.0f, 1.0f};
 	private float penciltransparency = 1.0f;
 	private int polygonfillmode = 1;
 	private Position[] selecteddragvertex = null;
@@ -65,25 +54,14 @@ public class CADApp extends AppHandlerPanel {
 	private double editplanedistance = 1371.0f;
 	private Position drawstartpos = new Position(0,0,0);
 	private Position editpos = new Position(0.0f,0.0f,0.0f);
-	private Position campos = new Position(0,0,this.editplanedistance);
+	private Position campos = new Position(0.0f,0.0f,this.editplanedistance);
 	private Rotation camrot = new Rotation(0.0f, 0.0f, 0.0f);
 	private Matrix cameramat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 	private final Direction[] lookdirs = MathLib.projectedCameraDirections(cameramat);
 	private Direction[] camdirs = lookdirs;
-	private Plane[] editplanes = MathLib.planeFromNormalAtPoint(this.editpos, this.camdirs); 
 	private double hfov = 70.0f;
 	private double vfov = 43.0f;
-	private final int originlinewidth = 100;
-	private final int originlineheight = 100;
-	private final int originlinedepth = 100;
-	private final int vertexradius = 2;
-	private final int axisstroke = 2;
-	private final int vertexstroke = 2;
-	private final int vertexfocus = 3;
-	private final int sketchlinestroke = 2;
-	private final int gridstep = 20;
-	private final double pointdist = 1.0f;
-	private BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
+	private int gridstep = 20;
 	private ArrayList<Line> linelistarray = new ArrayList<Line>();
 	private Entity[] entitylist = null;
 	private JFileChooser filechooser = new JFileChooser();
@@ -97,15 +75,10 @@ public class CADApp extends AppHandlerPanel {
 	private boolean backwardkeydown = false;
 	private boolean rollrightkeydown = false;
 	private boolean rollleftkeydown = false;
+	private RenderView hardwarerenderview = null;
+	private RenderView softwarerenderview = null;
 	
 	public CADApp() {
-		Graphics2D pgfx = this.bgpatternimage.createGraphics();
-		pgfx.setColor(Color.WHITE);
-		pgfx.fillRect(0, 0, this.bgpatternimage.getWidth(), this.bgpatternimage.getHeight());
-		pgfx.setColor(Color.BLACK);
-		pgfx.drawLine(0, 0, 0, gridstep-1);
-		pgfx.drawLine(0, 0, gridstep-1, 0);
-		pgfx.dispose();
 		this.filechooser.addChoosableFileFilter(this.objfilefilter);
 		this.filechooser.addChoosableFileFilter(this.stlfilefilter);
 		this.filechooser.setFileFilter(this.objfilefilter);
@@ -115,166 +88,39 @@ public class CADApp extends AppHandlerPanel {
 	@Override public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D)g;
+		g2.setComposite(AlphaComposite.Src);
+		g2.setColor(Color.BLACK);
+		g2.setPaint(null);
+		g2.setClip(null);
+		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
 		this.origindeltax = (int)Math.floor(((double)this.getWidth())/2.0f);
 		this.origindeltay = (int)Math.floor(((double)this.getHeight())/2.0f);
-		this.vfov = 2.0f*MathLib.atand((((double)this.getHeight())/((double)this.getWidth()))*MathLib.tand((this.hfov/2.0f)));
-		this.editplanedistance = (((double)this.getWidth())/2.0f)/MathLib.tand(this.hfov/2.0f);
-		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
-		ArrayList<Position> mouseoverhitvertex = new ArrayList<Position>(); 
-		ArrayList<Line> mouseoverhitline = new ArrayList<Line>();
-		Entity[] entitylistmaphandle = this.entitylist;
-		if (this.polygonfillmode==2) {
-			g2.setComposite(AlphaComposite.Src);
-			g2.setColor(Color.BLACK);
-			g2.setPaint(null);
-			g2.fillRect(0, 0, this.getWidth(), this.getHeight());
-			g2.setComposite(AlphaComposite.SrcOver);
-			if (entitylistmaphandle!=null) {
-				Sphere[] entityspherelist = new Sphere[entitylistmaphandle.length]; 
-				for (int k=0;k<entitylistmaphandle.length;k++) {
-					entityspherelist[k] = entitylistmaphandle[k].sphereboundaryvolume;
-					entityspherelist[k].ind = k;
+		this.vfov = 2.0f*MathLib.atand((((double)this.getHeight())/((double)this.getWidth()))*MathLib.tand(this.hfov/2.0f));
+		this.editplanedistance = (((double)this.getWidth())/2.0f)/MathLib.tand(hfov/2.0f);
+		if (this.softwarerenderview!=null) {
+			g2.drawImage(softwarerenderview.renderimage, 0, 0, null);
+		} else if (this.hardwarerenderview!=null) {
+			g2.drawImage(hardwarerenderview.renderimage, 0, 0, null);
+		}
+	}
+
+	private class HardwareRenderViewUpdater extends Thread {
+		private static boolean renderupdaterrunning = false;
+		public void run() {
+			if (!HardwareRenderViewUpdater.renderupdaterrunning) {
+				HardwareRenderViewUpdater.renderupdaterrunning = true;
+				if (CADApp.this.polygonfillmode==1) {
+					Line[] linelist = CADApp.this.linelistarray.toArray(new Line[CADApp.this.linelistarray.size()]);
+					CADApp.this.hardwarerenderview = ModelLib.renderProjectedLineViewHardware(CADApp.this.campos, CADApp.this.entitylist, linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.mouseoverline = CADApp.this.hardwarerenderview.mouseoverline;
+					CADApp.this.mouseoververtex = CADApp.this.hardwarerenderview.mouseoververtex;
+				} else { 
+					CADApp.this.hardwarerenderview = ModelLib.renderProjectedPolygonViewHardware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.mouseovertriangle = CADApp.this.hardwarerenderview.mouseovertriangle;
 				}
-				TreeSet<Sphere> sortedentityspheretree = new TreeSet<Sphere>(new SphereDistanceComparator(this.campos));
-				sortedentityspheretree.addAll(Arrays.asList(entityspherelist));
-				Sphere[] sortedentityspherelist = sortedentityspheretree.toArray(new Sphere[sortedentityspheretree.size()]);
-				for (int k=0;k<sortedentityspherelist.length;k++) {
-					Triangle[] entitytrianglelist = entitylistmaphandle[sortedentityspherelist[k].ind].trianglelist;
-					if (entitytrianglelist!=null) {
-						if (entitytrianglelist.length>0) {
-							Triangle[] copytrianglelist = MathLib.subDivideTriangle(entitytrianglelist);
-							for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].ind = i;}
-							Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
-							for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
-							TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereDistanceComparator(this.campos));
-							sortedtrianglespheretree.addAll(Arrays.asList(copytrianglespherelist));
-							Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
-							Plane[] triangleplanes = MathLib.planeFromPoints(copytrianglelist);
-							Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
-							double[] triangleviewangles = MathLib.vectorAngle(this.camdirs[0], trianglenormals);
-							Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangles(this.campos, copytrianglelist, this.getWidth(), this.hfov, this.getHeight(), this.vfov, this.cameramat);
-							for (int j=0;j<sortedtrianglespherelist.length;j++) {
-								Coordinate coord1 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][0];
-								Coordinate coord2 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][1];
-								Coordinate coord3 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][2];
-								int i = sortedtrianglespherelist[j].ind;
-								Triangle copytriangle = copytrianglelist[i];
-								double triangleviewangle = triangleviewangles[i];
-								if (triangleviewangle>90.0f) {triangleviewangle = 180-triangleviewangle;}
-								float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
-								Material copymaterial = copytriangle.mat;
-								Color tricolor = copymaterial.facecolor;
-								float alphacolor = copymaterial.transparency;
-								if (tricolor==null) {tricolor = Color.WHITE;}
-								float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
-								g2.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
-								if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)) {
-									Polygon trianglepolygon = new Polygon();
-									trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
-									trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
-									trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
-									g2.fill(trianglepolygon);
-									boolean mouseoverhit = g2.hit(new Rectangle(this.mouselocationx-this.vertexradius,this.mouselocationy-this.vertexradius,3,3), trianglepolygon, false);
-									if (mouseoverhit) {
-										int entitytriangleind = Math.floorDiv(i, 2);
-										mouseoverhittriangle.add(entitytrianglelist[entitytriangleind]);
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		} else {
-			this.bgpattern = new TexturePaint(this.bgpatternimage,new Rectangle(this.origindeltax, this.origindeltay, gridstep, gridstep));
-			g2.setComposite(AlphaComposite.Src);
-			g2.setColor(null);
-			g2.setPaint(bgpattern);
-			g2.fillRect(0, 0, this.getWidth(), this.getHeight());
-			g2.setPaint(null);
-			g2.setComposite(AlphaComposite.SrcOver);
-			g2.setColor(new Color(0.5f, 0.5f, 0.5f, 0.1f));
-			if (entitylistmaphandle!=null) {
-				for (int k=0;k<entitylistmaphandle.length;k++) {
-					Tetrahedron[] tetrahedronlist = entitylistmaphandle[k].tetrahedronlist;
-					if (tetrahedronlist!=null) {
-						for (int j=0;j<tetrahedronlist.length;j++) {
-							Triangle[] tetrahedrontrianglelist = new Triangle[4];
-							tetrahedrontrianglelist[0] = new Triangle(tetrahedronlist[j].pos1,tetrahedronlist[j].pos2,tetrahedronlist[j].pos3); 
-							tetrahedrontrianglelist[1] = new Triangle(tetrahedronlist[j].pos1,tetrahedronlist[j].pos2,tetrahedronlist[j].pos4); 
-							tetrahedrontrianglelist[2] = new Triangle(tetrahedronlist[j].pos1,tetrahedronlist[j].pos3,tetrahedronlist[j].pos4); 
-							tetrahedrontrianglelist[3] = new Triangle(tetrahedronlist[j].pos2,tetrahedronlist[j].pos3,tetrahedronlist[j].pos4);
-							Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangles(this.campos, tetrahedrontrianglelist, this.getWidth(), this.hfov, this.getHeight(), this.vfov, this.cameramat);
-							for (int i=0;i<tetrahedrontrianglelist.length;i++) {
-								Coordinate coord1 = copytrianglelistcoords[i][0];
-								Coordinate coord2 = copytrianglelistcoords[i][1];
-								Coordinate coord3 = copytrianglelistcoords[i][2];
-								if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)) {
-									Polygon trianglepolygon = new Polygon();
-									trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
-									trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
-									trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
-									g2.fill(trianglepolygon);
-								}
-							}
-						}
-					}
-				}
-			}
-			Line[] copylinelist = linelistarray.toArray(new Line[linelistarray.size()]);
-			Coordinate[][] copylinelistcoords = MathLib.projectedLines(this.campos, copylinelist, this.getWidth(), this.hfov, this.getHeight(), this.vfov, this.cameramat);
-			Plane[] editdirplane = {this.editplanes[0]};
-			for (int i=0;i<copylinelist.length;i++) {
-				Position[] linepoints = {copylinelist[i].pos1, copylinelist[i].pos2};
-				double[][] linepointdists = MathLib.planePointDistance(linepoints, editdirplane);
-				if ((linepointdists[0][0]>=0)||(linepointdists[1][0]>=0)) {
-					Coordinate coord1 = copylinelistcoords[i][0];
-					Coordinate coord2 = copylinelistcoords[i][1];
-					if ((coord1!=null)&&(coord2!=null)) {
-						g2.setColor(Color.BLACK);
-						if (Math.abs(linepointdists[0][0])<this.pointdist){g2.setStroke(new BasicStroke(this.vertexstroke+this.vertexfocus));}else{g2.setStroke(new BasicStroke(this.vertexstroke));}
-						g2.drawOval((int)Math.round(coord1.u)-this.vertexradius, (int)Math.round(coord1.v)-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
-						if (Math.abs(linepointdists[1][0])<this.pointdist){g2.setStroke(new BasicStroke(this.vertexstroke+this.vertexfocus));}else{g2.setStroke(new BasicStroke(this.vertexstroke));}
-						g2.drawOval((int)Math.round(coord2.u)-this.vertexradius, (int)Math.round(coord2.v)-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
-						g2.setColor(Color.BLUE);
-						g2.setStroke(new BasicStroke(this.sketchlinestroke));
-						g2.drawLine((int)Math.round(coord1.u), (int)Math.round(coord1.v), (int)Math.round(coord2.u), (int)Math.round(coord2.v));
-						boolean mouseoverhit1 = g2.hit(new Rectangle(this.mouselocationx-this.vertexradius,this.mouselocationy-this.vertexradius,3,3), new Rectangle((int)Math.round(coord1.u)-this.vertexradius,(int)Math.round(coord1.v)-this.vertexradius,3,3), false);
-						boolean mouseoverhit2 = g2.hit(new Rectangle(this.mouselocationx-this.vertexradius,this.mouselocationy-this.vertexradius,3,3), new Rectangle((int)Math.round(coord2.u)-this.vertexradius,(int)Math.round(coord2.v)-this.vertexradius,3,3), false);
-						boolean mouseoverhitL = g2.hit(new Rectangle(this.mouselocationx-this.vertexradius,this.mouselocationy-this.vertexradius,3,3), new Line2D.Double((int)Math.round(coord1.u),(int)Math.round(coord1.v),(int)Math.round(coord2.u),(int)Math.round(coord2.v)), false);
-						if (mouseoverhit1) {
-							mouseoverhitvertex.add(copylinelist[i].pos1);
-						}
-						if (mouseoverhit2) {
-							mouseoverhitvertex.add(copylinelist[i].pos2);
-						}
-						if (mouseoverhitL) {
-							mouseoverhitline.add(copylinelist[i]);
-						}
-					}
-				}
+				HardwareRenderViewUpdater.renderupdaterrunning = false;
 			}
 		}
-		Position[] originpoints = {new Position(0,0,0),new Position(this.originlinewidth,0,0),new Position(0,this.originlineheight,0),new Position(0,0,this.originlinedepth)}; 
-		Coordinate[] originpointscoords = MathLib.projectedPoints(this.campos, originpoints, this.getWidth(), this.hfov, this.getHeight(), this.vfov, this.cameramat);
-		Coordinate coord1 = originpointscoords[0];
-		Coordinate coord2 = originpointscoords[1];
-		Coordinate coord3 = originpointscoords[2];
-		Coordinate coord4 = originpointscoords[3];
-		if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)&&(coord4!=null)) {
-			g2.setStroke(new BasicStroke(this.axisstroke));
-			g2.setColor(Color.RED);
-			g2.drawLine((int)Math.round(coord1.u), (int)Math.round(coord1.v), (int)Math.round(coord2.u), (int)Math.round(coord2.v));
-			g2.setColor(Color.GREEN);
-			g2.drawLine((int)Math.round(coord1.u), (int)Math.round(coord1.v), (int)Math.round(coord3.u), (int)Math.round(coord3.v));
-			g2.setColor(Color.BLUE);
-			g2.drawLine((int)Math.round(coord1.u), (int)Math.round(coord1.v), (int)Math.round(coord4.u), (int)Math.round(coord4.v));
-			g2.setColor(Color.BLACK);
-			g2.fillOval((int)Math.round(coord1.u)-this.vertexradius, (int)Math.round(coord1.v)-this.vertexradius, this.vertexradius*2, this.vertexradius*2);
-		}
-		this.mouseovertriangle = mouseoverhittriangle.toArray(new Triangle[mouseoverhittriangle.size()]);
-		this.mouseoververtex = mouseoverhitvertex.toArray(new Position[mouseoverhitvertex.size()]);
-		this.mouseoverline = mouseoverhitline.toArray(new Line[mouseoverhitline.size()]);
 	}
 
 	private int snapToGrid(int coordinate) {
@@ -292,11 +138,9 @@ public class CADApp extends AppHandlerPanel {
 		Direction[] camlookdirs = MathLib.matrixMultiply(this.lookdirs, camrotmat);
 		Position[] camposarray = {this.campos};
 		Position[] editposarray = MathLib.translate(camposarray, camlookdirs[0], this.editplanedistance);
-		Plane[] editdirplanes = MathLib.planeFromNormalAtPoint(editposarray[0], this.camdirs);
+		this.editpos = editposarray[0];
 		this.cameramat = camrotmat;
 		this.camdirs = camlookdirs;
-		this.editpos = editposarray[0];
-		this.editplanes = editdirplanes; 
 	}
 
 	@Override public void timerTick() {
@@ -337,6 +181,7 @@ public class CADApp extends AppHandlerPanel {
 			this.camrot.y += (movementstep/((double)this.gridstep));
 		}
 		updateCameraDirections();
+		(new HardwareRenderViewUpdater()).start();
 	}
 	
 	@Override public void keyTyped(KeyEvent e) {}
@@ -655,7 +500,7 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask1ctrldown = MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse1ctrldown = ((e.getModifiersEx() & (onmask1ctrldown | offmask1ctrldown)) == onmask1ctrldown);
     	if (mouse1ctrldown) {
-    		if (this.mouseoververtex.length>0) {
+			if ((this.mouseoververtex!=null)&&(this.mouseoververtex.length>0)) {
 	    		if (this.snaplinemode) {
 	    			this.draglinemode = true;
 	    			this.selecteddragvertex = this.mouseoververtex;
@@ -676,7 +521,7 @@ public class CADApp extends AppHandlerPanel {
 			if (this.snaplinemode) {
 	    		mouserelativelocationx = snapToGrid(this.mouselocationx-this.origindeltax);
 	    		mouserelativelocationy = snapToGrid(this.mouselocationy-this.origindeltay);
-				if (this.mouseoververtex.length>0) {
+				if ((this.mouseoververtex!=null)&&(this.mouseoververtex.length>0)) {
 					this.drawstartpos = this.mouseoververtex[this.mouseoververtex.length-1].copy(); 
 				}
 			}
@@ -712,7 +557,7 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask1down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1down | offmask1down)) == onmask1down);
     	if (mouse1down) {
-    		if (this.mouseovertriangle.length>0) {
+    		if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
 				Material newmaterial = new Material();
 				newmaterial.facecolor = this.drawcolor;
 				newmaterial.transparency = this.penciltransparency;
@@ -723,7 +568,7 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask1shiftdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse1shiftdown = ((e.getModifiersEx() & (onmask1shiftdown | offmask1shiftdown)) == onmask1shiftdown);
 	    if (mouse1shiftdown) {
-    		if (this.mouseovertriangle.length>0) {
+    		if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
     			this.penciltransparency = this.mouseovertriangle[this.mouseovertriangle.length-1].mat.transparency;
     			int colorvalue = this.mouseovertriangle[this.mouseovertriangle.length-1].mat.facecolor.getRGB();
 				Color pickeddrawcolor = new Color(colorvalue);
@@ -746,7 +591,7 @@ public class CADApp extends AppHandlerPanel {
 				if (this.snaplinemode) {
 		    		mouserelativelocationx = snapToGrid(this.mouselocationx-this.origindeltax);
 		    		mouserelativelocationy = snapToGrid(this.mouselocationy-this.origindeltay);
-					if (this.mouseoververtex.length>0) {
+					if ((this.mouseoververtex!=null)&&(this.mouseoververtex.length>0)) {
 						drawlocation = this.mouseoververtex[this.mouseoververtex.length-1].copy(); 
 					}
 				}
@@ -782,7 +627,7 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask3altdown = MouseEvent.CTRL_DOWN_MASK;
 	    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3altdown | offmask3altdown)) == onmask3altdown);
     	if (mouse3altdown) {
-    		if (this.mouseoverline.length>0) {
+    		if ((this.mouseoverline!=null)&&(this.mouseoverline.length>0)) {
 				this.linelistarray.removeAll(Arrays.asList(this.mouseoverline));
 				(new EntityListUpdater()).start();
 			}
