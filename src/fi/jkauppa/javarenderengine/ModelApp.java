@@ -55,6 +55,7 @@ public class ModelApp extends AppHandlerPanel {
 	private int mouselocationx = -1, mouselocationy = -1;
 	private BufferedImage cursorimage = gc.createCompatibleImage(1, 1, Transparency.TRANSLUCENT);
 	private Cursor customcursor = null;
+	private RenderView renderview = null;
 	
 	public ModelApp() {
 		cursorimage.setRGB(0, 0, (new Color(0.0f,0.0f,0.0f,0.0f)).getRGB());
@@ -73,8 +74,9 @@ public class ModelApp extends AppHandlerPanel {
 		g2.setPaint(null);
 		g2.setClip(null);
 		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
-		RenderView renderview = ModelLib.renderProjectedView(this.campos, this.entitylist, this.getWidth(), this.hfov, this.getHeight(),this.vfov, this.cameramat);
-		g2.drawImage(renderview.renderimage, 0, 0, null);
+		if (this.renderview!=null) {
+			g2.drawImage(renderview.renderimage, 0, 0, null);
+		}
 	}
 
 	private void updateCameraDirections() {
@@ -125,6 +127,7 @@ public class ModelApp extends AppHandlerPanel {
 			this.camrot.y += 1.0f;
 			updateCameraDirections();
 		}
+		(new RenderViewUpdater()).start();
 	}
 
 	@Override public void keyReleased(KeyEvent e) {
@@ -261,4 +264,15 @@ public class ModelApp extends AppHandlerPanel {
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
 	@Override public void drop(DropTargetDropEvent dtde) {}
 
+	private class RenderViewUpdater extends Thread {
+		private static boolean renderupdaterrunning = false;
+		public void run() {
+			if (!RenderViewUpdater.renderupdaterrunning) {
+				RenderViewUpdater.renderupdaterrunning = true;
+				ModelApp.this.renderview = ModelLib.renderProjectedView(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat);
+				RenderViewUpdater.renderupdaterrunning = false;
+			}
+		}
+	}
+	
 }
