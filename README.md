@@ -62,6 +62,7 @@ SHIFT             -- toggle snap to grid/vertex, drag multiple vertex, and speed
 DRAG-MWH          -- camera location view position sideways pan (minmax)
 CTRL-DRAG-MWH     -- change forward looking movement direction (minmax)
 MWHEEL            -- draw forward position change (minmax)
+ARROW-KEYS        -- change forward looking movement direction (minmax)
 NUMPAD+           -- draw forward position change positive (minmax)
 NUMPAD-           -- draw forward position change negative (minmax)
 INSERT            -- hue positive change (looping)
