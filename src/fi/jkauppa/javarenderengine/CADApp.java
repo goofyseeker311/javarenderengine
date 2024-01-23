@@ -592,30 +592,8 @@ public class CADApp extends AppHandlerPanel {
 				}
     		}
 		}
-	    int onmask3down = MouseEvent.BUTTON3_DOWN_MASK;
-	    int offmask3down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    boolean mouse3down = ((e.getModifiersEx() & (onmask3down | offmask3down)) == onmask3down);
-    	if (mouse3down) {
-    		double movementstep = 1.0f;
-    		if (this.snaplinemode) {
-    			movementstep = this.gridstep;
-    		}
-        	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
-        	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-        	this.camrot.z -= mousedeltax*(movementstep/((double)this.gridstep))*0.1f;
-        	this.camrot.x -= mousedeltay*(movementstep/((double)this.gridstep))*0.1f;
-        	updateCameraDirections();
-    	}
-	    int onmask3altdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    int offmask3altdown = MouseEvent.CTRL_DOWN_MASK;
-	    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3altdown | offmask3altdown)) == onmask3altdown);
-    	if (mouse3altdown) {
-    		if ((this.mouseoverline!=null)&&(this.mouseoverline.length>0)) {
-				this.linelistarray.removeAll(Arrays.asList(this.mouseoverline));
-			}
-    	}
 	    int onmask2down = MouseEvent.BUTTON2_DOWN_MASK;
-	    int offmask2down = MouseEvent.ALT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+	    int offmask2down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse2down = ((e.getModifiersEx() & (onmask2down | offmask2down)) == onmask2down);
     	if (mouse2down) {
     		double movementstep = 1.0f;
@@ -635,6 +613,28 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask2ctrldown = MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse2ctrldown = ((e.getModifiersEx() & (onmask2ctrldown | offmask2ctrldown)) == onmask2ctrldown);
     	if (mouse2ctrldown) {
+    		double movementstep = 1.0f;
+    		if (this.snaplinemode) {
+    			movementstep = this.gridstep;
+    		}
+        	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
+        	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+        	this.camrot.z -= mousedeltax*(movementstep/((double)this.gridstep))*0.1f;
+        	this.camrot.x -= mousedeltay*(movementstep/((double)this.gridstep))*0.1f;
+        	updateCameraDirections();
+    	}
+	    int onmask3altdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    int offmask3altdown = MouseEvent.CTRL_DOWN_MASK;
+	    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3altdown | offmask3altdown)) == onmask3altdown);
+    	if (mouse3altdown) {
+    		if ((this.mouseoverline!=null)&&(this.mouseoverline.length>0)) {
+				this.linelistarray.removeAll(Arrays.asList(this.mouseoverline));
+			}
+    	}
+	    int onmask3ctrldown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+	    int offmask3ctrldown = MouseEvent.ALT_DOWN_MASK;
+	    boolean mouse3ctrldown = ((e.getModifiersEx() & (onmask3ctrldown | offmask3ctrldown)) == onmask3ctrldown);
+    	if (mouse3ctrldown) {
     		//TODO move entity
     	}
 	}
