@@ -474,8 +474,6 @@ public class ModelLib {
 		public Entity[] childlist = null;
 		public Triangle[] trianglelist = null;
 		public Line[] linelist = null;
-		public Tetrahedron[] tetrahedronlist = null;
-		public Triangle[] surfacelist = null;
 		public Position[] vertexlist = null;
 		public Sphere sphereboundaryvolume = null;
 		public AxisAlignedBoundingBox aabbboundaryvolume = null;
@@ -1096,7 +1094,7 @@ public class ModelLib {
 		return renderview;
 	}
 	
-	public static RenderView renderProjectedLineViewHardware(Position campos, Entity[] entitylist, Line[] linelist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, int mouselocationx, int mouselocationy) {
+	public static RenderView renderProjectedLineViewHardware(Position campos, Line[] linelist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, int mouselocationx, int mouselocationy) {
 		int originlinelength = 100;
 		int vertexradius = 2;
 		int axisstroke = 2;
@@ -1129,7 +1127,6 @@ public class ModelLib {
 		g2.setComposite(AlphaComposite.SrcOver);
 		ArrayList<Position> mouseoverhitvertex = new ArrayList<Position>(); 
 		ArrayList<Line> mouseoverhitline = new ArrayList<Line>();
-		Entity[] entitylistmaphandle = entitylist;
 		BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
 		TexturePaint bgpattern = null;
 		Graphics2D pgfx = bgpatternimage.createGraphics();
@@ -1148,34 +1145,6 @@ public class ModelLib {
 		g2.fillRect(0, 0, renderwidth, renderheight);
 		g2.setPaint(null);
 		g2.setComposite(AlphaComposite.SrcOver);
-		g2.setColor(new Color(0.5f, 0.5f, 0.5f, 0.1f));
-		if (entitylistmaphandle!=null) {
-			for (int k=0;k<entitylistmaphandle.length;k++) {
-				Tetrahedron[] tetrahedronlist = entitylistmaphandle[k].tetrahedronlist;
-				if (tetrahedronlist!=null) {
-					for (int j=0;j<tetrahedronlist.length;j++) {
-						Triangle[] tetrahedrontrianglelist = new Triangle[4];
-						tetrahedrontrianglelist[0] = new Triangle(tetrahedronlist[j].pos1,tetrahedronlist[j].pos2,tetrahedronlist[j].pos3); 
-						tetrahedrontrianglelist[1] = new Triangle(tetrahedronlist[j].pos1,tetrahedronlist[j].pos2,tetrahedronlist[j].pos4); 
-						tetrahedrontrianglelist[2] = new Triangle(tetrahedronlist[j].pos1,tetrahedronlist[j].pos3,tetrahedronlist[j].pos4); 
-						tetrahedrontrianglelist[3] = new Triangle(tetrahedronlist[j].pos2,tetrahedronlist[j].pos3,tetrahedronlist[j].pos4);
-						Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangles(campos, tetrahedrontrianglelist, renderwidth, hfov, renderheight, vfov, viewrot);
-						for (int i=0;i<tetrahedrontrianglelist.length;i++) {
-							Coordinate coord1 = copytrianglelistcoords[i][0];
-							Coordinate coord2 = copytrianglelistcoords[i][1];
-							Coordinate coord3 = copytrianglelistcoords[i][2];
-							if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)) {
-								Polygon trianglepolygon = new Polygon();
-								trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
-								trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
-								trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
-								g2.fill(trianglepolygon);
-							}
-						}
-					}
-				}
-			}
-		}
 		Coordinate[][] linelistcoords = MathLib.projectedLines(campos, linelist, renderwidth, hfov, renderheight, vfov, viewrot);
 		Position[] camposarray = {campos};
 		Position[] editposarray = MathLib.translate(camposarray, renderview.dirs[0], editplanedistance);
