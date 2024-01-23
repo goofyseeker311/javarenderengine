@@ -54,12 +54,13 @@ QE                -- camera tilt change left/right (looping)
 BACKSPACE         -- removes all vector lines
 DRAG-LMB          -- black/hsba-color drag triangle paint
 SHIFT-LMB         -- rgba-color picker at cursor
+CTRL-DRAG-LMB     -- move line vertex
 ALT-DRAG-LMB      -- vector line drag draw
 ALT-RMB           -- remove line vertex
-CTRL-DRAG-LMB     -- move line vertex
-DRAG-RMB          -- change forward looking movement direction
-DRAG-MWH          -- camera location view position pan (minmax)
+CTRL-DRAG-RMB     -- move object
 SHIFT             -- toggle snap to grid/vertex, drag multiple vertex, and speed movement
+DRAG-MWH          -- camera location view position sideways pan (minmax)
+CTRL-DRAG-MWH     -- change forward looking movement direction (minmax)
 MWHEEL            -- draw forward position change (minmax)
 NUMPAD+           -- draw forward position change positive (minmax)
 NUMPAD-           -- draw forward position change negative (minmax)
