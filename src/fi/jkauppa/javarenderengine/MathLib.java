@@ -1225,15 +1225,12 @@ public class MathLib {
 		for (Iterator<Entity> i=newentitylistarray.iterator();i.hasNext();) {
 			Entity processent = i.next();
 			processent.trianglelist = generateTriangleList(processent.linelist);
-			processent.surfacelist = generateSurfaceList(processent.linelist);
-			processent.tetrahedronlist = generateTetrahedronList(processent.linelist);
 			processent.vertexlist = generateVertexList(processent.linelist);
 			processent.linelist = generateNonTriangleLineList(processent.linelist);
 			processent.aabbboundaryvolume = axisAlignedBoundingBox(processent.vertexlist);
 			processent.sphereboundaryvolume = pointCloudCircumSphere(processent.vertexlist);
 		}
 		Entity[] entitylist = newentitylistarray.toArray(new Entity[newentitylistarray.size()]); 
-		generateEntityListOctree(entitylist);
 		return entitylist;
 	}
 	
@@ -1259,18 +1256,6 @@ public class MathLib {
 						ArrayList<Triangle> triintarray = new ArrayList<Triangle>();
 						for (int i=0;i<taabbint.length;i++) {if (taabbint[i]) {triintarray.add(entitylist[j].trianglelist[i]);}}
 						newchildren[n].trianglelist = triintarray.toArray(new Triangle[triintarray.size()]);
-					}
-					if (entitylist[j].surfacelist!=null) {
-						boolean[] saabbint = triangleAxisAlignedBoundingBoxIntersection(newchildren[n].aabbboundaryvolume, entitylist[j].surfacelist);
-						ArrayList<Triangle> surfintarray = new ArrayList<Triangle>();
-						for (int i=0;i<saabbint.length;i++) {if (saabbint[i]) {surfintarray.add(entitylist[j].surfacelist[i]);}}
-						newchildren[n].surfacelist = surfintarray.toArray(new Triangle[surfintarray.size()]);
-					}
-					if (entitylist[j].tetrahedronlist!=null) {
-						boolean[] teaabbint = tetrahedronAxisAlignedBoundingBoxIntersection(newchildren[n].aabbboundaryvolume, entitylist[j].tetrahedronlist);
-						ArrayList<Tetrahedron> tetrintarray = new ArrayList<Tetrahedron>();
-						for (int i=0;i<teaabbint.length;i++) {if (teaabbint[i]) {tetrintarray.add(entitylist[j].tetrahedronlist[i]);}}
-						newchildren[n].tetrahedronlist= tetrintarray.toArray(new Tetrahedron[tetrintarray.size()]);
 					}
 					if (entitylist[j].linelist!=null) {
 						boolean[] laabbint = lineAxisAlignedBoundingBoxIntersection(newchildren[n].aabbboundaryvolume, entitylist[j].linelist);

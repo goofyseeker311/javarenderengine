@@ -12,7 +12,6 @@ import java.awt.event.MouseWheelEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.TreeSet;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
@@ -104,6 +103,7 @@ public class CADApp extends AppHandlerPanel {
 		if ((this.polygonfillmode==3)&&(this.softwarerenderview!=null)) {
 			g2.drawImage(this.softwarerenderview.renderimage, 0, 0, null);
 		} else if (this.hardwarerenderview!=null) {
+			CADApp.this.softwarerenderview = null;
 			g2.drawImage(this.hardwarerenderview.renderimage, 0, 0, null);
 		}
 	}
@@ -312,9 +312,6 @@ public class CADApp extends AppHandlerPanel {
 					ArrayList<Triangle> savemodeltrianglearray = new ArrayList<Triangle>();  
 					for (int i=0;i<this.entitylist.length;i++) {
 						Triangle[] copytrianglelist = this.entitylist[i].trianglelist;
-					    if (f2shiftdown) {
-					    	copytrianglelist = this.entitylist[i].surfacelist;
-					    }
 					    savemodeltrianglearray.addAll(Arrays.asList(copytrianglelist));
 					}
 					Triangle[] savemodel = savemodeltrianglearray.toArray(new Triangle[savemodeltrianglearray.size()]);
@@ -344,11 +341,7 @@ public class CADApp extends AppHandlerPanel {
 					for (int j=0;j<this.entitylist.length;j++) {
 						savemodel.objects[j] = new ModelObject("JREOBJ"+(j+1));
 						Triangle[] copytrianglelist = this.entitylist[j].trianglelist;
-					    if (f2shiftdown) {
-					    	copytrianglelist = this.entitylist[j].surfacelist;
-					    } else {
-					    	vertexlistarray.addAll(Arrays.asList(this.entitylist[j].vertexlist));
-					    }
+					    vertexlistarray.addAll(Arrays.asList(this.entitylist[j].vertexlist));
 						for (int i=0;i<copytrianglelist.length;i++) {
 							materiallistarray.add(copytrianglelist[i].mat);
 							vertexlistarray.add(copytrianglelist[i].pos1);
@@ -367,9 +360,6 @@ public class CADApp extends AppHandlerPanel {
 					}
 					for (int j=0;j<this.entitylist.length;j++) {
 						Triangle[] copytrianglelist = this.entitylist[j].trianglelist;
-					    if (f2shiftdown) {
-					    	copytrianglelist = this.entitylist[j].surfacelist;
-					    }
 						for (int i=0;i<copytrianglelist.length;i++) {
 							ModelFaceVertexIndex[] trianglevertex = new ModelFaceVertexIndex[3];
 							int trianglefacenormalind = Arrays.binarySearch(savemodel.facenormals, copytrianglelist[i].norm)+1;
@@ -385,22 +375,24 @@ public class CADApp extends AppHandlerPanel {
 							faceindexarray.add(newmodelfaceindex);
 							savemodel.objects[j].faceindex = faceindexarray.toArray(new ModelFaceIndex[faceindexarray.size()]);
 						}
-						if (this.entitylist[j].linelist!=null) {
-							Line[] uniquelinelist = this.entitylist[j].linelist;
-							for (int i=0;i<uniquelinelist.length;i++) {
-								if (uniquelinelist[i].pos1.compareTo(uniquelinelist[i].pos2)!=0) {
-									int[] linevertex = new int[2];
-									linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
-									linevertex[1] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos2)+1;
-									ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[j].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[j].lineindex))):(new ArrayList<ModelLineIndex>());
-									lineindexarray.add(new ModelLineIndex(linevertex));
-									savemodel.objects[j].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
-								} else {
-									int[] linevertex = new int[1];
-									linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
-									ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[j].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[j].lineindex))):(new ArrayList<ModelLineIndex>());
-									lineindexarray.add(new ModelLineIndex(linevertex));
-									savemodel.objects[j].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
+						if (!f2shiftdown) {
+							if (this.entitylist[j].linelist!=null) {
+								Line[] uniquelinelist = this.entitylist[j].linelist;
+								for (int i=0;i<uniquelinelist.length;i++) {
+									if (uniquelinelist[i].pos1.compareTo(uniquelinelist[i].pos2)!=0) {
+										int[] linevertex = new int[2];
+										linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
+										linevertex[1] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos2)+1;
+										ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[j].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[j].lineindex))):(new ArrayList<ModelLineIndex>());
+										lineindexarray.add(new ModelLineIndex(linevertex));
+										savemodel.objects[j].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
+									} else {
+										int[] linevertex = new int[1];
+										linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
+										ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[j].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[j].lineindex))):(new ArrayList<ModelLineIndex>());
+										lineindexarray.add(new ModelLineIndex(linevertex));
+										savemodel.objects[j].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
+									}
 								}
 							}
 						}
@@ -431,75 +423,110 @@ public class CADApp extends AppHandlerPanel {
 					newentitylist[0].sphereboundaryvolume = MathLib.pointCloudCircumSphere(newentitylist[0].vertexlist);
 					this.entitylist = newentitylist;
 				} else {
-					ArrayList<Entity> newentitylistarray = new ArrayList<Entity>(); 
 					Model loadmodel = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
-					TreeSet<Line> uniquelinetree = new TreeSet<Line>();
-					ArrayList<Material> materiallisttree = new ArrayList<Material>(Arrays.asList(loadmodel.materials));
-					Material[] copymateriallist = materiallisttree.toArray(new Material[materiallisttree.size()]);
-					for (int i=0;i<copymateriallist.length;i++) {
-						if (copymateriallist[i].facecolor==null) {
-							copymateriallist[i].facecolor = Color.WHITE;
-						}
-					}
-					for (int k=0;k<loadmodel.objects.length;k++) {
-						newentitylistarray.add(new Entity());
-						for (int j=0;j<loadmodel.objects[k].faceindex.length;j++) {
-							Material foundmat = null;
-							for (int i=0;(i<copymateriallist.length)&&(foundmat==null);i++) {
-								if (loadmodel.objects[k].faceindex[j].usemtl.equals(copymateriallist[i].materialname)) {
-									foundmat = copymateriallist[i];
-									if (foundmat.fileimage!=null) {
-										foundmat.snapimage = foundmat.fileimage.getSnapshot();
+					ArrayList<Entity> newentitylist = new ArrayList<Entity>();
+					for (int j=0;j<loadmodel.objects.length;j++) {
+						Entity newentity = new Entity();
+						TreeSet<Line> newlinelistarray = new TreeSet<Line>();
+						TreeSet<Line> newnontrianglelinelistarray = new TreeSet<Line>();
+						ArrayList<Triangle> newtrianglelistarray = new ArrayList<Triangle>();
+						for (int i=0;i<loadmodel.objects[j].faceindex.length;i++) {
+							if (loadmodel.objects[j].faceindex[i].facevertexindex.length==1) {
+								Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
+								Line newline = new Line(pos1.copy(), pos1.copy());
+								newlinelistarray.add(newline);
+								this.linelistarray.add(newline);
+								newnontrianglelinelistarray.add(newline);
+							} else if (loadmodel.objects[j].faceindex[i].facevertexindex.length==2) {
+								Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
+								Position pos2 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
+								Line newline = new Line(pos1.copy(), pos2.copy());
+								newlinelistarray.add(newline);
+								this.linelistarray.add(newline);
+								newnontrianglelinelistarray.add(newline);
+							} else if (loadmodel.objects[j].faceindex[i].facevertexindex.length==3) {
+								Material foundmat = null;
+								for (int n=0;(n<loadmodel.materials.length)&&(foundmat==null);n++) {
+									if (loadmodel.objects[j].faceindex[i].usemtl.equals(loadmodel.materials[n].materialname)) {
+										foundmat = loadmodel.materials[n];
+										if (foundmat.fileimage!=null) {
+											foundmat.snapimage = foundmat.fileimage.getSnapshot();
+										}
 									}
 								}
-							}
-							Position[] loadvertex = new Position[loadmodel.objects[k].faceindex[j].facevertexindex.length];
-							for (int i=0;i<loadmodel.objects[k].faceindex[j].facevertexindex.length;i++) {
-								loadvertex[i] = loadmodel.vertexlist[loadmodel.objects[k].faceindex[j].facevertexindex[i].vertexindex-1];
-								if (i>0) {
-									uniquelinetree.add(new Line(loadvertex[i-1].copy(),loadvertex[i].copy()));
+								if (foundmat==null) {
+									foundmat = new Material();
+									foundmat.facecolor = Color.WHITE;
 								}
-							}
-							if (loadmodel.objects[k].faceindex[j].facevertexindex.length>2) {
-								uniquelinetree.add(new Line(loadvertex[loadmodel.objects[k].faceindex[j].facevertexindex.length-1].copy(),loadvertex[0].copy()));
-							} else if (loadmodel.objects[k].faceindex[j].facevertexindex.length==1) {
-								uniquelinetree.add(new Line(loadvertex[0].copy(),loadvertex[0].copy()));
-							}
-							if (loadmodel.objects[k].faceindex[j].facevertexindex.length==3) {
-								ArrayList<Triangle> newtrianglelistarray = new ArrayList<Triangle>();
-								if (newentitylistarray.get(newentitylistarray.size()-1).trianglelist!=null) {newtrianglelistarray.addAll(Arrays.asList(newentitylistarray.get(newentitylistarray.size()-1).trianglelist));}
-								Triangle newtriangle = new Triangle(loadvertex[0],loadvertex[1],loadvertex[2]);
-								newtriangle.mat = foundmat;
-								newtriangle.norm = loadmodel.facenormals[loadmodel.objects[k].faceindex[j].facevertexindex[0].normalindex-1];
-								newtriangle.pos1.tex = loadmodel.texturecoords[loadmodel.objects[k].faceindex[j].facevertexindex[0].textureindex-1];
-								newtriangle.pos2.tex = loadmodel.texturecoords[loadmodel.objects[k].faceindex[j].facevertexindex[1].textureindex-1];
-								newtriangle.pos3.tex = loadmodel.texturecoords[loadmodel.objects[k].faceindex[j].facevertexindex[2].textureindex-1];
-								newtrianglelistarray.add(newtriangle);
-								newentitylistarray.get(newentitylistarray.size()-1).trianglelist = newtrianglelistarray.toArray(new Triangle[newtrianglelistarray.size()]);
+								Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
+								Position pos2 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
+								Position pos3 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[2].vertexindex-1];
+								Direction norm = loadmodel.facenormals[loadmodel.objects[j].faceindex[i].facevertexindex[0].normalindex-1];
+								Coordinate tex1 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[0].textureindex-1];
+								Coordinate tex2 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[1].textureindex-1];
+								Coordinate tex3 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[2].textureindex-1];
+								Triangle tri = new Triangle(new Position(pos1.x,pos1.y,pos1.z),new Position(pos2.x,pos2.y,pos2.z),new Position(pos3.x,pos3.y,pos3.z));
+								tri.norm = norm;
+								tri.pos1.tex = tex1;
+								tri.pos2.tex = tex2;
+								tri.pos3.tex = tex3;
+								tri.mat = foundmat;
+								newtrianglelistarray.add(tri);
+								Line newline1 = new Line(pos1.copy(), pos2.copy());
+								Line newline2 = new Line(pos1.copy(), pos3.copy());
+								Line newline3 = new Line(pos2.copy(), pos3.copy());
+								newlinelistarray.add(newline1);
+								newlinelistarray.add(newline2);
+								newlinelistarray.add(newline3);
+								this.linelistarray.add(newline1);
+								this.linelistarray.add(newline2);
+								this.linelistarray.add(newline3);
+							} else {
+								Position[] pos = new Position[loadmodel.objects[j].faceindex[i].facevertexindex.length];
+								for (int m=0;m<loadmodel.objects[j].faceindex[i].facevertexindex.length;m++) {
+									pos[m] = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[m].vertexindex-1];
+									if (m>0) {
+										Line newline = new Line(pos[m].copy(), pos[m-1].copy());
+										newlinelistarray.add(newline);
+										this.linelistarray.add(newline);
+										newnontrianglelinelistarray.add(newline);
+									}
+								}
+								Line newline = new Line(pos[0].copy(), pos[loadmodel.objects[j].faceindex[i].facevertexindex.length-1].copy());
+								newlinelistarray.add(newline);
+								this.linelistarray.add(newline);
+								newnontrianglelinelistarray.add(newline);
 							}
 						}
-						for (int j=0;j<loadmodel.objects[k].lineindex.length;j++) {
-							Position[] loadvertex = new Position[loadmodel.objects[k].lineindex[j].linevertexindex.length];
-							for (int i=0;i<loadmodel.objects[k].lineindex[j].linevertexindex.length;i++) {
-								loadvertex[i] = loadmodel.vertexlist[loadmodel.objects[k].lineindex[j].linevertexindex[i]-1];
-								if (i>0) {
-									uniquelinetree.add(new Line(loadvertex[i-1].copy(),loadvertex[i].copy()));
+						for (int i=0;i<loadmodel.objects[j].lineindex.length;i++) {
+							if (loadmodel.objects[j].lineindex[i].linevertexindex.length>0) {
+								Position[] pos = new Position[loadmodel.objects[j].lineindex[i].linevertexindex.length];
+								for (int m=0;m<loadmodel.objects[j].lineindex[i].linevertexindex.length;m++) {
+									pos[m] = loadmodel.vertexlist[loadmodel.objects[j].lineindex[i].linevertexindex[m]-1];
+									if (m>0) {
+										Line newline = new Line(pos[m].copy(), pos[m-1].copy());
+										newlinelistarray.add(newline);
+										this.linelistarray.add(newline);
+										newnontrianglelinelistarray.add(newline);
+									}
 								}
-							}
-							if (loadmodel.objects[k].lineindex[j].linevertexindex.length==1) {
-								uniquelinetree.add(new Line(loadvertex[0].copy(),loadvertex[0].copy()));
+								Line newline = new Line(pos[0].copy(), pos[loadmodel.objects[j].lineindex[i].linevertexindex.length-1].copy());
+								newlinelistarray.add(newline);
+								this.linelistarray.add(newline);
+								newnontrianglelinelistarray.add(newline);
 							}
 						}
+						newentity.trianglelist = newtrianglelistarray.toArray(new Triangle[newtrianglelistarray.size()]);
+						newentity.linelist = newnontrianglelinelistarray.toArray(new Line[newnontrianglelinelistarray.size()]);
+						Line[] newlinelist = newlinelistarray.toArray(new Line[newlinelistarray.size()]);
+						if (newlinelist.length>0) {
+							newentity.vertexlist = MathLib.generateVertexList(newlinelist);
+							newentity.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newentity.vertexlist);
+							newentity.sphereboundaryvolume = MathLib.pointCloudCircumSphere(newentity.vertexlist);
+							newentitylist.add(newentity);
+						}
 					}
-					this.linelistarray.addAll(uniquelinetree);
-					Line[] linelist = linelistarray.toArray(new Line[linelistarray.size()]);
-					for (Iterator<Entity> i=newentitylistarray.iterator();i.hasNext();) {
-						Entity nextentity = i.next();
-						nextentity.vertexlist = MathLib.generateVertexList(linelist);
-						nextentity.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(nextentity.vertexlist);
-						nextentity.sphereboundaryvolume = MathLib.pointCloudCircumSphere(nextentity.vertexlist);
-					}
-					this.entitylist = newentitylistarray.toArray(new Entity[newentitylistarray.size()]);
+					this.entitylist = newentitylist.toArray(new Entity[newentitylist.size()]);
 				}
 			}
 		}
@@ -571,12 +598,6 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask1down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1down | offmask1down)) == onmask1down);
     	if (mouse1down) {
-    		if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-				Material newmaterial = new Material();
-				newmaterial.facecolor = this.drawcolor;
-				newmaterial.transparency = this.penciltransparency;
-				this.mouseovertriangle[this.mouseovertriangle.length-1].mat = newmaterial;
-    		}
     	}
 	    int onmask1shiftdown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    int offmask1shiftdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
@@ -653,6 +674,17 @@ public class CADApp extends AppHandlerPanel {
         	this.camrot.x -= mousedeltay*(movementstep/((double)this.gridstep))*0.1f;
         	updateCameraDirections();
     	}
+	    int onmask3down = MouseEvent.BUTTON3_DOWN_MASK;
+	    int offmask3down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    boolean mouse3down = ((e.getModifiersEx() & (onmask3down | offmask3down)) == onmask3down);
+    	if (mouse3down) {
+    		if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+				Material newmaterial = new Material();
+				newmaterial.facecolor = this.drawcolor;
+				newmaterial.transparency = this.penciltransparency;
+				this.mouseovertriangle[this.mouseovertriangle.length-1].mat = newmaterial;
+    		}
+    	}
 	    int onmask3altdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    int offmask3altdown = MouseEvent.CTRL_DOWN_MASK;
 	    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3altdown | offmask3altdown)) == onmask3altdown);
@@ -709,15 +741,6 @@ public class CADApp extends AppHandlerPanel {
 							newentitylist[j].trianglelist[i] = entitylisttrianglearray.get(searchindex).copy(); 
 						}
 					}
-					for (int i=0;i<newentitylist[j].surfacelist.length;i++) {
-						newentitylist[j].surfacelist[i].mat = newmat;
-						int searchindex = entitylisttrianglearray.indexOf(newentitylist[j].surfacelist[i]);
-						if (searchindex>=0) {
-							Direction norm = newentitylist[j].surfacelist[i].norm;
-							newentitylist[j].surfacelist[i] = entitylisttrianglearray.get(searchindex).copy();
-							newentitylist[j].surfacelist[i].norm = norm;
-						}
-					}
 				}
 				CADApp.this.entitylist = newentitylist;
 				EntityListUpdater.entitylistupdaterrunning = false;
@@ -732,7 +755,7 @@ public class CADApp extends AppHandlerPanel {
 				HardwareRenderViewUpdater.renderupdaterrunning = true;
 				if (CADApp.this.polygonfillmode==1) {
 					Line[] linelist = CADApp.this.linelistarray.toArray(new Line[CADApp.this.linelistarray.size()]);
-					CADApp.this.hardwarerenderview = ModelLib.renderProjectedLineViewHardware(CADApp.this.campos, CADApp.this.entitylist, linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.hardwarerenderview = ModelLib.renderProjectedLineViewHardware(CADApp.this.campos, linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseoverline = CADApp.this.hardwarerenderview.mouseoverline;
 					CADApp.this.mouseoververtex = CADApp.this.hardwarerenderview.mouseoververtex;
 				} else if (CADApp.this.polygonfillmode==2) { 
