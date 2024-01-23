@@ -898,14 +898,21 @@ public class ModelLib {
 				Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
 				if (copytrianglelist.length>0) {
 					Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(verticalplanes, copytrianglelist);		
-					Plane[] triangleplanes = MathLib.planeFromPoints(copytrianglelist);
-					Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
-					double[] triangleviewangles = MathLib.vectorAngle(renderview.dirs[0], trianglenormals);
 					float[] triangleshadingmultipliers = new float[copytrianglelist.length];
 					for (int i=0;i<copytrianglelist.length;i++) {
-						double triangleviewangle = triangleviewangles[i];
-						if (triangleviewangle>90.0f) {triangleviewangle = 180.0f-triangleviewangle;}
-						triangleshadingmultipliers[i] = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
+						Direction[] trianglenormal = {copytrianglelist[i].norm};
+						double[] triangleviewangles = MathLib.vectorAngle(renderview.dirs[0], trianglenormal);
+						if (!Double.isFinite(triangleviewangles[0])) {
+							Triangle[] copyplanetriangle = {copytrianglelist[i]};
+							Plane[] triangleplanes = MathLib.planeFromPoints(copyplanetriangle);
+							Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
+							triangleviewangles = MathLib.vectorAngle(renderview.dirs[0], trianglenormals);
+							if (triangleviewangles[0]<90.0f) {triangleviewangles[0]=180.0f-triangleviewangles[0];}
+						}
+						double triangleviewangle = triangleviewangles[0];
+						triangleviewangle -= 90.0f;
+						if (triangleviewangle<0.0f) {triangleviewangle = 0.0f;}
+						triangleshadingmultipliers[i] = ((((float)triangleviewangle)/1.5f)+30.0f)/90.0f;
 					}
 					Sphere[] copytrianglepherelist = MathLib.triangleCircumSphere(copytrianglelist);
 					for (int i=0;i<copytrianglepherelist.length;i++) {copytrianglepherelist[i].ind = i;}
@@ -984,7 +991,9 @@ public class ModelLib {
 													int lineuvy = (int)Math.round(lineuv[0].y);
 													if ((lineuvx>=0)&&(lineuvx<tritexture.getWidth())&&(lineuvy>=0)&&(lineuvy<tritexture.getHeight())) {
 														Color texcolor = new Color(tritextureimage.getRGB(lineuvx, lineuvy));
-														g2.setColor(texcolor);
+														float[] texcolorcomp = texcolor.getRGBComponents(new float[4]);
+														Color texcolorshade = new Color(texcolorcomp[0]*shadingmultiplier, texcolorcomp[1]*shadingmultiplier, texcolorcomp[2]*shadingmultiplier, alphacolor);
+														g2.setColor(texcolorshade);
 														g2.drawLine(j, n, j, n);
 													}
 												} else {
@@ -1054,9 +1063,22 @@ public class ModelLib {
 						TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereDistanceComparator(campos));
 						sortedtrianglespheretree.addAll(Arrays.asList(copytrianglespherelist));
 						Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
-						Plane[] triangleplanes = MathLib.planeFromPoints(copytrianglelist);
-						Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
-						double[] triangleviewangles = MathLib.vectorAngle(renderview.dirs[0], trianglenormals);
+						float[] triangleshadingmultipliers = new float[copytrianglelist.length];
+						for (int i=0;i<copytrianglelist.length;i++) {
+							Direction[] trianglenormal = {copytrianglelist[i].norm};
+							double[] triangleviewangles = MathLib.vectorAngle(renderview.dirs[0], trianglenormal);
+							if (!Double.isFinite(triangleviewangles[0])) {
+								Triangle[] copyplanetriangle = {copytrianglelist[i]};
+								Plane[] triangleplanes = MathLib.planeFromPoints(copyplanetriangle);
+								Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
+								triangleviewangles = MathLib.vectorAngle(renderview.dirs[0], trianglenormals);
+								if (triangleviewangles[0]<90.0f) {triangleviewangles[0]=180.0f-triangleviewangles[0];}
+							}
+							double triangleviewangle = triangleviewangles[0];
+							triangleviewangle -= 90.0f;
+							if (triangleviewangle<0.0f) {triangleviewangle = 0.0f;}
+							triangleshadingmultipliers[i] = ((((float)triangleviewangle)/1.5f)+30.0f)/90.0f;
+						}
 						Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangles(campos, copytrianglelist, renderwidth, hfov, renderheight, vfov, viewrot);
 						for (int j=0;j<sortedtrianglespherelist.length;j++) {
 							Coordinate coord1 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][0];
@@ -1064,9 +1086,7 @@ public class ModelLib {
 							Coordinate coord3 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][2];
 							int i = sortedtrianglespherelist[j].ind;
 							Triangle copytriangle = copytrianglelist[i];
-							double triangleviewangle = triangleviewangles[i];
-							if (triangleviewangle>90.0f) {triangleviewangle = 180-triangleviewangle;}
-							float shadingmultiplier = (90.0f-(((float)triangleviewangle))/1.5f)/90.0f;
+							float shadingmultiplier = triangleshadingmultipliers[i];
 							Material copymaterial = copytriangle.mat;
 							Color tricolor = copymaterial.facecolor;
 							float alphacolor = copymaterial.transparency;
