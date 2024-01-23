@@ -74,6 +74,8 @@ PGUP              -- brightness positive change (minmax)
 PGDOWN            -- brightness negative change (minmax)
 NUMPAD9           -- pencil transparency positive (minmax)
 NUMPAD8           -- pencil transparency negative (minmax)
+NUMPAD7           -- triangle single sided normal invert (looping)
+NUMPAD4           -- triangle double sided zero normal set
 NUMPAD0           -- run entity list updater
 F2                -- save model file dialog (all primitives)
 SHIFT-F2          -- save model file dialog (surface only)
