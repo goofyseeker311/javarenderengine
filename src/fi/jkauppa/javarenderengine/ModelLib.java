@@ -179,6 +179,8 @@ public class ModelLib {
 			return k;
 		}
 		public Position copy(){Position k=new Position(this.x,this.y,this.z); k.tex=this.tex; return k;}
+		public Position invert(){Position k=this.copy(); k.x=-k.x;k.y=-k.y;k.z=-k.z; return k;}
+		public boolean isZero(){return (this.x==0.0f)&&(this.y==0.0f)&&(this.z==0.0f);}
 	}
 	public static class Direction implements Comparable<Direction> {public double dx,dy,dz; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;}
 		@Override public int compareTo(Direction o){
@@ -210,6 +212,7 @@ public class ModelLib {
 		}
 		public Direction copy(){return new Direction(this.dx,this.dy,this.dz);}
 		public Direction invert(){return new Direction(-this.dx,-this.dy,-this.dz);}
+		public boolean isZero(){return (this.dx==0.0f)&&(this.dy==0.0f)&&(this.dz==0.0f);}
 	}
 	public static class Coordinate implements Comparable<Coordinate> {public double u,v; public Coordinate(double ui,double vi){this.u=ui;this.v=vi;}
 	@Override public int compareTo(Coordinate o){
@@ -236,6 +239,8 @@ public class ModelLib {
 		return k;
 	}
 		public Coordinate copy(){return new Coordinate(this.u,this.v);}
+		public Coordinate invert(){return new Coordinate(-this.u,-this.v);}
+		public boolean isZero(){return (this.u==0.0f)&&(this.v==0.0f);}
 	}
 	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
 		@Override public boolean equals(Object o) {
@@ -912,7 +917,7 @@ public class ModelLib {
 						double triangleviewangle = triangleviewangles[0];
 						triangleviewangle -= 90.0f;
 						if (triangleviewangle<0.0f) {triangleviewangle = 0.0f;}
-						triangleshadingmultipliers[i] = ((((float)triangleviewangle)/1.5f)+30.0f)/90.0f;
+						triangleshadingmultipliers[i] = ((((float)triangleviewangle)/1.2f)+15.0f)/90.0f;
 					}
 					Sphere[] copytrianglepherelist = MathLib.triangleCircumSphere(copytrianglelist);
 					for (int i=0;i<copytrianglepherelist.length;i++) {copytrianglepherelist[i].ind = i;}
@@ -1077,7 +1082,7 @@ public class ModelLib {
 							double triangleviewangle = triangleviewangles[0];
 							triangleviewangle -= 90.0f;
 							if (triangleviewangle<0.0f) {triangleviewangle = 0.0f;}
-							triangleshadingmultipliers[i] = ((((float)triangleviewangle)/1.5f)+30.0f)/90.0f;
+							triangleshadingmultipliers[i] = ((((float)triangleviewangle)/1.2f)+15.0f)/90.0f;
 						}
 						Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangles(campos, copytrianglelist, renderwidth, hfov, renderheight, vfov, viewrot);
 						for (int j=0;j<sortedtrianglespherelist.length;j++) {

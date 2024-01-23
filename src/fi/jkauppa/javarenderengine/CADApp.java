@@ -34,6 +34,7 @@ import fi.jkauppa.javarenderengine.ModelLib.ModelFaceIndex;
 import fi.jkauppa.javarenderengine.ModelLib.ModelFaceVertexIndex;
 import fi.jkauppa.javarenderengine.ModelLib.ModelLineIndex;
 import fi.jkauppa.javarenderengine.ModelLib.ModelObject;
+import fi.jkauppa.javarenderengine.ModelLib.Plane;
 
 public class CADApp extends AppHandlerPanel {
 	private static final long serialVersionUID = 1L;
@@ -262,6 +263,22 @@ public class CADApp extends AppHandlerPanel {
 			if (this.penciltransparency<0.0f) {this.penciltransparency = 0.0f;}
 			float[] colorvalues = this.drawcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD7) {
+			if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
+				if ((stri[0].norm==null)||(stri[0].norm.isZero())) {
+					Plane[] striplane = MathLib.planeFromPoints(stri);
+					Direction[] strinorm = MathLib.planeNormals(striplane);
+					stri[0].norm = strinorm[0];
+				} else {
+					stri[0].norm = stri[0].norm.invert();
+				}
+			}
+		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD4) {
+			if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
+				stri[0].norm = new Direction(0.0f,0.0f,0.0f);
+			}
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
 			this.polygonfillmode += 1;
 			if (this.polygonfillmode>3) {
