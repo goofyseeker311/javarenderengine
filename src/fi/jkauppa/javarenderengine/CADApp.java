@@ -75,6 +75,10 @@ public class CADApp extends AppHandlerPanel {
 	private boolean backwardkeydown = false;
 	private boolean rollrightkeydown = false;
 	private boolean rollleftkeydown = false;
+	private boolean pitchupkeydown = false;
+	private boolean pitchdownkeydown = false;
+	private boolean yawleftkeydown = false;
+	private boolean yawrightkeydown = false;
 	private RenderView hardwarerenderview = null;
 	private RenderView softwarerenderview = null;
 	
@@ -157,6 +161,16 @@ public class CADApp extends AppHandlerPanel {
 		} else if (this.rollrightkeydown) {
 			this.camrot.y += (movementstep/((double)this.gridstep));
 		}
+		if (this.yawleftkeydown) {
+        	this.camrot.z += (movementstep/((double)this.gridstep))*1.0f;
+		} else if (this.yawrightkeydown) {
+        	this.camrot.z -= (movementstep/((double)this.gridstep))*1.0f;
+		}
+		if (this.pitchupkeydown) {
+        	this.camrot.x += (movementstep/((double)this.gridstep))*1.0f;
+		} else if (this.pitchdownkeydown) {
+        	this.camrot.x -= (movementstep/((double)this.gridstep))*1.0f;
+		}
 		updateCameraDirections();
 		(new SoftwareRenderViewUpdater()).start();
 		(new HardwareRenderViewUpdater()).start();
@@ -164,7 +178,15 @@ public class CADApp extends AppHandlerPanel {
 	
 	@Override public void keyTyped(KeyEvent e) {}
 	@Override public void keyReleased(KeyEvent e) {
-		if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
+		if (e.getKeyCode()==KeyEvent.VK_UP) {
+			this.pitchupkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_DOWN) {
+			this.pitchdownkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_LEFT) {
+			this.yawleftkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_RIGHT) {
+			this.yawrightkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
 			this.snaplinemode = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_W) {
 			this.forwardkeydown = false;
@@ -247,6 +269,14 @@ public class CADApp extends AppHandlerPanel {
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD0) {
 			(new EntityListUpdater()).start();
+		} else if (e.getKeyCode()==KeyEvent.VK_UP) {
+			this.pitchupkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_DOWN) {
+			this.pitchdownkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_LEFT) {
+			this.yawleftkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_RIGHT) {
+			this.yawrightkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
 			this.snaplinemode = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_W) {
