@@ -158,11 +158,8 @@ public class CADApp extends AppHandlerPanel {
 			this.camrot.y += (movementstep/((double)this.gridstep));
 		}
 		updateCameraDirections();
-		if (this.polygonfillmode==3) {
-			(new SoftwareRenderViewUpdater()).start();
-		} else {
-			(new HardwareRenderViewUpdater()).start();
-		}
+		(new SoftwareRenderViewUpdater()).start();
+		(new HardwareRenderViewUpdater()).start();
 	}
 	
 	@Override public void keyTyped(KeyEvent e) {}
@@ -248,6 +245,8 @@ public class CADApp extends AppHandlerPanel {
 			if (this.polygonfillmode>3) {
 				this.polygonfillmode = 1;
 			}
+		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD0) {
+			(new EntityListUpdater()).start();
 		} else if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
 			this.snaplinemode = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_W) {
@@ -472,7 +471,6 @@ public class CADApp extends AppHandlerPanel {
 					}
 					this.entitylist = newentitylistarray.toArray(new Entity[newentitylistarray.size()]);
 				}
-				(new EntityListUpdater()).start();
 			}
 		}
 	}
@@ -521,7 +519,6 @@ public class CADApp extends AppHandlerPanel {
 			this.linelistarray.add(new Line(this.drawstartpos, drawposarray[0]));
 			this.draglinemode = true;
 			this.selecteddragvertex = drawposarray;
-			(new EntityListUpdater()).start();
     	}
 		mouseDragged(e);
 	}
@@ -593,7 +590,6 @@ public class CADApp extends AppHandlerPanel {
 					this.selecteddragvertex[i].y = drawlocation.y;
 					this.selecteddragvertex[i].z = drawlocation.z;
 				}
-				(new EntityListUpdater()).start();
     		}
 		}
 	    int onmask3down = MouseEvent.BUTTON3_DOWN_MASK;
@@ -616,7 +612,6 @@ public class CADApp extends AppHandlerPanel {
     	if (mouse3altdown) {
     		if ((this.mouseoverline!=null)&&(this.mouseoverline.length>0)) {
 				this.linelistarray.removeAll(Arrays.asList(this.mouseoverline));
-				(new EntityListUpdater()).start();
 			}
     	}
 	    int onmask2down = MouseEvent.BUTTON2_DOWN_MASK;
@@ -710,7 +705,7 @@ public class CADApp extends AppHandlerPanel {
 					CADApp.this.hardwarerenderview = ModelLib.renderProjectedLineViewHardware(CADApp.this.campos, CADApp.this.entitylist, linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseoverline = CADApp.this.hardwarerenderview.mouseoverline;
 					CADApp.this.mouseoververtex = CADApp.this.hardwarerenderview.mouseoververtex;
-				} else { 
+				} else if (CADApp.this.polygonfillmode==2) { 
 					CADApp.this.hardwarerenderview = ModelLib.renderProjectedPolygonViewHardware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseovertriangle = CADApp.this.hardwarerenderview.mouseovertriangle;
 				}
@@ -724,7 +719,9 @@ public class CADApp extends AppHandlerPanel {
 		public void run() {
 			if (!SoftwareRenderViewUpdater.renderupdaterrunning) {
 				SoftwareRenderViewUpdater.renderupdaterrunning = true;
-				CADApp.this.softwarerenderview = ModelLib.renderProjectedTextureViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat);
+				if (CADApp.this.polygonfillmode==3) {
+					CADApp.this.softwarerenderview = ModelLib.renderProjectedTextureViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat);
+				}
 				SoftwareRenderViewUpdater.renderupdaterrunning = false;
 			}
 		}
