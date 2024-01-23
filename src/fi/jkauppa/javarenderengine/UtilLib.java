@@ -113,5 +113,9 @@ public class UtilLib {
 		}
 		return k;
 	}
+
+	public static int snapToGrid(int coordinate, int gridstep) {
+		return gridstep*(int)Math.round(((double)coordinate)/((double)gridstep));
+	}
 	
 }

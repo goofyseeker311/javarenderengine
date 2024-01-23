@@ -237,7 +237,19 @@ public class ModelLib {
 	}
 		public Coordinate copy(){return new Coordinate(this.u,this.v);}
 	}
-	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}}
+	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
+		@Override public boolean equals(Object o) {
+			boolean k = false;
+			if (o.getClass().equals(this.getClass())) {
+				Rotation os = (Rotation)o;
+				if ((this.x==os.x)&&(this.y==os.y)&&(this.z==os.z)) {
+					k = true;
+				}
+			}
+			return k;
+		}
+		public Rotation copy(){return new Rotation(this.x,this.y,this.z);}
+	}
 	public static class Sphere implements Comparable<Sphere> {public double x,y,z,r; public int ind=-1; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}
 		@Override public int compareTo(Sphere o) {
 			int k = -1;
@@ -471,7 +483,19 @@ public class ModelLib {
 		public Position translation = null;
 		@Override public int compareTo(Entity o) {return this.sphereboundaryvolume.compareTo(o.sphereboundaryvolume);}
 	}
-	public static class Matrix {public double a11,a12,a13,a21,a22,a23,a31,a32,a33;public Matrix(double a11i,double a12i,double a13i,double a21i,double a22i,double a23i,double a31i,double a32i,double a33i){this.a11=a11i;this.a12=a12i;this.a13=a13i;this.a21=a21i;this.a22=a22i;this.a23=a23i;this.a31=a31i;this.a32=a32i;this.a33=a33i;}}
+	public static class Matrix {public double a11,a12,a13,a21,a22,a23,a31,a32,a33; public Matrix(double a11i,double a12i,double a13i,double a21i,double a22i,double a23i,double a31i,double a32i,double a33i){this.a11=a11i;this.a12=a12i;this.a13=a13i;this.a21=a21i;this.a22=a22i;this.a23=a23i;this.a31=a31i;this.a32=a32i;this.a33=a33i;}
+		@Override public boolean equals(Object o) {
+			boolean k = false;
+			if (o.getClass().equals(this.getClass())) {
+				Matrix co = (Matrix)o;
+				if ((this.a11==co.a11)&&(this.a12==co.a12)&&(this.a13==co.a13)&&(this.a21==co.a21)&&(this.a22==co.a22)&&(this.a23==co.a23)&&(this.a31==co.a31)&&(this.a32==co.a32)&&(this.a33==co.a33)) {
+					k = true;
+				}
+			}
+			return k;
+		}
+		public Matrix copy(){Matrix k=new Matrix(this.a11,this.a12,this.a13,this.a21,this.a22,this.a23,this.a31,this.a32,this.a33);return k;}
+	}
 	
 	public static class ModelFaceVertexIndex {
 		public int vertexindex; 
@@ -836,7 +860,7 @@ public class ModelLib {
 		return k;
 	}
 
-	public static RenderView renderProjectedViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot) {
+	public static RenderView renderProjectedTextureViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot) {
 		RenderView renderview = new RenderView();
 		renderview= new RenderView();
 		renderview.pos = campos;
@@ -951,9 +975,11 @@ public class ModelLib {
 											double drawdistance = Math.abs(linepointdirlen[0]);
 											if (drawdistance<renderview.zbuffer[n][j]) {
 												renderview.zbuffer[n][j] = drawdistance;
+												Coordinate tex1 = vpixelpoints[0].tex;
+												Coordinate tex2 = vpixelpoints[1].tex;
 												if (tritexture!=null) {
-													Position[] lineuvpoint1 = {new Position(vpixelpoints[0].tex.u*(tritexture.getWidth()-1),(1.0f-vpixelpoints[0].tex.v)*(tritexture.getHeight()-1),0.0f)};
-													Position[] lineuvpoint2 = {new Position(vpixelpoints[1].tex.u*(tritexture.getWidth()-1),(1.0f-vpixelpoints[1].tex.v)*(tritexture.getHeight()-1),0.0f)};
+													Position[] lineuvpoint1 = {new Position(tex1.u*(tritexture.getWidth()-1),(1.0f-tex1.v)*(tritexture.getHeight()-1),0.0f)};
+													Position[] lineuvpoint2 = {new Position(tex2.u*(tritexture.getWidth()-1),(1.0f-tex2.v)*(tritexture.getHeight()-1),0.0f)};
 													Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
 													Position[] lineuv = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
 													int lineuvx = (int)Math.round(lineuv[0].x);

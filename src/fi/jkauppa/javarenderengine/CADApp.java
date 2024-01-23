@@ -97,34 +97,11 @@ public class CADApp extends AppHandlerPanel {
 		this.origindeltay = (int)Math.floor(((double)this.getHeight())/2.0f);
 		this.vfov = 2.0f*MathLib.atand((((double)this.getHeight())/((double)this.getWidth()))*MathLib.tand(this.hfov/2.0f));
 		this.editplanedistance = (((double)this.getWidth())/2.0f)/MathLib.tand(hfov/2.0f);
-		if (this.softwarerenderview!=null) {
-			g2.drawImage(softwarerenderview.renderimage, 0, 0, null);
+		if ((this.polygonfillmode==3)&&(this.softwarerenderview!=null)) {
+			g2.drawImage(this.softwarerenderview.renderimage, 0, 0, null);
 		} else if (this.hardwarerenderview!=null) {
-			g2.drawImage(hardwarerenderview.renderimage, 0, 0, null);
+			g2.drawImage(this.hardwarerenderview.renderimage, 0, 0, null);
 		}
-	}
-
-	private class HardwareRenderViewUpdater extends Thread {
-		private static boolean renderupdaterrunning = false;
-		public void run() {
-			if (!HardwareRenderViewUpdater.renderupdaterrunning) {
-				HardwareRenderViewUpdater.renderupdaterrunning = true;
-				if (CADApp.this.polygonfillmode==1) {
-					Line[] linelist = CADApp.this.linelistarray.toArray(new Line[CADApp.this.linelistarray.size()]);
-					CADApp.this.hardwarerenderview = ModelLib.renderProjectedLineViewHardware(CADApp.this.campos, CADApp.this.entitylist, linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
-					CADApp.this.mouseoverline = CADApp.this.hardwarerenderview.mouseoverline;
-					CADApp.this.mouseoververtex = CADApp.this.hardwarerenderview.mouseoververtex;
-				} else { 
-					CADApp.this.hardwarerenderview = ModelLib.renderProjectedPolygonViewHardware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
-					CADApp.this.mouseovertriangle = CADApp.this.hardwarerenderview.mouseovertriangle;
-				}
-				HardwareRenderViewUpdater.renderupdaterrunning = false;
-			}
-		}
-	}
-
-	private int snapToGrid(int coordinate) {
-		return this.gridstep*(int)Math.round(((double)coordinate)/((double)this.gridstep));
 	}
 
 	private void updateCameraDirections() {
@@ -181,7 +158,11 @@ public class CADApp extends AppHandlerPanel {
 			this.camrot.y += (movementstep/((double)this.gridstep));
 		}
 		updateCameraDirections();
-		(new HardwareRenderViewUpdater()).start();
+		if (this.polygonfillmode==3) {
+			(new SoftwareRenderViewUpdater()).start();
+		} else {
+			(new HardwareRenderViewUpdater()).start();
+		}
 	}
 	
 	@Override public void keyTyped(KeyEvent e) {}
@@ -264,7 +245,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
 			this.polygonfillmode += 1;
-			if (this.polygonfillmode>2) {
+			if (this.polygonfillmode>3) {
 				this.polygonfillmode = 1;
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
@@ -438,6 +419,9 @@ public class CADApp extends AppHandlerPanel {
 							for (int i=0;(i<copymateriallist.length)&&(foundmat==null);i++) {
 								if (loadmodel.objects[k].faceindex[j].usemtl.equals(copymateriallist[i].materialname)) {
 									foundmat = copymateriallist[i];
+									if (foundmat.fileimage!=null) {
+										foundmat.snapimage = foundmat.fileimage.getSnapshot();
+									}
 								}
 							}
 							Position[] loadvertex = new Position[loadmodel.objects[k].faceindex[j].facevertexindex.length];
@@ -458,6 +442,9 @@ public class CADApp extends AppHandlerPanel {
 								Triangle newtriangle = new Triangle(loadvertex[0],loadvertex[1],loadvertex[2]);
 								newtriangle.mat = foundmat;
 								newtriangle.norm = loadmodel.facenormals[loadmodel.objects[k].faceindex[j].facevertexindex[0].normalindex-1];
+								newtriangle.pos1.tex = loadmodel.texturecoords[loadmodel.objects[k].faceindex[j].facevertexindex[0].textureindex-1];
+								newtriangle.pos2.tex = loadmodel.texturecoords[loadmodel.objects[k].faceindex[j].facevertexindex[1].textureindex-1];
+								newtriangle.pos3.tex = loadmodel.texturecoords[loadmodel.objects[k].faceindex[j].facevertexindex[2].textureindex-1];
 								newtrianglelistarray.add(newtriangle);
 								newentitylistarray.get(newentitylistarray.size()-1).trianglelist = newtrianglelistarray.toArray(new Triangle[newtrianglelistarray.size()]);
 							}
@@ -519,8 +506,8 @@ public class CADApp extends AppHandlerPanel {
     		double mouserelativelocationx = this.mouselocationx-this.origindeltax;
     		double mouserelativelocationy = this.mouselocationy-this.origindeltay;
 			if (this.snaplinemode) {
-	    		mouserelativelocationx = snapToGrid(this.mouselocationx-this.origindeltax);
-	    		mouserelativelocationy = snapToGrid(this.mouselocationy-this.origindeltay);
+	    		mouserelativelocationx = UtilLib.snapToGrid(this.mouselocationx-this.origindeltax,this.gridstep);
+	    		mouserelativelocationy = UtilLib.snapToGrid(this.mouselocationy-this.origindeltay,this.gridstep);
 				if ((this.mouseoververtex!=null)&&(this.mouseoververtex.length>0)) {
 					this.drawstartpos = this.mouseoververtex[this.mouseoververtex.length-1].copy(); 
 				}
@@ -589,8 +576,8 @@ public class CADApp extends AppHandlerPanel {
 	    		double mouserelativelocationx = this.mouselocationx-this.origindeltax;
 	    		double mouserelativelocationy = this.mouselocationy-this.origindeltay;
 				if (this.snaplinemode) {
-		    		mouserelativelocationx = snapToGrid(this.mouselocationx-this.origindeltax);
-		    		mouserelativelocationy = snapToGrid(this.mouselocationy-this.origindeltay);
+		    		mouserelativelocationx = UtilLib.snapToGrid(this.mouselocationx-this.origindeltax,this.gridstep);
+		    		mouserelativelocationy = UtilLib.snapToGrid(this.mouselocationy-this.origindeltay,this.gridstep);
 					if ((this.mouseoververtex!=null)&&(this.mouseoververtex.length>0)) {
 						drawlocation = this.mouseoververtex[this.mouseoververtex.length-1].copy(); 
 					}
@@ -690,31 +677,55 @@ public class CADApp extends AppHandlerPanel {
 				newmat.transparency = CADApp.this.penciltransparency;
 				for (int j=0;j<newentitylist.length;j++) {
 					for (int i=0;i<newentitylist[j].trianglelist.length;i++) {
-						Material foundmat = newmat;
+						newentitylist[j].trianglelist[i].mat = newmat;
+						newentitylist[j].trianglelist[i].norm = new Direction(0.0f,0.0f,0.0f);
 						int searchindex = entitylisttrianglearray.indexOf(newentitylist[j].trianglelist[i]);
 						if (searchindex>=0) {
-							Material searchmat = entitylisttrianglearray.get(searchindex).mat;
-							if (searchmat!=null) {
-								foundmat = searchmat;
-							}
+							newentitylist[j].trianglelist[i] = entitylisttrianglearray.get(searchindex).copy(); 
 						}
-						newentitylist[j].trianglelist[i].mat = foundmat;
-						newentitylist[j].trianglelist[i].norm = new Direction(0.0f,0.0f,0.0f);
 					}
 					for (int i=0;i<newentitylist[j].surfacelist.length;i++) {
-						Material foundmat = newmat;
+						newentitylist[j].surfacelist[i].mat = newmat;
 						int searchindex = entitylisttrianglearray.indexOf(newentitylist[j].surfacelist[i]);
 						if (searchindex>=0) {
-							Material searchmat = entitylisttrianglearray.get(searchindex).mat;
-							if (searchmat!=null) {
-								foundmat = searchmat;
-							}
+							Direction norm = newentitylist[j].surfacelist[i].norm;
+							newentitylist[j].surfacelist[i] = entitylisttrianglearray.get(searchindex).copy();
+							newentitylist[j].surfacelist[i].norm = norm;
 						}
-						newentitylist[j].surfacelist[i].mat = foundmat;
 					}
 				}
 				CADApp.this.entitylist = newentitylist;
 				EntityListUpdater.entitylistupdaterrunning = false;
+			}
+		}
+	}
+
+	private class HardwareRenderViewUpdater extends Thread {
+		private static boolean renderupdaterrunning = false;
+		public void run() {
+			if (!HardwareRenderViewUpdater.renderupdaterrunning) {
+				HardwareRenderViewUpdater.renderupdaterrunning = true;
+				if (CADApp.this.polygonfillmode==1) {
+					Line[] linelist = CADApp.this.linelistarray.toArray(new Line[CADApp.this.linelistarray.size()]);
+					CADApp.this.hardwarerenderview = ModelLib.renderProjectedLineViewHardware(CADApp.this.campos, CADApp.this.entitylist, linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.mouseoverline = CADApp.this.hardwarerenderview.mouseoverline;
+					CADApp.this.mouseoververtex = CADApp.this.hardwarerenderview.mouseoververtex;
+				} else { 
+					CADApp.this.hardwarerenderview = ModelLib.renderProjectedPolygonViewHardware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.mouseovertriangle = CADApp.this.hardwarerenderview.mouseovertriangle;
+				}
+				HardwareRenderViewUpdater.renderupdaterrunning = false;
+			}
+		}
+	}
+
+	private class SoftwareRenderViewUpdater extends Thread {
+		private static boolean renderupdaterrunning = false;
+		public void run() {
+			if (!SoftwareRenderViewUpdater.renderupdaterrunning) {
+				SoftwareRenderViewUpdater.renderupdaterrunning = true;
+				CADApp.this.softwarerenderview = ModelLib.renderProjectedTextureViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat);
+				SoftwareRenderViewUpdater.renderupdaterrunning = false;
 			}
 		}
 	}
