@@ -52,7 +52,8 @@ WASD              -- camera location change forward/left/backward/right (minmax)
 C-SPACE           -- camera height change down/up (minmax)
 QE                -- camera tilt change left/right (looping)
 BACKSPACE         -- removes all vector lines
-DRAG-LMB          -- black/hsba-color drag triangle paint
+DRAG-LMB          -- white/hsba-color drag pixel paint
+DRAG-RMB          -- white/hsba-color drag triangle paint
 SHIFT-LMB         -- rgba-color picker at cursor
 CTRL-DRAG-LMB     -- move line vertex
 ALT-DRAG-LMB      -- vector line drag draw
