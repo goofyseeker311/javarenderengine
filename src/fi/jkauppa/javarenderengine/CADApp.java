@@ -62,7 +62,7 @@ public class CADApp extends AppHandlerPanel {
 	private double hfov = 70.0f;
 	private double vfov = 43.0f;
 	private int gridstep = 20;
-	private ArrayList<Line> linelistarray = new ArrayList<Line>();
+	private TreeSet<Line> linelisttree = new TreeSet<Line>();
 	private Entity[] entitylist = null;
 	private JFileChooser filechooser = new JFileChooser();
 	private OBJFileFilter objfilefilter = new OBJFileFilter();
@@ -224,7 +224,7 @@ public class CADApp extends AppHandlerPanel {
 	}
 	@Override public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
-			this.linelistarray.clear();
+			this.linelisttree.clear();
 			this.entitylist = null;
 			this.campos = new Position(0.0f,0.0f,this.editplanedistance);
 			this.camrot = new Rotation(0.0f,0.0f,0.0f);
@@ -290,6 +290,8 @@ public class CADApp extends AppHandlerPanel {
 				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
 				stri[0].norm = new Direction(0.0f,0.0f,0.0f);
 			}
+		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD1) {
+			//TODO triangle mesh sub-divide at cursor
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
 			this.polygonfillmode += 1;
 			if (this.polygonfillmode>3) {
@@ -444,8 +446,8 @@ public class CADApp extends AppHandlerPanel {
 							newentitylist[0].trianglelist[i].mat = newmat;
 						}
 					}
-					this.linelistarray.addAll(Arrays.asList(MathLib.generateLineList(newentitylist[0].trianglelist)));
-					Line[] linelist = linelistarray.toArray(new Line[linelistarray.size()]);
+					this.linelisttree.addAll(Arrays.asList(MathLib.generateLineList(newentitylist[0].trianglelist)));
+					Line[] linelist = this.linelisttree.toArray(new Line[this.linelisttree.size()]);
 					newentitylist[0].vertexlist = MathLib.generateVertexList(linelist);
 					newentitylist[0].aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newentitylist[0].vertexlist);
 					newentitylist[0].sphereboundaryvolume = MathLib.pointCloudCircumSphere(newentitylist[0].vertexlist);
@@ -455,23 +457,23 @@ public class CADApp extends AppHandlerPanel {
 					ArrayList<Entity> newentitylist = new ArrayList<Entity>();
 					for (int j=0;j<loadmodel.objects.length;j++) {
 						Entity newentity = new Entity();
-						TreeSet<Line> newlinelistarray = new TreeSet<Line>();
-						TreeSet<Line> newnontrianglelinelistarray = new TreeSet<Line>();
+						TreeSet<Line> newlinelisttree = new TreeSet<Line>();
+						TreeSet<Line> newnontrianglelinelisttree = new TreeSet<Line>();
 						ArrayList<Triangle> newtrianglelistarray = new ArrayList<Triangle>();
 						for (int i=0;i<loadmodel.objects[j].faceindex.length;i++) {
 							if (loadmodel.objects[j].faceindex[i].facevertexindex.length==1) {
 								Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
 								Line newline = new Line(pos1.copy(), pos1.copy());
-								newlinelistarray.add(newline);
-								this.linelistarray.add(newline);
-								newnontrianglelinelistarray.add(newline);
+								newlinelisttree.add(newline);
+								this.linelisttree.add(newline);
+								newnontrianglelinelisttree.add(newline);
 							} else if (loadmodel.objects[j].faceindex[i].facevertexindex.length==2) {
 								Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
 								Position pos2 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
 								Line newline = new Line(pos1.copy(), pos2.copy());
-								newlinelistarray.add(newline);
-								this.linelistarray.add(newline);
-								newnontrianglelinelistarray.add(newline);
+								newlinelisttree.add(newline);
+								this.linelisttree.add(newline);
+								newnontrianglelinelisttree.add(newline);
 							} else if (loadmodel.objects[j].faceindex[i].facevertexindex.length==3) {
 								Material foundmat = null;
 								for (int n=0;(n<loadmodel.materials.length)&&(foundmat==null);n++) {
@@ -503,52 +505,52 @@ public class CADApp extends AppHandlerPanel {
 								Line newline1 = new Line(pos1.copy(), pos2.copy());
 								Line newline2 = new Line(pos1.copy(), pos3.copy());
 								Line newline3 = new Line(pos2.copy(), pos3.copy());
-								newlinelistarray.add(newline1);
-								newlinelistarray.add(newline2);
-								newlinelistarray.add(newline3);
-								this.linelistarray.add(newline1);
-								this.linelistarray.add(newline2);
-								this.linelistarray.add(newline3);
+								newlinelisttree.add(newline1);
+								newlinelisttree.add(newline2);
+								newlinelisttree.add(newline3);
+								this.linelisttree.add(newline1);
+								this.linelisttree.add(newline2);
+								this.linelisttree.add(newline3);
 							} else {
 								Position[] pos = new Position[loadmodel.objects[j].faceindex[i].facevertexindex.length];
 								for (int m=0;m<loadmodel.objects[j].faceindex[i].facevertexindex.length;m++) {
 									pos[m] = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[m].vertexindex-1];
 									if (m>0) {
 										Line newline = new Line(pos[m].copy(), pos[m-1].copy());
-										newlinelistarray.add(newline);
-										this.linelistarray.add(newline);
-										newnontrianglelinelistarray.add(newline);
+										newlinelisttree.add(newline);
+										this.linelisttree.add(newline);
+										newnontrianglelinelisttree.add(newline);
 									}
 								}
 								Line newline = new Line(pos[0].copy(), pos[loadmodel.objects[j].faceindex[i].facevertexindex.length-1].copy());
-								newlinelistarray.add(newline);
-								this.linelistarray.add(newline);
-								newnontrianglelinelistarray.add(newline);
+								newlinelisttree.add(newline);
+								this.linelisttree.add(newline);
+								newnontrianglelinelisttree.add(newline);
 							}
 						}
 						for (int i=0;i<loadmodel.objects[j].lineindex.length;i++) {
 							if (loadmodel.objects[j].lineindex[i].linevertexindex.length==1) {
 								Position pos = loadmodel.vertexlist[loadmodel.objects[j].lineindex[i].linevertexindex[0]-1];
 								Line newline = new Line(pos.copy(), pos.copy());
-								newlinelistarray.add(newline);
-								this.linelistarray.add(newline);
-								newnontrianglelinelistarray.add(newline);
+								newlinelisttree.add(newline);
+								this.linelisttree.add(newline);
+								newnontrianglelinelisttree.add(newline);
 							} else {
 								Position[] pos = new Position[loadmodel.objects[j].lineindex[i].linevertexindex.length];
 								for (int m=0;m<loadmodel.objects[j].lineindex[i].linevertexindex.length;m++) {
 									pos[m] = loadmodel.vertexlist[loadmodel.objects[j].lineindex[i].linevertexindex[m]-1];
 									if (m>0) {
 										Line newline = new Line(pos[m].copy(), pos[m-1].copy());
-										newlinelistarray.add(newline);
-										this.linelistarray.add(newline);
-										newnontrianglelinelistarray.add(newline);
+										newlinelisttree.add(newline);
+										this.linelisttree.add(newline);
+										newnontrianglelinelisttree.add(newline);
 									}
 								}
 							}
 						}
 						newentity.trianglelist = newtrianglelistarray.toArray(new Triangle[newtrianglelistarray.size()]);
-						newentity.linelist = newnontrianglelinelistarray.toArray(new Line[newnontrianglelinelistarray.size()]);
-						Line[] newlinelist = newlinelistarray.toArray(new Line[newlinelistarray.size()]);
+						newentity.linelist = newnontrianglelinelisttree.toArray(new Line[newnontrianglelinelisttree.size()]);
+						Line[] newlinelist = newlinelisttree.toArray(new Line[newlinelisttree.size()]);
 						if (newlinelist.length>0) {
 							newentity.vertexlist = MathLib.generateVertexList(newlinelist);
 							newentity.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newentity.vertexlist);
@@ -603,9 +605,10 @@ public class CADApp extends AppHandlerPanel {
 			if (this.drawstartpos==null) {
 				this.drawstartpos = drawposarray[0].copy();
 			}
-			this.linelistarray.add(new Line(this.drawstartpos, drawposarray[0]));
+			this.linelisttree.add(new Line(this.drawstartpos, drawposarray[0]));
 			this.draglinemode = true;
 			this.selecteddragvertex = drawposarray;
+			(new EntityListUpdater()).start();
     	}
 		mouseDragged(e);
 	}
@@ -671,6 +674,7 @@ public class CADApp extends AppHandlerPanel {
 					this.selecteddragvertex[i].y = drawlocation.y;
 					this.selecteddragvertex[i].z = drawlocation.z;
 				}
+				(new EntityListUpdater()).start();
     		}
 		}
 	    int onmask2down = MouseEvent.BUTTON2_DOWN_MASK;
@@ -722,7 +726,8 @@ public class CADApp extends AppHandlerPanel {
 	    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3altdown | offmask3altdown)) == onmask3altdown);
     	if (mouse3altdown) {
     		if ((this.mouseoverline!=null)&&(this.mouseoverline.length>0)) {
-				this.linelistarray.removeAll(Arrays.asList(this.mouseoverline));
+				this.linelisttree.removeAll(Arrays.asList(this.mouseoverline));
+				(new EntityListUpdater()).start();
 			}
     	}
 	    int onmask3ctrldown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
@@ -760,7 +765,7 @@ public class CADApp extends AppHandlerPanel {
 						}
 					}
 				}
-				Line[] copylinelist = linelistarray.toArray(new Line[linelistarray.size()]);
+				Line[] copylinelist = CADApp.this.linelisttree.toArray(new Line[CADApp.this.linelisttree.size()]);
 				Entity[] newentitylist = MathLib.generateEntityList(copylinelist);
 				Material newmat = new Material();
 				newmat.facecolor = CADApp.this.drawcolor;
@@ -787,7 +792,7 @@ public class CADApp extends AppHandlerPanel {
 			if (!HardwareRenderViewUpdater.renderupdaterrunning) {
 				HardwareRenderViewUpdater.renderupdaterrunning = true;
 				if (CADApp.this.polygonfillmode==1) {
-					Line[] linelist = CADApp.this.linelistarray.toArray(new Line[CADApp.this.linelistarray.size()]);
+					Line[] linelist = CADApp.this.linelisttree.toArray(new Line[CADApp.this.linelisttree.size()]);
 					CADApp.this.hardwarerenderview = ModelLib.renderProjectedLineViewHardware(CADApp.this.campos, linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseoverline = CADApp.this.hardwarerenderview.mouseoverline;
 					CADApp.this.mouseoververtex = CADApp.this.hardwarerenderview.mouseoververtex;
