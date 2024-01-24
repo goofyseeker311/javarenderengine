@@ -51,7 +51,7 @@ public class CADApp extends AppHandlerPanel {
 	private int mouselocationx = 0, mouselocationy = 0;
 	private int mouselastlocationx = -1, mouselastlocationy = -1; 
 	private int origindeltax = 0, origindeltay = 0;
-	private double editplanedistance = 1372.0f;
+	private double editplanedistance = 1371.023f;
 	private Position drawstartpos = new Position(0,0,0);
 	private Position editpos = new Position(0.0f,0.0f,0.0f);
 	private Position campos = new Position(0.0f,0.0f,this.editplanedistance);
@@ -527,7 +527,13 @@ public class CADApp extends AppHandlerPanel {
 							}
 						}
 						for (int i=0;i<loadmodel.objects[j].lineindex.length;i++) {
-							if (loadmodel.objects[j].lineindex[i].linevertexindex.length>0) {
+							if (loadmodel.objects[j].lineindex[i].linevertexindex.length==1) {
+								Position pos = loadmodel.vertexlist[loadmodel.objects[j].lineindex[i].linevertexindex[0]-1];
+								Line newline = new Line(pos.copy(), pos.copy());
+								newlinelistarray.add(newline);
+								this.linelistarray.add(newline);
+								newnontrianglelinelistarray.add(newline);
+							} else {
 								Position[] pos = new Position[loadmodel.objects[j].lineindex[i].linevertexindex.length];
 								for (int m=0;m<loadmodel.objects[j].lineindex[i].linevertexindex.length;m++) {
 									pos[m] = loadmodel.vertexlist[loadmodel.objects[j].lineindex[i].linevertexindex[m]-1];
