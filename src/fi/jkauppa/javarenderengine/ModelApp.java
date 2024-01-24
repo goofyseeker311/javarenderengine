@@ -95,36 +95,44 @@ public class ModelApp extends AppHandlerPanel {
 
 	@Override public void timerTick() {
 		if (this.leftkeydown) {
+			this.campos = this.campos.copy();
 			this.campos.x -= 20.0f*this.camdirs[1].dx;
 			this.campos.y -= 20.0f*this.camdirs[1].dy;
 			this.campos.z -= 20.0f*this.camdirs[1].dz;
 		} else if (this.rightkeydown) {
+			this.campos = this.campos.copy();
 			this.campos.x += 20.0f*this.camdirs[1].dx;
 			this.campos.y += 20.0f*this.camdirs[1].dy;
 			this.campos.z += 20.0f*this.camdirs[1].dz;
 		}
 		if (this.forwardkeydown) {
+			this.campos = this.campos.copy();
 			this.campos.x += 20.0f*this.camdirs[0].dx;
 			this.campos.y += 20.0f*this.camdirs[0].dy;
 			this.campos.z += 20.0f*this.camdirs[0].dz;
 		} else if (this.backwardkeydown) {
+			this.campos = this.campos.copy();
 			this.campos.x -= 20.0f*this.camdirs[0].dx;
 			this.campos.y -= 20.0f*this.camdirs[0].dy;
 			this.campos.z -= 20.0f*this.camdirs[0].dz;
 		}
 		if (this.upwardkeydown) {
+			this.campos = this.campos.copy();
 			this.campos.x -= 20.0f*this.camdirs[2].dx;
 			this.campos.y -= 20.0f*this.camdirs[2].dy;
 			this.campos.z -= 20.0f*this.camdirs[2].dz;
 		} else if (this.downwardkeydown) {
+			this.campos = this.campos.copy();
 			this.campos.x += 20.0f*this.camdirs[2].dx;
 			this.campos.y += 20.0f*this.camdirs[2].dy;
 			this.campos.z += 20.0f*this.camdirs[2].dz;
 		}
 		if (this.rollleftkeydown) {
+			this.camrot = this.camrot.copy();
 			this.camrot.y -= 1.0f;
 			updateCameraDirections();
 		} else if (this.rollrightkeydown) {
+			this.camrot = this.camrot.copy();
 			this.camrot.y += 1.0f;
 			updateCameraDirections();
 		}
@@ -255,6 +263,7 @@ public class ModelApp extends AppHandlerPanel {
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
     	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
     	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+		this.camrot = this.camrot.copy();
     	this.camrot.z -= mousedeltax*0.1f;
     	this.camrot.x -= mousedeltay*0.1f;
     	updateCameraDirections();
