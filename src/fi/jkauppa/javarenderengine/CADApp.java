@@ -51,7 +51,7 @@ public class CADApp extends AppHandlerPanel {
 	private int mouselocationx = 0, mouselocationy = 0;
 	private int mouselastlocationx = -1, mouselastlocationy = -1; 
 	private int origindeltax = 0, origindeltay = 0;
-	private double editplanedistance = 1371.0f;
+	private double editplanedistance = 1372.0f;
 	private Position drawstartpos = new Position(0,0,0);
 	private Position editpos = new Position(0.0f,0.0f,0.0f);
 	private Position campos = new Position(0.0f,0.0f,this.editplanedistance);
@@ -131,45 +131,56 @@ public class CADApp extends AppHandlerPanel {
 			movementstep = this.gridstep;
 		}
 		if (this.leftkeydown) {
+			this.campos = this.campos.copy();
 			this.campos.x -= movementstep*this.camdirs[1].dx;
 			this.campos.y -= movementstep*this.camdirs[1].dy;
-			this.campos.z -= movementstep*this.camdirs[1].dz;
-		} else if (this.rightkeydown) {
+			this.campos.z -= movementstep*this.camdirs[1].dz;		} else if (this.rightkeydown) {
+			this.campos = this.campos.copy();
 			this.campos.x += movementstep*this.camdirs[1].dx;
 			this.campos.y += movementstep*this.camdirs[1].dy;
 			this.campos.z += movementstep*this.camdirs[1].dz;
 		}
 		if (this.forwardkeydown) {
+			this.campos = this.campos.copy();
 			this.campos.x += movementstep*this.camdirs[0].dx;
 			this.campos.y += movementstep*this.camdirs[0].dy;
 			this.campos.z += movementstep*this.camdirs[0].dz;
 		} else if (this.backwardkeydown) {
+			this.campos = this.campos.copy();
 			this.campos.x -= movementstep*this.camdirs[0].dx;
 			this.campos.y -= movementstep*this.camdirs[0].dy;
 			this.campos.z -= movementstep*this.camdirs[0].dz;
 		}
 		if (this.upwardkeydown) {
+			this.campos = this.campos.copy();
 			this.campos.x -= movementstep*this.camdirs[2].dx;
 			this.campos.y -= movementstep*this.camdirs[2].dy;
 			this.campos.z -= movementstep*this.camdirs[2].dz;
 		} else if (this.downwardkeydown) {
+			this.campos = this.campos.copy();
 			this.campos.x += movementstep*this.camdirs[2].dx;
 			this.campos.y += movementstep*this.camdirs[2].dy;
 			this.campos.z += movementstep*this.camdirs[2].dz;
 		}
 		if (this.rollleftkeydown) {
+			this.camrot = this.camrot.copy();
 			this.camrot.y -= (movementstep/((double)this.gridstep));
 		} else if (this.rollrightkeydown) {
+			this.camrot = this.camrot.copy();
 			this.camrot.y += (movementstep/((double)this.gridstep));
 		}
 		if (this.yawleftkeydown) {
+			this.camrot = this.camrot.copy();
         	this.camrot.z += (movementstep/((double)this.gridstep))*1.0f;
 		} else if (this.yawrightkeydown) {
+			this.camrot = this.camrot.copy();
         	this.camrot.z -= (movementstep/((double)this.gridstep))*1.0f;
 		}
 		if (this.pitchupkeydown) {
+			this.camrot = this.camrot.copy();
         	this.camrot.x += (movementstep/((double)this.gridstep))*1.0f;
 		} else if (this.pitchdownkeydown) {
+			this.camrot = this.camrot.copy();
         	this.camrot.x -= (movementstep/((double)this.gridstep))*1.0f;
 		}
 		updateCameraDirections();
@@ -527,10 +538,6 @@ public class CADApp extends AppHandlerPanel {
 										newnontrianglelinelistarray.add(newline);
 									}
 								}
-								Line newline = new Line(pos[0].copy(), pos[loadmodel.objects[j].lineindex[i].linevertexindex.length-1].copy());
-								newlinelistarray.add(newline);
-								this.linelistarray.add(newline);
-								newnontrianglelinelistarray.add(newline);
 							}
 						}
 						newentity.trianglelist = newtrianglelistarray.toArray(new Triangle[newtrianglelistarray.size()]);
@@ -670,6 +677,7 @@ public class CADApp extends AppHandlerPanel {
     		}
         	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
         	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+        	this.campos = this.campos.copy();
     		this.campos.x -= mousedeltax*movementstep*this.camdirs[1].dx;
     		this.campos.y -= mousedeltax*movementstep*this.camdirs[1].dy;
     		this.campos.z -= mousedeltax*movementstep*this.camdirs[1].dz;
@@ -687,6 +695,7 @@ public class CADApp extends AppHandlerPanel {
     		}
         	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
         	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+        	this.camrot = this.camrot.copy();
         	this.camrot.z -= mousedeltax*(movementstep/((double)this.gridstep))*0.1f;
         	this.camrot.x -= mousedeltay*(movementstep/((double)this.gridstep))*0.1f;
         	updateCameraDirections();
@@ -722,6 +731,7 @@ public class CADApp extends AppHandlerPanel {
 		if (this.snaplinemode) {
 			movementstep *= this.gridstep;
 		}
+		this.campos = this.campos.copy();
 		this.campos.x -= movementstep*this.camdirs[0].dx;
 		this.campos.y -= movementstep*this.camdirs[0].dy;
 		this.campos.z -= movementstep*this.camdirs[0].dz;
