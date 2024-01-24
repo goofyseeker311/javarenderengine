@@ -866,8 +866,8 @@ public class ModelLib {
 	public static RenderView renderProjectedTextureViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot) {
 		RenderView renderview = new RenderView();
 		renderview= new RenderView();
-		renderview.pos = campos;
-		renderview.rot = viewrot;
+		renderview.pos = campos.copy();
+		renderview.rot = viewrot.copy();
 		renderview.renderwidth = renderwidth;
 		renderview.renderheight = renderheight;
 		renderview.hfov = hfov;
@@ -917,7 +917,7 @@ public class ModelLib {
 						double triangleviewangle = triangleviewangles[0];
 						triangleviewangle -= 90.0f;
 						if (triangleviewangle<0.0f) {triangleviewangle = 0.0f;}
-						triangleshadingmultipliers[i] = ((((float)triangleviewangle)/1.2f)+15.0f)/90.0f;
+						triangleshadingmultipliers[i] = ((((float)triangleviewangle)/1.5f)+30.0f)/90.0f;
 					}
 					Sphere[] copytrianglepherelist = MathLib.triangleCircumSphere(copytrianglelist);
 					for (int i=0;i<copytrianglepherelist.length;i++) {copytrianglepherelist[i].ind = i;}
@@ -1024,8 +1024,8 @@ public class ModelLib {
 		renderview = new RenderView();
 		renderview.mouselocationx = mouselocationx;
 		renderview.mouselocationy = mouselocationy;
-		renderview.pos = campos;
-		renderview.rot = viewrot;
+		renderview.pos = campos.copy();
+		renderview.rot = viewrot.copy();
 		renderview.renderwidth = renderwidth;
 		renderview.renderheight = renderheight;
 		renderview.hfov = hfov;
@@ -1054,7 +1054,7 @@ public class ModelLib {
 				entityspherelist[k] = entitylistmaphandle[k].sphereboundaryvolume;
 				entityspherelist[k].ind = k;
 			}
-			TreeSet<Sphere> sortedentityspheretree = new TreeSet<Sphere>(new SphereDistanceComparator(campos));
+			TreeSet<Sphere> sortedentityspheretree = new TreeSet<Sphere>(new SphereDistanceComparator(renderview.pos));
 			sortedentityspheretree.addAll(Arrays.asList(entityspherelist));
 			Sphere[] sortedentityspherelist = sortedentityspheretree.toArray(new Sphere[sortedentityspheretree.size()]);
 			for (int k=0;k<sortedentityspherelist.length;k++) {
@@ -1065,7 +1065,7 @@ public class ModelLib {
 						for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].ind = i;}
 						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
 						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
-						TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereDistanceComparator(campos));
+						TreeSet<Sphere> sortedtrianglespheretree = new TreeSet<Sphere>(new SphereDistanceComparator(renderview.pos));
 						sortedtrianglespheretree.addAll(Arrays.asList(copytrianglespherelist));
 						Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
 						float[] triangleshadingmultipliers = new float[copytrianglelist.length];
@@ -1082,9 +1082,9 @@ public class ModelLib {
 							double triangleviewangle = triangleviewangles[0];
 							triangleviewangle -= 90.0f;
 							if (triangleviewangle<0.0f) {triangleviewangle = 0.0f;}
-							triangleshadingmultipliers[i] = ((((float)triangleviewangle)/1.2f)+15.0f)/90.0f;
+							triangleshadingmultipliers[i] = ((((float)triangleviewangle)/1.5f)+30.0f)/90.0f;
 						}
-						Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangles(campos, copytrianglelist, renderwidth, hfov, renderheight, vfov, viewrot);
+						Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangles(renderview.pos, copytrianglelist, renderwidth, hfov, renderheight, vfov, viewrot);
 						for (int j=0;j<sortedtrianglespherelist.length;j++) {
 							Coordinate coord1 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][0];
 							Coordinate coord2 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][1];
@@ -1132,8 +1132,8 @@ public class ModelLib {
 		renderview = new RenderView();
 		renderview.mouselocationx = mouselocationx;
 		renderview.mouselocationy = mouselocationy;
-		renderview.pos = campos;
-		renderview.rot = viewrot;
+		renderview.pos = campos.copy();
+		renderview.rot = viewrot.copy();
 		renderview.renderwidth = renderwidth;
 		renderview.renderheight = renderheight;
 		renderview.hfov = hfov;
@@ -1170,8 +1170,8 @@ public class ModelLib {
 		g2.fillRect(0, 0, renderwidth, renderheight);
 		g2.setPaint(null);
 		g2.setComposite(AlphaComposite.SrcOver);
-		Coordinate[][] linelistcoords = MathLib.projectedLines(campos, linelist, renderwidth, hfov, renderheight, vfov, viewrot);
-		Position[] camposarray = {campos};
+		Coordinate[][] linelistcoords = MathLib.projectedLines(renderview.pos, linelist, renderwidth, hfov, renderheight, vfov, viewrot);
+		Position[] camposarray = {renderview.pos};
 		Position[] editposarray = MathLib.translate(camposarray, renderview.dirs[0], editplanedistance);
 		Plane[] editplanes = MathLib.planeFromNormalAtPoint(editposarray[0], renderview.dirs);
 		Plane[] editplane = {editplanes[0]};
@@ -1206,7 +1206,7 @@ public class ModelLib {
 			}
 		}
 		Position[] originpoints = {new Position(0,0,0),new Position(originlinelength,0,0),new Position(0,originlinelength,0),new Position(0,0,originlinelength)}; 
-		Coordinate[] originpointscoords = MathLib.projectedPoints(campos, originpoints, renderwidth, hfov, renderheight, vfov, viewrot);
+		Coordinate[] originpointscoords = MathLib.projectedPoints(renderview.pos, originpoints, renderwidth, hfov, renderheight, vfov, viewrot);
 		Coordinate coord1 = originpointscoords[0];
 		Coordinate coord2 = originpointscoords[1];
 		Coordinate coord3 = originpointscoords[2];
