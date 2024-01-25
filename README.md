@@ -48,8 +48,7 @@ SHIFT-F3          -- load image file as pencil brush dialog
 
 CAD App Keys:
 ENTER             -- changes between polygon flat/textured/none fill modes (looping)
-WASD              -- camera location change forward/left/backward/right (minmax)
-C-SPACE           -- camera height change down/up (minmax)
+WASD              -- camera location change up/left/down/right (minmax)
 QE                -- camera tilt change left/right (looping)
 BACKSPACE         -- removes all vector lines
 DRAG-LMB          -- white/hsba-color drag pixel paint
@@ -64,8 +63,8 @@ DRAG-MWH          -- camera location view position sideways pan (minmax)
 CTRL-DRAG-MWH     -- change forward looking movement direction (minmax)
 MWHEEL            -- draw forward position change (minmax)
 ARROW-KEYS        -- change forward looking movement direction (minmax)
-NUMPAD+           -- draw forward position change positive (minmax)
-NUMPAD-           -- draw forward position change negative (minmax)
+NUMPAD+           -- forward position change (minmax)
+NUMPAD-           -- backward position change (minmax)
 INSERT            -- hue positive change (looping)
 DELETE            -- hue negative change (looping)
 HOME              -- saturation positive change (minmax)
