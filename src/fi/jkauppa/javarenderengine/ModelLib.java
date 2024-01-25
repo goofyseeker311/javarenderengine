@@ -1207,7 +1207,7 @@ public class ModelLib {
 				}
 			}
 		}
-		Position[] originpoints = {new Position(0,0,0),new Position(originlinelength,0,0),new Position(0,originlinelength,0),new Position(0,0,originlinelength)}; 
+		Position[] originpoints = {new Position(0.0f,0.0f,0.0f),new Position(originlinelength,0.0f,0.0f),new Position(0.0f,originlinelength,0.0f),new Position(0.0f,0.0f,originlinelength)}; 
 		Coordinate[] originpointscoords = MathLib.projectedPoints(renderview.pos, originpoints, renderwidth, hfov, renderheight, vfov, viewrot);
 		Coordinate coord1 = originpointscoords[0];
 		Coordinate coord2 = originpointscoords[1];

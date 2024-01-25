@@ -54,10 +54,10 @@ public class CADApp extends AppHandlerPanel {
 	private double editplanedistance = 1371.023f;
 	private Position drawstartpos = new Position(0,0,0);
 	private Position editpos = new Position(0.0f,0.0f,0.0f);
-	private Position campos = new Position(0.0f,0.0f,this.editplanedistance);
-	private Rotation camrot = new Rotation(0.0f, 0.0f, 0.0f);
-	private Matrix cameramat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
-	private final Direction[] lookdirs = MathLib.projectedCameraDirections(cameramat);
+	private Position campos = new Position(0.0f,-this.editplanedistance,0.0f);
+	private Rotation camrot = new Rotation(90.0f, 0.0f, 0.0f);
+	private Matrix cameramat = MathLib.rotationMatrix(90.0f, 0.0f, 0.0f);
+	private final Direction[] lookdirs = MathLib.projectedCameraDirections(MathLib.rotationMatrix(0.0f, 0.0f, 0.0f));
 	private Direction[] camdirs = lookdirs;
 	private double hfov = 70.0f;
 	private double vfov = 43.0f;
@@ -118,9 +118,9 @@ public class CADApp extends AppHandlerPanel {
 		camrotmat = MathLib.matrixMultiply(camrotmat, camrotmaty);
 		camrotmat = MathLib.matrixMultiply(camrotmat, camrotmatx);
 		Direction[] camlookdirs = MathLib.matrixMultiply(this.lookdirs, camrotmat);
-		Position[] camposarray = {this.campos};
-		Position[] editposarray = MathLib.translate(camposarray, camlookdirs[0], this.editplanedistance);
-		this.editpos = editposarray[0];
+		Position[] editposarray = {this.editpos};
+		Position[] camposarray = MathLib.translate(editposarray, camlookdirs[0], -this.editplanedistance);
+		this.campos = camposarray[0];
 		this.cameramat = camrotmat;
 		this.camdirs = camlookdirs;
 	}
@@ -131,36 +131,36 @@ public class CADApp extends AppHandlerPanel {
 			movementstep = this.gridstep;
 		}
 		if (this.leftkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x -= movementstep*this.camdirs[1].dx;
-			this.campos.y -= movementstep*this.camdirs[1].dy;
-			this.campos.z -= movementstep*this.camdirs[1].dz;		} else if (this.rightkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x += movementstep*this.camdirs[1].dx;
-			this.campos.y += movementstep*this.camdirs[1].dy;
-			this.campos.z += movementstep*this.camdirs[1].dz;
+			this.editpos = this.editpos.copy();
+			this.editpos.x -= movementstep*this.camdirs[1].dx;
+			this.editpos.y -= movementstep*this.camdirs[1].dy;
+			this.editpos.z -= movementstep*this.camdirs[1].dz;		} else if (this.rightkeydown) {
+			this.editpos = this.editpos.copy();
+			this.editpos.x += movementstep*this.camdirs[1].dx;
+			this.editpos.y += movementstep*this.camdirs[1].dy;
+			this.editpos.z += movementstep*this.camdirs[1].dz;
 		}
 		if (this.forwardkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x += movementstep*this.camdirs[0].dx;
-			this.campos.y += movementstep*this.camdirs[0].dy;
-			this.campos.z += movementstep*this.camdirs[0].dz;
+			this.editpos = this.editpos.copy();
+			this.editpos.x += movementstep*this.camdirs[0].dx;
+			this.editpos.y += movementstep*this.camdirs[0].dy;
+			this.editpos.z += movementstep*this.camdirs[0].dz;
 		} else if (this.backwardkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x -= movementstep*this.camdirs[0].dx;
-			this.campos.y -= movementstep*this.camdirs[0].dy;
-			this.campos.z -= movementstep*this.camdirs[0].dz;
+			this.editpos = this.editpos.copy();
+			this.editpos.x -= movementstep*this.camdirs[0].dx;
+			this.editpos.y -= movementstep*this.camdirs[0].dy;
+			this.editpos.z -= movementstep*this.camdirs[0].dz;
 		}
 		if (this.upwardkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x -= movementstep*this.camdirs[2].dx;
-			this.campos.y -= movementstep*this.camdirs[2].dy;
-			this.campos.z -= movementstep*this.camdirs[2].dz;
+			this.editpos = this.editpos.copy();
+			this.editpos.x -= movementstep*this.camdirs[2].dx;
+			this.editpos.y -= movementstep*this.camdirs[2].dy;
+			this.editpos.z -= movementstep*this.camdirs[2].dz;
 		} else if (this.downwardkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x += movementstep*this.camdirs[2].dx;
-			this.campos.y += movementstep*this.camdirs[2].dy;
-			this.campos.z += movementstep*this.camdirs[2].dz;
+			this.editpos = this.editpos.copy();
+			this.editpos.x += movementstep*this.camdirs[2].dx;
+			this.editpos.y += movementstep*this.camdirs[2].dy;
+			this.editpos.z += movementstep*this.camdirs[2].dz;
 		}
 		if (this.rollleftkeydown) {
 			this.camrot = this.camrot.copy();
@@ -208,6 +208,10 @@ public class CADApp extends AppHandlerPanel {
 			this.leftkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_D) {
 			this.rightkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_SPACE) {
+			this.forwardkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_C) {
+			this.backwardkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_Q) {
 			this.rollleftkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_E) {
@@ -222,8 +226,9 @@ public class CADApp extends AppHandlerPanel {
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
 			this.linelisttree.clear();
 			this.entitylist = null;
-			this.campos = new Position(0.0f,0.0f,this.editplanedistance);
-			this.camrot = new Rotation(0.0f,0.0f,0.0f);
+			this.editpos = new Position(0.0f, 0.0f, 0.0f);
+			this.campos = new Position(0.0f,-this.editplanedistance,0.0f);
+			this.camrot = new Rotation(90.0f, 0.0f, 0.0f);
 		} else if (e.getKeyCode()==KeyEvent.VK_INSERT) {
 			this.drawcolorhsb[0] += 0.01f;
 			if (this.drawcolorhsb[0]>1.0f) {this.drawcolorhsb[0] = 0.0f;}
@@ -313,6 +318,10 @@ public class CADApp extends AppHandlerPanel {
 			this.leftkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_D) {
 			this.rightkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_SPACE) {
+			this.forwardkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_C) {
+			this.backwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_Q) {
 			this.rollleftkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_E) {
@@ -679,13 +688,13 @@ public class CADApp extends AppHandlerPanel {
     		}
         	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
         	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-        	this.campos = this.campos.copy();
-    		this.campos.x -= mousedeltax*movementstep*this.camdirs[1].dx;
-    		this.campos.y -= mousedeltax*movementstep*this.camdirs[1].dy;
-    		this.campos.z -= mousedeltax*movementstep*this.camdirs[1].dz;
-    		this.campos.x -= mousedeltay*movementstep*this.camdirs[2].dx;
-    		this.campos.y -= mousedeltay*movementstep*this.camdirs[2].dy;
-    		this.campos.z -= mousedeltay*movementstep*this.camdirs[2].dz;
+        	this.editpos = this.editpos.copy();
+    		this.editpos.x -= mousedeltax*movementstep*this.camdirs[1].dx;
+    		this.editpos.y -= mousedeltax*movementstep*this.camdirs[1].dy;
+    		this.editpos.z -= mousedeltax*movementstep*this.camdirs[1].dz;
+    		this.editpos.x -= mousedeltay*movementstep*this.camdirs[2].dx;
+    		this.editpos.y -= mousedeltay*movementstep*this.camdirs[2].dy;
+    		this.editpos.z -= mousedeltay*movementstep*this.camdirs[2].dz;
     	}
 	    int onmask2ctrldown = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    int offmask2ctrldown = MouseEvent.ALT_DOWN_MASK;
@@ -734,10 +743,10 @@ public class CADApp extends AppHandlerPanel {
 		if (this.snaplinemode) {
 			movementstep *= this.gridstep;
 		}
-		this.campos = this.campos.copy();
-		this.campos.x -= movementstep*this.camdirs[0].dx;
-		this.campos.y -= movementstep*this.camdirs[0].dy;
-		this.campos.z -= movementstep*this.camdirs[0].dz;
+		this.editpos = this.editpos.copy();
+		this.editpos.x -= movementstep*this.camdirs[0].dx;
+		this.editpos.y -= movementstep*this.camdirs[0].dy;
+		this.editpos.z -= movementstep*this.camdirs[0].dz;
 	}
 	@Override public void mouseClicked(MouseEvent e) {}
 	@Override public void mouseEntered(MouseEvent e) {}
