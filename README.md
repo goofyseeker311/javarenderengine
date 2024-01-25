@@ -49,6 +49,7 @@ SHIFT-F3          -- load image file as pencil brush dialog
 CAD App Keys:
 ENTER             -- changes between polygon flat/textured/none fill modes (looping)
 WASD              -- camera location change up/left/down/right (minmax)
+C-SPACE           -- camera location change backward/forward (minmax)
 QE                -- camera tilt change left/right (looping)
 BACKSPACE         -- removes all vector lines
 DRAG-LMB          -- white/hsba-color drag pixel paint
