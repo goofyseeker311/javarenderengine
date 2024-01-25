@@ -279,7 +279,7 @@ public class ModelApp extends AppHandlerPanel {
 		public void run() {
 			if (!RenderViewUpdater.renderupdaterrunning) {
 				RenderViewUpdater.renderupdaterrunning = true;
-				ModelApp.this.renderview = ModelLib.renderProjectedTextureViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat);
+				ModelApp.this.renderview = ModelLib.renderProjectedTextureViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				RenderViewUpdater.renderupdaterrunning = false;
 			}
 		}
