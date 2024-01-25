@@ -74,9 +74,11 @@ public class ModelLib {
 
 	public static class RenderView {
 		public VolatileImage renderimage = null;
+		public double[][] sbuffer = null;
 		public double[][] zbuffer = null;
 		public Entity[][] ebuffer = null;
 		public Triangle[][] tbuffer = null;
+		public Coordinate[][] cbuffer = null;
 		public Triangle[] mouseovertriangle = null;
 		public Position[] mouseoververtex = null;
 		public Line[] mouseoverline = null;
@@ -863,7 +865,7 @@ public class ModelLib {
 		return k;
 	}
 
-	public static RenderView renderProjectedTextureViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot) {
+	public static RenderView renderProjectedTextureViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, int mouselocationx, int mouselocationy) {
 		RenderView renderview = new RenderView();
 		renderview= new RenderView();
 		renderview.pos = campos.copy();

@@ -201,17 +201,13 @@ public class CADApp extends AppHandlerPanel {
 		} else if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
 			this.snaplinemode = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_W) {
-			this.forwardkeydown = false;
+			this.upwardkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_S) {
-			this.backwardkeydown = false;
+			this.downwardkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_A) {
 			this.leftkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_D) {
 			this.rightkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_SPACE) {
-			this.upwardkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_C) {
-			this.downwardkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_Q) {
 			this.rollleftkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_E) {
@@ -310,17 +306,13 @@ public class CADApp extends AppHandlerPanel {
 		} else if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
 			this.snaplinemode = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_W) {
-			this.forwardkeydown = true;
+			this.upwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_S) {
-			this.backwardkeydown = true;
+			this.downwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_A) {
 			this.leftkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_D) {
 			this.rightkeydown = true;
-		} else if (e.getKeyCode()==KeyEvent.VK_SPACE) {
-			this.upwardkeydown = true;
-		} else if (e.getKeyCode()==KeyEvent.VK_C) {
-			this.downwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_Q) {
 			this.rollleftkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_E) {
@@ -811,7 +803,7 @@ public class CADApp extends AppHandlerPanel {
 			if (!SoftwareRenderViewUpdater.renderupdaterrunning) {
 				SoftwareRenderViewUpdater.renderupdaterrunning = true;
 				if (CADApp.this.polygonfillmode==3) {
-					CADApp.this.softwarerenderview = ModelLib.renderProjectedTextureViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat);
+					CADApp.this.softwarerenderview = ModelLib.renderProjectedTextureViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 				}
 				SoftwareRenderViewUpdater.renderupdaterrunning = false;
 			}
