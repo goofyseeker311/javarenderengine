@@ -43,6 +43,7 @@ public class ModelLib {
 		public Color facecolor = null;
 		public float transparency = 1.0f;
 		public Material() {}
+		public Material(Color facecolori, float transparencyi) {this.facecolor=facecolori;this.transparency=transparencyi;}
 		@Override public int compareTo(Material o) {
 			int k=-1;
 			if(this.facecolor.getRed()>o.facecolor.getRed()) {
@@ -865,7 +866,7 @@ public class ModelLib {
 		return k;
 	}
 
-	public static RenderView renderProjectedTextureViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, int mouselocationx, int mouselocationy) {
+	public static RenderView renderProjectedTextureViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, int mouselocationx, int mouselocationy) {
 		RenderView renderview = new RenderView();
 		renderview= new RenderView();
 		renderview.pos = campos.copy();
@@ -941,7 +942,10 @@ public class ModelLib {
 									float alphacolor = copymaterial.transparency;
 									if (tricolor==null) {tricolor = Color.WHITE;}
 									float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
-									Color trianglecolor = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
+									Color trianglecolor = new Color(tricolorcomp[0], tricolorcomp[1], tricolorcomp[2], alphacolor);
+									if (!unlit) {
+										trianglecolor = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
+									}
 									VolatileImage tritexture = copymaterial.fileimage;
 									BufferedImage tritextureimage = copymaterial.snapimage;
 									Position[] drawlinepoints = {drawline.pos1, drawline.pos2};
@@ -999,7 +1003,10 @@ public class ModelLib {
 													if ((lineuvx>=0)&&(lineuvx<tritexture.getWidth())&&(lineuvy>=0)&&(lineuvy<tritexture.getHeight())) {
 														Color texcolor = new Color(tritextureimage.getRGB(lineuvx, lineuvy));
 														float[] texcolorcomp = texcolor.getRGBComponents(new float[4]);
-														Color texcolorshade = new Color(texcolorcomp[0]*shadingmultiplier, texcolorcomp[1]*shadingmultiplier, texcolorcomp[2]*shadingmultiplier, alphacolor);
+														Color texcolorshade = new Color(texcolorcomp[0], texcolorcomp[1], texcolorcomp[2], alphacolor);
+														if (!unlit) {
+															texcolorshade = new Color(texcolorcomp[0]*shadingmultiplier, texcolorcomp[1]*shadingmultiplier, texcolorcomp[2]*shadingmultiplier, alphacolor);
+														}
 														g2.setColor(texcolorshade);
 														g2.drawLine(j, n, j, n);
 													}
@@ -1020,7 +1027,7 @@ public class ModelLib {
 		return renderview;
 	}
 
-	public static RenderView renderProjectedPolygonViewHardware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, int mouselocationx, int mouselocationy) {
+	public static RenderView renderProjectedPolygonViewHardware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, int mouselocationx, int mouselocationy) {
 		int vertexradius = 2;
 		RenderView renderview = new RenderView();
 		renderview = new RenderView();
@@ -1099,7 +1106,11 @@ public class ModelLib {
 							float alphacolor = copymaterial.transparency;
 							if (tricolor==null) {tricolor = Color.WHITE;}
 							float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
-							g2.setColor(new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor));
+							Color trianglecolor = new Color(tricolorcomp[0], tricolorcomp[1], tricolorcomp[2], alphacolor);
+							if (!unlit) {
+								trianglecolor = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
+							}
+							g2.setColor(trianglecolor);
 							if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)) {
 								Polygon trianglepolygon = new Polygon();
 								trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
