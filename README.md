@@ -54,7 +54,7 @@ QE                -- camera tilt change left/right (looping)
 BACKSPACE         -- removes all vector lines
 DRAG-LMB          -- white/hsba-color drag pixel paint
 DRAG-RMB          -- white/hsba-color drag triangle paint
-SHIFT-LMB         -- rgba-color picker at cursor
+SHIFT-LMB         -- material picker at cursor
 CTRL-DRAG-LMB     -- move line vertex
 ALT-DRAG-LMB      -- vector line drag draw
 ALT-RMB           -- remove line vertex
