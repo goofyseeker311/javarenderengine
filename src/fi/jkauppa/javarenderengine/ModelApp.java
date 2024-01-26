@@ -197,9 +197,6 @@ public class ModelApp extends AppHandlerPanel {
 							for (int n=0;(n<loadmodel.materials.length)&&(foundmat==null);n++) {
 								if (loadmodel.objects[j].faceindex[i].usemtl.equals(loadmodel.materials[n].materialname)) {
 									foundmat = loadmodel.materials[n];
-									if (foundmat.fileimage!=null) {
-										foundmat.snapimage = foundmat.fileimage.getSnapshot();
-									}
 								}
 							}
 							if (foundmat==null) {
