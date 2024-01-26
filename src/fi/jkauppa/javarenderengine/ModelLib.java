@@ -633,6 +633,8 @@ public class ModelLib {
 					if (model.materials[i].fileimage!=null) {
 						modelobjfile.write("map_Kd "+model.materials[i].filename);
 						modelobjfile.newLine();
+						File imagefile = new File(savemtlfile.getParent(), model.materials[i].filename);
+						ImageIO.write(model.materials[i].fileimage.getSnapshot(), "PNG", imagefile);
 					}
 					modelobjfile.newLine();
 				}
