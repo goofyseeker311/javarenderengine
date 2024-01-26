@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Transparency;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -41,6 +42,7 @@ public class CADApp extends AppHandlerPanel {
 	private boolean draglinemode = false;
 	private boolean snaplinemode = false;
 	private Material drawmat = new Material(Color.getHSBColor(0.0f, 0.0f, 1.0f),1.0f);
+	private int defaulttexturesize = 1024; 
 	private int polygonfillmode = 1;
 	private Position[] selecteddragvertex = null;
 	private Triangle[] mouseovertriangle = null;
@@ -484,9 +486,6 @@ public class CADApp extends AppHandlerPanel {
 								for (int n=0;(n<loadmodel.materials.length)&&(foundmat==null);n++) {
 									if (loadmodel.objects[j].faceindex[i].usemtl.equals(loadmodel.materials[n].materialname)) {
 										foundmat = loadmodel.materials[n];
-										if (foundmat.fileimage!=null) {
-											foundmat.snapimage = foundmat.fileimage.getSnapshot();
-										}
 									}
 								}
 								if (foundmat==null) {
@@ -635,14 +634,50 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask1down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1down | offmask1down)) == onmask1down);
     	if (mouse1down) {
+    		if (this.softwarerenderview!=null) {
+    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			Triangle mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			if (mousetriangle!=null) {
+	    				if (mousetriangle.mat.fileimage!=null) {
+		    				Coordinate mousetexcoord = this.softwarerenderview.cbuffer[this.mouselocationy][this.mouselocationx];
+		    				if (mousetexcoord!=null) {
+		    					int mousetexcoordx = (int)Math.floor(mousetexcoord.u);
+		    					int mousetexcoordy = (int)Math.floor(mousetexcoord.v);
+		    					mousetriangle.mat = mousetriangle.mat.copy();
+		    					Graphics2D tgfx = mousetriangle.mat.fileimage.createGraphics();
+		    					tgfx.setComposite(AlphaComposite.SrcOver);
+		    					tgfx.setColor(this.drawmat.facecolor);
+		    					tgfx.drawLine(mousetexcoordx, mousetexcoordy, mousetexcoordx, mousetexcoordy);
+		    					tgfx.dispose();
+		    				}
+	    				} else {
+	    					mousetriangle.pos1.tex = new Coordinate(0.0f,0.0f);
+	    					mousetriangle.pos2.tex = new Coordinate(1.0f,0.0f);
+	    					mousetriangle.pos3.tex = new Coordinate(0.0f,1.0f);
+	    					mousetriangle.mat.fileimage = gc.createCompatibleVolatileImage(defaulttexturesize, defaulttexturesize, Transparency.TRANSLUCENT);
+	    					Graphics2D tgfx = mousetriangle.mat.fileimage.createGraphics();
+	    					tgfx.setComposite(AlphaComposite.Src);
+	    					tgfx.setColor(mousetriangle.mat.facecolor);
+	    					tgfx.fillRect(0, 0, defaulttexturesize, defaulttexturesize);
+	    					tgfx.dispose();
+	    				}
+	    			}
+    			}
+    		}
     	}
 	    int onmask1shiftdown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    int offmask1shiftdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse1shiftdown = ((e.getModifiersEx() & (onmask1shiftdown | offmask1shiftdown)) == onmask1shiftdown);
 	    if (mouse1shiftdown) {
-    		if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-    			this.drawmat = this.mouseovertriangle[this.mouseovertriangle.length-1].mat;
-    		}
+			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    		if (this.softwarerenderview!=null) {
+	    			Color pickcolor = new Color(this.softwarerenderview.snapimage.getRGB(this.mouselocationx, this.mouselocationy));
+	    			this.drawmat = new Material(pickcolor,1.0f);
+	    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+					Color pickcolor = new Color(this.hardwarerenderview.snapimage.getRGB(this.mouselocationx, this.mouselocationy));
+					this.drawmat = new Material(pickcolor,1.0f);
+	    		}
+			}
 	    }
 	    int onmask1ctrldown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    int offmask1ctrldown = MouseEvent.ALT_DOWN_MASK;
@@ -710,13 +745,35 @@ public class CADApp extends AppHandlerPanel {
         	updateCameraDirections();
     	}
 	    int onmask3down = MouseEvent.BUTTON3_DOWN_MASK;
-	    int offmask3down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    int offmask3down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mouse3down = ((e.getModifiersEx() & (onmask3down | offmask3down)) == onmask3down);
     	if (mouse3down) {
-    		if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+    		if (this.softwarerenderview!=null) {
+    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			Triangle mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			if (mousetriangle!=null) {
+	    				mousetriangle.mat = this.drawmat;
+	    			}
+    			}
+    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
 				this.mouseovertriangle[this.mouseovertriangle.length-1].mat = this.drawmat;
     		}
     	}
+	    int onmask3shiftdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
+	    int offmask3shiftdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    boolean mouse3shiftdown = ((e.getModifiersEx() & (onmask3shiftdown | offmask3shiftdown)) == onmask3shiftdown);
+	    if (mouse3shiftdown) {
+    		if (this.softwarerenderview!=null) {
+    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			Triangle mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			if (mousetriangle!=null) {
+	    				this.drawmat = mousetriangle.mat;
+	    			}
+    			}
+    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+    			this.drawmat = this.mouseovertriangle[this.mouseovertriangle.length-1].mat;
+    		}
+	    }
 	    int onmask3altdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    int offmask3altdown = MouseEvent.CTRL_DOWN_MASK;
 	    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3altdown | offmask3altdown)) == onmask3altdown);
@@ -806,6 +863,7 @@ public class CADApp extends AppHandlerPanel {
 				SoftwareRenderViewUpdater.renderupdaterrunning = true;
 				if (CADApp.this.polygonfillmode==3) {
 					CADApp.this.softwarerenderview = ModelLib.renderProjectedTextureViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, true, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.mouseovertriangle = CADApp.this.softwarerenderview.mouseovertriangle;
 				}
 				SoftwareRenderViewUpdater.renderupdaterrunning = false;
 			}

@@ -36,10 +36,10 @@ public class ModelLib {
 	private static GraphicsConfiguration gc = gd.getDefaultConfiguration ();
 
 	public static class Material implements Comparable<Material> {
-		public String materialname;
-		public VolatileImage fileimage;
-		public BufferedImage snapimage;
-		public String filename;
+		public String materialname = null;
+		public VolatileImage fileimage = null;
+		public BufferedImage snapimage = null;
+		public String filename = null;
 		public Color facecolor = null;
 		public float transparency = 1.0f;
 		public Material() {}
@@ -71,10 +71,19 @@ public class ModelLib {
 			}
 			return k;
 		}
+		public Material copy(){
+			Material k=new Material(this.facecolor,this.transparency);
+			k.fileimage = gc.createCompatibleVolatileImage(this.fileimage.getWidth(),this.fileimage.getHeight(),Transparency.TRANSLUCENT);
+			Graphics2D cgfx=k.fileimage.createGraphics();
+			cgfx.drawImage(this.fileimage, 0, 0, null);
+			cgfx.dispose();
+			return k;
+		}
 	}
 
 	public static class RenderView {
 		public VolatileImage renderimage = null;
+		public BufferedImage snapimage = null;
 		public double[][] sbuffer = null;
 		public double[][] zbuffer = null;
 		public Entity[][] ebuffer = null;
@@ -878,6 +887,8 @@ public class ModelLib {
 		renderview.dirs = MathLib.projectedCameraDirections(renderview.rot);
 		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
 		renderview.zbuffer = new double[renderheight][renderwidth];
+		renderview.tbuffer = new Triangle[renderheight][renderwidth];
+		renderview.cbuffer = new Coordinate[renderheight][renderwidth];
 		for (int i=0;i<renderview.zbuffer.length;i++) {Arrays.fill(renderview.zbuffer[i],Double.POSITIVE_INFINITY);}
 		Graphics2D g2 = renderview.renderimage.createGraphics();
 		g2.setComposite(AlphaComposite.Src);
@@ -886,6 +897,7 @@ public class ModelLib {
 		g2.setClip(null);
 		g2.fillRect(0, 0, renderwidth, renderheight);
 		g2.setComposite(AlphaComposite.SrcOver);
+		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
 		if (entitylist!=null) {
 			Plane[] verticalplanes = MathLib.projectedPlanes(renderview.pos, renderwidth, hfov, renderview.rot);
 			double[] verticalangles = MathLib.projectedAngles(renderheight, vfov);
@@ -948,6 +960,10 @@ public class ModelLib {
 									}
 									VolatileImage tritexture = copymaterial.fileimage;
 									BufferedImage tritextureimage = copymaterial.snapimage;
+									if ((tritexture!=null)&&(tritextureimage==null)) {
+										copymaterial.snapimage = copymaterial.fileimage.getSnapshot();
+										tritextureimage = copymaterial.snapimage;
+									}
 									Position[] drawlinepoints = {drawline.pos1, drawline.pos2};
 									double[][] fwdintpointsdist = MathLib.planePointDistance(drawlinepoints, camfwdplane);
 									double[][] upintpointsdist = MathLib.planePointDistance(drawlinepoints, camupplane);
@@ -991,16 +1007,22 @@ public class ModelLib {
 											double drawdistance = Math.abs(linepointdirlen[0]);
 											if (drawdistance<renderview.zbuffer[n][j]) {
 												renderview.zbuffer[n][j] = drawdistance;
+												if ((mouselocationx==j)&&(mouselocationy==n)) {
+													mouseoverhittriangle.add(copytriangle[0]);
+												}
+												renderview.tbuffer[n][j] = copytriangle[0];
 												Coordinate tex1 = vpixelpoints[0].tex;
 												Coordinate tex2 = vpixelpoints[1].tex;
 												if (tritexture!=null) {
 													Position[] lineuvpoint1 = {new Position(tex1.u*(tritexture.getWidth()-1),(1.0f-tex1.v)*(tritexture.getHeight()-1),0.0f)};
 													Position[] lineuvpoint2 = {new Position(tex2.u*(tritexture.getWidth()-1),(1.0f-tex2.v)*(tritexture.getHeight()-1),0.0f)};
 													Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
-													Position[] lineuv = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
-													int lineuvx = (int)Math.round(lineuv[0].x);
-													int lineuvy = (int)Math.round(lineuv[0].y);
+													Position[] lineuvpos = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
+													int lineuvx = (int)Math.round(lineuvpos[0].x);
+													int lineuvy = (int)Math.round(lineuvpos[0].y);
 													if ((lineuvx>=0)&&(lineuvx<tritexture.getWidth())&&(lineuvy>=0)&&(lineuvy<tritexture.getHeight())) {
+														Coordinate lineuv = new Coordinate(lineuvx,lineuvy); 
+														renderview.cbuffer[n][j] = lineuv;
 														Color texcolor = new Color(tritextureimage.getRGB(lineuvx, lineuvy));
 														float[] texcolorcomp = texcolor.getRGBComponents(new float[4]);
 														Color texcolorshade = new Color(texcolorcomp[0], texcolorcomp[1], texcolorcomp[2], alphacolor);
@@ -1024,6 +1046,8 @@ public class ModelLib {
 				}
 			}
 		}
+		renderview.mouseovertriangle = mouseoverhittriangle.toArray(new Triangle[mouseoverhittriangle.size()]);
+		renderview.snapimage = renderview.renderimage.getSnapshot();
 		return renderview;
 	}
 
@@ -1051,23 +1075,22 @@ public class ModelLib {
 		g2.fillRect(0, 0, renderwidth, renderheight);
 		g2.setComposite(AlphaComposite.SrcOver);
 		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
-		Entity[] entitylistmaphandle = entitylist;
 		g2.setComposite(AlphaComposite.Src);
 		g2.setColor(Color.BLACK);
 		g2.setPaint(null);
 		g2.fillRect(0, 0, renderwidth, renderheight);
 		g2.setComposite(AlphaComposite.SrcOver);
-		if (entitylistmaphandle!=null) {
-			Sphere[] entityspherelist = new Sphere[entitylistmaphandle.length]; 
-			for (int k=0;k<entitylistmaphandle.length;k++) {
-				entityspherelist[k] = entitylistmaphandle[k].sphereboundaryvolume;
+		if (entitylist!=null) {
+			Sphere[] entityspherelist = new Sphere[entitylist.length]; 
+			for (int k=0;k<entitylist.length;k++) {
+				entityspherelist[k] = entitylist[k].sphereboundaryvolume;
 				entityspherelist[k].ind = k;
 			}
 			TreeSet<Sphere> sortedentityspheretree = new TreeSet<Sphere>(new SphereDistanceComparator(renderview.pos));
 			sortedentityspheretree.addAll(Arrays.asList(entityspherelist));
 			Sphere[] sortedentityspherelist = sortedentityspheretree.toArray(new Sphere[sortedentityspheretree.size()]);
 			for (int k=0;k<sortedentityspherelist.length;k++) {
-				Triangle[] entitytrianglelist = entitylistmaphandle[sortedentityspherelist[k].ind].trianglelist;
+				Triangle[] entitytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
 				if (entitytrianglelist!=null) {
 					if (entitytrianglelist.length>0) {
 						Triangle[] copytrianglelist = MathLib.subDivideTriangle(entitytrianglelist);
@@ -1129,6 +1152,7 @@ public class ModelLib {
 			}
 		}
 		renderview.mouseovertriangle = mouseoverhittriangle.toArray(new Triangle[mouseoverhittriangle.size()]);
+		renderview.snapimage = renderview.renderimage.getSnapshot();
 		return renderview;
 	}
 	
@@ -1237,6 +1261,7 @@ public class ModelLib {
 		}
 		renderview.mouseoververtex = mouseoverhitvertex.toArray(new Position[mouseoverhitvertex.size()]);
 		renderview.mouseoverline = mouseoverhitline.toArray(new Line[mouseoverhitline.size()]);
+		renderview.snapimage = renderview.renderimage.getSnapshot();
 		return renderview;
 	}
 }
