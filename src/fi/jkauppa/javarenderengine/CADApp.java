@@ -363,8 +363,10 @@ public class CADApp extends AppHandlerPanel {
 					Model savemodel = new Model(savefile.getPath());
 					String saveobjfile = savefile.getPath();
 					String savemtlfile = savefile.getName();
+					String saveimgfile = savefile.getName();
 					if (savemtlfile.toLowerCase().endsWith(".obj")) {
 						savemtlfile = savemtlfile.substring(0, savemtlfile.length()-4).concat(".mtl");
+						saveimgfile = savemtlfile.substring(0, savemtlfile.length()-4);
 					} else {
 						saveobjfile = saveobjfile.concat(".obj");
 						savemtlfile = savemtlfile.concat(".mtl");
@@ -373,8 +375,10 @@ public class CADApp extends AppHandlerPanel {
 					TreeSet<Material> materiallistarray = new TreeSet<Material>();
 					TreeSet<Position> vertexlistarray = new TreeSet<Position>();
 					TreeSet<Direction> normallistarray = new TreeSet<Direction>();
+					TreeSet<Coordinate> texcoordlistarray = new TreeSet<Coordinate>();
 					savemodel.objects = new ModelObject[this.entitylist.length];
 					normallistarray.add(new Direction(0, 0, 0));
+					texcoordlistarray.add(new Coordinate(0.0f,0.0f));
 					for (int j=0;j<this.entitylist.length;j++) {
 						savemodel.objects[j] = new ModelObject("JREOBJ"+(j+1));
 						Triangle[] copytrianglelist = this.entitylist[j].trianglelist;
@@ -387,24 +391,29 @@ public class CADApp extends AppHandlerPanel {
 							vertexlistarray.add(copytrianglelist[i].pos2);
 							vertexlistarray.add(copytrianglelist[i].pos3);
 							normallistarray.add(copytrianglelist[i].norm);
+							texcoordlistarray.add(copytrianglelist[i].pos1.tex);
+							texcoordlistarray.add(copytrianglelist[i].pos2.tex);
+							texcoordlistarray.add(copytrianglelist[i].pos3.tex);
 						}
 					}
 					savemodel.materials = materiallistarray.toArray(new Material[materiallistarray.size()]);
 					savemodel.vertexlist = vertexlistarray.toArray(new Position[vertexlistarray.size()]);
 					savemodel.facenormals = normallistarray.toArray(new Direction[normallistarray.size()]);
-					savemodel.texturecoords = new Coordinate[1];
-					savemodel.texturecoords[0] = new Coordinate(0, 0);
+					savemodel.texturecoords = texcoordlistarray.toArray(new Coordinate[texcoordlistarray.size()]);
+					int imagenum = 0;
 					for (int i=0;i<savemodel.materials.length;i++) {
+						imagenum += 1;
 						savemodel.materials[i].materialname = "JREMAT"+(i+1);
+						savemodel.materials[i].filename = saveimgfile+"_"+imagenum+".png";
 					}
 					for (int j=0;j<this.entitylist.length;j++) {
 						Triangle[] copytrianglelist = this.entitylist[j].trianglelist;
 						for (int i=0;i<copytrianglelist.length;i++) {
 							ModelFaceVertexIndex[] trianglevertex = new ModelFaceVertexIndex[3];
 							int trianglefacenormalind = Arrays.binarySearch(savemodel.facenormals, copytrianglelist[i].norm)+1;
-							trianglevertex[0] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos1)+1,1,trianglefacenormalind);
-							trianglevertex[1] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos2)+1,1,trianglefacenormalind);
-							trianglevertex[2] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist, copytrianglelist[i].pos3)+1,1,trianglefacenormalind);
+							trianglevertex[0] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist,copytrianglelist[i].pos1)+1,Arrays.binarySearch(savemodel.texturecoords,copytrianglelist[i].pos1.tex)+1,trianglefacenormalind);
+							trianglevertex[1] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist,copytrianglelist[i].pos2)+1,Arrays.binarySearch(savemodel.texturecoords,copytrianglelist[i].pos2.tex)+1,trianglefacenormalind);
+							trianglevertex[2] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist,copytrianglelist[i].pos3)+1,Arrays.binarySearch(savemodel.texturecoords,copytrianglelist[i].pos3.tex)+1,trianglefacenormalind);
 							Material copymaterial = copytrianglelist[i].mat;
 							int searchmatindex = Arrays.binarySearch(savemodel.materials, copymaterial);
 							ModelFaceIndex[] objectfaceindex = savemodel.objects[j].faceindex;
