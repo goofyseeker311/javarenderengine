@@ -40,9 +40,7 @@ public class CADApp extends AppHandlerPanel {
 	private static final long serialVersionUID = 1L;
 	private boolean draglinemode = false;
 	private boolean snaplinemode = false;
-	private Color drawcolor = Color.WHITE;
-	private float[] drawcolorhsb = {0.0f, 1.0f, 1.0f};
-	private float penciltransparency = 1.0f;
+	private Material drawmat = new Material(Color.getHSBColor(0.0f, 0.0f, 1.0f),1.0f);
 	private int polygonfillmode = 1;
 	private Position[] selecteddragvertex = null;
 	private Triangle[] mouseovertriangle = null;
@@ -54,10 +52,10 @@ public class CADApp extends AppHandlerPanel {
 	private double editplanedistance = 1371.023f;
 	private Position drawstartpos = new Position(0,0,0);
 	private Position editpos = new Position(0.0f,0.0f,0.0f);
-	private Position campos = new Position(0.0f,-this.editplanedistance,0.0f);
-	private Rotation camrot = new Rotation(90.0f, 0.0f, 0.0f);
-	private Matrix cameramat = MathLib.rotationMatrix(90.0f, 0.0f, 0.0f);
-	private final Direction[] lookdirs = MathLib.projectedCameraDirections(MathLib.rotationMatrix(0.0f, 0.0f, 0.0f));
+	private Position campos = new Position(0.0f,0.0f,this.editplanedistance);
+	private Rotation camrot = new Rotation(0.0f, 0.0f, 0.0f);
+	private Matrix cameramat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
+	private final Direction[] lookdirs = MathLib.projectedCameraDirections(cameramat);
 	private Direction[] camdirs = lookdirs;
 	private double hfov = 70.0f;
 	private double vfov = 43.0f;
@@ -227,54 +225,60 @@ public class CADApp extends AppHandlerPanel {
 			this.linelisttree.clear();
 			this.entitylist = null;
 			this.editpos = new Position(0.0f, 0.0f, 0.0f);
-			this.campos = new Position(0.0f,-this.editplanedistance,0.0f);
-			this.camrot = new Rotation(90.0f, 0.0f, 0.0f);
+			this.campos = new Position(0.0f,0.0f,this.editplanedistance);
+			this.camrot = new Rotation(0.0f, 0.0f, 0.0f);
 		} else if (e.getKeyCode()==KeyEvent.VK_INSERT) {
-			this.drawcolorhsb[0] += 0.01f;
-			if (this.drawcolorhsb[0]>1.0f) {this.drawcolorhsb[0] = 0.0f;}
-			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
+			drawcolorhsb[0] += 0.01f; if (drawcolorhsb[0]>1.0f) {drawcolorhsb[0] = 0.0f;}
+			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
-			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
+			this.drawmat = new Material(newfacecolor,this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_DELETE) {
-			this.drawcolorhsb[0] -= 0.01f;
-			if (this.drawcolorhsb[0]<0.0f) {this.drawcolorhsb[0] = 1.0f;}
-			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
+			drawcolorhsb[0] -= 0.01f; if (drawcolorhsb[0]<0.0f) {drawcolorhsb[0] = 1.0f;}
+			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
-			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
+			this.drawmat = new Material(newfacecolor,this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_HOME) {
-			this.drawcolorhsb[1] += 0.01f;
-			if (this.drawcolorhsb[1]>1.0f) {this.drawcolorhsb[1] = 1.0f;}
-			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
+			drawcolorhsb[1] += 0.01f; if (drawcolorhsb[1]>1.0f) {drawcolorhsb[1] = 1.0f;}
+			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
-			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
+			this.drawmat = new Material(newfacecolor,this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_END) {
-			this.drawcolorhsb[1] -= 0.01f;
-			if (this.drawcolorhsb[1]<0.0f) {this.drawcolorhsb[1] = 0.0f;}
-			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
+			drawcolorhsb[1] -= 0.01f; if (drawcolorhsb[1]<0.0f) {drawcolorhsb[1] = 0.0f;}
+			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
-			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
+			this.drawmat = new Material(newfacecolor,this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_UP) {
-			this.drawcolorhsb[2] += 0.01f;
-			if (this.drawcolorhsb[2]>1.0f) {this.drawcolorhsb[2] = 1.0f;}
-			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
+			drawcolorhsb[2] += 0.01f; if (drawcolorhsb[2]>1.0f) {drawcolorhsb[2] = 1.0f;}
+			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
-			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
+			this.drawmat = new Material(newfacecolor,this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_DOWN) {
-			this.drawcolorhsb[2] -= 0.01f;
-			if (this.drawcolorhsb[2]<0.0f) {this.drawcolorhsb[2] = 0.0f;}
-			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
+			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
+			drawcolorhsb[2] -= 0.01f; if (drawcolorhsb[2]<0.0f) {drawcolorhsb[2] = 0.0f;}
+			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
-			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
+			this.drawmat = new Material(newfacecolor,this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD9) {
-			this.penciltransparency += 0.01f;
-			if (this.penciltransparency>1.0f) {this.penciltransparency = 1.0f;}
-			float[] colorvalues = this.drawcolor.getRGBColorComponents(new float[3]);
-			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+			float newtransparency = this.drawmat.transparency+0.01f; if (newtransparency>1.0f) {newtransparency = 1.0f;}
+			float[] colorvalues = this.drawmat.facecolor.getRGBColorComponents(new float[3]);
+			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
+			this.drawmat = new Material(newfacecolor,newtransparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD8) {
-			this.penciltransparency -= 0.01f;
-			if (this.penciltransparency<0.0f) {this.penciltransparency = 0.0f;}
-			float[] colorvalues = this.drawcolor.getRGBColorComponents(new float[3]);
-			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+			float newtransparency = this.drawmat.transparency-0.01f; if (newtransparency<0.0f) {newtransparency = 0.0f;}
+			float[] colorvalues = this.drawmat.facecolor.getRGBColorComponents(new float[3]);
+			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
+			this.drawmat = new Material(newfacecolor,newtransparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD7) {
 			if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
 				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
@@ -374,7 +378,9 @@ public class CADApp extends AppHandlerPanel {
 						Triangle[] copytrianglelist = this.entitylist[j].trianglelist;
 					    vertexlistarray.addAll(Arrays.asList(this.entitylist[j].vertexlist));
 						for (int i=0;i<copytrianglelist.length;i++) {
-							materiallistarray.add(copytrianglelist[i].mat);
+							Material newmat = copytrianglelist[i].mat;
+							if (newmat.facecolor==null) {newmat.facecolor = Color.WHITE;}
+							materiallistarray.add(newmat);
 							vertexlistarray.add(copytrianglelist[i].pos1);
 							vertexlistarray.add(copytrianglelist[i].pos2);
 							vertexlistarray.add(copytrianglelist[i].pos3);
@@ -442,9 +448,7 @@ public class CADApp extends AppHandlerPanel {
 					newentitylist[0].trianglelist = ModelLib.loadSTLFile(loadfile.getPath(), false);
 					for (int i=0;i<newentitylist[0].trianglelist.length;i++) {
 						if (newentitylist[0].trianglelist[i].mat==null) {
-							Material newmat = new Material();
-							newmat.facecolor = Color.WHITE;
-							newentitylist[0].trianglelist[i].mat = newmat;
+							newentitylist[0].trianglelist[i].mat = new Material(Color.WHITE,1.0f);
 						}
 					}
 					this.linelisttree.addAll(Arrays.asList(MathLib.generateLineList(newentitylist[0].trianglelist)));
@@ -486,8 +490,7 @@ public class CADApp extends AppHandlerPanel {
 									}
 								}
 								if (foundmat==null) {
-									foundmat = new Material();
-									foundmat.facecolor = Color.WHITE;
+									foundmat = new Material(Color.WHITE,1.0f);
 								}
 								Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
 								Position pos2 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
@@ -638,12 +641,7 @@ public class CADApp extends AppHandlerPanel {
 	    boolean mouse1shiftdown = ((e.getModifiersEx() & (onmask1shiftdown | offmask1shiftdown)) == onmask1shiftdown);
 	    if (mouse1shiftdown) {
     		if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-    			this.penciltransparency = this.mouseovertriangle[this.mouseovertriangle.length-1].mat.transparency;
-    			int colorvalue = this.mouseovertriangle[this.mouseovertriangle.length-1].mat.facecolor.getRGB();
-				Color pickeddrawcolor = new Color(colorvalue);
-				this.drawcolorhsb = Color.RGBtoHSB(pickeddrawcolor.getRed(), pickeddrawcolor.getGreen(), pickeddrawcolor.getBlue(), new float[3]);
-				float[] colorvalues = pickeddrawcolor.getRGBColorComponents(new float[3]);
-				this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+    			this.drawmat = this.mouseovertriangle[this.mouseovertriangle.length-1].mat;
     		}
 	    }
 	    int onmask1ctrldown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
@@ -716,10 +714,7 @@ public class CADApp extends AppHandlerPanel {
 	    boolean mouse3down = ((e.getModifiersEx() & (onmask3down | offmask3down)) == onmask3down);
     	if (mouse3down) {
     		if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-				Material newmaterial = new Material();
-				newmaterial.facecolor = this.drawcolor;
-				newmaterial.transparency = this.penciltransparency;
-				this.mouseovertriangle[this.mouseovertriangle.length-1].mat = newmaterial;
+				this.mouseovertriangle[this.mouseovertriangle.length-1].mat = this.drawmat;
     		}
     	}
 	    int onmask3altdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
@@ -768,9 +763,7 @@ public class CADApp extends AppHandlerPanel {
 				}
 				Line[] copylinelist = CADApp.this.linelisttree.toArray(new Line[CADApp.this.linelisttree.size()]);
 				Entity[] newentitylist = MathLib.generateEntityList(copylinelist);
-				Material newmat = new Material();
-				newmat.facecolor = CADApp.this.drawcolor;
-				newmat.transparency = CADApp.this.penciltransparency;
+				Material newmat = CADApp.this.drawmat;
 				for (int j=0;j<newentitylist.length;j++) {
 					for (int i=0;i<newentitylist[j].trianglelist.length;i++) {
 						newentitylist[j].trianglelist[i].mat = newmat;
@@ -798,7 +791,7 @@ public class CADApp extends AppHandlerPanel {
 					CADApp.this.mouseoverline = CADApp.this.hardwarerenderview.mouseoverline;
 					CADApp.this.mouseoververtex = CADApp.this.hardwarerenderview.mouseoververtex;
 				} else if (CADApp.this.polygonfillmode==2) { 
-					CADApp.this.hardwarerenderview = ModelLib.renderProjectedPolygonViewHardware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.hardwarerenderview = ModelLib.renderProjectedPolygonViewHardware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, true, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseovertriangle = CADApp.this.hardwarerenderview.mouseovertriangle;
 				}
 				HardwareRenderViewUpdater.renderupdaterrunning = false;
@@ -812,7 +805,7 @@ public class CADApp extends AppHandlerPanel {
 			if (!SoftwareRenderViewUpdater.renderupdaterrunning) {
 				SoftwareRenderViewUpdater.renderupdaterrunning = true;
 				if (CADApp.this.polygonfillmode==3) {
-					CADApp.this.softwarerenderview = ModelLib.renderProjectedTextureViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.softwarerenderview = ModelLib.renderProjectedTextureViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, true, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 				}
 				SoftwareRenderViewUpdater.renderupdaterrunning = false;
 			}
