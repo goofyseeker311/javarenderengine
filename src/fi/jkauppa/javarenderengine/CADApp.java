@@ -824,6 +824,9 @@ public class CADApp extends AppHandlerPanel {
 				for (int j=0;j<newentitylist.length;j++) {
 					for (int i=0;i<newentitylist[j].trianglelist.length;i++) {
 						newentitylist[j].trianglelist[i].mat = newmat;
+						newentitylist[j].trianglelist[i].pos1.tex = new Coordinate(0.0f,0.0f);
+						newentitylist[j].trianglelist[i].pos2.tex = new Coordinate(1.0f,0.0f);
+						newentitylist[j].trianglelist[i].pos3.tex = new Coordinate(0.0f,1.0f);
 						newentitylist[j].trianglelist[i].norm = new Direction(0.0f,0.0f,0.0f);
 						int searchindex = entitylisttrianglearray.indexOf(newentitylist[j].trianglelist[i]);
 						if (searchindex>=0) {
