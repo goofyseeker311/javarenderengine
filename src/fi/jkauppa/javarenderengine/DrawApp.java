@@ -354,12 +354,6 @@ public class DrawApp extends AppHandlerPanel {
 		    int offmask2 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 		    boolean mouse2down = ((e.getModifiersEx() & (onmask2 | offmask2)) == onmask2);
 		    if (mouse2down) {
-		    	//TODO <tbd>
-		    }
-		    int onmask2a = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
-		    int offmask2a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-		    boolean mouse2shiftdown = ((e.getModifiersEx() & (onmask2a | offmask2a)) == onmask2a);
-		    if (mouse2shiftdown) {
 		    	Graphics2D dragimagegfx = this.dragbuffer.createGraphics();
 		    	dragimagegfx.setComposite(AlphaComposite.Clear);
 		    	dragimagegfx.fillRect(0, 0, this.renderbuffer.getWidth(), this.renderbuffer.getHeight());
@@ -371,6 +365,12 @@ public class DrawApp extends AppHandlerPanel {
 		    	renderbuffergfx.setComposite(AlphaComposite.Src);
 		    	renderbuffergfx.drawImage(dragbuffer, 0, 0, null);
 		    	this.renderbuffer.contentsLost();
+		    }
+		    int onmask2a = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
+		    int offmask2a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+		    boolean mouse2shiftdown = ((e.getModifiersEx() & (onmask2a | offmask2a)) == onmask2a);
+		    if (mouse2shiftdown) {
+		    	//TODO <tbd>
 		    }
 	    	renderbuffergfx.dispose();
 		}

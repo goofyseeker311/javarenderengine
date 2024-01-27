@@ -9,6 +9,8 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +26,11 @@ import fi.jkauppa.javarenderengine.ModelLib.Entity;
 import fi.jkauppa.javarenderengine.ModelLib.Line;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
 import fi.jkauppa.javarenderengine.ModelLib.Matrix;
+import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.BMPFileFilter;
+import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.GIFFileFilter;
+import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.JPGFileFilter;
+import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.PNGFileFilter;
+import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.WBMPFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.STLFileFilter;
 import fi.jkauppa.javarenderengine.ModelLib.Position;
@@ -80,12 +87,24 @@ public class CADApp extends AppHandlerPanel {
 	private boolean yawrightkeydown = false;
 	private RenderView hardwarerenderview = null;
 	private RenderView softwarerenderview = null;
+	private JFileChooser imagechooser = new JFileChooser();
+	private PNGFileFilter pngfilefilter = new PNGFileFilter();
+	private JPGFileFilter jpgfilefilter = new JPGFileFilter();
+	private GIFFileFilter giffilefilter = new GIFFileFilter();
+	private BMPFileFilter bmpfilefilter = new BMPFileFilter();
+	private WBMPFileFilter wbmpfilefilter = new WBMPFileFilter();
 	
 	public CADApp() {
 		this.filechooser.addChoosableFileFilter(this.objfilefilter);
 		this.filechooser.addChoosableFileFilter(this.stlfilefilter);
 		this.filechooser.setFileFilter(this.objfilefilter);
 		this.filechooser.setAcceptAllFileFilterUsed(false);
+		this.imagechooser.addChoosableFileFilter(this.pngfilefilter);
+		this.imagechooser.addChoosableFileFilter(this.jpgfilefilter);
+		this.imagechooser.addChoosableFileFilter(this.giffilefilter);
+		this.imagechooser.addChoosableFileFilter(this.bmpfilefilter);
+		this.imagechooser.addChoosableFileFilter(this.wbmpfilefilter);
+		this.imagechooser.setFileFilter(this.pngfilefilter);
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 	}
 	@Override public void paintComponent(Graphics g) {
@@ -400,9 +419,11 @@ public class CADApp extends AppHandlerPanel {
 					savemodel.texturecoords = texcoordlistarray.toArray(new Coordinate[texcoordlistarray.size()]);
 					int imagenum = 0;
 					for (int i=0;i<savemodel.materials.length;i++) {
-						imagenum += 1;
 						savemodel.materials[i].materialname = "JREMAT"+(i+1);
-						savemodel.materials[i].filename = saveimgfile+"_"+imagenum+".png";
+						if (savemodel.materials[i].fileimage!=null) {
+							imagenum += 1;
+							savemodel.materials[i].filename = saveimgfile+"_"+imagenum+".png";
+						}
 					}
 					for (int j=0;j<this.entitylist.length;j++) {
 						Triangle[] copytrianglelist = this.entitylist[j].trianglelist;
@@ -450,7 +471,19 @@ public class CADApp extends AppHandlerPanel {
 		    int onmaskf3shiftdown = KeyEvent.SHIFT_DOWN_MASK;
 		    int offmaskf3shiftdown = KeyEvent.CTRL_DOWN_MASK|KeyEvent.ALT_DOWN_MASK;
 		    boolean f3shiftdown = (e.getModifiersEx() & (onmaskf3shiftdown | offmaskf3shiftdown)) == onmaskf3shiftdown;
+		    int onmaskf3ctrldown = KeyEvent.CTRL_DOWN_MASK;
+		    int offmaskf3ctrldown = KeyEvent.SHIFT_DOWN_MASK|KeyEvent.ALT_DOWN_MASK;
+		    boolean f3ctrldown = (e.getModifiersEx() & (onmaskf3ctrldown | offmaskf3ctrldown)) == onmaskf3ctrldown;
 		    if (f3shiftdown) {
+				this.imagechooser.setDialogTitle("Load File");
+				this.imagechooser.setApproveButtonText("Load");
+				if (this.imagechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
+					File loadfile = this.imagechooser.getSelectedFile();
+					Material newmat = new Material(Color.WHITE,1.0f);
+					newmat.fileimage = UtilLib.loadImage(loadfile.getPath(), false);
+					this.drawmat = newmat;
+				}
+		    } else if (f3ctrldown) {
 		    	//TODO load insert object
 		    } else {
 				this.filechooser.setDialogTitle("Load File");
@@ -648,31 +681,33 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask1down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1down | offmask1down)) == onmask1down);
     	if (mouse1down) {
+	    	Triangle mousetriangle = null;
     		if (this.softwarerenderview!=null) {
     			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			Triangle mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
-	    			if (mousetriangle!=null) {
-	    				mousetriangle.mat = this.drawmat;
-	    			}
+	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
     			}
     		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-				this.mouseovertriangle[this.mouseovertriangle.length-1].mat = this.drawmat;
+    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
     		}
+			if (mousetriangle!=null) {
+				mousetriangle.mat = this.drawmat;
+			}
     	}
 	    int onmask1shiftdown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    int offmask1shiftdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse1shiftdown = ((e.getModifiersEx() & (onmask1shiftdown | offmask1shiftdown)) == onmask1shiftdown);
 	    if (mouse1shiftdown) {
+	    	Triangle mousetriangle = null;
     		if (this.softwarerenderview!=null) {
     			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			Triangle mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
-	    			if (mousetriangle!=null) {
-	    				this.drawmat = mousetriangle.mat;
-	    			}
+	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
     			}
     		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-    			this.drawmat = this.mouseovertriangle[this.mouseovertriangle.length-1].mat;
+    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
     		}
+			if (mousetriangle!=null) {
+				this.drawmat = mousetriangle.mat;
+			}
 	    }
 	    int onmask1ctrldown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    int offmask1ctrldown = MouseEvent.ALT_DOWN_MASK;
@@ -719,7 +754,50 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask2down = MouseEvent.ALT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mouse2down = ((e.getModifiersEx() & (onmask2down | offmask2down)) == onmask2down);
     	if (mouse2down) {
-    		//TODO pan texture
+	    	Triangle mousetriangle = null;
+    		if (this.softwarerenderview!=null) {
+    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+    			}
+    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+    		}
+			if (mousetriangle!=null) {
+	        	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
+	        	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+	        	double texdeltau = mousedeltax*0.001f;
+	        	double texdeltav = mousedeltay*0.001f;
+	        	mousetriangle.pos1.tex = mousetriangle.pos1.tex.copy();
+	        	mousetriangle.pos2.tex = mousetriangle.pos2.tex.copy();
+	        	mousetriangle.pos3.tex = mousetriangle.pos3.tex.copy();
+	    		mousetriangle.pos1.tex.u -= texdeltau;
+	    		mousetriangle.pos1.tex.v += texdeltav;
+	    		mousetriangle.pos2.tex.u -= texdeltau;
+	    		mousetriangle.pos2.tex.v += texdeltav;
+	    		mousetriangle.pos3.tex.u -= texdeltau;
+	    		mousetriangle.pos3.tex.v += texdeltav;
+			}
+    	}
+	    int onmask2shiftdown = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
+	    int offmask2shiftdown = MouseEvent.ALT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+	    boolean mouse2shiftdown = ((e.getModifiersEx() & (onmask2shiftdown | offmask2shiftdown)) == onmask2shiftdown);
+    	if (mouse2shiftdown) {
+	    	Triangle mousetriangle = null;
+    		if (this.softwarerenderview!=null) {
+    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+    			}
+    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+    		}
+			if (mousetriangle!=null) {
+	        	mousetriangle.pos1.tex = mousetriangle.pos1.tex.copy();
+	        	mousetriangle.pos2.tex = mousetriangle.pos2.tex.copy();
+	        	mousetriangle.pos3.tex = mousetriangle.pos3.tex.copy();
+	    		mousetriangle.pos1.tex.u = -mousetriangle.pos1.tex.u;
+	    		mousetriangle.pos2.tex.u = -mousetriangle.pos2.tex.u;
+	    		mousetriangle.pos3.tex.u = -mousetriangle.pos3.tex.u;
+			}
     	}
 	    int onmask2ctrldown = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    int offmask2ctrldown = MouseEvent.ALT_DOWN_MASK;
@@ -784,19 +862,77 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mousewheeldown = ((e.getModifiersEx() & (onmask | offmask)) == onmask);
 	    if (mousewheeldown) {
-	    	//TBD zoom texture
+	    	Triangle mousetriangle = null;
+    		if (this.softwarerenderview!=null) {
+    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+    			}
+    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+    		}
+			if (mousetriangle!=null) {
+	        	mousetriangle.pos1.tex = mousetriangle.pos1.tex.copy();
+	        	mousetriangle.pos2.tex = mousetriangle.pos2.tex.copy();
+	        	mousetriangle.pos3.tex = mousetriangle.pos3.tex.copy();
+	    		mousetriangle.pos1.tex.u *= 1-(0.01f*e.getWheelRotation());
+	    		mousetriangle.pos1.tex.v *= 1-(0.01f*e.getWheelRotation());
+	    		mousetriangle.pos2.tex.u *= 1-(0.01f*e.getWheelRotation());
+	    		mousetriangle.pos2.tex.v *= 1-(0.01f*e.getWheelRotation());
+	    		mousetriangle.pos3.tex.u *= 1-(0.01f*e.getWheelRotation());
+	    		mousetriangle.pos3.tex.v *= 1-(0.01f*e.getWheelRotation());
+			}
 	    }
 	    int onmaskshiftdown = MouseEvent.SHIFT_DOWN_MASK;
 	    int offmaskshiftdown = MouseEvent.ALT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    boolean mousewheelshiftdown = ((e.getModifiersEx() & (onmaskshiftdown | offmaskshiftdown)) == onmaskshiftdown);
 	    if (mousewheelshiftdown) {
-	    	//TBD rotate texture
+	    	Triangle mousetriangle = null;
+    		if (this.softwarerenderview!=null) {
+    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+    			}
+    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+    		}
+			if (mousetriangle!=null) {
+	        	AffineTransform textr = new AffineTransform();
+	        	textr.rotate(0.01f*e.getWheelRotation());
+	        	Point2D pos1tex = new Point2D.Double(mousetriangle.pos1.tex.u,mousetriangle.pos1.tex.v); 
+	        	Point2D pos2tex = new Point2D.Double(mousetriangle.pos2.tex.u,mousetriangle.pos2.tex.v); 
+	        	Point2D pos3tex = new Point2D.Double(mousetriangle.pos3.tex.u,mousetriangle.pos3.tex.v); 
+	        	textr.transform(pos1tex, pos1tex);
+	        	textr.transform(pos2tex, pos2tex);
+	        	textr.transform(pos3tex, pos3tex);
+	        	mousetriangle.pos1.tex = new Coordinate(pos1tex.getX(),pos1tex.getY());
+	        	mousetriangle.pos2.tex = new Coordinate(pos2tex.getX(),pos2tex.getY());
+	        	mousetriangle.pos3.tex = new Coordinate(pos3tex.getX(),pos3tex.getY());
+			}
 	    }
 	    int onmaskaltdown = MouseEvent.ALT_DOWN_MASK;
 	    int offmaskaltdown = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    boolean mousewheelaltdown = ((e.getModifiersEx() & (onmaskaltdown | offmaskaltdown)) == onmaskaltdown);
 	    if (mousewheelaltdown) {
-	    	//TBD scale texture
+	    	Triangle mousetriangle = null;
+    		if (this.softwarerenderview!=null) {
+    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+    			}
+    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+    		}
+			if (mousetriangle!=null) {
+	        	AffineTransform textr = new AffineTransform();
+	        	textr.scale(1+0.01f*e.getWheelRotation(),1.0f);
+	        	Point2D pos1tex = new Point2D.Double(mousetriangle.pos1.tex.u,mousetriangle.pos1.tex.v); 
+	        	Point2D pos2tex = new Point2D.Double(mousetriangle.pos2.tex.u,mousetriangle.pos2.tex.v); 
+	        	Point2D pos3tex = new Point2D.Double(mousetriangle.pos3.tex.u,mousetriangle.pos3.tex.v); 
+	        	textr.transform(pos1tex, pos1tex);
+	        	textr.transform(pos2tex, pos2tex);
+	        	textr.transform(pos3tex, pos3tex);
+	        	mousetriangle.pos1.tex = new Coordinate(pos1tex.getX(),pos1tex.getY());
+	        	mousetriangle.pos2.tex = new Coordinate(pos2tex.getX(),pos2tex.getY());
+	        	mousetriangle.pos3.tex = new Coordinate(pos3tex.getX(),pos3tex.getY());
+			}
 	    }
 	    int onmaskctrldown = MouseEvent.CTRL_DOWN_MASK;
 	    int offmaskctrldown = 0;
