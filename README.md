@@ -20,7 +20,7 @@ BACKSPACE         -- erases the whole window canvas to white
 DRAG-LMB          -- black/hsba-color drag paint
 SHIFT-LMB         -- rgba-color picker at cursor
 ALT-DRAG-LMB      -- black/hsba-color line drag paint
-SHIFT-CMB         -- drag image contents on image canvas
+DRAG-CMB          -- drag image contents on image canvas
 MWHEEL            -- pencil width change (minmax)
 SHIFT-MWHEEL      -- pencil brush image rotation angle change (looping)
 CTRL-MWHEEL       -- hue positive change (looping)
@@ -56,13 +56,18 @@ DRAG-LMB          -- material drag triangle paint
 SHIFT-LMB         -- material picker at cursor
 CTRL-DRAG-LMB     -- move line vertex
 ALT-DRAG-LMB      -- vector line drag draw (in vector line mode)
-ALT-RMB           -- remove line vertex
+CTRL-ALT-LMB      -- remove line vertex
 CTRL-DRAG-RMB     -- move object
 SHIFT             -- toggle snap to grid/vertex, drag multiple vertex, and speed movement
 CTRL-DRAG-MWH     -- camera location view position sideways pan (minmax)
 CTRL-ALT-DRAG-MWH -- change forward looking movement direction (minmax)
 CTRL-MWHEEL       -- draw forward position change (minmax)
 ARROW-KEYS        -- change forward looking movement direction (minmax)
+DRAG-CMB          -- triangle texture coordinates pan (minmax)
+SHIFT-CMB         -- triangle texture coordinates mirror toggle
+MWHEEL            -- triangle texture coordinates zoom
+SHIFT-MWHEEL      -- triangle texture coordinates rotate
+ALT-MWHEEL        -- triangle texture coordinates scale
 INSERT            -- hue positive change (looping)
 DELETE            -- hue negative change (looping)
 HOME              -- saturation positive change (minmax)
@@ -79,7 +84,8 @@ NUMPAD0           -- run entity list updater
 F2                -- save model file dialog (all primitives)
 SHIFT-F2          -- save model file dialog (surface only)
 F3                -- load model file dialog
-SHIFT-F3          -- load insert model file dialog
+CTRL-F3           -- load insert model file dialog
+SHIFT-F3          -- load texture image file dialog
 
 Model App Keys:
 BACKSPACE         -- remove loaded model and reset camera location
