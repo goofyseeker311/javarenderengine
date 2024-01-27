@@ -47,19 +47,15 @@ F3                -- load image file dialog
 SHIFT-F3          -- load image file as pencil brush dialog
 
 CAD App Keys:
-TAB               -- changes between polygon flat/textured/none fill modes (looping)
+ENTER             -- changes between polygon flat/textured/none fill modes (looping)
 WASD              -- camera location change up/left/down/right (minmax)
-C-SPACE/ZX        -- camera location change backward/forward (minmax)
+C-SPACE           -- camera location change backward/forward (minmax)
 QE                -- camera tilt change left/right (looping)
 BACKSPACE         -- removes all vector lines
-DRAG-LMB          -- white/hsba-color drag pixel paint
-DRAG-RMB          -- material drag triangle paint
-SHIFT-LMB         -- color picker at cursor
-SHIFT-RMB         -- material picker at cursor
+DRAG-LMB          -- material drag triangle paint
+SHIFT-LMB         -- material picker at cursor
 CTRL-DRAG-LMB     -- move line vertex
 ALT-DRAG-LMB      -- vector line drag draw (in vector line mode)
-ALT-DRAG-LMB      -- black/hsba-color line drag paint (in textured triangle mode)
-SHIFT-MWHEEL      -- pencil brush image rotation angle change (looping)
 ALT-RMB           -- remove line vertex
 CTRL-DRAG-RMB     -- move object
 SHIFT             -- toggle snap to grid/vertex, drag multiple vertex, and speed movement
@@ -73,21 +69,17 @@ HOME              -- saturation positive change (minmax)
 END               -- saturation negative change (minmax)
 PGUP              -- brightness positive change (minmax)
 PGDOWN            -- brightness negative change (minmax)
-NUMPAD+           -- pencil width larger (minmax)
-NUMPAD-           -- pencil width smaller (minmax)
-NUMPAD*           -- pencil type change next (looping)
-NUMPAD/           -- pencil type change previous (looping)
+NUMPAD+           -- camera location change forward (minmax)
+NUMPAD-           -- camera location change backward (minmax)
 NUMPAD9           -- pencil transparency positive (minmax)
 NUMPAD8           -- pencil transparency negative (minmax)
 NUMPAD7           -- triangle single sided normal invert (looping)
-NUMPAD6           -- pencil brush image rotation angle change positive (looping)
-NUMPAD5           -- pencil brush image rotation angle change negative (looping)
-NUMPAD4           -- triangle double sided zero normal set
+NUMPAD4           -- triangle double sided zero normal (set)
 NUMPAD0           -- run entity list updater
-ENTER             -- toggles between alpha/src composite pencil draw mode
 F2                -- save model file dialog (all primitives)
 SHIFT-F2          -- save model file dialog (surface only)
 F3                -- load model file dialog
+SHIFT-F3          -- load insert model file dialog
 
 Model App Keys:
 BACKSPACE         -- remove loaded model and reset camera location
