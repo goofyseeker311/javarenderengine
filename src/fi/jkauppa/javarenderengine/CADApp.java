@@ -316,7 +316,22 @@ public class CADApp extends AppHandlerPanel {
 				stri[0].norm = new Direction(0.0f,0.0f,0.0f);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD1) {
-			//TODO triangle mesh sub-divide at cursor
+	    	Triangle mousetriangle = null;
+    		if (this.softwarerenderview!=null) {
+    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+    			}
+    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+    		}
+			if (mousetriangle!=null) {
+	        	mousetriangle.pos1.tex = mousetriangle.pos1.tex.copy();
+	        	mousetriangle.pos2.tex = mousetriangle.pos2.tex.copy();
+	        	mousetriangle.pos3.tex = mousetriangle.pos3.tex.copy();
+	    		mousetriangle.pos1.tex.u = -mousetriangle.pos1.tex.u;
+	    		mousetriangle.pos2.tex.u = -mousetriangle.pos2.tex.u;
+	    		mousetriangle.pos3.tex.u = -mousetriangle.pos3.tex.u;
+			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD0) {
 			(new EntityListUpdater()).start();
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
@@ -751,7 +766,7 @@ public class CADApp extends AppHandlerPanel {
 			}
 	    }
 	    int onmask2down = MouseEvent.BUTTON2_DOWN_MASK;
-	    int offmask2down = MouseEvent.ALT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
+	    int offmask2down = MouseEvent.ALT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    boolean mouse2down = ((e.getModifiersEx() & (onmask2down | offmask2down)) == onmask2down);
     	if (mouse2down) {
 	    	Triangle mousetriangle = null;
@@ -765,8 +780,12 @@ public class CADApp extends AppHandlerPanel {
 			if (mousetriangle!=null) {
 	        	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
 	        	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-	        	double texdeltau = mousedeltax*0.001f;
-	        	double texdeltav = mousedeltay*0.001f;
+	    		double movementstep = 1.0f;
+	    		if (this.snaplinemode) {
+	    			movementstep = this.gridstep;
+	    		}
+	        	double texdeltau = movementstep*mousedeltax*0.001f;
+	        	double texdeltav = movementstep*mousedeltay*0.001f;
 	        	mousetriangle.pos1.tex = mousetriangle.pos1.tex.copy();
 	        	mousetriangle.pos2.tex = mousetriangle.pos2.tex.copy();
 	        	mousetriangle.pos3.tex = mousetriangle.pos3.tex.copy();
@@ -776,27 +795,6 @@ public class CADApp extends AppHandlerPanel {
 	    		mousetriangle.pos2.tex.v += texdeltav;
 	    		mousetriangle.pos3.tex.u -= texdeltau;
 	    		mousetriangle.pos3.tex.v += texdeltav;
-			}
-    	}
-	    int onmask2shiftdown = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
-	    int offmask2shiftdown = MouseEvent.ALT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
-	    boolean mouse2shiftdown = ((e.getModifiersEx() & (onmask2shiftdown | offmask2shiftdown)) == onmask2shiftdown);
-    	if (mouse2shiftdown) {
-	    	Triangle mousetriangle = null;
-    		if (this.softwarerenderview!=null) {
-    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
-    			}
-    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
-    		}
-			if (mousetriangle!=null) {
-	        	mousetriangle.pos1.tex = mousetriangle.pos1.tex.copy();
-	        	mousetriangle.pos2.tex = mousetriangle.pos2.tex.copy();
-	        	mousetriangle.pos3.tex = mousetriangle.pos3.tex.copy();
-	    		mousetriangle.pos1.tex.u = -mousetriangle.pos1.tex.u;
-	    		mousetriangle.pos2.tex.u = -mousetriangle.pos2.tex.u;
-	    		mousetriangle.pos3.tex.u = -mousetriangle.pos3.tex.u;
 			}
     	}
 	    int onmask2ctrldown = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
