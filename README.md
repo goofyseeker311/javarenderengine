@@ -64,7 +64,6 @@ CTRL-ALT-DRAG-MWH -- change forward looking movement direction (minmax)
 CTRL-MWHEEL       -- draw forward position change (minmax)
 ARROW-KEYS        -- change forward looking movement direction (minmax)
 DRAG-CMB          -- triangle texture coordinates pan (minmax)
-SHIFT-CMB         -- triangle texture coordinates mirror toggle
 MWHEEL            -- triangle texture coordinates zoom
 SHIFT-MWHEEL      -- triangle texture coordinates rotate
 ALT-MWHEEL        -- triangle texture coordinates scale
@@ -80,6 +79,7 @@ NUMPAD9           -- pencil transparency positive (minmax)
 NUMPAD8           -- pencil transparency negative (minmax)
 NUMPAD7           -- triangle single sided normal invert (looping)
 NUMPAD4           -- triangle double sided zero normal (set)
+NUMPAD1           -- triangle texture coordinate mirror toggle
 NUMPAD0           -- run entity list updater
 F2                -- save model file dialog (all primitives)
 SHIFT-F2          -- save model file dialog (surface only)
