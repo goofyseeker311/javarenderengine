@@ -73,10 +73,13 @@ public class ModelLib {
 		}
 		public Material copy(){
 			Material k=new Material(this.facecolor,this.transparency);
-			k.fileimage = gc.createCompatibleVolatileImage(this.fileimage.getWidth(),this.fileimage.getHeight(),Transparency.TRANSLUCENT);
-			Graphics2D cgfx=k.fileimage.createGraphics();
-			cgfx.drawImage(this.fileimage, 0, 0, null);
-			cgfx.dispose();
+			k.fileimage = null;
+			if (this.fileimage!=null) {
+				k.fileimage = gc.createCompatibleVolatileImage(this.fileimage.getWidth(),this.fileimage.getHeight(),Transparency.TRANSLUCENT);
+				Graphics2D cgfx=k.fileimage.createGraphics();
+				cgfx.drawImage(this.fileimage, 0, 0, null);
+				cgfx.dispose();
+			}
 			return k;
 		}
 	}
@@ -1015,7 +1018,7 @@ public class ModelLib {
 												renderview.tbuffer[n][j] = copytriangle[0];
 												Coordinate tex1 = vpixelpoints[0].tex;
 												Coordinate tex2 = vpixelpoints[1].tex;
-												if (tritexture!=null) {
+												if ((tritexture!=null)&&(tex1!=null)&&(tex2!=null)) {
 													Position[] lineuvpoint1 = {new Position(tex1.u*(tritexture.getWidth()-1),(1.0f-tex1.v)*(tritexture.getHeight()-1),0.0f)};
 													Position[] lineuvpoint2 = {new Position(tex2.u*(tritexture.getWidth()-1),(1.0f-tex2.v)*(tritexture.getHeight()-1),0.0f)};
 													Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
@@ -1023,8 +1026,7 @@ public class ModelLib {
 													int lineuvx = (int)Math.round(lineuvpos[0].x);
 													int lineuvy = (int)Math.round(lineuvpos[0].y);
 													if ((lineuvx>=0)&&(lineuvx<tritexture.getWidth())&&(lineuvy>=0)&&(lineuvy<tritexture.getHeight())) {
-														Coordinate lineuv = new Coordinate(lineuvx,lineuvy); 
-														renderview.cbuffer[n][j] = lineuv;
+														renderview.cbuffer[n][j] = new Coordinate(lineuvx,lineuvy);
 														Color texcolor = new Color(tritextureimage.getRGB(lineuvx, lineuvy));
 														float[] texcolorcomp = texcolor.getRGBComponents(new float[4]);
 														Color texcolorshade = new Color(texcolorcomp[0], texcolorcomp[1], texcolorcomp[2], alphacolor);

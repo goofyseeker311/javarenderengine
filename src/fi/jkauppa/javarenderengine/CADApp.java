@@ -5,13 +5,10 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Transparency;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.awt.geom.AffineTransform;
-import java.awt.image.VolatileImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,11 +24,6 @@ import fi.jkauppa.javarenderengine.ModelLib.Entity;
 import fi.jkauppa.javarenderengine.ModelLib.Line;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
 import fi.jkauppa.javarenderengine.ModelLib.Matrix;
-import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.BMPFileFilter;
-import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.GIFFileFilter;
-import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.JPGFileFilter;
-import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.PNGFileFilter;
-import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.WBMPFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.STLFileFilter;
 import fi.jkauppa.javarenderengine.ModelLib.Position;
@@ -50,14 +42,12 @@ public class CADApp extends AppHandlerPanel {
 	private boolean draglinemode = false;
 	private boolean snaplinemode = false;
 	private Material drawmat = new Material(Color.getHSBColor(0.0f, 0.0f, 1.0f),1.0f);
-	private int defaulttexturesize = 1024; 
 	private int polygonfillmode = 1;
 	private Position[] selecteddragvertex = null;
 	private Triangle[] mouseovertriangle = null;
 	private Position[] mouseoververtex = null;
 	private Line[] mouseoverline = null;
 	private int mouselocationx = 0, mouselocationy = 0;
-	private int mousestartlocationx = -1, mousestartlocationy = -1;  
 	private int mouselastlocationx = -1, mouselastlocationy = -1; 
 	private int origindeltax = 0, origindeltay = 0;
 	private double editplanedistance = 1371.023f;
@@ -90,33 +80,12 @@ public class CADApp extends AppHandlerPanel {
 	private boolean yawrightkeydown = false;
 	private RenderView hardwarerenderview = null;
 	private RenderView softwarerenderview = null;
-	private RenderView paintrenderview = null;
-	private int oldpencilsize = 1;
-	private int pencilsize = 1;
-	private int pencilshape = 1;
-	private double pencilangle = 0;
-	private boolean penciloverridemode = false;
-	private VolatileImage pencilbuffer = null;
-	private boolean drawlinemode = false;
-	private JFileChooser imagechooser = new JFileChooser();
-	private PNGFileFilter pngfilefilter = new PNGFileFilter();
-	private JPGFileFilter jpgfilefilter = new JPGFileFilter();
-	private GIFFileFilter giffilefilter = new GIFFileFilter();
-	private BMPFileFilter bmpfilefilter = new BMPFileFilter();
-	private WBMPFileFilter wbmpfilefilter = new WBMPFileFilter();
 	
 	public CADApp() {
-		paintrenderview = new RenderView();
 		this.filechooser.addChoosableFileFilter(this.objfilefilter);
 		this.filechooser.addChoosableFileFilter(this.stlfilefilter);
 		this.filechooser.setFileFilter(this.objfilefilter);
 		this.filechooser.setAcceptAllFileFilterUsed(false);
-		this.imagechooser.addChoosableFileFilter(this.pngfilefilter);
-		this.imagechooser.addChoosableFileFilter(this.jpgfilefilter);
-		this.imagechooser.addChoosableFileFilter(this.giffilefilter);
-		this.imagechooser.addChoosableFileFilter(this.bmpfilefilter);
-		this.imagechooser.addChoosableFileFilter(this.wbmpfilefilter);
-		this.imagechooser.setFileFilter(this.pngfilefilter);
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 	}
 	@Override public void paintComponent(Graphics g) {
@@ -131,19 +100,8 @@ public class CADApp extends AppHandlerPanel {
 		this.origindeltay = (int)Math.floor(((double)this.getHeight())/2.0f);
 		this.vfov = 2.0f*MathLib.atand((((double)this.getHeight())/((double)this.getWidth()))*MathLib.tand(this.hfov/2.0f));
 		this.editplanedistance = (((double)this.getWidth())/2.0f)/MathLib.tand(hfov/2.0f);
-		if ((paintrenderview.renderimage==null)||(paintrenderview.renderimage.getWidth()!=this.getWidth())||(paintrenderview.renderimage.getHeight()!=this.getHeight())) {
-			paintrenderview.renderimage = gc.createCompatibleVolatileImage(this.getWidth(), this.getHeight(), Transparency.TRANSLUCENT);
-			Graphics2D pgfx = paintrenderview.renderimage.createGraphics();
-			pgfx.setComposite(AlphaComposite.Src);
-			pgfx.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
-			pgfx.fillRect(0, 0, this.getWidth(), this.getHeight());
-			pgfx.dispose();
-		}
 		if ((this.polygonfillmode==3)&&(this.softwarerenderview!=null)) {
 			g2.drawImage(this.softwarerenderview.renderimage, 0, 0, null);
-			g2.setComposite(AlphaComposite.SrcOver);
-			g2.drawImage(this.paintrenderview.renderimage, 0, 0, null);
-			drawPencil(g2, this.mouselocationx, this.mouselocationy, false);
 		} else if (this.hardwarerenderview!=null) {
 			CADApp.this.softwarerenderview = null;
 			g2.drawImage(this.hardwarerenderview.renderimage, 0, 0, null);
@@ -164,58 +122,6 @@ public class CADApp extends AppHandlerPanel {
 		this.campos = camposarray[0];
 		this.cameramat = camrotmat;
 		this.camdirs = camlookdirs;
-	}
-
-	private void drawPencil(Graphics2D g, int mousex, int mousey, boolean overridemode) {
-		g.setComposite(AlphaComposite.SrcOver);
-		g.setPaint(null);
-		g.setColor(null);
-		int pencilwidth = (int)Math.ceil((double)(this.pencilsize-1)/2.0f);
-    	if (this.pencilbuffer!=null) {
-    		if (overridemode) {
-    			g.setComposite(AlphaComposite.Src);
-    		}
-    		double pencilsizescalefactor = ((double)this.pencilsize)/((double)this.pencilbuffer.getWidth());
-    		int halfwidth = (int)Math.round((double)this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f);
-    		int halfheight = (int)Math.round((double)this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f);
-    		int drawlocationx = mousex - halfwidth;
-    		int drawlocationy = mousey - halfheight;
-    		AffineTransform penciltransform = new AffineTransform();
-    		penciltransform.translate(drawlocationx, drawlocationy);
-    		penciltransform.rotate(this.pencilangle,halfwidth,halfheight);
-    		penciltransform.scale(pencilsizescalefactor, pencilsizescalefactor);
-    		g.drawImage(this.pencilbuffer, penciltransform, null);
-    	} else {
-    		if (overridemode) {
-	    		g.setComposite(AlphaComposite.Src);
-    		}
-			g.setColor(this.drawmat.facecolor);
-			if (this.pencilshape==2) {
-				g.fillRoundRect(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize, 5, 5);
-			} else if (this.pencilshape==3) {
-				g.fillOval(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize);
-			} else if (this.pencilshape==4) {
-				g.drawRect(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize);
-			} else if (this.pencilshape==5) {
-				g.drawRoundRect(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize, 5, 5);
-			} else if (this.pencilshape==6) {
-				g.drawOval(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize);
-			}else {
-				g.fillRect(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize);
-			}
-    	}
-	}
-	private void drawPencilLine(Graphics2D g, int mousestartx, int mousestarty, int mousex, int mousey, boolean overridemode) {
-		double linedistx = mousex-mousestartx;
-		double linedisty = mousey-mousestarty;
-		int linestepnum = (int)Math.ceil(Math.sqrt(linedistx*linedistx+linedisty*linedisty))+1;
-		double linestepx = linedistx/linestepnum;
-		double linestepy = linedisty/linestepnum;
-		for (int i=0;i<linestepnum;i++) {
-			int drawposx = (int)Math.round(this.mousestartlocationx + i*linestepx);
-			int drawposy = (int)Math.round(this.mousestartlocationy + i*linestepy);
-	    	drawPencil(g, drawposx, drawposy, overridemode);
-		}
 	}
 	
 	@Override public void timerTick() {
@@ -279,7 +185,6 @@ public class CADApp extends AppHandlerPanel {
 		updateCameraDirections();
 		(new HardwareRenderViewUpdater()).start();
 		(new SoftwareRenderViewUpdater()).start();
-		(new PaintTextureUpdater()).start();
 	}
 	
 	@Override public void keyTyped(KeyEvent e) {}
@@ -310,9 +215,9 @@ public class CADApp extends AppHandlerPanel {
 			this.rollleftkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_E) {
 			this.rollrightkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_X) {
+		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
 			this.forwardkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_Z) {
+		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
 			this.backwardkeydown = false;
 		}
 	}
@@ -375,26 +280,6 @@ public class CADApp extends AppHandlerPanel {
 			float[] colorvalues = this.drawmat.facecolor.getRGBColorComponents(new float[3]);
 			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
 			this.drawmat = new Material(newfacecolor,newtransparency);
-		} else if (e.getKeyCode()==KeyEvent.VK_DIVIDE) {
-	    	this.pencilshape -= 1;
-	    	if (this.pencilshape<1) {this.pencilshape = 6;}
-	    	if (this.pencilbuffer!=null) {
-	    		this.pencilbuffer = null;
-	    		this.pencilsize = this.oldpencilsize;
-	    	}
-		} else if (e.getKeyCode()==KeyEvent.VK_MULTIPLY) {
-	    	this.pencilshape += 1;
-	    	if (this.pencilshape>6) {this.pencilshape = 1;}
-	    	if (this.pencilbuffer!=null) {
-	    		this.pencilbuffer = null;
-	    		this.pencilsize = this.oldpencilsize;
-	    	}
-		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD6) {
-			this.pencilangle += 0.01f;
-			if (this.pencilangle>(2.0f*Math.PI)) {this.pencilangle = 0.0f;}
-		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD5) {
-			this.pencilangle -= 0.01f;
-			if (this.pencilangle<0.0f) {this.pencilangle = 2.0f*Math.PI;}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD7) {
 			if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
 				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
@@ -416,13 +301,6 @@ public class CADApp extends AppHandlerPanel {
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD0) {
 			(new EntityListUpdater()).start();
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
-		    int onmaska = 0;
-		    int offmaska = KeyEvent.ALT_DOWN_MASK|KeyEvent.SHIFT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
-		    boolean enterdown = (e.getModifiersEx() & (onmaska | offmaska)) == onmaska;
-		    if(enterdown) {
-		    	this.penciloverridemode = !this.penciloverridemode;
-		    }
-		} else if (e.getKeyCode()==KeyEvent.VK_TAB) {
 			this.polygonfillmode += 1;
 			if (this.polygonfillmode>3) {
 				this.polygonfillmode = 1;
@@ -453,15 +331,10 @@ public class CADApp extends AppHandlerPanel {
 			this.rollleftkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_E) {
 			this.rollrightkeydown = true;
-		} else if (e.getKeyCode()==KeyEvent.VK_X) {
-			this.forwardkeydown = true;
-		} else if (e.getKeyCode()==KeyEvent.VK_Z) {
-			this.backwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
-			this.pencilsize += 1;
+			this.forwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
-			this.pencilsize -= 1;
-			if (this.pencilsize<1) {this.pencilsize = 1;}
+			this.backwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_F2) {
 			this.filechooser.setDialogTitle("Save File");
 			this.filechooser.setApproveButtonText("Save");
@@ -510,9 +383,6 @@ public class CADApp extends AppHandlerPanel {
 						Triangle[] copytrianglelist = this.entitylist[j].trianglelist;
 					    vertexlistarray.addAll(Arrays.asList(this.entitylist[j].vertexlist));
 						for (int i=0;i<copytrianglelist.length;i++) {
-							Material newmat = copytrianglelist[i].mat;
-							if (newmat.facecolor==null) {newmat.facecolor = Color.WHITE;}
-							materiallistarray.add(newmat);
 							vertexlistarray.add(copytrianglelist[i].pos1);
 							vertexlistarray.add(copytrianglelist[i].pos2);
 							vertexlistarray.add(copytrianglelist[i].pos3);
@@ -520,6 +390,8 @@ public class CADApp extends AppHandlerPanel {
 							texcoordlistarray.add(copytrianglelist[i].pos1.tex);
 							texcoordlistarray.add(copytrianglelist[i].pos2.tex);
 							texcoordlistarray.add(copytrianglelist[i].pos3.tex);
+							if (copytrianglelist[i].mat.facecolor==null) {copytrianglelist[i].mat.facecolor = Color.WHITE;}
+							materiallistarray.add(copytrianglelist[i].mat);
 						}
 					}
 					savemodel.materials = materiallistarray.toArray(new Material[materiallistarray.size()]);
@@ -575,30 +447,10 @@ public class CADApp extends AppHandlerPanel {
 				}
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
-		    int onmaskf3ctrldown = KeyEvent.CTRL_DOWN_MASK;
-		    int offmaskf3ctrldown = KeyEvent.ALT_DOWN_MASK|KeyEvent.SHIFT_DOWN_MASK;
-		    boolean f3ctrldown = (e.getModifiersEx() & (onmaskf3ctrldown | offmaskf3ctrldown)) == onmaskf3ctrldown;
-		    int onmaskf3ctrlshiftdown = KeyEvent.CTRL_DOWN_MASK|KeyEvent.SHIFT_DOWN_MASK;
-		    int offmaskf3ctrlshiftdown = KeyEvent.ALT_DOWN_MASK;
-		    boolean f3ctrlshiftdown = (e.getModifiersEx() & (onmaskf3ctrlshiftdown | offmaskf3ctrlshiftdown)) == onmaskf3ctrlshiftdown;
 		    int onmaskf3shiftdown = KeyEvent.SHIFT_DOWN_MASK;
 		    int offmaskf3shiftdown = KeyEvent.CTRL_DOWN_MASK|KeyEvent.ALT_DOWN_MASK;
 		    boolean f3shiftdown = (e.getModifiersEx() & (onmaskf3shiftdown | offmaskf3shiftdown)) == onmaskf3shiftdown;
-		    if (f3ctrldown) {
-		    	//TODO load image as texture
-		    } else if (f3ctrlshiftdown) {
-				this.imagechooser.setDialogTitle("Load File");
-				this.imagechooser.setApproveButtonText("Load");
-				if (this.imagechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
-					File loadfile = this.imagechooser.getSelectedFile();
-					VolatileImage loadimage = UtilLib.loadImage(loadfile.getPath(), false);
-					if (loadimage!=null) {
-				    	this.oldpencilsize = this.pencilsize;
-						this.pencilsize = loadimage.getWidth();
-				    	this.pencilbuffer = loadimage;
-					}
-				}
-		    } else if (f3shiftdown) {
+		    if (f3shiftdown) {
 		    	//TODO load insert object
 		    } else {
 				this.filechooser.setDialogTitle("Load File");
@@ -735,7 +587,6 @@ public class CADApp extends AppHandlerPanel {
 	}
 	@Override public void mousePressed(MouseEvent e) {
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
-		this.mousestartlocationx=this.mouselocationx;this.mousestartlocationy=this.mouselocationy;
 	    int onmask1ctrldown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    int offmask1ctrldown = MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse1ctrldown = ((e.getModifiersEx() & (onmask1ctrldown | offmask1ctrldown)) == onmask1ctrldown);
@@ -788,17 +639,6 @@ public class CADApp extends AppHandlerPanel {
 				}
 			}
 		}
-		if (this.paintrenderview.renderimage!=null) {
-			Graphics2D renderbuffergfx = this.paintrenderview.renderimage.createGraphics();
-			renderbuffergfx.setColor(this.drawmat.facecolor);
-			if (mouse1up||mouse3up) {
-				if (this.drawlinemode) {
-					this.drawlinemode=false;
-					drawPencilLine(renderbuffergfx, this.mousestartlocationx, this.mousestartlocationy, this.mouselocationx, this.mouselocationy, this.penciloverridemode);
-				}
-			}
-			renderbuffergfx.dispose();
-		}
 	}
 	
 	public void mouseDragged(MouseEvent e) {
@@ -808,22 +648,31 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask1down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1down | offmask1down)) == onmask1down);
     	if (mouse1down) {
-    		Graphics2D pgfx = this.paintrenderview.renderimage.createGraphics();
-    		this.drawPencil(pgfx, this.mouselocationx, this.mouselocationy, this.penciloverridemode);
+    		if (this.softwarerenderview!=null) {
+    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			Triangle mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			if (mousetriangle!=null) {
+	    				mousetriangle.mat = this.drawmat;
+	    			}
+    			}
+    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+				this.mouseovertriangle[this.mouseovertriangle.length-1].mat = this.drawmat;
+    		}
     	}
 	    int onmask1shiftdown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    int offmask1shiftdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse1shiftdown = ((e.getModifiersEx() & (onmask1shiftdown | offmask1shiftdown)) == onmask1shiftdown);
 	    if (mouse1shiftdown) {
-			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    		if (this.softwarerenderview!=null) {
-	    			Color pickcolor = new Color(this.softwarerenderview.snapimage.getRGB(this.mouselocationx, this.mouselocationy));
-	    			this.drawmat = new Material(pickcolor,1.0f);
-	    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-					Color pickcolor = new Color(this.hardwarerenderview.snapimage.getRGB(this.mouselocationx, this.mouselocationy));
-					this.drawmat = new Material(pickcolor,1.0f);
-	    		}
-			}
+    		if (this.softwarerenderview!=null) {
+    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			Triangle mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			if (mousetriangle!=null) {
+	    				this.drawmat = mousetriangle.mat;
+	    			}
+    			}
+    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+    			this.drawmat = this.mouseovertriangle[this.mouseovertriangle.length-1].mat;
+    		}
 	    }
 	    int onmask1ctrldown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    int offmask1ctrldown = MouseEvent.ALT_DOWN_MASK;
@@ -832,7 +681,7 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask1altdown = MouseEvent.CTRL_DOWN_MASK;
 	    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1altdown | offmask1altdown)) == onmask1altdown);
     	if (mouse1ctrldown||mouse1altdown) {
-    		if ((this.draglinemode)&&(this.polygonfillmode==1)) {
+    		if (this.draglinemode) {
     			Position drawlocation = null;
 	    		double mouserelativelocationx = this.mouselocationx-this.origindeltax;
 	    		double mouserelativelocationy = this.mouselocationy-this.origindeltay;
@@ -856,15 +705,21 @@ public class CADApp extends AppHandlerPanel {
 				}
 				(new EntityListUpdater()).start();
     		}
-    	    if ((mouse1altdown)&&(this.polygonfillmode==3)) {
-    		    this.drawlinemode = true;
-    	    }
 		}
+	    int onmask1ctrlaltdown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    int offmask1ctrlaltdown = 0;
+	    boolean mouse1ctrlaltdown = ((e.getModifiersEx() & (onmask1ctrlaltdown | offmask1ctrlaltdown)) == onmask1ctrlaltdown);
+	    if (mouse1ctrlaltdown) {
+    		if ((this.mouseoverline!=null)&&(this.mouseoverline.length>0)) {
+				this.linelisttree.removeAll(Arrays.asList(this.mouseoverline));
+				(new EntityListUpdater()).start();
+			}
+	    }
 	    int onmask2down = MouseEvent.BUTTON2_DOWN_MASK;
 	    int offmask2down = MouseEvent.ALT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mouse2down = ((e.getModifiersEx() & (onmask2down | offmask2down)) == onmask2down);
     	if (mouse2down) {
-    		//TODO pan triangle texture
+    		//TODO pan texture
     	}
 	    int onmask2ctrldown = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    int offmask2ctrldown = MouseEvent.ALT_DOWN_MASK;
@@ -903,40 +758,19 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask3down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mouse3down = ((e.getModifiersEx() & (onmask3down | offmask3down)) == onmask3down);
     	if (mouse3down) {
-    		if (this.softwarerenderview!=null) {
-    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			Triangle mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
-	    			if (mousetriangle!=null) {
-	    				mousetriangle.mat = this.drawmat;
-	    			}
-    			}
-    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-				this.mouseovertriangle[this.mouseovertriangle.length-1].mat = this.drawmat;
-    		}
+    		//TODO <tbd>
     	}
 	    int onmask3shiftdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    int offmask3shiftdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse3shiftdown = ((e.getModifiersEx() & (onmask3shiftdown | offmask3shiftdown)) == onmask3shiftdown);
 	    if (mouse3shiftdown) {
-    		if (this.softwarerenderview!=null) {
-    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			Triangle mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
-	    			if (mousetriangle!=null) {
-	    				this.drawmat = mousetriangle.mat;
-	    			}
-    			}
-    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-    			this.drawmat = this.mouseovertriangle[this.mouseovertriangle.length-1].mat;
-    		}
+	    	//TODO <tbd>
 	    }
 	    int onmask3altdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    int offmask3altdown = MouseEvent.CTRL_DOWN_MASK;
 	    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3altdown | offmask3altdown)) == onmask3altdown);
     	if (mouse3altdown) {
-    		if ((this.mouseoverline!=null)&&(this.mouseoverline.length>0)) {
-				this.linelisttree.removeAll(Arrays.asList(this.mouseoverline));
-				(new EntityListUpdater()).start();
-			}
+    		//TODO <tbd>
     	}
 	    int onmask3ctrldown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    int offmask3ctrldown = MouseEvent.ALT_DOWN_MASK;
@@ -950,30 +784,22 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mousewheeldown = ((e.getModifiersEx() & (onmask | offmask)) == onmask);
 	    if (mousewheeldown) {
-			this.pencilsize += e.getWheelRotation()*((this.pencilsize>16)?this.pencilsize/16:1);
-			if (this.pencilsize<1) {
-				this.pencilsize = 1;
-			}
+	    	//TBD zoom texture
 	    }
 	    int onmaskshiftdown = MouseEvent.SHIFT_DOWN_MASK;
 	    int offmaskshiftdown = MouseEvent.ALT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    boolean mousewheelshiftdown = ((e.getModifiersEx() & (onmaskshiftdown | offmaskshiftdown)) == onmaskshiftdown);
 	    if (mousewheelshiftdown) {
-			this.pencilangle += 0.05f*e.getWheelRotation();
-			if (this.pencilangle>(2.0f*Math.PI)) {
-				this.pencilangle = 0.0f;
-			} else if (this.pencilangle<0.0f) {
-				this.pencilangle = 2.0f*Math.PI;
-			}
+	    	//TBD rotate texture
 	    }
 	    int onmaskaltdown = MouseEvent.ALT_DOWN_MASK;
 	    int offmaskaltdown = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    boolean mousewheelaltdown = ((e.getModifiersEx() & (onmaskaltdown | offmaskaltdown)) == onmaskaltdown);
 	    if (mousewheelaltdown) {
-	    	//TBD <tbd>
+	    	//TBD scale texture
 	    }
 	    int onmaskctrldown = MouseEvent.CTRL_DOWN_MASK;
-	    int offmaskctrldown = MouseEvent.ALT_DOWN_MASK;
+	    int offmaskctrldown = 0;
 	    boolean mousewheelctrldown = ((e.getModifiersEx() & (onmaskctrldown | offmaskctrldown)) == onmaskctrldown);
 	    if (mousewheelctrldown) {
 			double movementstep = 200.0f*e.getWheelRotation();
@@ -1010,10 +836,10 @@ public class CADApp extends AppHandlerPanel {
 				for (int j=0;j<newentitylist.length;j++) {
 					for (int i=0;i<newentitylist[j].trianglelist.length;i++) {
 						newentitylist[j].trianglelist[i].mat = newmat;
+						newentitylist[j].trianglelist[i].norm = new Direction(0.0f,0.0f,0.0f);
 						newentitylist[j].trianglelist[i].pos1.tex = new Coordinate(0.0f,0.0f);
 						newentitylist[j].trianglelist[i].pos2.tex = new Coordinate(1.0f,0.0f);
 						newentitylist[j].trianglelist[i].pos3.tex = new Coordinate(0.0f,1.0f);
-						newentitylist[j].trianglelist[i].norm = new Direction(0.0f,0.0f,0.0f);
 						int searchindex = entitylisttrianglearray.indexOf(newentitylist[j].trianglelist[i]);
 						if (searchindex>=0) {
 							newentitylist[j].trianglelist[i] = entitylisttrianglearray.get(searchindex).copy(); 
@@ -1037,7 +863,7 @@ public class CADApp extends AppHandlerPanel {
 					CADApp.this.mouseoverline = CADApp.this.hardwarerenderview.mouseoverline;
 					CADApp.this.mouseoververtex = CADApp.this.hardwarerenderview.mouseoververtex;
 				} else if (CADApp.this.polygonfillmode==2) { 
-					CADApp.this.hardwarerenderview = ModelLib.renderProjectedPolygonViewHardware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, true, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.hardwarerenderview = ModelLib.renderProjectedPolygonViewHardware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, false, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseovertriangle = CADApp.this.hardwarerenderview.mouseovertriangle;
 				}
 				HardwareRenderViewUpdater.renderupdaterrunning = false;
@@ -1051,65 +877,10 @@ public class CADApp extends AppHandlerPanel {
 			if (!SoftwareRenderViewUpdater.renderupdaterrunning) {
 				SoftwareRenderViewUpdater.renderupdaterrunning = true;
 				if (CADApp.this.polygonfillmode==3) {
-					CADApp.this.softwarerenderview = ModelLib.renderProjectedTextureViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, true, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.softwarerenderview = ModelLib.renderProjectedTextureViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, false, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseovertriangle = CADApp.this.softwarerenderview.mouseovertriangle;
 				}
 				SoftwareRenderViewUpdater.renderupdaterrunning = false;
-			}
-		}
-	}
-
-	private class PaintTextureUpdater extends Thread {
-		private static boolean renderupdaterrunning = false;
-		public void run() {
-			if (!PaintTextureUpdater.renderupdaterrunning) {
-				PaintTextureUpdater.renderupdaterrunning = true;
-				if (CADApp.this.polygonfillmode==3) {
-					if (CADApp.this.softwarerenderview!=null) {
-						RenderView softwarerenderviewhandle = CADApp.this.softwarerenderview; 
-						if (CADApp.this.paintrenderview!=null) {
-							CADApp.this.paintrenderview.snapimage = CADApp.this.paintrenderview.renderimage.getSnapshot();
-							Graphics2D pgfx = paintrenderview.renderimage.createGraphics();
-							pgfx.setComposite(AlphaComposite.Src);
-							pgfx.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
-							for (int j=0;j<CADApp.this.paintrenderview.snapimage.getHeight();j++) {
-								for (int i=0;i<CADApp.this.paintrenderview.snapimage.getWidth();i++) {
-									Color paintpixelcolor = new Color(CADApp.this.paintrenderview.snapimage.getRGB(i, j));
-									if (paintpixelcolor.getAlpha()!=0) {
-										Triangle pixeltriangle = softwarerenderviewhandle.tbuffer[j][i];
-										if (pixeltriangle!=null) {
-						    				Coordinate texcoord = softwarerenderviewhandle.cbuffer[j][i];
-						    				if (texcoord!=null) {
-												if (pixeltriangle.mat.fileimage==null) {
-													pixeltriangle.mat.fileimage = gc.createCompatibleVolatileImage(defaulttexturesize, defaulttexturesize, Transparency.TRANSLUCENT);
-													Graphics2D tgfx = pixeltriangle.mat.fileimage.createGraphics();
-													tgfx.setComposite(AlphaComposite.Src);
-													tgfx.setColor(pixeltriangle.mat.facecolor);
-													tgfx.fillRect(0, 0, defaulttexturesize, defaulttexturesize);
-													tgfx.dispose();
-													pixeltriangle.pos1.tex = new Coordinate(0.0f,0.0f);
-													pixeltriangle.pos2.tex = new Coordinate(1.0f,0.0f);
-													pixeltriangle.pos3.tex = new Coordinate(0.0f,1.0f);
-												}
-						    					int texcoordx = (int)Math.floor(texcoord.u);
-						    					int texcoordy = (int)Math.floor(texcoord.v);
-						    					pixeltriangle.mat = pixeltriangle.mat.copy();
-						    					Graphics2D tgfx = pixeltriangle.mat.fileimage.createGraphics();
-						    					tgfx.setComposite(AlphaComposite.Src);
-						    					tgfx.setColor(paintpixelcolor);
-						    					tgfx.drawLine(texcoordx, texcoordy, texcoordx, texcoordy);
-						    					tgfx.dispose();
-						    				}
-										}
-										pgfx.drawLine(i, j, i, j);
-									}
-								}
-							}
-							pgfx.dispose();
-						}
-					}
-				}
-				PaintTextureUpdater.renderupdaterrunning = false;
 			}
 		}
 	}
