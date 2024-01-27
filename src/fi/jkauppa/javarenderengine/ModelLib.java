@@ -58,7 +58,13 @@ public class ModelLib {
 						if(this.facecolor.getAlpha()>o.facecolor.getAlpha()) {
 							k=1;
 						} else if (this.facecolor.getAlpha()==o.facecolor.getAlpha()) {
-							k=0;
+							if (this.fileimage==o.fileimage) {
+								k=0;
+							} else if ((this.fileimage!=null)&&(o.fileimage!=null)) {
+								k=this.fileimage.toString().compareTo(o.fileimage.toString());
+							} else if (this.fileimage!=null) {
+								k=1;
+							}
 						}}}}
 			return k;}
 		@Override public boolean equals(Object o) {
