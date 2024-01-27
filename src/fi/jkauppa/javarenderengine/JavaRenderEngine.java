@@ -63,7 +63,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.8.47");
+		this.setTitle("Java Render Engine v1.8.48");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -72,6 +72,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		}else {
 			this.setLocationByPlatform(true);
 		}
+		this.setFocusTraversalKeysEnabled(false);
 		this.addKeyListener(this);
 		this.setDropTarget(this.droptargethandler);
 		this.setActiveApp(drawapp);
@@ -371,7 +372,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		if ((e.getKeyCode()==KeyEvent.VK_ALT)) {
 			if (this.activeapp!=null) {this.activeapp.keyPressed(e);}
 			e.consume();
-		}else if ((e.getKeyCode()==KeyEvent.VK_ENTER)&&(altdownmask)) {
+		} else if ((e.getKeyCode()==KeyEvent.VK_ENTER)&&(altdownmask)) {
 			System.out.println("keyPressed: ALT+VK_ENTER");
 	    	this.dispose();
 	    	if (!windowedmode) {

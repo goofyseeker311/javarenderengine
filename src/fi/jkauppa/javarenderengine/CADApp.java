@@ -10,10 +10,13 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.image.VolatileImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeSet;
+
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 
@@ -24,6 +27,11 @@ import fi.jkauppa.javarenderengine.ModelLib.Entity;
 import fi.jkauppa.javarenderengine.ModelLib.Line;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
 import fi.jkauppa.javarenderengine.ModelLib.Matrix;
+import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.BMPFileFilter;
+import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.GIFFileFilter;
+import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.JPGFileFilter;
+import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.PNGFileFilter;
+import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.WBMPFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.STLFileFilter;
 import fi.jkauppa.javarenderengine.ModelLib.Position;
@@ -49,6 +57,7 @@ public class CADApp extends AppHandlerPanel {
 	private Position[] mouseoververtex = null;
 	private Line[] mouseoverline = null;
 	private int mouselocationx = 0, mouselocationy = 0;
+	private int mousestartlocationx = -1, mousestartlocationy = -1;  
 	private int mouselastlocationx = -1, mouselastlocationy = -1; 
 	private int origindeltax = 0, origindeltay = 0;
 	private double editplanedistance = 1371.023f;
@@ -81,12 +90,33 @@ public class CADApp extends AppHandlerPanel {
 	private boolean yawrightkeydown = false;
 	private RenderView hardwarerenderview = null;
 	private RenderView softwarerenderview = null;
+	private RenderView paintrenderview = null;
+	private int oldpencilsize = 1;
+	private int pencilsize = 1;
+	private int pencilshape = 1;
+	private double pencilangle = 0;
+	private boolean penciloverridemode = false;
+	private VolatileImage pencilbuffer = null;
+	private boolean drawlinemode = false;
+	private JFileChooser imagechooser = new JFileChooser();
+	private PNGFileFilter pngfilefilter = new PNGFileFilter();
+	private JPGFileFilter jpgfilefilter = new JPGFileFilter();
+	private GIFFileFilter giffilefilter = new GIFFileFilter();
+	private BMPFileFilter bmpfilefilter = new BMPFileFilter();
+	private WBMPFileFilter wbmpfilefilter = new WBMPFileFilter();
 	
 	public CADApp() {
+		paintrenderview = new RenderView();
 		this.filechooser.addChoosableFileFilter(this.objfilefilter);
 		this.filechooser.addChoosableFileFilter(this.stlfilefilter);
 		this.filechooser.setFileFilter(this.objfilefilter);
 		this.filechooser.setAcceptAllFileFilterUsed(false);
+		this.imagechooser.addChoosableFileFilter(this.pngfilefilter);
+		this.imagechooser.addChoosableFileFilter(this.jpgfilefilter);
+		this.imagechooser.addChoosableFileFilter(this.giffilefilter);
+		this.imagechooser.addChoosableFileFilter(this.bmpfilefilter);
+		this.imagechooser.addChoosableFileFilter(this.wbmpfilefilter);
+		this.imagechooser.setFileFilter(this.pngfilefilter);
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 	}
 	@Override public void paintComponent(Graphics g) {
@@ -101,8 +131,19 @@ public class CADApp extends AppHandlerPanel {
 		this.origindeltay = (int)Math.floor(((double)this.getHeight())/2.0f);
 		this.vfov = 2.0f*MathLib.atand((((double)this.getHeight())/((double)this.getWidth()))*MathLib.tand(this.hfov/2.0f));
 		this.editplanedistance = (((double)this.getWidth())/2.0f)/MathLib.tand(hfov/2.0f);
+		if ((paintrenderview.renderimage==null)||(paintrenderview.renderimage.getWidth()!=this.getWidth())||(paintrenderview.renderimage.getHeight()!=this.getHeight())) {
+			paintrenderview.renderimage = gc.createCompatibleVolatileImage(this.getWidth(), this.getHeight(), Transparency.TRANSLUCENT);
+			Graphics2D pgfx = paintrenderview.renderimage.createGraphics();
+			pgfx.setComposite(AlphaComposite.Src);
+			pgfx.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
+			pgfx.fillRect(0, 0, this.getWidth(), this.getHeight());
+			pgfx.dispose();
+		}
 		if ((this.polygonfillmode==3)&&(this.softwarerenderview!=null)) {
 			g2.drawImage(this.softwarerenderview.renderimage, 0, 0, null);
+			g2.setComposite(AlphaComposite.SrcOver);
+			g2.drawImage(this.paintrenderview.renderimage, 0, 0, null);
+			drawPencil(g2, this.mouselocationx, this.mouselocationy, false);
 		} else if (this.hardwarerenderview!=null) {
 			CADApp.this.softwarerenderview = null;
 			g2.drawImage(this.hardwarerenderview.renderimage, 0, 0, null);
@@ -125,6 +166,58 @@ public class CADApp extends AppHandlerPanel {
 		this.camdirs = camlookdirs;
 	}
 
+	private void drawPencil(Graphics2D g, int mousex, int mousey, boolean overridemode) {
+		g.setComposite(AlphaComposite.SrcOver);
+		g.setPaint(null);
+		g.setColor(null);
+		int pencilwidth = (int)Math.ceil((double)(this.pencilsize-1)/2.0f);
+    	if (this.pencilbuffer!=null) {
+    		if (overridemode) {
+    			g.setComposite(AlphaComposite.Src);
+    		}
+    		double pencilsizescalefactor = ((double)this.pencilsize)/((double)this.pencilbuffer.getWidth());
+    		int halfwidth = (int)Math.round((double)this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f);
+    		int halfheight = (int)Math.round((double)this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f);
+    		int drawlocationx = mousex - halfwidth;
+    		int drawlocationy = mousey - halfheight;
+    		AffineTransform penciltransform = new AffineTransform();
+    		penciltransform.translate(drawlocationx, drawlocationy);
+    		penciltransform.rotate(this.pencilangle,halfwidth,halfheight);
+    		penciltransform.scale(pencilsizescalefactor, pencilsizescalefactor);
+    		g.drawImage(this.pencilbuffer, penciltransform, null);
+    	} else {
+    		if (overridemode) {
+	    		g.setComposite(AlphaComposite.Src);
+    		}
+			g.setColor(this.drawmat.facecolor);
+			if (this.pencilshape==2) {
+				g.fillRoundRect(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize, 5, 5);
+			} else if (this.pencilshape==3) {
+				g.fillOval(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize);
+			} else if (this.pencilshape==4) {
+				g.drawRect(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize);
+			} else if (this.pencilshape==5) {
+				g.drawRoundRect(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize, 5, 5);
+			} else if (this.pencilshape==6) {
+				g.drawOval(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize);
+			}else {
+				g.fillRect(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize);
+			}
+    	}
+	}
+	private void drawPencilLine(Graphics2D g, int mousestartx, int mousestarty, int mousex, int mousey, boolean overridemode) {
+		double linedistx = mousex-mousestartx;
+		double linedisty = mousey-mousestarty;
+		int linestepnum = (int)Math.ceil(Math.sqrt(linedistx*linedistx+linedisty*linedisty))+1;
+		double linestepx = linedistx/linestepnum;
+		double linestepy = linedisty/linestepnum;
+		for (int i=0;i<linestepnum;i++) {
+			int drawposx = (int)Math.round(this.mousestartlocationx + i*linestepx);
+			int drawposy = (int)Math.round(this.mousestartlocationy + i*linestepy);
+	    	drawPencil(g, drawposx, drawposy, overridemode);
+		}
+	}
+	
 	@Override public void timerTick() {
 		double movementstep = 1.0f;
 		if (this.snaplinemode) {
@@ -184,8 +277,9 @@ public class CADApp extends AppHandlerPanel {
         	this.camrot.x -= (movementstep/((double)this.gridstep))*1.0f;
 		}
 		updateCameraDirections();
-		(new SoftwareRenderViewUpdater()).start();
 		(new HardwareRenderViewUpdater()).start();
+		(new SoftwareRenderViewUpdater()).start();
+		(new PaintTextureUpdater()).start();
 	}
 	
 	@Override public void keyTyped(KeyEvent e) {}
@@ -216,9 +310,9 @@ public class CADApp extends AppHandlerPanel {
 			this.rollleftkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_E) {
 			this.rollrightkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
+		} else if (e.getKeyCode()==KeyEvent.VK_X) {
 			this.forwardkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
+		} else if (e.getKeyCode()==KeyEvent.VK_Z) {
 			this.backwardkeydown = false;
 		}
 	}
@@ -281,6 +375,26 @@ public class CADApp extends AppHandlerPanel {
 			float[] colorvalues = this.drawmat.facecolor.getRGBColorComponents(new float[3]);
 			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
 			this.drawmat = new Material(newfacecolor,newtransparency);
+		} else if (e.getKeyCode()==KeyEvent.VK_DIVIDE) {
+	    	this.pencilshape -= 1;
+	    	if (this.pencilshape<1) {this.pencilshape = 6;}
+	    	if (this.pencilbuffer!=null) {
+	    		this.pencilbuffer = null;
+	    		this.pencilsize = this.oldpencilsize;
+	    	}
+		} else if (e.getKeyCode()==KeyEvent.VK_MULTIPLY) {
+	    	this.pencilshape += 1;
+	    	if (this.pencilshape>6) {this.pencilshape = 1;}
+	    	if (this.pencilbuffer!=null) {
+	    		this.pencilbuffer = null;
+	    		this.pencilsize = this.oldpencilsize;
+	    	}
+		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD6) {
+			this.pencilangle += 0.01f;
+			if (this.pencilangle>(2.0f*Math.PI)) {this.pencilangle = 0.0f;}
+		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD5) {
+			this.pencilangle -= 0.01f;
+			if (this.pencilangle<0.0f) {this.pencilangle = 2.0f*Math.PI;}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD7) {
 			if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
 				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
@@ -299,13 +413,20 @@ public class CADApp extends AppHandlerPanel {
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD1) {
 			//TODO triangle mesh sub-divide at cursor
+		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD0) {
+			(new EntityListUpdater()).start();
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
+		    int onmaska = 0;
+		    int offmaska = KeyEvent.ALT_DOWN_MASK|KeyEvent.SHIFT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
+		    boolean enterdown = (e.getModifiersEx() & (onmaska | offmaska)) == onmaska;
+		    if(enterdown) {
+		    	this.penciloverridemode = !this.penciloverridemode;
+		    }
+		} else if (e.getKeyCode()==KeyEvent.VK_TAB) {
 			this.polygonfillmode += 1;
 			if (this.polygonfillmode>3) {
 				this.polygonfillmode = 1;
 			}
-		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD0) {
-			(new EntityListUpdater()).start();
 		} else if (e.getKeyCode()==KeyEvent.VK_UP) {
 			this.pitchupkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_DOWN) {
@@ -332,10 +453,15 @@ public class CADApp extends AppHandlerPanel {
 			this.rollleftkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_E) {
 			this.rollrightkeydown = true;
-		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
+		} else if (e.getKeyCode()==KeyEvent.VK_X) {
 			this.forwardkeydown = true;
-		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
+		} else if (e.getKeyCode()==KeyEvent.VK_Z) {
 			this.backwardkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
+			this.pencilsize += 1;
+		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
+			this.pencilsize -= 1;
+			if (this.pencilsize<1) {this.pencilsize = 1;}
 		} else if (e.getKeyCode()==KeyEvent.VK_F2) {
 			this.filechooser.setDialogTitle("Save File");
 			this.filechooser.setApproveButtonText("Save");
@@ -449,130 +575,157 @@ public class CADApp extends AppHandlerPanel {
 				}
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
-			this.filechooser.setDialogTitle("Load File");
-			this.filechooser.setApproveButtonText("Load");
-			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
-				File loadfile = this.filechooser.getSelectedFile();
-				FileFilter loadfileformat = this.filechooser.getFileFilter();
-				if (loadfileformat.equals(this.stlfilefilter)) {
-					Entity[] newentitylist = {new Entity()};
-					newentitylist[0].trianglelist = ModelLib.loadSTLFile(loadfile.getPath(), false);
-					for (int i=0;i<newentitylist[0].trianglelist.length;i++) {
-						if (newentitylist[0].trianglelist[i].mat==null) {
-							newentitylist[0].trianglelist[i].mat = new Material(Color.WHITE,1.0f);
-						}
+		    int onmaskf3ctrldown = KeyEvent.CTRL_DOWN_MASK;
+		    int offmaskf3ctrldown = KeyEvent.ALT_DOWN_MASK|KeyEvent.SHIFT_DOWN_MASK;
+		    boolean f3ctrldown = (e.getModifiersEx() & (onmaskf3ctrldown | offmaskf3ctrldown)) == onmaskf3ctrldown;
+		    int onmaskf3ctrlshiftdown = KeyEvent.CTRL_DOWN_MASK|KeyEvent.SHIFT_DOWN_MASK;
+		    int offmaskf3ctrlshiftdown = KeyEvent.ALT_DOWN_MASK;
+		    boolean f3ctrlshiftdown = (e.getModifiersEx() & (onmaskf3ctrlshiftdown | offmaskf3ctrlshiftdown)) == onmaskf3ctrlshiftdown;
+		    int onmaskf3shiftdown = KeyEvent.SHIFT_DOWN_MASK;
+		    int offmaskf3shiftdown = KeyEvent.CTRL_DOWN_MASK|KeyEvent.ALT_DOWN_MASK;
+		    boolean f3shiftdown = (e.getModifiersEx() & (onmaskf3shiftdown | offmaskf3shiftdown)) == onmaskf3shiftdown;
+		    if (f3ctrldown) {
+		    	//TODO load image as texture
+		    } else if (f3ctrlshiftdown) {
+				this.imagechooser.setDialogTitle("Load File");
+				this.imagechooser.setApproveButtonText("Load");
+				if (this.imagechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
+					File loadfile = this.imagechooser.getSelectedFile();
+					VolatileImage loadimage = UtilLib.loadImage(loadfile.getPath(), false);
+					if (loadimage!=null) {
+				    	this.oldpencilsize = this.pencilsize;
+						this.pencilsize = loadimage.getWidth();
+				    	this.pencilbuffer = loadimage;
 					}
-					this.linelisttree.addAll(Arrays.asList(MathLib.generateLineList(newentitylist[0].trianglelist)));
-					Line[] linelist = this.linelisttree.toArray(new Line[this.linelisttree.size()]);
-					newentitylist[0].vertexlist = MathLib.generateVertexList(linelist);
-					newentitylist[0].aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newentitylist[0].vertexlist);
-					newentitylist[0].sphereboundaryvolume = MathLib.pointCloudCircumSphere(newentitylist[0].vertexlist);
-					this.entitylist = newentitylist;
-				} else {
-					Model loadmodel = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
-					ArrayList<Entity> newentitylist = new ArrayList<Entity>();
-					for (int j=0;j<loadmodel.objects.length;j++) {
-						Entity newentity = new Entity();
-						TreeSet<Line> newlinelisttree = new TreeSet<Line>();
-						TreeSet<Line> newnontrianglelinelisttree = new TreeSet<Line>();
-						ArrayList<Triangle> newtrianglelistarray = new ArrayList<Triangle>();
-						for (int i=0;i<loadmodel.objects[j].faceindex.length;i++) {
-							if (loadmodel.objects[j].faceindex[i].facevertexindex.length==1) {
-								Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
-								Line newline = new Line(pos1.copy(), pos1.copy());
-								newlinelisttree.add(newline);
-								this.linelisttree.add(newline);
-								newnontrianglelinelisttree.add(newline);
-							} else if (loadmodel.objects[j].faceindex[i].facevertexindex.length==2) {
-								Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
-								Position pos2 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
-								Line newline = new Line(pos1.copy(), pos2.copy());
-								newlinelisttree.add(newline);
-								this.linelisttree.add(newline);
-								newnontrianglelinelisttree.add(newline);
-							} else if (loadmodel.objects[j].faceindex[i].facevertexindex.length==3) {
-								Material foundmat = null;
-								for (int n=0;(n<loadmodel.materials.length)&&(foundmat==null);n++) {
-									if (loadmodel.objects[j].faceindex[i].usemtl.equals(loadmodel.materials[n].materialname)) {
-										foundmat = loadmodel.materials[n];
-									}
-								}
-								if (foundmat==null) {
-									foundmat = new Material(Color.WHITE,1.0f);
-								}
-								Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
-								Position pos2 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
-								Position pos3 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[2].vertexindex-1];
-								Direction norm = loadmodel.facenormals[loadmodel.objects[j].faceindex[i].facevertexindex[0].normalindex-1];
-								Coordinate tex1 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[0].textureindex-1];
-								Coordinate tex2 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[1].textureindex-1];
-								Coordinate tex3 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[2].textureindex-1];
-								Triangle tri = new Triangle(new Position(pos1.x,pos1.y,pos1.z),new Position(pos2.x,pos2.y,pos2.z),new Position(pos3.x,pos3.y,pos3.z));
-								tri.norm = norm;
-								tri.pos1.tex = tex1;
-								tri.pos2.tex = tex2;
-								tri.pos3.tex = tex3;
-								tri.mat = foundmat;
-								newtrianglelistarray.add(tri);
-								Line newline1 = new Line(pos1.copy(), pos2.copy());
-								Line newline2 = new Line(pos1.copy(), pos3.copy());
-								Line newline3 = new Line(pos2.copy(), pos3.copy());
-								newlinelisttree.add(newline1);
-								newlinelisttree.add(newline2);
-								newlinelisttree.add(newline3);
-								this.linelisttree.add(newline1);
-								this.linelisttree.add(newline2);
-								this.linelisttree.add(newline3);
-							} else {
-								Position[] pos = new Position[loadmodel.objects[j].faceindex[i].facevertexindex.length];
-								for (int m=0;m<loadmodel.objects[j].faceindex[i].facevertexindex.length;m++) {
-									pos[m] = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[m].vertexindex-1];
-									if (m>0) {
-										Line newline = new Line(pos[m].copy(), pos[m-1].copy());
-										newlinelisttree.add(newline);
-										this.linelisttree.add(newline);
-										newnontrianglelinelisttree.add(newline);
-									}
-								}
-								Line newline = new Line(pos[0].copy(), pos[loadmodel.objects[j].faceindex[i].facevertexindex.length-1].copy());
-								newlinelisttree.add(newline);
-								this.linelisttree.add(newline);
-								newnontrianglelinelisttree.add(newline);
-							}
-						}
-						for (int i=0;i<loadmodel.objects[j].lineindex.length;i++) {
-							if (loadmodel.objects[j].lineindex[i].linevertexindex.length==1) {
-								Position pos = loadmodel.vertexlist[loadmodel.objects[j].lineindex[i].linevertexindex[0]-1];
-								Line newline = new Line(pos.copy(), pos.copy());
-								newlinelisttree.add(newline);
-								this.linelisttree.add(newline);
-								newnontrianglelinelisttree.add(newline);
-							} else {
-								Position[] pos = new Position[loadmodel.objects[j].lineindex[i].linevertexindex.length];
-								for (int m=0;m<loadmodel.objects[j].lineindex[i].linevertexindex.length;m++) {
-									pos[m] = loadmodel.vertexlist[loadmodel.objects[j].lineindex[i].linevertexindex[m]-1];
-									if (m>0) {
-										Line newline = new Line(pos[m].copy(), pos[m-1].copy());
-										newlinelisttree.add(newline);
-										this.linelisttree.add(newline);
-										newnontrianglelinelisttree.add(newline);
-									}
-								}
-							}
-						}
-						newentity.trianglelist = newtrianglelistarray.toArray(new Triangle[newtrianglelistarray.size()]);
-						newentity.linelist = newnontrianglelinelisttree.toArray(new Line[newnontrianglelinelisttree.size()]);
-						Line[] newlinelist = newlinelisttree.toArray(new Line[newlinelisttree.size()]);
-						if (newlinelist.length>0) {
-							newentity.vertexlist = MathLib.generateVertexList(newlinelist);
-							newentity.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newentity.vertexlist);
-							newentity.sphereboundaryvolume = MathLib.pointCloudCircumSphere(newentity.vertexlist);
-							newentitylist.add(newentity);
-						}
-					}
-					this.entitylist = newentitylist.toArray(new Entity[newentitylist.size()]);
 				}
-			}
+		    } else if (f3shiftdown) {
+		    	//TODO load insert object
+		    } else {
+				this.filechooser.setDialogTitle("Load File");
+				this.filechooser.setApproveButtonText("Load");
+				if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
+					File loadfile = this.filechooser.getSelectedFile();
+					FileFilter loadfileformat = this.filechooser.getFileFilter();
+					if (loadfileformat.equals(this.stlfilefilter)) {
+						Entity[] newentitylist = {new Entity()};
+						newentitylist[0].trianglelist = ModelLib.loadSTLFile(loadfile.getPath(), false);
+						for (int i=0;i<newentitylist[0].trianglelist.length;i++) {
+							if (newentitylist[0].trianglelist[i].mat==null) {
+								newentitylist[0].trianglelist[i].mat = new Material(Color.WHITE,1.0f);
+							}
+						}
+						this.linelisttree.addAll(Arrays.asList(MathLib.generateLineList(newentitylist[0].trianglelist)));
+						Line[] linelist = this.linelisttree.toArray(new Line[this.linelisttree.size()]);
+						newentitylist[0].vertexlist = MathLib.generateVertexList(linelist);
+						newentitylist[0].aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newentitylist[0].vertexlist);
+						newentitylist[0].sphereboundaryvolume = MathLib.pointCloudCircumSphere(newentitylist[0].vertexlist);
+						this.entitylist = newentitylist;
+					} else {
+						Model loadmodel = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
+						ArrayList<Entity> newentitylist = new ArrayList<Entity>();
+						for (int j=0;j<loadmodel.objects.length;j++) {
+							Entity newentity = new Entity();
+							TreeSet<Line> newlinelisttree = new TreeSet<Line>();
+							TreeSet<Line> newnontrianglelinelisttree = new TreeSet<Line>();
+							ArrayList<Triangle> newtrianglelistarray = new ArrayList<Triangle>();
+							for (int i=0;i<loadmodel.objects[j].faceindex.length;i++) {
+								if (loadmodel.objects[j].faceindex[i].facevertexindex.length==1) {
+									Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
+									Line newline = new Line(pos1.copy(), pos1.copy());
+									newlinelisttree.add(newline);
+									this.linelisttree.add(newline);
+									newnontrianglelinelisttree.add(newline);
+								} else if (loadmodel.objects[j].faceindex[i].facevertexindex.length==2) {
+									Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
+									Position pos2 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
+									Line newline = new Line(pos1.copy(), pos2.copy());
+									newlinelisttree.add(newline);
+									this.linelisttree.add(newline);
+									newnontrianglelinelisttree.add(newline);
+								} else if (loadmodel.objects[j].faceindex[i].facevertexindex.length==3) {
+									Material foundmat = null;
+									for (int n=0;(n<loadmodel.materials.length)&&(foundmat==null);n++) {
+										if (loadmodel.objects[j].faceindex[i].usemtl.equals(loadmodel.materials[n].materialname)) {
+											foundmat = loadmodel.materials[n];
+										}
+									}
+									if (foundmat==null) {
+										foundmat = new Material(Color.WHITE,1.0f);
+									}
+									Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
+									Position pos2 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
+									Position pos3 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[2].vertexindex-1];
+									Direction norm = loadmodel.facenormals[loadmodel.objects[j].faceindex[i].facevertexindex[0].normalindex-1];
+									Coordinate tex1 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[0].textureindex-1];
+									Coordinate tex2 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[1].textureindex-1];
+									Coordinate tex3 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[2].textureindex-1];
+									Triangle tri = new Triangle(new Position(pos1.x,pos1.y,pos1.z),new Position(pos2.x,pos2.y,pos2.z),new Position(pos3.x,pos3.y,pos3.z));
+									tri.norm = norm;
+									tri.pos1.tex = tex1;
+									tri.pos2.tex = tex2;
+									tri.pos3.tex = tex3;
+									tri.mat = foundmat;
+									newtrianglelistarray.add(tri);
+									Line newline1 = new Line(pos1.copy(), pos2.copy());
+									Line newline2 = new Line(pos1.copy(), pos3.copy());
+									Line newline3 = new Line(pos2.copy(), pos3.copy());
+									newlinelisttree.add(newline1);
+									newlinelisttree.add(newline2);
+									newlinelisttree.add(newline3);
+									this.linelisttree.add(newline1);
+									this.linelisttree.add(newline2);
+									this.linelisttree.add(newline3);
+								} else {
+									Position[] pos = new Position[loadmodel.objects[j].faceindex[i].facevertexindex.length];
+									for (int m=0;m<loadmodel.objects[j].faceindex[i].facevertexindex.length;m++) {
+										pos[m] = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[m].vertexindex-1];
+										if (m>0) {
+											Line newline = new Line(pos[m].copy(), pos[m-1].copy());
+											newlinelisttree.add(newline);
+											this.linelisttree.add(newline);
+											newnontrianglelinelisttree.add(newline);
+										}
+									}
+									Line newline = new Line(pos[0].copy(), pos[loadmodel.objects[j].faceindex[i].facevertexindex.length-1].copy());
+									newlinelisttree.add(newline);
+									this.linelisttree.add(newline);
+									newnontrianglelinelisttree.add(newline);
+								}
+							}
+							for (int i=0;i<loadmodel.objects[j].lineindex.length;i++) {
+								if (loadmodel.objects[j].lineindex[i].linevertexindex.length==1) {
+									Position pos = loadmodel.vertexlist[loadmodel.objects[j].lineindex[i].linevertexindex[0]-1];
+									Line newline = new Line(pos.copy(), pos.copy());
+									newlinelisttree.add(newline);
+									this.linelisttree.add(newline);
+									newnontrianglelinelisttree.add(newline);
+								} else {
+									Position[] pos = new Position[loadmodel.objects[j].lineindex[i].linevertexindex.length];
+									for (int m=0;m<loadmodel.objects[j].lineindex[i].linevertexindex.length;m++) {
+										pos[m] = loadmodel.vertexlist[loadmodel.objects[j].lineindex[i].linevertexindex[m]-1];
+										if (m>0) {
+											Line newline = new Line(pos[m].copy(), pos[m-1].copy());
+											newlinelisttree.add(newline);
+											this.linelisttree.add(newline);
+											newnontrianglelinelisttree.add(newline);
+										}
+									}
+								}
+							}
+							newentity.trianglelist = newtrianglelistarray.toArray(new Triangle[newtrianglelistarray.size()]);
+							newentity.linelist = newnontrianglelinelisttree.toArray(new Line[newnontrianglelinelisttree.size()]);
+							Line[] newlinelist = newlinelisttree.toArray(new Line[newlinelisttree.size()]);
+							if (newlinelist.length>0) {
+								newentity.vertexlist = MathLib.generateVertexList(newlinelist);
+								newentity.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newentity.vertexlist);
+								newentity.sphereboundaryvolume = MathLib.pointCloudCircumSphere(newentity.vertexlist);
+								newentitylist.add(newentity);
+							}
+						}
+						this.entitylist = newentitylist.toArray(new Entity[newentitylist.size()]);
+					}
+				}
+		    }
 		}
 	}
 	
@@ -582,6 +735,7 @@ public class CADApp extends AppHandlerPanel {
 	}
 	@Override public void mousePressed(MouseEvent e) {
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
+		this.mousestartlocationx=this.mouselocationx;this.mousestartlocationy=this.mouselocationy;
 	    int onmask1ctrldown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    int offmask1ctrldown = MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse1ctrldown = ((e.getModifiersEx() & (onmask1ctrldown | offmask1ctrldown)) == onmask1ctrldown);
@@ -600,7 +754,7 @@ public class CADApp extends AppHandlerPanel {
 	    int onmask1alt = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    int offmask1alt = MouseEvent.CTRL_DOWN_MASK;
 	    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1alt | offmask1alt)) == onmask1alt);
-    	if (mouse1altdown) {
+    	if ((mouse1altdown)&&(this.polygonfillmode==1)) {
     		this.drawstartpos = null;
     		double mouserelativelocationx = this.mouselocationx-this.origindeltax;
     		double mouserelativelocationy = this.mouselocationy-this.origindeltay;
@@ -634,6 +788,17 @@ public class CADApp extends AppHandlerPanel {
 				}
 			}
 		}
+		if (this.paintrenderview.renderimage!=null) {
+			Graphics2D renderbuffergfx = this.paintrenderview.renderimage.createGraphics();
+			renderbuffergfx.setColor(this.drawmat.facecolor);
+			if (mouse1up||mouse3up) {
+				if (this.drawlinemode) {
+					this.drawlinemode=false;
+					drawPencilLine(renderbuffergfx, this.mousestartlocationx, this.mousestartlocationy, this.mouselocationx, this.mouselocationy, this.penciloverridemode);
+				}
+			}
+			renderbuffergfx.dispose();
+		}
 	}
 	
 	public void mouseDragged(MouseEvent e) {
@@ -643,36 +808,8 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask1down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1down | offmask1down)) == onmask1down);
     	if (mouse1down) {
-    		if (this.softwarerenderview!=null) {
-    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			Triangle mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
-	    			if (mousetriangle!=null) {
-	    				if (mousetriangle.mat.fileimage!=null) {
-		    				Coordinate mousetexcoord = this.softwarerenderview.cbuffer[this.mouselocationy][this.mouselocationx];
-		    				if (mousetexcoord!=null) {
-		    					int mousetexcoordx = (int)Math.floor(mousetexcoord.u);
-		    					int mousetexcoordy = (int)Math.floor(mousetexcoord.v);
-		    					mousetriangle.mat = mousetriangle.mat.copy();
-		    					Graphics2D tgfx = mousetriangle.mat.fileimage.createGraphics();
-		    					tgfx.setComposite(AlphaComposite.SrcOver);
-		    					tgfx.setColor(this.drawmat.facecolor);
-		    					tgfx.drawLine(mousetexcoordx, mousetexcoordy, mousetexcoordx, mousetexcoordy);
-		    					tgfx.dispose();
-		    				}
-	    				} else {
-	    					mousetriangle.pos1.tex = new Coordinate(0.0f,0.0f);
-	    					mousetriangle.pos2.tex = new Coordinate(1.0f,0.0f);
-	    					mousetriangle.pos3.tex = new Coordinate(0.0f,1.0f);
-	    					mousetriangle.mat.fileimage = gc.createCompatibleVolatileImage(defaulttexturesize, defaulttexturesize, Transparency.TRANSLUCENT);
-	    					Graphics2D tgfx = mousetriangle.mat.fileimage.createGraphics();
-	    					tgfx.setComposite(AlphaComposite.Src);
-	    					tgfx.setColor(mousetriangle.mat.facecolor);
-	    					tgfx.fillRect(0, 0, defaulttexturesize, defaulttexturesize);
-	    					tgfx.dispose();
-	    				}
-	    			}
-    			}
-    		}
+    		Graphics2D pgfx = this.paintrenderview.renderimage.createGraphics();
+    		this.drawPencil(pgfx, this.mouselocationx, this.mouselocationy, this.penciloverridemode);
     	}
 	    int onmask1shiftdown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    int offmask1shiftdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
@@ -695,7 +832,7 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask1altdown = MouseEvent.CTRL_DOWN_MASK;
 	    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1altdown | offmask1altdown)) == onmask1altdown);
     	if (mouse1ctrldown||mouse1altdown) {
-    		if (this.draglinemode) {
+    		if ((this.draglinemode)&&(this.polygonfillmode==1)) {
     			Position drawlocation = null;
 	    		double mouserelativelocationx = this.mouselocationx-this.origindeltax;
 	    		double mouserelativelocationy = this.mouselocationy-this.origindeltay;
@@ -719,11 +856,20 @@ public class CADApp extends AppHandlerPanel {
 				}
 				(new EntityListUpdater()).start();
     		}
+    	    if ((mouse1altdown)&&(this.polygonfillmode==3)) {
+    		    this.drawlinemode = true;
+    	    }
 		}
 	    int onmask2down = MouseEvent.BUTTON2_DOWN_MASK;
-	    int offmask2down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    int offmask2down = MouseEvent.ALT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mouse2down = ((e.getModifiersEx() & (onmask2down | offmask2down)) == onmask2down);
     	if (mouse2down) {
+    		//TODO pan triangle texture
+    	}
+	    int onmask2ctrldown = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+	    int offmask2ctrldown = MouseEvent.ALT_DOWN_MASK;
+	    boolean mouse2ctrldown = ((e.getModifiersEx() & (onmask2ctrldown | offmask2ctrldown)) == onmask2ctrldown);
+    	if (mouse2ctrldown) {
     		double movementstep = 1.0f;
     		if (this.snaplinemode) {
     			movementstep = this.gridstep;
@@ -738,10 +884,10 @@ public class CADApp extends AppHandlerPanel {
     		this.editpos.y -= mousedeltay*movementstep*this.camdirs[2].dy;
     		this.editpos.z -= mousedeltay*movementstep*this.camdirs[2].dz;
     	}
-	    int onmask2ctrldown = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
-	    int offmask2ctrldown = MouseEvent.ALT_DOWN_MASK;
-	    boolean mouse2ctrldown = ((e.getModifiersEx() & (onmask2ctrldown | offmask2ctrldown)) == onmask2ctrldown);
-    	if (mouse2ctrldown) {
+	    int onmask2ctrlaltdown = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    int offmask2ctrlaltdown = 0;
+	    boolean mouse2ctrlaltdown = ((e.getModifiersEx() & (onmask2ctrlaltdown | offmask2ctrlaltdown)) == onmask2ctrlaltdown);
+    	if (mouse2ctrlaltdown) {
     		double movementstep = 1.0f;
     		if (this.snaplinemode) {
     			movementstep = this.gridstep;
@@ -800,14 +946,45 @@ public class CADApp extends AppHandlerPanel {
     	}
 	}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {
-		double movementstep = 200.0f*e.getWheelRotation();
-		if (this.snaplinemode) {
-			movementstep *= this.gridstep;
-		}
-		this.editpos = this.editpos.copy();
-		this.editpos.x -= movementstep*this.camdirs[0].dx;
-		this.editpos.y -= movementstep*this.camdirs[0].dy;
-		this.editpos.z -= movementstep*this.camdirs[0].dz;
+	    int onmask = 0;
+	    int offmask = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
+	    boolean mousewheeldown = ((e.getModifiersEx() & (onmask | offmask)) == onmask);
+	    if (mousewheeldown) {
+			this.pencilsize += e.getWheelRotation()*((this.pencilsize>16)?this.pencilsize/16:1);
+			if (this.pencilsize<1) {
+				this.pencilsize = 1;
+			}
+	    }
+	    int onmaskshiftdown = MouseEvent.SHIFT_DOWN_MASK;
+	    int offmaskshiftdown = MouseEvent.ALT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+	    boolean mousewheelshiftdown = ((e.getModifiersEx() & (onmaskshiftdown | offmaskshiftdown)) == onmaskshiftdown);
+	    if (mousewheelshiftdown) {
+			this.pencilangle += 0.05f*e.getWheelRotation();
+			if (this.pencilangle>(2.0f*Math.PI)) {
+				this.pencilangle = 0.0f;
+			} else if (this.pencilangle<0.0f) {
+				this.pencilangle = 2.0f*Math.PI;
+			}
+	    }
+	    int onmaskaltdown = MouseEvent.ALT_DOWN_MASK;
+	    int offmaskaltdown = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+	    boolean mousewheelaltdown = ((e.getModifiersEx() & (onmaskaltdown | offmaskaltdown)) == onmaskaltdown);
+	    if (mousewheelaltdown) {
+	    	//TBD <tbd>
+	    }
+	    int onmaskctrldown = MouseEvent.CTRL_DOWN_MASK;
+	    int offmaskctrldown = MouseEvent.ALT_DOWN_MASK;
+	    boolean mousewheelctrldown = ((e.getModifiersEx() & (onmaskctrldown | offmaskctrldown)) == onmaskctrldown);
+	    if (mousewheelctrldown) {
+			double movementstep = 200.0f*e.getWheelRotation();
+			if (this.snaplinemode) {
+				movementstep *= this.gridstep;
+			}
+			this.editpos = this.editpos.copy();
+			this.editpos.x -= movementstep*this.camdirs[0].dx;
+			this.editpos.y -= movementstep*this.camdirs[0].dy;
+			this.editpos.z -= movementstep*this.camdirs[0].dz;
+	    }
 	}
 	@Override public void mouseClicked(MouseEvent e) {}
 	@Override public void mouseEntered(MouseEvent e) {}
@@ -878,6 +1055,61 @@ public class CADApp extends AppHandlerPanel {
 					CADApp.this.mouseovertriangle = CADApp.this.softwarerenderview.mouseovertriangle;
 				}
 				SoftwareRenderViewUpdater.renderupdaterrunning = false;
+			}
+		}
+	}
+
+	private class PaintTextureUpdater extends Thread {
+		private static boolean renderupdaterrunning = false;
+		public void run() {
+			if (!PaintTextureUpdater.renderupdaterrunning) {
+				PaintTextureUpdater.renderupdaterrunning = true;
+				if (CADApp.this.polygonfillmode==3) {
+					if (CADApp.this.softwarerenderview!=null) {
+						RenderView softwarerenderviewhandle = CADApp.this.softwarerenderview; 
+						if (CADApp.this.paintrenderview!=null) {
+							CADApp.this.paintrenderview.snapimage = CADApp.this.paintrenderview.renderimage.getSnapshot();
+							Graphics2D pgfx = paintrenderview.renderimage.createGraphics();
+							pgfx.setComposite(AlphaComposite.Src);
+							pgfx.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
+							for (int j=0;j<CADApp.this.paintrenderview.snapimage.getHeight();j++) {
+								for (int i=0;i<CADApp.this.paintrenderview.snapimage.getWidth();i++) {
+									Color paintpixelcolor = new Color(CADApp.this.paintrenderview.snapimage.getRGB(i, j));
+									if (paintpixelcolor.getAlpha()!=0) {
+										Triangle pixeltriangle = softwarerenderviewhandle.tbuffer[j][i];
+										if (pixeltriangle!=null) {
+						    				Coordinate texcoord = softwarerenderviewhandle.cbuffer[j][i];
+						    				if (texcoord!=null) {
+												if (pixeltriangle.mat.fileimage==null) {
+													pixeltriangle.mat.fileimage = gc.createCompatibleVolatileImage(defaulttexturesize, defaulttexturesize, Transparency.TRANSLUCENT);
+													Graphics2D tgfx = pixeltriangle.mat.fileimage.createGraphics();
+													tgfx.setComposite(AlphaComposite.Src);
+													tgfx.setColor(pixeltriangle.mat.facecolor);
+													tgfx.fillRect(0, 0, defaulttexturesize, defaulttexturesize);
+													tgfx.dispose();
+													pixeltriangle.pos1.tex = new Coordinate(0.0f,0.0f);
+													pixeltriangle.pos2.tex = new Coordinate(1.0f,0.0f);
+													pixeltriangle.pos3.tex = new Coordinate(0.0f,1.0f);
+												}
+						    					int texcoordx = (int)Math.floor(texcoord.u);
+						    					int texcoordy = (int)Math.floor(texcoord.v);
+						    					pixeltriangle.mat = pixeltriangle.mat.copy();
+						    					Graphics2D tgfx = pixeltriangle.mat.fileimage.createGraphics();
+						    					tgfx.setComposite(AlphaComposite.Src);
+						    					tgfx.setColor(paintpixelcolor);
+						    					tgfx.drawLine(texcoordx, texcoordy, texcoordx, texcoordy);
+						    					tgfx.dispose();
+						    				}
+										}
+										pgfx.drawLine(i, j, i, j);
+									}
+								}
+							}
+							pgfx.dispose();
+						}
+					}
+				}
+				PaintTextureUpdater.renderupdaterrunning = false;
 			}
 		}
 	}

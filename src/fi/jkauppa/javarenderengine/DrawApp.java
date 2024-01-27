@@ -382,7 +382,7 @@ public class DrawApp extends AppHandlerPanel {
 	    int offmask4 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mousewheeldown = ((e.getModifiersEx() & (onmask4 | offmask4)) == onmask4);
 	    if (mousewheeldown) {
-			this.pencilsize += e.getWheelRotation();
+	    	this.pencilsize += e.getWheelRotation()*((this.pencilsize>16)?this.pencilsize/16:1);
 			if (this.pencilsize<1) {
 				this.pencilsize = 1;
 			}
@@ -424,7 +424,7 @@ public class DrawApp extends AppHandlerPanel {
 	    int offmask4d = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mousewheelshiftdown = ((e.getModifiersEx() & (onmask4d | offmask4d)) == onmask4d);
 	    if (mousewheelshiftdown) {
-			this.pencilangle += 0.01f*e.getWheelRotation();
+			this.pencilangle += 0.05f*e.getWheelRotation();
 			if (this.pencilangle>(2.0f*Math.PI)) {
 				this.pencilangle = 0.0f;
 			} else if (this.pencilangle<0.0f) {
