@@ -94,7 +94,7 @@ WASD              -- camera location change forward/left/backward/right (minmax)
 C-SPACE           -- camera height change down/up (minmax)
 QE                -- camera tilt change left/right (looping)
 F3                -- load model file dialog
-ENTER             -- changes between hardware/software renderers (looping)
+ENTER             -- changes between plane/ray tracing renderers (looping)
 
 Editor App Keys:
 -- none --        -- placeholder key binding
