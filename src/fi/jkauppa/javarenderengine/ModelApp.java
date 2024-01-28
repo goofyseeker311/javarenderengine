@@ -41,6 +41,7 @@ public class ModelApp extends AppHandlerPanel {
 	private Direction[] camdirs = lookdirs;
 	private double hfov = 70.0f;
 	private double vfov = 43.0f;
+	private int polygonfillmode = 1;
 	private JFileChooser filechooser = new JFileChooser();
 	private OBJFileFilter objfilefilter = new OBJFileFilter();
 	private boolean leftkeydown = false;
@@ -181,6 +182,11 @@ public class ModelApp extends AppHandlerPanel {
 			this.rollleftkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_E) {
 			this.rollrightkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
+			this.polygonfillmode += 1;
+			if (this.polygonfillmode>2) {
+				this.polygonfillmode = 1;
+			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
 			this.filechooser.setDialogTitle("Load File");
 			this.filechooser.setApproveButtonText("Load");
@@ -276,7 +282,11 @@ public class ModelApp extends AppHandlerPanel {
 		public void run() {
 			if (!RenderViewUpdater.renderupdaterrunning) {
 				RenderViewUpdater.renderupdaterrunning = true;
-				ModelApp.this.renderview = ModelLib.renderProjectedTextureViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+				if (ModelApp.this.polygonfillmode==1) {
+					ModelApp.this.renderview = ModelLib.renderProjectedTextureViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+				} else {
+					ModelApp.this.renderview = ModelLib.renderProjectedRayViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+				}
 				RenderViewUpdater.renderupdaterrunning = false;
 			}
 		}
