@@ -63,7 +63,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v1.9.2");
+		this.setTitle("Java Render Engine v1.9.3");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -163,9 +163,9 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		System.out.print("unsortedlist:"); for (int i=0;i<unsortedlist.length;i++) {System.out.print(" "+unsortedlist[i]);} System.out.println();
 		System.out.print("sortedlistidx:"); for (int i=0;i<sortedlistidx.length;i++) {System.out.print(" "+sortedlistidx[i]);} System.out.println();
 		System.out.print("sortedlist:"); for (int i=0;i<sortedlist.length;i++) {System.out.print(" "+sortedlist[i]);} System.out.println();
-		Sphere[] vsphere1 = {new Sphere(0,0,0,2)}; 
+		Sphere[] vsphere1 = {new Sphere(0,0,0,2)};
 		Sphere[] vsphere2 = {new Sphere(0,0,2,2), new Sphere(0,4,0,2), new Sphere(4,4,0,2)};
-		Sphere[] vsphere3 = {new Sphere(0,0,0,2), new Sphere(0,0,2,2), new Sphere(0,3.9,0,2), new Sphere(3.9,0,0,2)};
+		Sphere[] vsphere3 = {new Sphere(0,0,0,2), new Sphere(0,0,3.9,2), new Sphere(0,3.9,0,2), new Sphere(3.9,0,0,2)};
 		boolean[][] ssint = MathLib.sphereSphereIntersection(vsphere1, vsphere2);
 		Integer[][] ssint2 = MathLib.mutualSphereIntersection(vsphere3);
 		System.out.println("ssint["+ssint.length+"]["+ssint[0].length+"]="); for (int j=0;j<ssint.length;j++) {for (int i=0;i<ssint[0].length;i++) {System.out.print(" "+ssint[j][i]);}System.out.println();}
@@ -210,10 +210,17 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		System.out.println("aabb="+aabb.x1+","+aabb.y1+","+aabb.z1+" "+aabb.x2+" "+aabb.y2+" "+aabb.z2);
 		System.out.println("boundingsphere="+pointcloudsphere.x+","+pointcloudsphere.y+","+pointcloudsphere.z+" "+pointcloudsphere.r);
 		for (int i=0;i<trianglesphere.length;i++) {System.out.println("trianglesphere["+i+"]="+trianglesphere[i].x+" "+trianglesphere[i].y+" "+trianglesphere[i].z+" "+trianglesphere[i].r);}
-		Position vpos = new Position(0,0,0);
-		Rectangle[][] cmsint = MathLib.cubemapSphereIntersection(vpos, vsphere3, 64);
+		Position pmsvpos = new Position(0,0,0);
+		Sphere[] pmsvsph = {new Sphere(0,0,0,2), new Sphere(0,0,3.9,2), new Sphere(0,3.9,0,2), new Sphere(3.9,0,0,2)};
+		Rectangle[][] cmsint = MathLib.cubemapSphereIntersection(pmsvpos, pmsvsph, 64);
+		Matrix pmsrotx = MathLib.rotationMatrix(90.0f, 0.0f, 0.0f);
+		Matrix pmsrotz = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
+		Matrix pmsrot = MathLib.matrixMultiply(pmsrotz, pmsrotx);
+		Rectangle[] pmsint = MathLib.projectedSphereIntersection(pmsvpos, pmsvsph, 64, 64, 90, 90, pmsrot);
 		for (int j=0;j<cmsint.length;j++) {for (int i=0;i<cmsint[0].length;i++){if(cmsint[j][i]==null){cmsint[j][i]=new Rectangle(-1,-1,1,1);}}}
-		for (int j=0;j<cmsint.length;j++) {System.out.print("cmsint["+j+"]="); for (int i=0;i<cmsint[0].length;i++) {System.out.print(" "+cmsint[j][i].x+","+cmsint[j][i].y+","+(cmsint[j][i].x+cmsint[j][i].width-1)+","+(cmsint[j][i].y+cmsint[j][i].height-1));} System.out.println();}
+		for (int j=0;j<cmsint[0].length;j++) {System.out.print("cmsint["+j+"]="); for (int i=0;i<cmsint.length;i++) {System.out.print(" "+cmsint[i][j].x+","+cmsint[i][j].y+","+(cmsint[i][j].x+cmsint[i][j].width-1)+","+(cmsint[i][j].y+cmsint[i][j].height-1));} System.out.println();}
+		for (int i=0;i<pmsint.length;i++){if(pmsint[i]==null){pmsint[i]=new Rectangle(-1,-1,1,1);}}
+		for (int i=0;i<pmsint.length;i++) {System.out.println("pmsint["+i+"]= "+pmsint[i].x+","+pmsint[i].y+","+(pmsint[i].x+pmsint[i].width-1)+","+(pmsint[i].y+pmsint[i].height-1));}
 		Triangle[] sdtri = MathLib.subDivideTriangle(ptri);
 		for (int i=0;i<sdtri.length;i++) {System.out.println("sdtri["+i+"]="+sdtri[i].pos1.x+","+sdtri[i].pos1.y+","+sdtri[i].pos1.z+" "+sdtri[i].pos2.x+","+sdtri[i].pos2.y+","+sdtri[i].pos2.z+" "+sdtri[i].pos3.x+","+sdtri[i].pos3.y+","+sdtri[i].pos3.z);}
 		Position[] tpoint = {new Position(0.0f,0.0f,0.0f),new Position(-50.0f,30.0f,45.0f),new Position(-8.0f,3.0f,9.0f),new Position(-6.0f,1.0f,4.0f)};
