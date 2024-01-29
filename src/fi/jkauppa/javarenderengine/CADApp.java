@@ -1011,7 +1011,7 @@ public class CADApp extends AppHandlerPanel {
 			if (!SoftwareRenderViewUpdater.renderupdaterrunning) {
 				SoftwareRenderViewUpdater.renderupdaterrunning = true;
 				if (CADApp.this.polygonfillmode==3) {
-					CADApp.this.softwarerenderview = ModelLib.renderProjectedTextureViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, false, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.softwarerenderview = ModelLib.renderProjectedPlaneViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, false, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseovertriangle = CADApp.this.softwarerenderview.mouseovertriangle;
 				}
 				SoftwareRenderViewUpdater.renderupdaterrunning = false;

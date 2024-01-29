@@ -95,6 +95,10 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static double[] vectorLength(Position[] vpos1,Position[] vpos2) {
+		Direction[] lengthvector = MathLib.vectorFromPoints(vpos1, vpos2);
+		return vectorLength(lengthvector);
+	}
 	public static double[] vectorAngle(Direction vdir1, Direction[] vdir2) {
 		double[] k = null;
 		if ((vdir1!=null)&&(vdir2!=null)) {
@@ -1521,9 +1525,13 @@ public class MathLib {
 					int hcenterind2 = (int)Math.floor(halfhfovmult*halfhres*(tand(hangle2))+halfhres);
 					int vcenterind1 = (int)Math.ceil(halfvfovmult*halfvres*(tand(vangle1))+halfvres);
 					int vcenterind2 = (int)Math.floor(halfvfovmult*halfvres*(tand(vangle2))+halfvres);
-					int spherewidth =  hcenterind2-hcenterind1+1;
-					int sphereheight =  vcenterind2-vcenterind1+1;
-					if ((hcenterind1<hres)&&(hcenterind2>=0)&&(vcenterind1<vres)&&(vcenterind2>=0)) {
+					if (hcenterind1<0) {hcenterind1=0;}
+					if (hcenterind2>=hres) {hcenterind2=hres-1;}
+					if (vcenterind1<0) {vcenterind1=0;}
+					if (vcenterind2>=vres) {vcenterind2=vres-1;}
+					int spherewidth = hcenterind2-hcenterind1+1;
+					int sphereheight = vcenterind2-vcenterind1+1;
+					if ((hcenterind1<hres)&&(hcenterind2>=0)&&(vcenterind1<vres)&&(vcenterind2>=0)&&(spherewidth>0)&&(sphereheight>0)) {
 						k[i] = new Rectangle(hcenterind1,vcenterind1,spherewidth,sphereheight);
 					}
 				}
@@ -1582,13 +1590,13 @@ public class MathLib {
 		for (int i=0;i<trianglelist.length;i++) {
 			Direction[] v12 = {new Direction(trianglelist[i].pos2.x-trianglelist[i].pos1.x,trianglelist[i].pos2.y-trianglelist[i].pos1.y,trianglelist[i].pos2.z-trianglelist[i].pos1.z)};
 			Direction[] v13 = {new Direction(trianglelist[i].pos3.x-trianglelist[i].pos1.x,trianglelist[i].pos3.y-trianglelist[i].pos1.y,trianglelist[i].pos3.z-trianglelist[i].pos1.z)};
-			double[] v12L = vectorLength(v12);
-			double[] v13L = vectorLength(v13);
+			double[] v12D = vectorDot(v12);
+			double[] v13D = vectorDot(v13);
 			Direction[] cv12v13 = vectorCross(v12,v13);
-			double[] cv12v13L = vectorLength(cv12v13);
-			Direction[] toparg = {new Direction(v12L[0]*v13[0].dx-v13L[0]*v12[0].dx,v12L[0]*v13[0].dy-v13L[0]*v12[0].dy,v12L[0]*v13[0].dz-v13L[0]*v12[0].dz)};
+			double[] cv12v13D = vectorDot(cv12v13);
+			Direction[] toparg = {new Direction(v12D[0]*v13[0].dx-v13D[0]*v12[0].dx,v12D[0]*v13[0].dy-v13D[0]*v12[0].dy,v12D[0]*v13[0].dz-v13D[0]*v12[0].dz)};
 			Direction[] top = vectorCross(toparg,cv12v13);
-			double bottom = 2.0f*Math.pow(cv12v13L[0],2);
+			double bottom = 2.0f*cv12v13D[0];
 			Position p1 = trianglelist[i].pos1;
 			if (bottom!=0) {
 				Position spherecenter = new Position(top[0].dx/bottom+p1.x,top[0].dy/bottom+p1.y,top[0].dz/bottom+p1.z);
