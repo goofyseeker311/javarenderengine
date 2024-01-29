@@ -221,12 +221,8 @@ public class ModelApp extends AppHandlerPanel {
 							tri.pos1.tex = tex1;
 							tri.pos2.tex = tex2;
 							tri.pos3.tex = tex3;
-							Triangle[] stri = {tri};
-							stri = MathLib.subDivideTriangle(stri);
-							for (int n=0;n<stri.length;n++ ) {
-								stri[n].mat = foundmat;
-								newtrianglelistarray.add(stri[n]);
-							}
+							tri.mat = foundmat;
+							newtrianglelistarray.add(tri);
 						}
 					}
 					newentity.trianglelist = newtrianglelistarray.toArray(new Triangle[newtrianglelistarray.size()]);
@@ -283,7 +279,7 @@ public class ModelApp extends AppHandlerPanel {
 			if (!RenderViewUpdater.renderupdaterrunning) {
 				RenderViewUpdater.renderupdaterrunning = true;
 				if (ModelApp.this.polygonfillmode==1) {
-					ModelApp.this.renderview = ModelLib.renderProjectedTextureViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+					ModelApp.this.renderview = ModelLib.renderProjectedPlaneViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				} else {
 					ModelApp.this.renderview = ModelLib.renderProjectedRayViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				}
