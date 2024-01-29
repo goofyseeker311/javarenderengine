@@ -105,6 +105,7 @@ public class ModelLib {
 		public Matrix rot;
 		public int renderwidth=0, renderheight=0; 
 		public double hfov=0.0f, vfov=43.0f;
+		public boolean rendered = false;
 		public Direction[] dirs;
 		public Direction[][] rays;
 		public Plane[] planes;
@@ -1293,8 +1294,7 @@ public class ModelLib {
 								g2.fill(trianglepolygon);
 								boolean mouseoverhit = g2.hit(new Rectangle(mouselocationx-vertexradius,mouselocationy-vertexradius,3,3), trianglepolygon, false);
 								if (mouseoverhit) {
-									int copytriangleind = Math.floorDiv(i, 2);
-									mouseoverhittriangle.add(copytrianglelist[copytriangleind]);
+									mouseoverhittriangle.add(copytrianglelist[i]);
 								}
 							}
 						}
