@@ -535,69 +535,6 @@ public class MathLib {
 		}
 		return k;
 	}
-
-	public static Rectangle[][] cubemapSphereIntersection(Position vpos, Sphere[] vsphere, int vres) {
-		Rectangle[][] k = new Rectangle[vsphere.length][6];
-		double[] cmangles = projectedAngles(vres, 90);
-		Arrays.sort(cmangles);
-		Direction[] cubedir = {new Direction(1.0f,0.0f,0.0f),new Direction(0.0f,1.0f,0.0f),new Direction(-1.0f,0.0f,0.0f),new Direction(0.0f,-1.0f,0.0f),new Direction(0.0f,0.0f,1.0f),new Direction(0.0f,0.0f,-1.0f)};
-		int[] cubeind1 = {3,3,3,3,2,2};
-		int[] cubeind2 = {2,1,2,1,1,1};
-		Direction[] lvec = vectorFromPoints(vpos, vsphere);
-		double[] lvecl = vectorLength(lvec);
-		for (int j=0;j<vsphere.length;j++) {
-			double cmradang = asind(vsphere[j].r/lvecl[j]);
-			if (!Double.isFinite(cmradang)) {cmradang = 180.0f;}
-			for (int i=0;i<cubedir.length;i++) {
-				Direction[] lvecx = new Direction[2];
-				double sign1 = 1.0f;
-				double sign2 = 1.0f;
-				if (cubeind1[i]==1) {
-					lvecx[0] = new Direction(0.0f,lvec[j].dy,lvec[j].dz);
-					sign2 = lvec[j].dx<0.0f?-1.0f:1.0f;
-				} else if (cubeind1[i]==2) {
-					lvecx[0] = new Direction(lvec[j].dx,0.0f,lvec[j].dz);
-					sign2 = lvec[j].dy<0.0f?-1.0f:1.0f;
-				} else {
-					lvecx[0] = new Direction(lvec[j].dx,lvec[j].dy,0.0f);
-					sign2 = lvec[j].dz<0.0f?-1.0f:1.0f;
-				}
-				if (cubeind2[i]==1) {
-					lvecx[1] = new Direction(0.0f,lvec[j].dy,lvec[j].dz);
-					sign1 = lvec[j].dx<0.0f?-1.0f:1.0f;
-				} else if (cubeind2[i]==2) {
-					lvecx[1] = new Direction(lvec[j].dx,0.0f,lvec[j].dz);
-					sign1 = lvec[j].dy<0.0f?-1.0f:1.0f;
-				} else {
-					lvecx[1] = new Direction(lvec[j].dx,lvec[j].dy,0.0f);
-					sign1 = lvec[j].dz<0.0f?-1.0f:1.0f;
-				}
-				Direction[] lvecxn = normalizeVector(lvecx);
-				double lvecxa1 = sign1*acosd(vectorDot(lvecxn[0],cubedir[i])); 
-				double lvecxa2 = sign2*acosd(vectorDot(lvecxn[1],cubedir[i]));
-				double lvecxa1min = lvecxa1 - cmradang;
-				double lvecxa1max = lvecxa1 + cmradang;
-				double lvecxa2min = lvecxa2 - cmradang;
-				double lvecxa2max = lvecxa2 + cmradang;
-				int startind1 = Arrays.binarySearch(cmangles, lvecxa1min);
-				int endind1 = Arrays.binarySearch(cmangles, lvecxa1max);
-				int startind2 = Arrays.binarySearch(cmangles, lvecxa2min);
-				int endind2 = Arrays.binarySearch(cmangles, lvecxa2max);
-				if ((startind1!=-(cmangles.length+1))&&(endind1!=-1)&&(startind2!=-(cmangles.length+1))&&(endind2!=-1)) {
-					if (startind1<0) {startind1 = -startind1-1;}
-					if (endind1<0) {endind1 = -endind1-1;}
-					if (startind1>=cmangles.length) {startind1 = cmangles.length-1;}
-					if (endind1>=cmangles.length) {endind1 = cmangles.length-1;}
-					if (startind2<0) {startind2 = -startind2-1;}
-					if (endind2<0) {endind2 = -endind2-1;}
-					if (startind2>=cmangles.length) {startind2 = cmangles.length-1;}
-					if (endind2>=cmangles.length) {endind2 = cmangles.length-1;}
-					k[j][i] = new Rectangle(startind1,startind2,endind1-startind1+1,endind2-startind2+1);
-				}
-			}
-		}
-		return k;
-	}
 	
 	public static boolean[][] sphereSphereIntersection(Sphere[] vsphere1, Sphere[] vsphere2) {
 		boolean[][] k = null;
@@ -1049,6 +986,17 @@ public class MathLib {
 		Matrix yrot = new Matrix(cosd(yaxisr),0,sind(yaxisr),0,1,0,-sind(yaxisr),0,cosd(yaxisr));
 		Matrix zrot = new Matrix(cosd(zaxisr),-sind(zaxisr),0,sind(zaxisr),cosd(zaxisr),0,0,0,1);
 		return matrixMultiply(zrot,matrixMultiply(yrot, xrot));
+	}
+
+	public static Position[] sphereVertexList(Sphere[] spherelist) {
+		Position[] k = null;
+		if (spherelist!=null) {
+			k = new Position[spherelist.length];
+			for (int i=0;i<spherelist.length;i++) {
+				k[i] = new Position(spherelist[i].x,spherelist[i].y,spherelist[i].z);
+			}
+		}
+		return k;
 	}
 	
 	public static Position[] generateVertexList(Line[] linelist) {
@@ -1539,6 +1487,67 @@ public class MathLib {
 				}
 			}
 		}
+		return k;
+	}
+
+	public static Rectangle[] projectedSphereIntersection(Position vpos, Sphere[] vsphere, int hres, int vres, double hfov, double vfov, Matrix vmat) {
+		Rectangle[] k = new Rectangle[vsphere.length];
+		if ((vpos!=null)&&(vsphere!=null)&&(vmat!=null)) {
+			Position[] vpoint = sphereVertexList(vsphere);
+			Direction[] lvec = vectorFromPoints(vpos, vsphere);
+			double[] lvecl = vectorLength(lvec);
+			double halfhfovmult = (1.0f/tand(hfov/2.0f));
+			double halfvfovmult = (1.0f/tand(vfov/2.0f));
+			int halfhres = (int)Math.round(((double)hres)/2.0f);
+			int halfvres = (int)Math.round(((double)vres)/2.0f);
+			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
+			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
+			double[][] fwdintpointsdist = planePointDistance(vpoint, dirrightupplanes);
+			for (int i=0;i<vpoint.length;i++) {
+				if (fwdintpointsdist[i][0]>0) {
+					double cmradang = asind(vsphere[i].r/lvecl[i]);
+					if (!Double.isFinite(cmradang)) {cmradang = 180.0f;}
+					double hangle = atand(fwdintpointsdist[i][1]/fwdintpointsdist[i][0]);
+					double vangle = atand(fwdintpointsdist[i][2]/fwdintpointsdist[i][0]);
+					double hangle1 = hangle-cmradang;
+					double hangle2 = hangle+cmradang;
+					double vangle1 = vangle-cmradang;
+					double vangle2 = vangle+cmradang;
+					if (hangle1<-90.0f) {hangle1=-90.0f;}
+					if (hangle2>90.0f) {hangle2=90.0f;}
+					if (vangle1<-90.0f) {vangle1=-90.0f;}
+					if (vangle2>90.0f) {vangle2=90.0f;}
+					int hcenterind1 = (int)Math.ceil(halfhfovmult*halfhres*(tand(hangle1))+halfhres);
+					int hcenterind2 = (int)Math.floor(halfhfovmult*halfhres*(tand(hangle2))+halfhres);
+					int vcenterind1 = (int)Math.ceil(halfvfovmult*halfvres*(tand(vangle1))+halfvres);
+					int vcenterind2 = (int)Math.floor(halfvfovmult*halfvres*(tand(vangle2))+halfvres);
+					int spherewidth =  hcenterind2-hcenterind1+1;
+					int sphereheight =  vcenterind2-vcenterind1+1;
+					if ((hcenterind1<hres)&&(hcenterind2>=0)&&(vcenterind1<vres)&&(vcenterind2>=0)) {
+						k[i] = new Rectangle(hcenterind1,vcenterind1,spherewidth,sphereheight);
+					}
+				}
+			}
+		}
+		return k;
+	}
+	public static Rectangle[][] cubemapSphereIntersection(Position vpos, Sphere[] vsphere, int vres) {
+		Rectangle[][] k = new Rectangle[6][vsphere.length];
+		Matrix rotxp0 = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
+		Matrix rotxp90 = MathLib.rotationMatrix(90.0f, 0.0f, 0.0f);
+		Matrix rotxp180 = MathLib.rotationMatrix(180.0f, 0.0f, 0.0f);
+		Matrix rotzn90 = MathLib.rotationMatrix(0.0f, 0.0f, -90.0f);
+		Matrix rotzp90 = MathLib.rotationMatrix(0.0f, 0.0f, 90.0f);
+		Matrix rotzp180 = MathLib.rotationMatrix(0.0f, 0.0f, 180.0f);
+		Matrix rotxp90zn90 = MathLib.matrixMultiply(rotzn90, rotxp90);
+		Matrix rotxp90zp90 = MathLib.matrixMultiply(rotzp90, rotxp90);
+		Matrix rotxp90zp180 = MathLib.matrixMultiply(rotzp180, rotxp90);
+		k[0] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp90zn90);
+		k[1] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp90);
+		k[2] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp90zp90);
+		k[3] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp90zp180);
+		k[4] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp180);
+		k[5] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp0);
 		return k;
 	}
 	
