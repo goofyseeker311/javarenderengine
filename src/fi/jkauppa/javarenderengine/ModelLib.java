@@ -1084,19 +1084,20 @@ public class ModelLib {
 						Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
 						Arrays.sort(sortedtrianglespherelist, distcomp);
 						Rectangle[] sortedtrianglespherelistint = MathLib.projectedSphereIntersection(renderview.pos, sortedtrianglespherelist, renderwidth, renderheight, hfov, vfov, viewrot);
-						Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(renderview.planes, copytrianglelist);		
 						for (int i=sortedtrianglespherelist.length-1;i>=0;i--) {
 							int it = sortedtrianglespherelist[i].ind;
 							if (sortedtrianglespherelistint[i]!=null) {
+								Triangle[] copytriangle = {copytrianglelist[it]};
 								int jstart = sortedtrianglespherelistint[i].x;
 								int jend = sortedtrianglespherelistint[i].x+sortedtrianglespherelistint[i].width-1;
+								Plane[] projectedsphereintplanes = Arrays.copyOfRange(renderview.planes, jstart, jend+1);
+								Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(projectedsphereintplanes, copytriangle);		
 								for (int j=jstart;j<=jend;j++) {
-									Line drawline = vertplanetriangleint[j][it];
+									Line drawline = vertplanetriangleint[j-jstart][0];
 									if (drawline!=null) {
 										Position[] triangleintpoints = {drawline.pos1, drawline.pos2};
 										double[][] trianglefwdintpointsdist = MathLib.planePointDistance(triangleintpoints, camfwdplane);
 										if ((trianglefwdintpointsdist[0][0]>0)&&(trianglefwdintpointsdist[1][0]>0)) {
-											Triangle[] copytriangle = {copytrianglelist[it]};
 											Material copymaterial = copytriangle[0].mat;
 											float shadingmultiplier = triangleshadingmultipliers[it];
 											Color tricolor = copymaterial.facecolor;
