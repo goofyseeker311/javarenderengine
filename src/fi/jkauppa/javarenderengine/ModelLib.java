@@ -1086,9 +1086,11 @@ public class ModelLib {
 						Rectangle[] sortedtrianglespherelistint = MathLib.projectedSphereIntersection(renderview.pos, sortedtrianglespherelist, renderwidth, renderheight, hfov, vfov, viewrot);
 						Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(renderview.planes, copytrianglelist);		
 						for (int i=sortedtrianglespherelist.length-1;i>=0;i--) {
+							int it = sortedtrianglespherelist[i].ind;
 							if (sortedtrianglespherelistint[i]!=null) {
-								for (int j=0;j<vertplanetriangleint.length;j++) {
-									int it = sortedtrianglespherelist[i].ind;
+								int jstart = sortedtrianglespherelistint[i].x;
+								int jend = sortedtrianglespherelistint[i].x+sortedtrianglespherelistint[i].width-1;
+								for (int j=jstart;j<=jend;j++) {
 									Line drawline = vertplanetriangleint[j][it];
 									if (drawline!=null) {
 										Position[] triangleintpoints = {drawline.pos1, drawline.pos2};
