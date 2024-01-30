@@ -246,10 +246,10 @@ public class ModelApp extends AppHandlerPanel {
 	@Override public void mouseEntered(MouseEvent e) {}
 	@Override public void mouseExited(MouseEvent e) {
 		Point windowscreenlocation = this.getLocationOnScreen();
-		int windowhalfwidth = this.getWidth()/2;
-		int windowhalfheight = this.getHeight()/2;
-		int windowcenterx = windowscreenlocation.x + windowhalfwidth;
-		int windowcentery = windowscreenlocation.y + windowhalfheight;
+		int origindeltax = (int)Math.floor(((double)(this.getWidth()-1))/2.0f);
+		int origindeltay = (int)Math.floor(((double)(this.getHeight()-1))/2.0f);
+		int windowcenterx = windowscreenlocation.x + origindeltax;
+		int windowcentery = windowscreenlocation.y + origindeltay;
 		this.mouselocationx = this.lastrenderwidth/2; 
 		this.mouselocationy = this.lastrenderheight/2; 
 		try {
