@@ -5,9 +5,13 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.TexturePaint;
 import java.awt.Transparency;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -16,6 +20,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.io.File;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
@@ -27,6 +33,7 @@ import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.GIFFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.JPGFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.PNGFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.WBMPFileFilter;
+import fi.jkauppa.javarenderengine.UtilLib.ImageTransferable;
 
 public class DrawApp extends AppHandlerPanel {
 	private static final long serialVersionUID = 1L;
@@ -117,16 +124,14 @@ public class DrawApp extends AppHandlerPanel {
 	public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_ESCAPE) {
 			//TODO options menu
-		}
-		if (e.getKeyCode()==KeyEvent.VK_ENTER) {
+		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
 		    int onmaska = 0;
 		    int offmaska = KeyEvent.ALT_DOWN_MASK|KeyEvent.SHIFT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
 		    boolean enterdown = (e.getModifiersEx() & (onmaska | offmaska)) == onmaska;
 		    if(enterdown) {
 		    	this.penciloverridemode = !this.penciloverridemode;
 		    }
-		}
-		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
+		} else if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
 			if (this.renderbuffer!=null) {
 				Graphics2D gfx = this.renderbuffer.createGraphics();
 				gfx.setComposite(AlphaComposite.Src);
@@ -134,96 +139,98 @@ public class DrawApp extends AppHandlerPanel {
 				gfx.fillRect(0, 0, this.renderbuffer.getWidth(), this.renderbuffer.getHeight());
 				gfx.dispose();
 			}
-		}
-		if (e.getKeyCode()==KeyEvent.VK_INSERT) {
+		} else if (e.getKeyCode()==KeyEvent.VK_C) {
+			if (e.isControlDown()) {
+				ImageTransferable transferable = new ImageTransferable(this.renderbuffer.getSnapshot());
+				this.cb.setContents(transferable, null);
+			}
+		} else if (e.getKeyCode()==KeyEvent.VK_V) {
+			if (e.isControlDown()) {
+				Transferable cbt = this.cb.getContents(null);
+				if ((cbt!=null)&&(cbt.isDataFlavorSupported(DataFlavor.imageFlavor))) {
+			        try {
+		                Image image = (Image)cbt.getTransferData(DataFlavor.imageFlavor);
+						Graphics2D loadimagevolatilegfx = this.renderbuffer.createGraphics();
+						loadimagevolatilegfx.setComposite(AlphaComposite.Src);
+						loadimagevolatilegfx.drawImage(image, 0, 0, null);
+						loadimagevolatilegfx.dispose();
+			        } catch (Exception ex){ex.printStackTrace();}
+				}
+			}
+		} else if (e.getKeyCode()==KeyEvent.VK_INSERT) {
 			this.drawcolorhsb[0] += 0.01f;
 			if (this.drawcolorhsb[0]>1.0f) {this.drawcolorhsb[0] = 0.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
-		}
-		if (e.getKeyCode()==KeyEvent.VK_DELETE) {
+		} else if (e.getKeyCode()==KeyEvent.VK_DELETE) {
 			this.drawcolorhsb[0] -= 0.01f;
 			if (this.drawcolorhsb[0]<0.0f) {this.drawcolorhsb[0] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
-		}
-		if (e.getKeyCode()==KeyEvent.VK_HOME) {
+		} else if (e.getKeyCode()==KeyEvent.VK_HOME) {
 			this.drawcolorhsb[1] += 0.01f;
 			if (this.drawcolorhsb[1]>1.0f) {this.drawcolorhsb[1] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
-		}
-		if (e.getKeyCode()==KeyEvent.VK_END) {
+		} else if (e.getKeyCode()==KeyEvent.VK_END) {
 			this.drawcolorhsb[1] -= 0.01f;
 			if (this.drawcolorhsb[1]<0.0f) {this.drawcolorhsb[1] = 0.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
-		}
-		if (e.getKeyCode()==KeyEvent.VK_PAGE_UP) {
+		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_UP) {
 			this.drawcolorhsb[2] += 0.01f;
 			if (this.drawcolorhsb[2]>1.0f) {this.drawcolorhsb[2] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
-		}
-		if (e.getKeyCode()==KeyEvent.VK_PAGE_DOWN) {
+		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_DOWN) {
 			this.drawcolorhsb[2] -= 0.01f;
 			if (this.drawcolorhsb[2]<0.0f) {this.drawcolorhsb[2] = 0.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
-		}
-		if (e.getKeyCode()==KeyEvent.VK_ADD) {
+		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
 			this.pencilsize += 1;
-		}
-		if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
+		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
 			this.pencilsize -= 1;
 			if (this.pencilsize<1) {this.pencilsize = 1;}
-		}
-		if (e.getKeyCode()==KeyEvent.VK_DIVIDE) {
+		} else if (e.getKeyCode()==KeyEvent.VK_DIVIDE) {
 	    	this.pencilshape -= 1;
 	    	if (this.pencilshape<1) {this.pencilshape = 6;}
 	    	if (this.pencilbuffer!=null) {
 	    		this.pencilbuffer = null;
 	    		this.pencilsize = this.oldpencilsize;
 	    	}
-		}
-		if (e.getKeyCode()==KeyEvent.VK_MULTIPLY) {
+		} else if (e.getKeyCode()==KeyEvent.VK_MULTIPLY) {
 	    	this.pencilshape += 1;
 	    	if (this.pencilshape>6) {this.pencilshape = 1;}
 	    	if (this.pencilbuffer!=null) {
 	    		this.pencilbuffer = null;
 	    		this.pencilsize = this.oldpencilsize;
 	    	}
-		}
-		if (e.getKeyCode()==KeyEvent.VK_NUMPAD9) {
+		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD9) {
 			this.penciltransparency += 0.01f;
 			if (this.penciltransparency>1.0f) {this.penciltransparency = 1.0f;}
 			float[] colorvalues = this.drawcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
-		}
-		if (e.getKeyCode()==KeyEvent.VK_NUMPAD8) {
+		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD8) {
 			this.penciltransparency -= 0.01f;
 			if (this.penciltransparency<0.0f) {this.penciltransparency = 0.0f;}
 			float[] colorvalues = this.drawcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
-		}
-		if (e.getKeyCode()==KeyEvent.VK_NUMPAD6) {
+		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD6) {
 			this.pencilangle += 0.01f;
 			if (this.pencilangle>(2.0f*Math.PI)) {this.pencilangle = 0.0f;}
-		}
-		if (e.getKeyCode()==KeyEvent.VK_NUMPAD5) {
+		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD5) {
 			this.pencilangle -= 0.01f;
 			if (this.pencilangle<0.0f) {this.pencilangle = 2.0f*Math.PI;}
-		}
-		if (e.getKeyCode()==KeyEvent.VK_F1) {
+		} else if (e.getKeyCode()==KeyEvent.VK_F1) {
 			//TODO help pop-up window
-		}
-		if (e.getKeyCode()==KeyEvent.VK_F2) {
+		} else if (e.getKeyCode()==KeyEvent.VK_F2) {
 			this.filechooser.setDialogTitle("Save File");
 			this.filechooser.setApproveButtonText("Save");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
@@ -246,8 +253,7 @@ public class DrawApp extends AppHandlerPanel {
 					try {ImageIO.write(this.renderbuffer.getSnapshot(), "PNG", savefile);} catch (Exception ex) {ex.printStackTrace();}
 				}
 			}
-		}
-		if (e.getKeyCode()==KeyEvent.VK_F3) {
+		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
 			this.filechooser.setDialogTitle("Load File");
 			this.filechooser.setApproveButtonText("Load");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
@@ -267,7 +273,6 @@ public class DrawApp extends AppHandlerPanel {
 						loadimagevolatilegfx.drawImage(loadimage, 0, 0, null);
 						loadimagevolatilegfx.dispose();
 				    	this.pencilbuffer = loadimagevolatile;
-				    	this.pencilbuffer.setAccelerationPriority(1.0f);
 				    }else{
 				    	Graphics2D dragimagegfx = this.renderbuffer.createGraphics();
 				    	dragimagegfx.setComposite(AlphaComposite.Clear);
@@ -278,8 +283,7 @@ public class DrawApp extends AppHandlerPanel {
 				    }
 				}
 			}
-		}
-		if (e.getKeyCode()==KeyEvent.VK_F4) {
+		} else if (e.getKeyCode()==KeyEvent.VK_F4) {
 			//TODO tools/color pop-up window
 		}
 	}
@@ -433,7 +437,24 @@ public class DrawApp extends AppHandlerPanel {
 	    }
 	}
 
-	@Override public void drop(DropTargetDropEvent dtde) {}
+	@SuppressWarnings("unchecked")
+	@Override public void drop(DropTargetDropEvent dtde) {
+		dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
+		Transferable dtt = dtde.getTransferable();
+        try {
+            if ((dtt!=null)&&(dtt.isDataFlavorSupported(DataFlavor.javaFileListFlavor))) {
+				List<File> files = (List<File>)dtt.getTransferData(DataFlavor.javaFileListFlavor);
+                for (Iterator<File> i=files.iterator();i.hasNext();) {
+                	File file = i.next();
+                    VolatileImage image = UtilLib.loadImage(file.getPath(), false);
+    				Graphics2D loadimagevolatilegfx = this.renderbuffer.createGraphics();
+    				loadimagevolatilegfx.setComposite(AlphaComposite.Src);
+    				loadimagevolatilegfx.drawImage(image, 0, 0, null);
+    				loadimagevolatilegfx.dispose();
+                }
+            }
+        } catch (Exception ex){ex.printStackTrace();}
+	}
 	
 	private void drawPencil(Graphics2D g, int mousex, int mousey, boolean erasemode, boolean overridemode) {
 		g.setComposite(AlphaComposite.SrcOver);

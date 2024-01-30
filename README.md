@@ -45,6 +45,8 @@ NUMPAD5           -- pencil brush image rotation angle change negative (looping)
 F2                -- save image file dialog
 F3                -- load image file dialog
 SHIFT-F3          -- load image file as pencil brush dialog
+CTRL-C            -- copy image to clipboard
+CTRL-V            -- paste image from clipboard
 
 CAD App Keys:
 ENTER             -- changes between polygon flat/textured/none fill modes (looping)
