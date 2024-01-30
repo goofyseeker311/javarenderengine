@@ -67,6 +67,7 @@ DRAG-CMB          -- triangle texture coordinates pan (minmax)
 MWHEEL            -- triangle texture coordinates zoom
 SHIFT-MWHEEL      -- triangle texture coordinates rotate
 ALT-MWHEEL        -- triangle texture coordinates scale
+ALT-SHIFT-MWHEEL  -- triangle texture coordinates shear
 INSERT            -- hue positive change (looping)
 DELETE            -- hue negative change (looping)
 HOME              -- saturation positive change (minmax)
@@ -79,6 +80,7 @@ NUMPAD9           -- pencil transparency positive (minmax)
 NUMPAD8           -- pencil transparency negative (minmax)
 NUMPAD7           -- triangle single sided normal invert (looping)
 NUMPAD4           -- triangle double sided zero normal (set)
+NUMPAD2           -- triangle texture coordinate reset to default
 NUMPAD1           -- triangle texture coordinate mirror toggle
 NUMPAD0           -- run entity list updater
 F2                -- save model file dialog (all primitives)
