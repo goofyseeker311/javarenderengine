@@ -5,7 +5,11 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Image;
 import java.awt.Transparency;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.io.BufferedInputStream;
@@ -117,5 +121,12 @@ public class UtilLib {
 	public static int snapToGrid(int coordinate, int gridstep) {
 		return gridstep*(int)Math.round(((double)coordinate)/((double)gridstep));
 	}
-	
+
+    static class ImageTransferable implements Transferable {
+        private Image image;
+        public ImageTransferable (Image imagei) {this.image=imagei;}
+        public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException {if (isDataFlavorSupported(flavor)) {return image;}else{throw new UnsupportedFlavorException(flavor);}}
+        public boolean isDataFlavorSupported (DataFlavor flavor) {return flavor==DataFlavor.imageFlavor;}
+        public DataFlavor[] getTransferDataFlavors () {return new DataFlavor[] {DataFlavor.imageFlavor};}
+    }	
 }

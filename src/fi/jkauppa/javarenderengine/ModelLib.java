@@ -1089,26 +1089,26 @@ public class ModelLib {
 								int jstart = sortedtrianglespherelistint[i].x;
 								int jend = sortedtrianglespherelistint[i].x+sortedtrianglespherelistint[i].width-1;
 								Plane[] projectedsphereintplanes = Arrays.copyOfRange(renderview.planes, jstart, jend+1);
-								Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(projectedsphereintplanes, copytriangle);		
+								Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(projectedsphereintplanes, copytriangle);
+								Material copymaterial = copytriangle[0].mat;
+								Direction copytrianglenormal = trianglenormallist[it];
+								Color tricolor = copymaterial.facecolor;
+								float alphacolor = copymaterial.transparency;
+								if (tricolor==null) {tricolor = Color.WHITE;}
+								float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
+								Color trianglecolor = new Color(tricolorcomp[0], tricolorcomp[1], tricolorcomp[2], alphacolor);
+								VolatileImage tritexture = copymaterial.fileimage;
+								BufferedImage tritextureimage = copymaterial.snapimage;
+								if ((tritexture!=null)&&(tritextureimage==null)) {
+									copymaterial.snapimage = copymaterial.fileimage.getSnapshot();
+									tritextureimage = copymaterial.snapimage;
+								}
 								for (int j=jstart;j<=jend;j++) {
 									Line drawline = vertplanetriangleint[j-jstart][0];
 									if (drawline!=null) {
 										Position[] triangleintpoints = {drawline.pos1, drawline.pos2};
 										double[][] trianglefwdintpointsdist = MathLib.planePointDistance(triangleintpoints, camfwdplane);
 										if ((trianglefwdintpointsdist[0][0]>0)&&(trianglefwdintpointsdist[1][0]>0)) {
-											Material copymaterial = copytriangle[0].mat;
-											Direction copytrianglenormal = trianglenormallist[it];
-											Color tricolor = copymaterial.facecolor;
-											float alphacolor = copymaterial.transparency;
-											if (tricolor==null) {tricolor = Color.WHITE;}
-											float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
-											Color trianglecolor = new Color(tricolorcomp[0], tricolorcomp[1], tricolorcomp[2], alphacolor);
-											VolatileImage tritexture = copymaterial.fileimage;
-											BufferedImage tritextureimage = copymaterial.snapimage;
-											if ((tritexture!=null)&&(tritextureimage==null)) {
-												copymaterial.snapimage = copymaterial.fileimage.getSnapshot();
-												tritextureimage = copymaterial.snapimage;
-											}
 											Position[] drawlinepoints = {drawline.pos1, drawline.pos2};
 											double[][] fwdintpointsdist = MathLib.planePointDistance(drawlinepoints, camfwdplane);
 											double[][] upintpointsdist = MathLib.planePointDistance(drawlinepoints, camupplane);
