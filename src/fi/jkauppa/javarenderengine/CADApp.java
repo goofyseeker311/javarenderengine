@@ -332,6 +332,20 @@ public class CADApp extends AppHandlerPanel {
 	    		mousetriangle.pos2.tex.u = -mousetriangle.pos2.tex.u;
 	    		mousetriangle.pos3.tex.u = -mousetriangle.pos3.tex.u;
 			}
+		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD2) {
+	    	Triangle mousetriangle = null;
+    		if (this.softwarerenderview!=null) {
+    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+    			}
+    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+    		}
+			if (mousetriangle!=null) {
+	    		mousetriangle.pos1.tex = new Coordinate(0.0f,0.0f);
+	    		mousetriangle.pos2.tex = new Coordinate(1.0f,0.0f);
+	    		mousetriangle.pos3.tex = new Coordinate(0.0f,1.0f);
+			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD0) {
 			(new EntityListUpdater()).start();
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
@@ -921,6 +935,32 @@ public class CADApp extends AppHandlerPanel {
 			if (mousetriangle!=null) {
 	        	AffineTransform textr = new AffineTransform();
 	        	textr.scale(1+0.01f*e.getWheelRotation(),1.0f);
+	        	Point2D pos1tex = new Point2D.Double(mousetriangle.pos1.tex.u,mousetriangle.pos1.tex.v); 
+	        	Point2D pos2tex = new Point2D.Double(mousetriangle.pos2.tex.u,mousetriangle.pos2.tex.v); 
+	        	Point2D pos3tex = new Point2D.Double(mousetriangle.pos3.tex.u,mousetriangle.pos3.tex.v); 
+	        	textr.transform(pos1tex, pos1tex);
+	        	textr.transform(pos2tex, pos2tex);
+	        	textr.transform(pos3tex, pos3tex);
+	        	mousetriangle.pos1.tex = new Coordinate(pos1tex.getX(),pos1tex.getY());
+	        	mousetriangle.pos2.tex = new Coordinate(pos2tex.getX(),pos2tex.getY());
+	        	mousetriangle.pos3.tex = new Coordinate(pos3tex.getX(),pos3tex.getY());
+			}
+	    }
+	    int onmaskaltshiftdown = MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
+	    int offmaskaltshiftdown = MouseEvent.CTRL_DOWN_MASK;
+	    boolean mousewheelaltshiftdown = ((e.getModifiersEx() & (onmaskaltshiftdown | offmaskaltshiftdown)) == onmaskaltshiftdown);
+	    if (mousewheelaltshiftdown) {
+	    	Triangle mousetriangle = null;
+    		if (this.softwarerenderview!=null) {
+    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+    			}
+    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+    		}
+			if (mousetriangle!=null) {
+	        	AffineTransform textr = new AffineTransform();
+	        	textr.shear(0.01f*e.getWheelRotation(),0.0f);
 	        	Point2D pos1tex = new Point2D.Double(mousetriangle.pos1.tex.u,mousetriangle.pos1.tex.v); 
 	        	Point2D pos2tex = new Point2D.Double(mousetriangle.pos2.tex.u,mousetriangle.pos2.tex.v); 
 	        	Point2D pos3tex = new Point2D.Double(mousetriangle.pos3.tex.u,mousetriangle.pos3.tex.v); 
