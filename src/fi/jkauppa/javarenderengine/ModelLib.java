@@ -917,8 +917,7 @@ public class ModelLib {
 				entityspherelist[k].ind = k;
 			}
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
-			ArrayList<Sphere> sortedentityspherearray = new ArrayList<Sphere>(Arrays.asList(entityspherelist));
-			Sphere[] sortedentityspherelist = sortedentityspherearray.toArray(new Sphere[sortedentityspherearray.size()]);
+			Sphere[] sortedentityspherelist = Arrays.copyOf(entityspherelist, entityspherelist.length);
 			Arrays.sort(sortedentityspherelist, distcomp);
 			Rectangle[] sortedentityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, sortedentityspherelist, renderwidth, renderheight, hfov, vfov, viewrot);
 			for (int k=sortedentityspherelist.length-1;k>=0;k--) {
@@ -940,8 +939,7 @@ public class ModelLib {
 						}
 						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
 						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
-						ArrayList<Sphere> sortedtrianglespheretree = new ArrayList<Sphere>(Arrays.asList(copytrianglespherelist));
-						Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
+						Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
 						Arrays.sort(sortedtrianglespherelist, distcomp);
 						Rectangle[] sortedtrianglespherelistint = MathLib.projectedSphereIntersection(renderview.pos, sortedtrianglespherelist, renderwidth, renderheight, hfov, vfov, viewrot);
 						for (int n=sortedtrianglespherelist.length-1;n>=0;n--) {
@@ -1060,8 +1058,7 @@ public class ModelLib {
 				entityspherelist[k].ind = k;
 			}
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
-			ArrayList<Sphere> sortedentityspherearray = new ArrayList<Sphere>(Arrays.asList(entityspherelist));
-			Sphere[] sortedentityspherelist = sortedentityspherearray.toArray(new Sphere[sortedentityspherearray.size()]);
+			Sphere[] sortedentityspherelist = Arrays.copyOf(entityspherelist, entityspherelist.length);
 			Arrays.sort(sortedentityspherelist, distcomp);
 			Rectangle[] sortedentityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, sortedentityspherelist, renderwidth, renderheight, hfov, vfov, viewrot);
 			for (int k=sortedentityspherelist.length-1;k>=0;k--) {
@@ -1082,8 +1079,7 @@ public class ModelLib {
 						}
 						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
 						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
-						ArrayList<Sphere> sortedtrianglespheretree = new ArrayList<Sphere>(Arrays.asList(copytrianglespherelist));
-						Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
+						Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
 						Arrays.sort(sortedtrianglespherelist, distcomp);
 						Rectangle[] sortedtrianglespherelistint = MathLib.projectedSphereIntersection(renderview.pos, sortedtrianglespherelist, renderwidth, renderheight, hfov, vfov, viewrot);
 						for (int i=sortedtrianglespherelist.length-1;i>=0;i--) {
@@ -1245,8 +1241,7 @@ public class ModelLib {
 				entityspherelist[k].ind = k;
 			}
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
-			ArrayList<Sphere> sortedentityspherearray = new ArrayList<Sphere>(Arrays.asList(entityspherelist));
-			Sphere[] sortedentityspherelist = sortedentityspherearray.toArray(new Sphere[sortedentityspherearray.size()]);
+			Sphere[] sortedentityspherelist = Arrays.copyOf(entityspherelist, entityspherelist.length);
 			Arrays.sort(sortedentityspherelist, distcomp);
 			for (int k=sortedentityspherelist.length-1;k>=0;k--) {
 				Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
@@ -1255,8 +1250,7 @@ public class ModelLib {
 						for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].ind = i;}
 						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
 						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
-						ArrayList<Sphere> sortedtrianglespheretree = new ArrayList<Sphere>(Arrays.asList(copytrianglespherelist));
-						Sphere[] sortedtrianglespherelist = sortedtrianglespheretree.toArray(new Sphere[sortedtrianglespheretree.size()]);
+						Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
 						Arrays.sort(sortedtrianglespherelist, distcomp);
 						float[] triangleshadingmultipliers = new float[copytrianglelist.length];
 						for (int i=0;i<copytrianglelist.length;i++) {
