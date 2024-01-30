@@ -946,10 +946,10 @@ public class ModelLib {
 						Rectangle[] sortedtrianglespherelistint = MathLib.projectedSphereIntersection(renderview.pos, sortedtrianglespherelist, renderwidth, renderheight, hfov, vfov, viewrot);
 						for (int n=sortedtrianglespherelist.length-1;n>=0;n--) {
 							if (sortedtrianglespherelistint[n]!=null) {
-								int nt = sortedtrianglespherelist[n].ind;
-								Triangle[] sortedtriangle = {copytrianglelist[nt]};
-								Material copymaterial = sortedtriangle[0].mat;
-								Direction copytrianglenormal = trianglenormallist[nt];
+								int it = sortedtrianglespherelist[n].ind;
+								Triangle[] copytriangle = {copytrianglelist[it]};
+								Material copymaterial = copytriangle[0].mat;
+								Direction copytrianglenormal = trianglenormallist[it];
 								Color tricolor = copymaterial.facecolor;
 								float alphacolor = copymaterial.transparency;
 								if (tricolor==null) {tricolor = Color.WHITE;}
@@ -968,7 +968,7 @@ public class ModelLib {
 								for (int j=jstart;j<=jend;j++) {
 									for (int i=istart;i<=iend;i++) {
 										Direction[] camray = {renderview.rays[j][i]};
-										Position[][] camrayint = MathLib.rayTriangleIntersection(renderview.pos, camray, sortedtriangle);
+										Position[][] camrayint = MathLib.rayTriangleIntersection(renderview.pos, camray, copytriangle);
 										Position[] camrayintpos = {camrayint[0][0]};
 										if (camrayintpos[0]!=null) {
 											Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, camrayintpos);
@@ -976,6 +976,10 @@ public class ModelLib {
 											double drawdistance = Math.abs(linepointdirlen[0]);
 											if (drawdistance<renderview.zbuffer[j][i]) {
 												renderview.zbuffer[j][i] = drawdistance;
+												renderview.tbuffer[j][i] = copytriangle[0];
+												if ((mouselocationx==i)&&(mouselocationy==j)) {
+													mouseoverhittriangle.add(copytriangle[0]);
+												}
 												double[] triangleviewangle = MathLib.vectorAngle(copytrianglenormal, camray);
 												triangleviewangle[0] -= 90.0f;
 												if (triangleviewangle[0]<0.0f) {triangleviewangle[0] = 0.0f;}
@@ -1063,21 +1067,17 @@ public class ModelLib {
 				if (sortedentityspherelistint[k]!=null) {
 					Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
 					if (copytrianglelist.length>0) {
-						float[] triangleshadingmultipliers = new float[copytrianglelist.length];
+						Direction[] trianglenormallist = new Direction[copytrianglelist.length];
 						for (int i=0;i<copytrianglelist.length;i++) {
-							Direction[] trianglenormal = {copytrianglelist[i].norm};
-							double[] triangleviewangles = MathLib.vectorAngle(renderview.dirs[0], trianglenormal);
-							if (!Double.isFinite(triangleviewangles[0])) {
+							trianglenormallist[i] = copytrianglelist[i].norm;
+							if (copytrianglelist[i].norm.isZero()) {
 								Triangle[] copyplanetriangle = {copytrianglelist[i]};
 								Plane[] triangleplanes = MathLib.planeFromPoints(copyplanetriangle);
-								Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
-								triangleviewangles = MathLib.vectorAngle(renderview.dirs[0], trianglenormals);
-								if (triangleviewangles[0]<90.0f) {triangleviewangles[0]=180.0f-triangleviewangles[0];}
+								Direction[] trianglenormal = MathLib.planeNormals(triangleplanes);
+								double[] triangleviewangles = MathLib.vectorAngle(renderview.dirs[0], trianglenormal);
+								if (triangleviewangles[0]<90.0f) {trianglenormal[0]=trianglenormal[0].invert();}
+								trianglenormallist[i] = trianglenormal[0];
 							}
-							double triangleviewangle = triangleviewangles[0];
-							triangleviewangle -= 90.0f;
-							if (triangleviewangle<0.0f) {triangleviewangle = 0.0f;}
-							triangleshadingmultipliers[i] = ((((float)triangleviewangle)/1.5f)+30.0f)/90.0f;
 						}
 						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
 						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
@@ -1100,15 +1100,12 @@ public class ModelLib {
 										double[][] trianglefwdintpointsdist = MathLib.planePointDistance(triangleintpoints, camfwdplane);
 										if ((trianglefwdintpointsdist[0][0]>0)&&(trianglefwdintpointsdist[1][0]>0)) {
 											Material copymaterial = copytriangle[0].mat;
-											float shadingmultiplier = triangleshadingmultipliers[it];
+											Direction copytrianglenormal = trianglenormallist[it];
 											Color tricolor = copymaterial.facecolor;
 											float alphacolor = copymaterial.transparency;
 											if (tricolor==null) {tricolor = Color.WHITE;}
 											float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
 											Color trianglecolor = new Color(tricolorcomp[0], tricolorcomp[1], tricolorcomp[2], alphacolor);
-											if (!unlit) {
-												trianglecolor = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
-											}
 											VolatileImage tritexture = copymaterial.fileimage;
 											BufferedImage tritextureimage = copymaterial.snapimage;
 											if ((tritexture!=null)&&(tritextureimage==null)) {
@@ -1155,13 +1152,18 @@ public class ModelLib {
 													Position[] linepoint = MathLib.translate(vpixelpoint1, vpixelpointdir12[0], vpixelpointlenfrac);
 													Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, linepoint);
 													double[] linepointdirlen = MathLib.vectorLength(linepointdir);
+													Direction[] camray = linepointdir;
 													double drawdistance = Math.abs(linepointdirlen[0]);
 													if (drawdistance<renderview.zbuffer[n][j]) {
 														renderview.zbuffer[n][j] = drawdistance;
+														renderview.tbuffer[n][j] = copytriangle[0];
 														if ((mouselocationx==j)&&(mouselocationy==n)) {
 															mouseoverhittriangle.add(copytriangle[0]);
 														}
-														renderview.tbuffer[n][j] = copytriangle[0];
+														double[] triangleviewangle = MathLib.vectorAngle(copytrianglenormal, camray);
+														triangleviewangle[0] -= 90.0f;
+														if (triangleviewangle[0]<0.0f) {triangleviewangle[0] = 0.0f;}
+														float shadingmultiplier = ((((float)triangleviewangle[0])/1.5f)+30.0f)/90.0f;
 														Coordinate tex1 = vpixelpoints[0].tex;
 														Coordinate tex2 = vpixelpoints[1].tex;
 														if ((tritexture!=null)&&(tex1!=null)&&(tex2!=null)) {
@@ -1183,6 +1185,9 @@ public class ModelLib {
 																g2.drawLine(j, n, j, n);
 															}
 														} else {
+															if (!unlit) {
+																trianglecolor = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
+															}
 															g2.setColor(trianglecolor);
 															g2.drawLine(j, n, j, n);
 														}

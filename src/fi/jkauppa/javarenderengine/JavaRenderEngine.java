@@ -1,7 +1,5 @@
 package fi.jkauppa.javarenderengine;
 
-//TODO texture handling
-
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -63,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.0.0");
+		this.setTitle("Java Render Engine v2.0.1");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
