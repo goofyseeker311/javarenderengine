@@ -453,8 +453,8 @@ public class DrawApp extends AppHandlerPanel {
 	    		}
     		}
     		double pencilsizescalefactor = ((double)this.pencilsize)/((double)this.pencilbuffer.getWidth());
-    		int halfwidth = (int)Math.round((double)this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f);
-    		int halfheight = (int)Math.round((double)this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f);
+    		int halfwidth = (int)Math.floor(((double)this.pencilbuffer.getWidth())*pencilsizescalefactor/2.0f);
+    		int halfheight = (int)Math.floor(((double)this.pencilbuffer.getHeight())*pencilsizescalefactor/2.0f);
     		int drawlocationx = mousex - halfwidth;
     		int drawlocationy = mousey - halfheight;
     		AffineTransform penciltransform = new AffineTransform();

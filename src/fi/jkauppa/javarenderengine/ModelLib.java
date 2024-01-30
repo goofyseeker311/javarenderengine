@@ -1049,7 +1049,8 @@ public class ModelLib {
 		if (entitylist!=null) {
 			double[] verticalangles = MathLib.projectedAngles(renderheight, vfov);
 			double halfvfovmult = (1.0f/MathLib.tand(vfov/2.0f));
-			int halfvres = (int)Math.round(((double)renderheight)/2.0f);
+			double origindeltay = ((double)(renderheight-1))/2.0f;
+			double halfvres = ((double)renderheight)/2.0f;
 			Plane[] camdirrightupplanes = MathLib.planeFromNormalAtPoint(renderview.pos, renderview.dirs);
 			Plane[] camfwdplane = {camdirrightupplanes[0]};
 			Plane[] camupplane = {camdirrightupplanes[2]};
@@ -1115,8 +1116,8 @@ public class ModelLib {
 											Position[] drawlinepoints = {drawline.pos1, drawline.pos2};
 											double[][] fwdintpointsdist = MathLib.planePointDistance(drawlinepoints, camfwdplane);
 											double[][] upintpointsdist = MathLib.planePointDistance(drawlinepoints, camupplane);
-											double vpixely1 = halfvfovmult*halfvres*(upintpointsdist[0][0]/fwdintpointsdist[0][0])+halfvres;
-											double vpixely2 = halfvfovmult*halfvres*(upintpointsdist[1][0]/fwdintpointsdist[1][0])+halfvres;
+											double vpixely1 = halfvfovmult*halfvres*(upintpointsdist[0][0]/fwdintpointsdist[0][0])+origindeltay;
+											double vpixely2 = halfvfovmult*halfvres*(upintpointsdist[1][0]/fwdintpointsdist[1][0])+origindeltay;
 											double vpixelyang1 = MathLib.atand(upintpointsdist[0][0]/fwdintpointsdist[0][0]);
 											double vpixelyang2 = MathLib.atand(upintpointsdist[1][0]/fwdintpointsdist[1][0]);
 											double[] vpixelys = {vpixely1, vpixely2};
@@ -1354,8 +1355,8 @@ public class ModelLib {
 		pgfx.drawLine(0, 0, 0, gridstep-1);
 		pgfx.drawLine(0, 0, gridstep-1, 0);
 		pgfx.dispose();
-		int origindeltax = (int)Math.floor(((double)renderwidth)/2.0f);
-		int origindeltay = (int)Math.floor(((double)renderheight)/2.0f);
+		int origindeltax = (int)Math.floor(((double)(renderwidth-1))/2.0f);
+		int origindeltay = (int)Math.floor(((double)(renderheight-1))/2.0f);
 		bgpattern = new TexturePaint(bgpatternimage,new Rectangle(origindeltax, origindeltay, gridstep, gridstep));
 		g2.setComposite(AlphaComposite.Src);
 		g2.setColor(null);

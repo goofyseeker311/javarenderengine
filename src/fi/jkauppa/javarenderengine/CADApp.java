@@ -115,8 +115,8 @@ public class CADApp extends AppHandlerPanel {
 		g2.setPaint(null);
 		g2.setClip(null);
 		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
-		this.origindeltax = (int)Math.floor(((double)this.getWidth())/2.0f);
-		this.origindeltay = (int)Math.floor(((double)this.getHeight())/2.0f);
+		this.origindeltax = (int)Math.floor(((double)(this.getWidth()-1))/2.0f);
+		this.origindeltay = (int)Math.floor(((double)(this.getHeight()-1))/2.0f);
 		this.vfov = 2.0f*MathLib.atand((((double)this.getHeight())/((double)this.getWidth()))*MathLib.tand(this.hfov/2.0f));
 		this.editplanedistance = (((double)this.getWidth())/2.0f)/MathLib.tand(hfov/2.0f);
 		if ((this.polygonfillmode==3)&&(this.softwarerenderview!=null)) {
