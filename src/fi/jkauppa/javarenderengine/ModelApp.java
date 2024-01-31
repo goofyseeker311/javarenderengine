@@ -184,7 +184,7 @@ public class ModelApp extends AppHandlerPanel {
 			this.rollrightkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
 			this.polygonfillmode += 1;
-			if (this.polygonfillmode>2) {
+			if (this.polygonfillmode>3) {
 				this.polygonfillmode = 1;
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
@@ -282,6 +282,8 @@ public class ModelApp extends AppHandlerPanel {
 					ModelApp.this.renderview = ModelLib.renderProjectedPlaneViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				} else if (ModelApp.this.polygonfillmode==2) {
 					ModelApp.this.renderview = ModelLib.renderSpheremapPlaneViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+				} else if (ModelApp.this.polygonfillmode==3) {
+					ModelApp.this.renderview = ModelLib.renderCubemapPlaneViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				}
 				RenderViewUpdater.renderupdaterrunning = false;
 			}

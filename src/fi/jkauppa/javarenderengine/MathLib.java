@@ -96,7 +96,7 @@ public class MathLib {
 		return k;
 	}
 	public static double[] vectorLength(Position[] vpos1,Position[] vpos2) {
-		Direction[] lengthvector = MathLib.vectorFromPoints(vpos1, vpos2);
+		Direction[] lengthvector = vectorFromPoints(vpos1, vpos2);
 		return vectorLength(lengthvector);
 	}
 	public static double[] vectorAngle(Direction vdir1, Direction[] vdir2) {
@@ -1292,9 +1292,9 @@ public class MathLib {
 		}
 		Matrix drotzn90 = rotationMatrix(0.0f, 0.0f, -180.0f);
 		Matrix drotxn90 = rotationMatrix(90.0f, 0.0f, 0.0f);
-		Matrix drot = MathLib.matrixMultiply(vmat, MathLib.matrixMultiply(drotxn90, drotzn90));
-		Direction[] smvecsrot = MathLib.matrixMultiply(smvecs, drot);
-		return MathLib.planeFromNormalAtPoint(vpos, smvecsrot);
+		Matrix drot = matrixMultiply(vmat, matrixMultiply(drotxn90, drotzn90));
+		Direction[] smvecsrot = matrixMultiply(smvecs, drot);
+		return planeFromNormalAtPoint(vpos, smvecsrot);
 	}
 	public static Direction[][] spheremapRays(int vhres, int vvres, Matrix vmat) {
 		Direction[][] k = new Direction[vhres][vvres];
@@ -1306,11 +1306,11 @@ public class MathLib {
 		}
 		Matrix drotzn90 = rotationMatrix(0.0f, 0.0f, -180.0f);
 		Matrix drotxn90 = rotationMatrix(90.0f, 0.0f, 0.0f);
-		Matrix drot = MathLib.matrixMultiply(vmat, MathLib.matrixMultiply(drotxn90, drotzn90));
+		Matrix drot = matrixMultiply(vmat, matrixMultiply(drotxn90, drotzn90));
 		for (int i=0;i<vhres;i++) {
-			Matrix hmat = MathLib.rotationMatrix(0, 0, hangles[i]);
-			Matrix hdmat = MathLib.matrixMultiply(drot, hmat);
-			k[i] = MathLib.matrixMultiply(vvecs, hdmat);
+			Matrix hmat = rotationMatrix(0, 0, hangles[i]);
+			Matrix hdmat = matrixMultiply(drot, hmat);
+			k[i] = matrixMultiply(vvecs, hdmat);
 		}
 		return k;
 	}
@@ -1584,15 +1584,15 @@ public class MathLib {
 	}
 	public static Rectangle[][] cubemapSphereIntersection(Position vpos, Sphere[] vsphere, int vres) {
 		Rectangle[][] k = new Rectangle[6][vsphere.length];
-		Matrix rotxp0 = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
-		Matrix rotxp90 = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
-		Matrix rotxp180 = MathLib.rotationMatrix(-180.0f, 0.0f, 0.0f);
-		Matrix rotzn90 = MathLib.rotationMatrix(0.0f, 0.0f, -90.0f);
-		Matrix rotzp90 = MathLib.rotationMatrix(0.0f, 0.0f, 90.0f);
-		Matrix rotzp180 = MathLib.rotationMatrix(0.0f, 0.0f, 180.0f);
-		Matrix rotxp90zn90 = MathLib.matrixMultiply(rotzn90, rotxp90);
-		Matrix rotxp90zp90 = MathLib.matrixMultiply(rotzp90, rotxp90);
-		Matrix rotxp90zp180 = MathLib.matrixMultiply(rotzp180, rotxp90);
+		Matrix rotxp0 = rotationMatrix(0.0f, 0.0f, 0.0f);
+		Matrix rotxp90 = rotationMatrix(-90.0f, 0.0f, 0.0f);
+		Matrix rotxp180 = rotationMatrix(-180.0f, 0.0f, 0.0f);
+		Matrix rotzn90 = rotationMatrix(0.0f, 0.0f, -90.0f);
+		Matrix rotzp90 = rotationMatrix(0.0f, 0.0f, 90.0f);
+		Matrix rotzp180 = rotationMatrix(0.0f, 0.0f, 180.0f);
+		Matrix rotxp90zn90 = matrixMultiply(rotzn90, rotxp90);
+		Matrix rotxp90zp90 = matrixMultiply(rotzp90, rotxp90);
+		Matrix rotxp90zp180 = matrixMultiply(rotzp180, rotxp90);
 		k[0] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp90zn90);
 		k[1] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp90);
 		k[2] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp90zp90);
