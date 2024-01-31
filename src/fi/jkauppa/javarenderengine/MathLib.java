@@ -1277,11 +1277,42 @@ public class MathLib {
 		return k;
 	}
 	
-	public static Plane[] spheremapPlanes(Position vpos, int vhres, double vhfov, Matrix vmat) {
-		return null;
+	public static double[] spheremapAngles(int vres, double vfov) {
+		double[] k = new double[vres];
+		double halfvfov = vfov/2.0f;
+		double vstep = vfov/((double)(vres-1));
+		for (int i=0;i<vres;i++){k[i]=-halfvfov+vstep*i;}
+		return k;
 	}
-	public static Direction[][] spheremapRays(int vhres, int vvres, double vhfov, double vvfov, Matrix vmat) {
-		return null;
+	public static Plane[] spheremapPlanes(Position vpos, int vhres, Matrix vmat) {
+		double[] hangles  = spheremapAngles(vhres, 360.0f);
+		Direction[] smvecs = new Direction[vhres];
+		for (int i=0;i<vhres;i++) {
+			smvecs[i] = new Direction(cosd(hangles[i]), sind(hangles[i]), 0.0f);
+		}
+		Matrix drotzn90 = rotationMatrix(0.0f, 0.0f, -90.0f);
+		Matrix drotxn90 = rotationMatrix(90.0f, 0.0f, 0.0f);
+		Matrix drot = MathLib.matrixMultiply(vmat, MathLib.matrixMultiply(drotxn90, drotzn90));
+		Direction[] smvecsrot = MathLib.matrixMultiply(smvecs, drot);
+		return MathLib.planeFromNormalAtPoint(vpos, smvecsrot);
+	}
+	public static Direction[][] spheremapRays(int vhres, int vvres, Matrix vmat) {
+		Direction[][] k = new Direction[vhres][vvres];
+		double[] hangles  = spheremapAngles(vhres, 360.0f);
+		double[] vangles  = spheremapAngles(vvres, 180.0f);
+		Direction[] vvecs = new Direction[vvres];
+		for (int i=0;i<vvres;i++) {
+			vvecs[i] = new Direction(cosd(vangles[i]), 0.0f, sind(vangles[i]));
+		}
+		Matrix drotzn90 = rotationMatrix(0.0f, 0.0f, -90.0f);
+		Matrix drotxn90 = rotationMatrix(90.0f, 0.0f, 0.0f);
+		Matrix drot = MathLib.matrixMultiply(vmat, MathLib.matrixMultiply(drotxn90, drotzn90));
+		for (int i=0;i<vhres;i++) {
+			Matrix hmat = MathLib.rotationMatrix(0, 0, hangles[i]);
+			Matrix hdmat = MathLib.matrixMultiply(drot, hmat);
+			k[i] = MathLib.matrixMultiply(vvecs, hdmat);
+		}
+		return k;
 	}
 	
 	public static double[] projectedStep(int vres, double vfov) {
@@ -1554,8 +1585,8 @@ public class MathLib {
 	public static Rectangle[][] cubemapSphereIntersection(Position vpos, Sphere[] vsphere, int vres) {
 		Rectangle[][] k = new Rectangle[6][vsphere.length];
 		Matrix rotxp0 = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
-		Matrix rotxp90 = MathLib.rotationMatrix(90.0f, 0.0f, 0.0f);
-		Matrix rotxp180 = MathLib.rotationMatrix(180.0f, 0.0f, 0.0f);
+		Matrix rotxp90 = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
+		Matrix rotxp180 = MathLib.rotationMatrix(-180.0f, 0.0f, 0.0f);
 		Matrix rotzn90 = MathLib.rotationMatrix(0.0f, 0.0f, -90.0f);
 		Matrix rotzp90 = MathLib.rotationMatrix(0.0f, 0.0f, 90.0f);
 		Matrix rotzp180 = MathLib.rotationMatrix(0.0f, 0.0f, 180.0f);
