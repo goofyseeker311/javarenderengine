@@ -1419,9 +1419,9 @@ public class ModelLib {
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
 			Sphere[] sortedentityspherelist = Arrays.copyOf(entityspherelist, entityspherelist.length);
 			Arrays.sort(sortedentityspherelist, distcomp);
-			//Rectangle[] sortedentityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, sortedentityspherelist, renderwidth, renderheight, hfov, vfov, viewrot);
+			Rectangle[] sortedentityspherelistint = MathLib.spheremapSphereIntersection(renderview.pos, sortedentityspherelist, renderwidth, renderheight, viewrot);
 			for (int k=sortedentityspherelist.length-1;k>=0;k--) {
-				//if (sortedentityspherelistint[k]!=null) {
+				if (sortedentityspherelistint[k]!=null) {
 					Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
 					if (copytrianglelist.length>0) {
 						Direction[] trianglenormallist = new Direction[copytrianglelist.length];
@@ -1440,16 +1440,15 @@ public class ModelLib {
 						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
 						Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
 						Arrays.sort(sortedtrianglespherelist, distcomp);
-						//Rectangle[] sortedtrianglespherelistint = MathLib.projectedSphereIntersection(renderview.pos, sortedtrianglespherelist, renderwidth, renderheight, hfov, vfov, viewrot);
+						Rectangle[] sortedtrianglespherelistint = MathLib.spheremapSphereIntersection(renderview.pos, sortedtrianglespherelist, renderwidth, renderheight, viewrot);
 						for (int i=sortedtrianglespherelist.length-1;i>=0;i--) {
 							int it = sortedtrianglespherelist[i].ind;
-							//if (sortedtrianglespherelistint[i]!=null) {
+							if (sortedtrianglespherelistint[i]!=null) {
 								Triangle[] copytriangle = {copytrianglelist[it]};
-								//int jstart = sortedtrianglespherelistint[i].x;
-								//int jend = sortedtrianglespherelistint[i].x+sortedtrianglespherelistint[i].width-1;
-								//Plane[] projectedsphereintplanes = Arrays.copyOfRange(renderview.planes, jstart, jend+1);
-								//Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(projectedsphereintplanes, copytriangle);
-								Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(renderview.planes, copytriangle);
+								int jstart = sortedtrianglespherelistint[i].x;
+								int jend = sortedtrianglespherelistint[i].x+sortedtrianglespherelistint[i].width-1;
+								Plane[] spheremapsphereintplanes = Arrays.copyOfRange(renderview.planes, jstart, jend+1);
+								Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(spheremapsphereintplanes, copytriangle);
 								Material copymaterial = copytriangle[0].mat;
 								Direction copytrianglenormal = trianglenormallist[it];
 								Color tricolor = copymaterial.facecolor;
@@ -1463,10 +1462,8 @@ public class ModelLib {
 									copymaterial.snapimage = copymaterial.fileimage.getSnapshot();
 									tritextureimage = copymaterial.snapimage;
 								}
-								//for (int j=jstart;j<=jend;j++) {
-									//Line drawline = vertplanetriangleint[j-jstart][0];
-								for (int j=0;j<renderwidth;j++) {
-									Line drawline = vertplanetriangleint[j][0];
+								for (int j=jstart;j<=jend;j++) {
+									Line drawline = vertplanetriangleint[j-jstart][0];
 									if (drawline!=null) {
 										Position[] triangleintpoints = {drawline.pos1, drawline.pos2};
 										Plane[] camfwdplane = {camfwdplanes[j]};
@@ -1557,10 +1554,10 @@ public class ModelLib {
 										}
 									}
 								}
-							//}
+							}
 						}
 					}
-				//}
+				}
 			}
 		}
 		renderview.mouseovertriangle = mouseoverhittriangle.toArray(new Triangle[mouseoverhittriangle.size()]);

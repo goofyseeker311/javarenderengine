@@ -247,6 +247,7 @@ public class CADApp extends AppHandlerPanel {
 			this.editpos = new Position(0.0f, 0.0f, 0.0f);
 			this.campos = new Position(0.0f,0.0f,this.editplanedistance);
 			this.camrot = new Rotation(0.0f, 0.0f, 0.0f);
+			updateCameraDirections();
 		} else if (e.getKeyCode()==KeyEvent.VK_INSERT) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[0] += 0.01f; if (drawcolorhsb[0]>1.0f) {drawcolorhsb[0] = 0.0f;}
@@ -315,6 +316,25 @@ public class CADApp extends AppHandlerPanel {
 				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
 				stri[0].norm = new Direction(0.0f,0.0f,0.0f);
 			}
+		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD3) {
+			this.editpos = new Position(0.0f, 0.0f, 0.0f);
+			this.campos = new Position(0.0f,0.0f,this.editplanedistance);
+			this.camrot = new Rotation(0.0f, 0.0f, 0.0f);
+			updateCameraDirections();
+		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD2) {
+	    	Triangle mousetriangle = null;
+    		if (this.softwarerenderview!=null) {
+    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+    			}
+    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+    		}
+			if (mousetriangle!=null) {
+	    		mousetriangle.pos1.tex = new Coordinate(0.0f,0.0f);
+	    		mousetriangle.pos2.tex = new Coordinate(1.0f,0.0f);
+	    		mousetriangle.pos3.tex = new Coordinate(0.0f,1.0f);
+			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD1) {
 	    	Triangle mousetriangle = null;
     		if (this.softwarerenderview!=null) {
@@ -331,20 +351,6 @@ public class CADApp extends AppHandlerPanel {
 	    		mousetriangle.pos1.tex.u = -mousetriangle.pos1.tex.u;
 	    		mousetriangle.pos2.tex.u = -mousetriangle.pos2.tex.u;
 	    		mousetriangle.pos3.tex.u = -mousetriangle.pos3.tex.u;
-			}
-		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD2) {
-	    	Triangle mousetriangle = null;
-    		if (this.softwarerenderview!=null) {
-    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
-    			}
-    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
-    		}
-			if (mousetriangle!=null) {
-	    		mousetriangle.pos1.tex = new Coordinate(0.0f,0.0f);
-	    		mousetriangle.pos2.tex = new Coordinate(1.0f,0.0f);
-	    		mousetriangle.pos3.tex = new Coordinate(0.0f,1.0f);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD0) {
 			(new EntityListUpdater()).start();

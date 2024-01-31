@@ -1604,6 +1604,51 @@ public class MathLib {
 
 	public static Rectangle[] spheremapSphereIntersection(Position vpos, Sphere[] vsphere, int hres, int vres, Matrix vmat) {
 		Rectangle[] k = new Rectangle[vsphere.length];
+		if ((vpos!=null)&&(vsphere!=null)&&(vmat!=null)) {
+			Position[] vpoint = sphereVertexList(vsphere);
+			Direction[] lvec = vectorFromPoints(vpos, vsphere);
+			double[] lvecl = vectorLength(lvec);
+			double halfhfov = 360.0f/2.0f;
+			double halfvfov = 180.0f/2.0f;
+			double halfhreshfovmult = (((double)hres)/2.0f)/halfhfov;
+			double halfvresvfovmult = (((double)vres)/2.0f)/halfvfov;
+			double origindeltax = ((double)(hres-1))/2.0f;
+			double origindeltay = ((double)(vres-1))/2.0f;
+			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
+			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
+			double[][] fwdintpointsdist = planePointDistance(vpoint, dirrightupplanes);
+			for (int i=0;i<vpoint.length;i++) {
+				double prjspherehalfang = asind(vsphere[i].r/lvecl[i]);
+				if (!Double.isFinite(prjspherehalfang)) {prjspherehalfang = 180.0f;}
+				Direction camfwdvector = new Direction(1.0f, 0.0f, 0.0f);
+				Direction[] posrightvector = {new Direction(fwdintpointsdist[i][0], fwdintpointsdist[i][1], 0.0f)};
+				double[] posrightvectorangle = vectorAngle(camfwdvector, posrightvector);
+				double[] posrightvectorlen = vectorLength(posrightvector);
+				double hangle = ((fwdintpointsdist[i][1]<0.0f)?-1:1)*posrightvectorangle[0];
+				double vangle = atand((fwdintpointsdist[i][2])/posrightvectorlen[0]);
+				double hangle1 = hangle-prjspherehalfang;
+				double hangle2 = hangle+prjspherehalfang;
+				double vangle1 = vangle-prjspherehalfang;
+				double vangle2 = vangle+prjspherehalfang;
+				if (hangle1<-halfhfov) {hangle1=-halfhfov;}
+				if (hangle2>halfhfov) {hangle2=halfhfov;}
+				if (vangle1<-halfvfov) {vangle1=-halfvfov;}
+				if (vangle2>halfvfov) {vangle2=halfvfov;}
+				int hcenterind1 = (int)Math.ceil(halfhreshfovmult*hangle1+origindeltax);
+				int hcenterind2 = (int)Math.floor(halfhreshfovmult*hangle2+origindeltax);
+				int vcenterind1 = (int)Math.ceil(halfvresvfovmult*vangle1+origindeltay);
+				int vcenterind2 = (int)Math.floor(halfvresvfovmult*vangle2+origindeltay);
+				if (hcenterind1<0) {hcenterind1=0;}
+				if (hcenterind2>=hres) {hcenterind2=hres-1;}
+				if (vcenterind1<0) {vcenterind1=0;}
+				if (vcenterind2>=vres) {vcenterind2=vres-1;}
+				int spherewidth = hcenterind2-hcenterind1+1;
+				int sphereheight = vcenterind2-vcenterind1+1;
+				if ((hcenterind1<hres)&&(hcenterind2>=0)&&(vcenterind1<vres)&&(vcenterind2>=0)&&(spherewidth>0)&&(sphereheight>0)) {
+					k[i] = new Rectangle(hcenterind1,vcenterind1,spherewidth,sphereheight);
+				}
+			}
+		}
 		return k;
 	}
 	
