@@ -105,7 +105,8 @@ public class ModelLib {
 		public int mouselocationx=0,mouselocationy=0; 
 		public Position pos;
 		public Matrix rot;
-		public int renderwidth=0, renderheight=0; 
+		public int renderwidth=0, renderheight=0;
+		public int rendersize=0;
 		public double hfov=0.0f, vfov=43.0f;
 		public boolean rendered = false;
 		public boolean unlit = false;
@@ -1569,29 +1570,28 @@ public class ModelLib {
 		return renderview;
 	}
 	
-	public static RenderView renderCubemapPlaneViewSoftware(Position campos, Entity[] entitylist, int renderwidth, int renderheight, Matrix viewrot, boolean unlit, int mouselocationx, int mouselocationy) {
+	public static RenderView renderCubemapPlaneViewSoftware(Position campos, Entity[] entitylist, int renderwidth, int renderheight, int rendersize, Matrix viewrot, boolean unlit, int mouselocationx, int mouselocationy) {
 		RenderView renderview = new RenderView();
 		renderview.pos = campos.copy();
 		renderview.rot = viewrot.copy();
 		renderview.renderwidth = renderwidth;
 		renderview.renderheight = renderheight;
+		renderview.rendersize = rendersize;
 		renderview.hfov = 90.0f;
 		renderview.vfov = 90.0f;
 		renderview.unlit = unlit;
 		renderview.mouselocationx = mouselocationx;
 		renderview.mouselocationy = mouselocationy;
-		int renderwidthd3 = (int)Math.floor(((double)renderwidth)/3.0f);
-		int renderheightd2 = (int)Math.floor(((double)renderheight)/2.0f);
 		int renderposx1start = 0;
-		int renderposx1end = renderwidthd3-1;
-		int renderposx2start = renderwidthd3;
-		int renderposx2end = 2*renderwidthd3-1;
-		int renderposx3start = 2*renderwidthd3;
-		int renderposx3end = 3*renderwidthd3-1;
+		int renderposx1end = rendersize-1;
+		int renderposx2start = rendersize;
+		int renderposx2end = 2*rendersize-1;
+		int renderposx3start = 2*rendersize;
+		int renderposx3end = 3*rendersize-1;
 		int renderposy1start = 0;
-		int renderposy1end = renderheightd2-1;
-		int renderposy2start = renderheightd2;
-		int renderposy2end = 2*renderheightd2-1;
+		int renderposy1end = rendersize-1;
+		int renderposy2start = rendersize;
+		int renderposy2end = 2*rendersize-1;
 		Matrix topmatrix = MathLib.rotationMatrix(-180.0f, 0.0f, 0.0f);
 		Matrix bottommatrix = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 		Matrix forwardmatrix = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
@@ -1605,12 +1605,12 @@ public class ModelLib {
 		backwardmatrix = MathLib.matrixMultiply(renderview.rot, backwardmatrix);
 		leftmatrix = MathLib.matrixMultiply(renderview.rot, leftmatrix);
 		renderview.cubemap = new Cubemap();
-		renderview.cubemap.topview = ModelLib.renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.renderheight, renderview.vfov, renderview.renderheight, renderview.vfov, topmatrix, renderview.unlit, mouselocationx, mouselocationy);
-		renderview.cubemap.bottomview = ModelLib.renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.renderheight, renderview.vfov, renderview.renderheight, renderview.vfov, bottommatrix, renderview.unlit, mouselocationx, mouselocationy); 
-		renderview.cubemap.forwardview = ModelLib.renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.renderheight, renderview.vfov, renderview.renderheight, renderview.vfov, forwardmatrix, renderview.unlit, mouselocationx, mouselocationy);
-		renderview.cubemap.rightview = ModelLib.renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.renderheight, renderview.vfov, renderview.renderheight, renderview.vfov, rightmatrix, renderview.unlit, mouselocationx, mouselocationy);
-		renderview.cubemap.backwardview = ModelLib.renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.renderheight, renderview.vfov, renderview.renderheight, renderview.vfov, backwardmatrix, renderview.unlit, mouselocationx, mouselocationy);
-		renderview.cubemap.leftview = ModelLib.renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.renderheight, renderview.vfov, renderview.renderheight, renderview.vfov, leftmatrix, renderview.unlit, mouselocationx, mouselocationy);
+		renderview.cubemap.topview = ModelLib.renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, topmatrix, renderview.unlit, mouselocationx, mouselocationy);
+		renderview.cubemap.bottomview = ModelLib.renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, bottommatrix, renderview.unlit, mouselocationx, mouselocationy); 
+		renderview.cubemap.forwardview = ModelLib.renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, forwardmatrix, renderview.unlit, mouselocationx, mouselocationy);
+		renderview.cubemap.rightview = ModelLib.renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, rightmatrix, renderview.unlit, mouselocationx, mouselocationy);
+		renderview.cubemap.backwardview = ModelLib.renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, backwardmatrix, renderview.unlit, mouselocationx, mouselocationy);
+		renderview.cubemap.leftview = ModelLib.renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, leftmatrix, renderview.unlit, mouselocationx, mouselocationy);
 		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
 		Graphics2D rigfx = renderview.renderimage.createGraphics();
 		rigfx.setComposite(AlphaComposite.Src);
@@ -1618,12 +1618,12 @@ public class ModelLib {
 		rigfx.setPaint(null);
 		rigfx.setClip(null);
 		rigfx.fillRect(0, 0, renderwidth, renderheight);
-		rigfx.drawImage(renderview.cubemap.forwardview.renderimage, renderposx1start, renderposy1start, renderposx1end, renderposy1end, 0, 0, renderview.renderheight-1, renderview.renderheight-1, null);
-		rigfx.drawImage(renderview.cubemap.backwardview.renderimage, renderposx2start, renderposy1start, renderposx2end, renderposy1end, 0, 0, renderview.renderheight-1, renderview.renderheight-1, null);
-		rigfx.drawImage(renderview.cubemap.topview.renderimage, renderposx3start, renderposy1start, renderposx3end, renderposy1end, 0, 0, renderview.renderheight-1, renderview.renderheight-1, null);
-		rigfx.drawImage(renderview.cubemap.leftview.renderimage, renderposx1start, renderposy2start, renderposx1end, renderposy2end, 0, 0, renderview.renderheight-1, renderview.renderheight-1, null);
-		rigfx.drawImage(renderview.cubemap.bottomview.renderimage, renderposx2start, renderposy2start, renderposx2end, renderposy2end, 0, 0, renderview.renderheight-1, renderview.renderheight-1, null);
-		rigfx.drawImage(renderview.cubemap.rightview.renderimage, renderposx3start, renderposy2start, renderposx3end, renderposy2end, 0, 0, renderview.renderheight-1, renderview.renderheight-1, null);
+		rigfx.drawImage(renderview.cubemap.forwardview.renderimage, renderposx1start, renderposy1start, renderposx1end, renderposy1end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
+		rigfx.drawImage(renderview.cubemap.backwardview.renderimage, renderposx2start, renderposy1start, renderposx2end, renderposy1end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
+		rigfx.drawImage(renderview.cubemap.topview.renderimage, renderposx3start, renderposy1start, renderposx3end, renderposy1end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
+		rigfx.drawImage(renderview.cubemap.leftview.renderimage, renderposx1start, renderposy2start, renderposx1end, renderposy2end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
+		rigfx.drawImage(renderview.cubemap.bottomview.renderimage, renderposx2start, renderposy2start, renderposx2end, renderposy2end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
+		rigfx.drawImage(renderview.cubemap.rightview.renderimage, renderposx3start, renderposy2start, renderposx3end, renderposy2end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
 		rigfx.dispose();
 		renderview.snapimage = renderview.renderimage.getSnapshot();
 		return renderview;
