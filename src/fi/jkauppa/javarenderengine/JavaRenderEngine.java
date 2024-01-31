@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.0.4");
+		this.setTitle("Java Render Engine v2.0.5");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -171,15 +171,15 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Line[] pline = new Line[3]; pline[0]=new Line(new Position(1,0,-1),new Position(1,0,1)); pline[1]=new Line(new Position(-1,0,1),new Position(1,0,1)); pline[2]=new Line(new Position(1,0,1),new Position(1,0,3));
 		Position[][] camplint = MathLib.planeLineIntersection(camplane, pline);
 		for (int i=0;i<camplint.length;i++) {for (int j=0;j<camplint[i].length;j++) {if(camplint[i][j]!=null) {System.out.println("camplint["+i+"]["+j+"]: "+camplint[i][j].x+" "+camplint[i][j].y+" "+camplint[i][j].z);}else{System.out.println("camplint["+i+"]["+j+"]: no hit.");}}}
-		double[] pang = MathLib.projectedAngles(64, 70.0f);
+		double[] pang = MathLib.projectedAngles(8, 70.0f);
 		for (int i=0;i<pang.length;i++) {System.out.println("pang["+i+"]="+pang[i]);}
-		double[] prjstep = MathLib.projectedStep(64, 70.0f);
-		double[] prjangles = MathLib.projectedAngles(64, 70.0f);
+		double[] prjstep = MathLib.projectedStep(8, 70.0f);
+		double[] prjangles = MathLib.projectedAngles(8, 70.0f);
 		Direction[] prjdirs = MathLib.projectedPlaneDirections(matrot1);
 		Direction[] prjdirs2 = MathLib.projectedPlaneDirections(matrot2);
-		Direction[] prjvectors = MathLib.projectedVectors(64, 70.0f, matrot1);
-		Plane[] prjplane = MathLib.projectedPlanes(campos, 64, 70.0f, matrot1);
-		Plane[] prjplane2 = MathLib.projectedPlanes(campos2[0], 64, 70.0f, matrot2);
+		Direction[] prjvectors = MathLib.projectedVectors(8, 70.0f, matrot1);
+		Plane[] prjplane = MathLib.projectedPlanes(campos, 8, 70.0f, matrot1);
+		Plane[] prjplane2 = MathLib.projectedPlanes(campos2[0], 8, 70.0f, matrot2);
 		for (int i=0;i<prjstep.length;i++) {System.out.println("prjstep["+i+"]: "+prjstep[i]);}
 		for (int i=0;i<prjangles.length;i++) {System.out.println("prjangles["+i+"]: "+prjangles[i]);}
 		System.out.println("prjdirs[0]="+prjdirs[0].dx+","+prjdirs[0].dy+","+prjdirs[0].dz); System.out.println("prjdirs[1]="+prjdirs[1].dx+","+prjdirs[1].dy+","+prjdirs[1].dz); System.out.println("prjdirs[2]="+prjdirs[2].dx+","+prjdirs[2].dy+","+prjdirs[2].dz);
@@ -187,8 +187,16 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		for (int i=0;i<prjvectors.length;i++) {System.out.println("prjvectors["+i+"]: "+prjvectors[i].dx+" "+prjvectors[i].dy+" "+prjvectors[i].dz);}
 		for (int i=0;i<prjplane.length;i++) {System.out.println("prjplane["+i+"]: "+prjplane[i].a+" "+prjplane[i].b+" "+prjplane[i].c+" "+prjplane[i].d);}
 		for (int i=0;i<prjplane2.length;i++) {System.out.println("prjplane2["+i+"]: "+prjplane2[i].a+" "+prjplane2[i].b+" "+prjplane2[i].c+" "+prjplane2[i].d);}
-		Direction[][] prjrays = MathLib.projectedRays(48, 27, 70, 39, matrot1);
+		Direction[][] prjrays = MathLib.projectedRays(4, 3, 70, 39, matrot1);
 		for (int j=0;j<prjrays.length;j++) {System.out.print("prjrays["+j+"]=");for (int i=0;i<prjrays[j].length;i++) {System.out.print(" ["+prjrays[j][i].dx+","+prjrays[j][i].dy+","+prjrays[j][i].dz+"]");}System.out.println();}
+		double[] sang = MathLib.spheremapAngles(8, 360.0f);
+		Position spos = new Position(0.0f,0.0f,0.0f);
+		Matrix smat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
+		Plane[] splanes = MathLib.spheremapPlanes(spos, 8, smat);
+		Direction[][] srays = MathLib.spheremapRays(9, 5, smat);
+		for (int i=0;i<sang.length;i++) {System.out.println("sang["+i+"]="+sang[i]);}
+		for (int i=0;i<splanes.length;i++) {System.out.println("splanes["+i+"]="+splanes[i].a+" "+splanes[i].b+" "+splanes[i].c+" "+splanes[i].d);}
+		for (int j=0;j<srays.length;j++) { for (int i=0;i<srays[0].length;i++) {System.out.println("srays["+j+"]["+i+"]="+srays[j][i].dx+" "+srays[j][i].dy+" "+srays[j][i].dz);}}
 		Direction[] camfwd = {new Direction(1,0,0)};
 		Direction[] camrgt = {new Direction(0,1,0)};
 		Direction[] camup = MathLib.vectorCross(camfwd[0],camrgt);
