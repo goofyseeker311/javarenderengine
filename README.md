@@ -82,6 +82,7 @@ NUMPAD9           -- pencil transparency positive (minmax)
 NUMPAD8           -- pencil transparency negative (minmax)
 NUMPAD7           -- triangle single sided normal invert (looping)
 NUMPAD4           -- triangle double sided zero normal (set)
+NUMPAD3           -- restore camera location and rotation to default
 NUMPAD2           -- triangle texture coordinate reset to default
 NUMPAD1           -- triangle texture coordinate mirror toggle
 NUMPAD0           -- run entity list updater
