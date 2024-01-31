@@ -1290,7 +1290,7 @@ public class MathLib {
 		for (int i=0;i<vhres;i++) {
 			smvecs[i] = new Direction(cosd(hangles[i]), sind(hangles[i]), 0.0f);
 		}
-		Matrix drotzn90 = rotationMatrix(0.0f, 0.0f, -90.0f);
+		Matrix drotzn90 = rotationMatrix(0.0f, 0.0f, -180.0f);
 		Matrix drotxn90 = rotationMatrix(90.0f, 0.0f, 0.0f);
 		Matrix drot = MathLib.matrixMultiply(vmat, MathLib.matrixMultiply(drotxn90, drotzn90));
 		Direction[] smvecsrot = MathLib.matrixMultiply(smvecs, drot);
@@ -1304,7 +1304,7 @@ public class MathLib {
 		for (int i=0;i<vvres;i++) {
 			vvecs[i] = new Direction(cosd(vangles[i]), 0.0f, sind(vangles[i]));
 		}
-		Matrix drotzn90 = rotationMatrix(0.0f, 0.0f, -90.0f);
+		Matrix drotzn90 = rotationMatrix(0.0f, 0.0f, -180.0f);
 		Matrix drotxn90 = rotationMatrix(90.0f, 0.0f, 0.0f);
 		Matrix drot = MathLib.matrixMultiply(vmat, MathLib.matrixMultiply(drotxn90, drotzn90));
 		for (int i=0;i<vhres;i++) {
@@ -1599,6 +1599,11 @@ public class MathLib {
 		k[3] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp90zp180);
 		k[4] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp180);
 		k[5] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp0);
+		return k;
+	}
+
+	public static Rectangle[] spheremapSphereIntersection(Position vpos, Sphere[] vsphere, int hres, int vres, Matrix vmat) {
+		Rectangle[] k = new Rectangle[vsphere.length];
 		return k;
 	}
 	
