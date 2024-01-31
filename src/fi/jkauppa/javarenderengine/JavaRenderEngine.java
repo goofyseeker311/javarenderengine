@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.0.8");
+		this.setTitle("Java Render Engine v2.0.9");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -219,14 +219,17 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Position pmsvpos = new Position(0,0,0);
 		Sphere[] pmsvsph = {new Sphere(0,0,0,2), new Sphere(0,0,3.9,2), new Sphere(0,3.9,0,2), new Sphere(3.9,0,0,2)};
 		Rectangle[][] cmsint = MathLib.cubemapSphereIntersection(pmsvpos, pmsvsph, 64);
-		Matrix pmsrotx = MathLib.rotationMatrix(90.0f, 0.0f, 0.0f);
+		Matrix pmsrotx = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
 		Matrix pmsrotz = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 		Matrix pmsrot = MathLib.matrixMultiply(pmsrotz, pmsrotx);
 		Rectangle[] pmsint = MathLib.projectedSphereIntersection(pmsvpos, pmsvsph, 64, 64, 90, 90, pmsrot);
+		Rectangle[] smsint = MathLib.spheremapSphereIntersection(pmsvpos, pmsvsph, 64, 64, pmsrot);
 		for (int j=0;j<cmsint.length;j++) {for (int i=0;i<cmsint[0].length;i++){if(cmsint[j][i]==null){cmsint[j][i]=new Rectangle(-1,-1,1,1);}}}
 		for (int j=0;j<cmsint[0].length;j++) {System.out.print("cmsint["+j+"]="); for (int i=0;i<cmsint.length;i++) {System.out.print(" "+cmsint[i][j].x+","+cmsint[i][j].y+","+(cmsint[i][j].x+cmsint[i][j].width-1)+","+(cmsint[i][j].y+cmsint[i][j].height-1));} System.out.println();}
 		for (int i=0;i<pmsint.length;i++){if(pmsint[i]==null){pmsint[i]=new Rectangle(-1,-1,1,1);}}
 		for (int i=0;i<pmsint.length;i++) {System.out.println("pmsint["+i+"]= "+pmsint[i].x+","+pmsint[i].y+","+(pmsint[i].x+pmsint[i].width-1)+","+(pmsint[i].y+pmsint[i].height-1));}
+		for (int i=0;i<smsint.length;i++){if(smsint[i]==null){smsint[i]=new Rectangle(-1,-1,1,1);}}
+		for (int i=0;i<smsint.length;i++) {System.out.println("smsint["+i+"]= "+smsint[i].x+","+smsint[i].y+","+(smsint[i].x+smsint[i].width-1)+","+(smsint[i].y+smsint[i].height-1));}
 		Triangle[] sdtri = MathLib.subDivideTriangle(ptri);
 		for (int i=0;i<sdtri.length;i++) {System.out.println("sdtri["+i+"]="+sdtri[i].pos1.x+","+sdtri[i].pos1.y+","+sdtri[i].pos1.z+" "+sdtri[i].pos2.x+","+sdtri[i].pos2.y+","+sdtri[i].pos2.z+" "+sdtri[i].pos3.x+","+sdtri[i].pos3.y+","+sdtri[i].pos3.z);}
 		Position[] tpoint = {new Position(0.0f,0.0f,0.0f),new Position(-50.0f,30.0f,45.0f),new Position(-8.0f,3.0f,9.0f),new Position(-6.0f,1.0f,4.0f)};
