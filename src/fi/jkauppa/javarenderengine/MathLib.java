@@ -1541,9 +1541,38 @@ public class MathLib {
 		return k;
 	}
 
-	public static Coordinate[][] projectedPlaneTriangles(Position vpos, Triangle[] vtri, int hres, double hfov, int vres, double vfov, Matrix vmat) {
-		Coordinate[][] k = null;
+	public static Rectangle[] projectedTrianglesIntersection(Position vpos, Triangle[] vtri, int hres, int vres, double hfov, double vfov, Matrix vmat) {
+		Rectangle[] k = null;
 		if ((vpos!=null)&&(vtri!=null)&&(vmat!=null)) {
+			k = new Rectangle[vtri.length];
+			Coordinate[][] projectedtriangles = projectedTriangles(vpos, vtri, hres, hfov, vres, vfov, vmat);
+			for (int j=0;j<projectedtriangles.length;j++) {
+				if ((projectedtriangles[j][0]!=null)&&(projectedtriangles[j][1]!=null)&&(projectedtriangles[j][2]!=null)) {
+					double minx = Double.POSITIVE_INFINITY;
+					double maxx = Double.NEGATIVE_INFINITY;
+					double miny = Double.POSITIVE_INFINITY;
+					double maxy = Double.NEGATIVE_INFINITY;
+					for (int i=0;i<projectedtriangles[j].length;i++) {
+						if (projectedtriangles[j][i].u<minx) {minx = projectedtriangles[j][i].u;}
+						if (projectedtriangles[j][i].u>maxx) {maxx = projectedtriangles[j][i].u;}
+						if (projectedtriangles[j][i].v<miny) {miny = projectedtriangles[j][i].v;}
+						if (projectedtriangles[j][i].v>maxy) {maxy = projectedtriangles[j][i].v;}
+					}
+					int minxind = (int)Math.ceil(minx); 
+					int maxxind = (int)Math.floor(maxx); 
+					int minyind = (int)Math.ceil(miny); 
+					int maxyind = (int)Math.floor(maxy);
+					if (minxind<0) {minxind=0;}
+					if (maxxind>=hres) {maxxind=hres-1;}
+					if (minyind<0) {minyind=0;}
+					if (maxyind>=vres) {maxyind=vres-1;}
+					int triwidth = maxxind-minxind+1; 
+					int triheight = maxyind-minyind+1;
+					if ((minxind<hres)&&(maxxind>=0)&&(minyind<vres)&&(maxyind>=0)&&(triwidth>0)&&(triheight>0)) {
+						k[j] = new Rectangle(minxind,minyind,triwidth,triheight);
+					}
+				}
+			}
 		}
 		return k;
 	}
@@ -1618,6 +1647,12 @@ public class MathLib {
 		return k;
 	}
 
+	public static Rectangle[][] spheremapTrianglesIntersection(Position vpos, Triangle[] vtri, int hres, int vres, Matrix vmat) {
+		Rectangle[][] k = null;
+		if ((vpos!=null)&&(vtri!=null)&&(vmat!=null)) {
+		}
+		return k;
+	}
 	public static Rectangle[] spheremapSphereIntersection(Position vpos, Sphere[] vsphere, int hres, int vres, Matrix vmat) {
 		//TODO fix incorrect sphere rectangle image area
 		Rectangle[] k = new Rectangle[vsphere.length];
