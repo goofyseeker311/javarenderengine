@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.1.0");
+		this.setTitle("Java Render Engine v2.1.1");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -217,13 +217,18 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		System.out.println("boundingsphere="+pointcloudsphere.x+","+pointcloudsphere.y+","+pointcloudsphere.z+" "+pointcloudsphere.r);
 		for (int i=0;i<trianglesphere.length;i++) {System.out.println("trianglesphere["+i+"]="+trianglesphere[i].x+" "+trianglesphere[i].y+" "+trianglesphere[i].z+" "+trianglesphere[i].r);}
 		Position pmsvpos = new Position(0,0,0);
+		Position[] pmstripos = {new Position(0.0f,-3.9f,0.0f),new Position(-1.0f,-3.9f,0.0f),new Position(1.0f,-3.9f,0.0f),new Position(0.0f,-3.9f,1.0f),new Position(0.0f,-3.9f,-1.0f)};
+		Triangle[] pmsvtri = {new Triangle(pmstripos[0],pmstripos[1],pmstripos[3]), new Triangle(pmstripos[0],pmstripos[2],pmstripos[3]), new Triangle(pmstripos[0],pmstripos[1],pmstripos[4]), new Triangle(pmstripos[0],pmstripos[2],pmstripos[4])};
 		Sphere[] pmsvsph = {new Sphere(0,0,0,2), new Sphere(0,0,3.9,2), new Sphere(0,3.9,0,2), new Sphere(3.9,0,0,2)};
-		Rectangle[][] cmsint = MathLib.cubemapSphereIntersection(pmsvpos, pmsvsph, 64);
 		Matrix pmsrotx = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
 		Matrix pmsrotz = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 		Matrix pmsrot = MathLib.matrixMultiply(pmsrotz, pmsrotx);
+		Rectangle[] pmtint = MathLib.projectedTrianglesIntersection(pmsvpos, pmsvtri, 64, 64, 90, 90, pmsrot);
 		Rectangle[] pmsint = MathLib.projectedSphereIntersection(pmsvpos, pmsvsph, 64, 64, 90, 90, pmsrot);
+		Rectangle[][] cmsint = MathLib.cubemapSphereIntersection(pmsvpos, pmsvsph, 64);
 		Rectangle[] smsint = MathLib.spheremapSphereIntersection(pmsvpos, pmsvsph, 64, 64, pmsrot);
+		for (int i=0;i<pmtint.length;i++){if(pmtint[i]==null){pmtint[i]=new Rectangle(-1,-1,1,1);}}
+		for (int i=0;i<pmtint.length;i++) {System.out.println("pmtint["+i+"]= "+pmtint[i].x+","+pmtint[i].y+","+(pmtint[i].x+pmtint[i].width-1)+","+(pmtint[i].y+pmtint[i].height-1));}
 		for (int j=0;j<cmsint.length;j++) {for (int i=0;i<cmsint[0].length;i++){if(cmsint[j][i]==null){cmsint[j][i]=new Rectangle(-1,-1,1,1);}}}
 		for (int j=0;j<cmsint[0].length;j++) {System.out.print("cmsint["+j+"]="); for (int i=0;i<cmsint.length;i++) {System.out.print(" "+cmsint[i][j].x+","+cmsint[i][j].y+","+(cmsint[i][j].x+cmsint[i][j].width-1)+","+(cmsint[i][j].y+cmsint[i][j].height-1));} System.out.println();}
 		for (int i=0;i<pmsint.length;i++){if(pmsint[i]==null){pmsint[i]=new Rectangle(-1,-1,1,1);}}
