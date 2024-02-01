@@ -176,11 +176,9 @@ public class MathLib {
 		Direction[] k = null;
 		if ((vpoint1!=null)&&(vpoint2!=null)) {
 			k = new Direction[vpoint2.length];
-			if (vpoint1!=null) {
-				for (int n=0;n<vpoint2.length;n++) {
-					if (vpoint2[n]!=null) {
-						k[n] = new Direction(vpoint2[n].x-vpoint1.x, vpoint2[n].y-vpoint1.y, vpoint2[n].z-vpoint1.z);
-					}
+			for (int n=0;n<vpoint2.length;n++) {
+				if (vpoint2[n]!=null) {
+					k[n] = new Direction(vpoint2[n].x-vpoint1.x, vpoint2[n].y-vpoint1.y, vpoint2[n].z-vpoint1.z);
 				}
 			}
 		}
@@ -202,11 +200,21 @@ public class MathLib {
 		Direction[] k = null;
 		if ((vpoint1!=null)&&(vsphere!=null)) {
 			k = new Direction[vsphere.length];
-			if (vpoint1!=null) {
-				for (int n=0;n<vsphere.length;n++) {
-					if (vsphere[n]!=null) {
-						k[n] = new Direction(vsphere[n].x-vpoint1.x, vsphere[n].y-vpoint1.y, vsphere[n].z-vpoint1.z);
-					}
+			for (int n=0;n<vsphere.length;n++) {
+				if (vsphere[n]!=null) {
+					k[n] = new Direction(vsphere[n].x-vpoint1.x, vsphere[n].y-vpoint1.y, vsphere[n].z-vpoint1.z);
+				}
+			}
+		}
+		return k;
+	}
+	public static Direction[] vectorFromPoints(Line[] vline) {
+		Direction[] k = null;
+		if (vline!=null) {
+			k = new Direction[vline.length];
+			for (int n=0;n<vline.length;n++) {
+				if (vline[n]!=null) {
+					k[n] = new Direction(vline[n].pos2.x-vline[n].pos1.x, vline[n].pos2.y-vline[n].pos1.y, vline[n].pos2.z-vline[n].pos1.z);
 				}
 			}
 		}
@@ -293,7 +301,7 @@ public class MathLib {
 			double[][] tpdist = rayPlaneDistance(vpos, vdir, tplanes);
 			for (int n=0;n<vdir.length;n++) {
 				for (int m=0;m<vtri.length;m++) {
-					if ((Double.isFinite(tpdist[n][m]))&&(tpdist[n][m]>=0)) {
+					if ((Double.isFinite(tpdist[n][m]))&&(tpdist[n][m]>=1.0f)) {
 						Position[] p4 = {new Position(vpos.x+vdir[n].dx*tpdist[n][m],vpos.y+vdir[n].dy*tpdist[n][m],vpos.z+vdir[n].dz*tpdist[n][m])};
 						Position[] p1 = {vtri[m].pos1};
 						Position[] p2 = {vtri[m].pos2};
@@ -1394,7 +1402,7 @@ public class MathLib {
 			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
 			double[][] fwdintpointsdist = planePointDistance(vpoint, dirrightupplanes);
 			for (int i=0;i<vpoint.length;i++) {
-				if (fwdintpointsdist[i][0]>0) {
+				if (fwdintpointsdist[i][0]>=1.0f) {
 					double hind = halfhfovmult*halfhres*(fwdintpointsdist[i][1]/fwdintpointsdist[i][0])+origindeltax;
 					double vind = halfvfovmult*halfvres*(fwdintpointsdist[i][2]/fwdintpointsdist[i][0])+origindeltay;
 					k[i] = new Coordinate(hind,vind);
@@ -1424,12 +1432,12 @@ public class MathLib {
 			double[][] fwdintpointsdist1 = planePointDistance(vlinepoint1, dirrightupplanes);
 			double[][] fwdintpointsdist2 = planePointDistance(vlinepoint2, dirrightupplanes);
 			for (int i=0;i<vline.length;i++) {
-				if (fwdintpointsdist1[i][0]>0) {
+				if (fwdintpointsdist1[i][0]>=1.0f) {
 					double hind = halfhfovmult*halfhres*fwdintpointsdist1[i][1]/fwdintpointsdist1[i][0]+origindeltax;
 					double vind = halfvfovmult*halfvres*fwdintpointsdist1[i][2]/fwdintpointsdist1[i][0]+origindeltay;
 					k[i][0] = new Coordinate(hind,vind);
 				}
-				if (fwdintpointsdist2[i][0]>0) {
+				if (fwdintpointsdist2[i][0]>=1.0f) {
 					double hind = halfhfovmult*halfhres*fwdintpointsdist2[i][1]/fwdintpointsdist2[i][0]+origindeltax;
 					double vind = halfvfovmult*halfvres*fwdintpointsdist2[i][2]/fwdintpointsdist2[i][0]+origindeltay;
 					k[i][1] = new Coordinate(hind,vind);
@@ -1462,17 +1470,17 @@ public class MathLib {
 			double[][] fwdintpointsdist2 = planePointDistance(vtripoint2, dirrightupplanes);
 			double[][] fwdintpointsdist3 = planePointDistance(vtripoint3, dirrightupplanes);
 			for (int i=0;i<vtri.length;i++) {
-				if (fwdintpointsdist1[i][0]>0) {
+				if (fwdintpointsdist1[i][0]>=1.0f) {
 					double hind = halfhfovmult*halfhres*fwdintpointsdist1[i][1]/fwdintpointsdist1[i][0]+origindeltax;
 					double vind = halfvfovmult*halfvres*fwdintpointsdist1[i][2]/fwdintpointsdist1[i][0]+origindeltay;
 					k[i][0] = new Coordinate(hind,vind);
 				}
-				if (fwdintpointsdist2[i][0]>0) {
+				if (fwdintpointsdist2[i][0]>=1.0f) {
 					double hind = halfhfovmult*halfhres*fwdintpointsdist2[i][1]/fwdintpointsdist2[i][0]+origindeltax;
 					double vind = halfvfovmult*halfvres*fwdintpointsdist2[i][2]/fwdintpointsdist2[i][0]+origindeltay;
 					k[i][1] = new Coordinate(hind,vind);
 				}
-				if (fwdintpointsdist3[i][0]>0) {
+				if (fwdintpointsdist3[i][0]>=1.0f) {
 					double hind = halfhfovmult*halfhres*fwdintpointsdist3[i][1]/fwdintpointsdist3[i][0]+origindeltax;
 					double vind = halfvfovmult*halfvres*fwdintpointsdist3[i][2]/fwdintpointsdist3[i][0]+origindeltay;
 					k[i][2] = new Coordinate(hind,vind);
@@ -1508,22 +1516,22 @@ public class MathLib {
 			double[][] fwdintpointsdist3 = planePointDistance(vquadpoint3, dirrightupplanes);
 			double[][] fwdintpointsdist4 = planePointDistance(vquadpoint4, dirrightupplanes);
 			for (int i=0;i<vquad.length;i++) {
-				if (fwdintpointsdist1[i][0]>0) {
+				if (fwdintpointsdist1[i][0]>=1.0f) {
 					double hind = halfhfovmult*halfhres*fwdintpointsdist1[i][1]/fwdintpointsdist1[i][0]+origindeltax;
 					double vind = halfvfovmult*halfvres*fwdintpointsdist1[i][2]/fwdintpointsdist1[i][0]+origindeltay;
 					k[i][0] = new Coordinate(hind,vind);
 				}
-				if (fwdintpointsdist2[i][0]>0) {
+				if (fwdintpointsdist2[i][0]>=1.0f) {
 					double hind = halfhfovmult*halfhres*fwdintpointsdist2[i][1]/fwdintpointsdist2[i][0]+origindeltax;
 					double vind = halfvfovmult*halfvres*fwdintpointsdist2[i][2]/fwdintpointsdist2[i][0]+origindeltay;
 					k[i][1] = new Coordinate(hind,vind);
 				}
-				if (fwdintpointsdist3[i][0]>0) {
+				if (fwdintpointsdist3[i][0]>=1.0f) {
 					double hind = halfhfovmult*halfhres*fwdintpointsdist3[i][1]/fwdintpointsdist3[i][0]+origindeltax;
 					double vind = halfvfovmult*halfvres*fwdintpointsdist3[i][2]/fwdintpointsdist3[i][0]+origindeltay;
 					k[i][2] = new Coordinate(hind,vind);
 				}
-				if (fwdintpointsdist4[i][0]>0) {
+				if (fwdintpointsdist4[i][0]>=1.0f) {
 					double hind = halfhfovmult*halfhres*fwdintpointsdist4[i][1]/fwdintpointsdist4[i][0]+origindeltax;
 					double vind = halfvfovmult*halfvres*fwdintpointsdist4[i][2]/fwdintpointsdist4[i][0]+origindeltay;
 					k[i][3] = new Coordinate(hind,vind);
@@ -1533,7 +1541,15 @@ public class MathLib {
 		return k;
 	}
 
+	public static Coordinate[][] projectedPlaneTriangles(Position vpos, Triangle[] vtri, int hres, double hfov, int vres, double vfov, Matrix vmat) {
+		Coordinate[][] k = null;
+		if ((vpos!=null)&&(vtri!=null)&&(vmat!=null)) {
+		}
+		return k;
+	}
+	
 	public static Rectangle[] projectedSphereIntersection(Position vpos, Sphere[] vsphere, int hres, int vres, double hfov, double vfov, Matrix vmat) {
+		//TODO fix incorrect sphere rectangle image area
 		Rectangle[] k = new Rectangle[vsphere.length];
 		if ((vpos!=null)&&(vsphere!=null)&&(vmat!=null)) {
 			Position[] vpoint = sphereVertexList(vsphere);
@@ -1551,7 +1567,7 @@ public class MathLib {
 			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
 			double[][] fwdintpointsdist = planePointDistance(vpoint, dirrightupplanes);
 			for (int i=0;i<vpoint.length;i++) {
-				if (fwdintpointsdist[i][0]>0) {
+				if (fwdintpointsdist[i][0]>=1.0f) {
 					double prjspherehalfang = asind(vsphere[i].r/lvecl[i]);
 					if (!Double.isFinite(prjspherehalfang)) {prjspherehalfang = 180.0f;}
 					double hangle = atand(fwdintpointsdist[i][1]/fwdintpointsdist[i][0]);
@@ -1603,6 +1619,7 @@ public class MathLib {
 	}
 
 	public static Rectangle[] spheremapSphereIntersection(Position vpos, Sphere[] vsphere, int hres, int vres, Matrix vmat) {
+		//TODO fix incorrect sphere rectangle image area
 		Rectangle[] k = new Rectangle[vsphere.length];
 		if ((vpos!=null)&&(vsphere!=null)&&(vmat!=null)) {
 			Position[] vpoint = sphereVertexList(vsphere);
