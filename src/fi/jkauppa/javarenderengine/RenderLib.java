@@ -1025,4 +1025,63 @@ public class RenderLib {
 		return renderview;
 	}
 	
+	public static RenderView renderSurfaceCubemapPlaneViewSoftware(Position campos, Entity[] entitylist, Triangle surface, int renderwidth, int renderheight, int rendersize, Matrix viewrot, boolean unlit, int mouselocationx, int mouselocationy) {
+		RenderView renderview = new RenderView();
+		renderview.pos = campos.copy();
+		renderview.rot = viewrot.copy();
+		renderview.renderwidth = renderwidth;
+		renderview.renderheight = renderheight;
+		renderview.rendersize = rendersize;
+		renderview.hfov = 90.0f;
+		renderview.vfov = 90.0f;
+		renderview.unlit = unlit;
+		renderview.mouselocationx = mouselocationx;
+		renderview.mouselocationy = mouselocationy;
+		int renderposx1start = 0;
+		int renderposx1end = rendersize-1;
+		int renderposx2start = rendersize;
+		int renderposx2end = 2*rendersize-1;
+		int renderposx3start = 2*rendersize;
+		int renderposx3end = 3*rendersize-1;
+		int renderposy1start = 0;
+		int renderposy1end = rendersize-1;
+		int renderposy2start = rendersize;
+		int renderposy2end = 2*rendersize-1;
+		Matrix topmatrix = MathLib.rotationMatrix(-180.0f, 0.0f, 0.0f);
+		Matrix bottommatrix = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
+		Matrix forwardmatrix = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
+		Matrix rightmatrix = MathLib.matrixMultiply(MathLib.rotationMatrix(0.0f, 0.0f, 90.0f), forwardmatrix);
+		Matrix backwardmatrix = MathLib.matrixMultiply(MathLib.rotationMatrix(0.0f, 0.0f, 180.0f), forwardmatrix);
+		Matrix leftmatrix = MathLib.matrixMultiply(MathLib.rotationMatrix(0.0f, 0.0f, 270.0f), forwardmatrix);
+		topmatrix = MathLib.matrixMultiply(renderview.rot, topmatrix);
+		bottommatrix = MathLib.matrixMultiply(renderview.rot, bottommatrix);
+		forwardmatrix = MathLib.matrixMultiply(renderview.rot, forwardmatrix);
+		rightmatrix = MathLib.matrixMultiply(renderview.rot, rightmatrix);
+		backwardmatrix = MathLib.matrixMultiply(renderview.rot, backwardmatrix);
+		leftmatrix = MathLib.matrixMultiply(renderview.rot, leftmatrix);
+		renderview.cubemap = new Cubemap();
+		renderview.cubemap.topview = renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, topmatrix, renderview.unlit, mouselocationx, mouselocationy);
+		renderview.cubemap.bottomview = renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, bottommatrix, renderview.unlit, mouselocationx, mouselocationy); 
+		renderview.cubemap.forwardview = renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, forwardmatrix, renderview.unlit, mouselocationx, mouselocationy);
+		renderview.cubemap.rightview = renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, rightmatrix, renderview.unlit, mouselocationx, mouselocationy);
+		renderview.cubemap.backwardview = renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, backwardmatrix, renderview.unlit, mouselocationx, mouselocationy);
+		renderview.cubemap.leftview = renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, leftmatrix, renderview.unlit, mouselocationx, mouselocationy);
+		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
+		Graphics2D rigfx = renderview.renderimage.createGraphics();
+		rigfx.setComposite(AlphaComposite.Src);
+		rigfx.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
+		rigfx.setPaint(null);
+		rigfx.setClip(null);
+		rigfx.fillRect(0, 0, renderwidth, renderheight);
+		rigfx.drawImage(renderview.cubemap.forwardview.renderimage, renderposx1start, renderposy1start, renderposx1end, renderposy1end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
+		rigfx.drawImage(renderview.cubemap.backwardview.renderimage, renderposx2start, renderposy1start, renderposx2end, renderposy1end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
+		rigfx.drawImage(renderview.cubemap.topview.renderimage, renderposx3start, renderposy1start, renderposx3end, renderposy1end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
+		rigfx.drawImage(renderview.cubemap.leftview.renderimage, renderposx1start, renderposy2start, renderposx1end, renderposy2end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
+		rigfx.drawImage(renderview.cubemap.bottomview.renderimage, renderposx2start, renderposy2start, renderposx2end, renderposy2end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
+		rigfx.drawImage(renderview.cubemap.rightview.renderimage, renderposx3start, renderposy2start, renderposx3end, renderposy2end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
+		rigfx.dispose();
+		renderview.snapimage = renderview.renderimage.getSnapshot();
+		return renderview;
+	}
+
 }

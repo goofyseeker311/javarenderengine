@@ -290,6 +290,10 @@ public class CADApp extends AppHandlerPanel {
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
 			this.drawmat = new Material(newfacecolor,this.drawmat.transparency);
+		} else if (e.getKeyCode()==KeyEvent.VK_MULTIPLY) {
+			//TODO material emissivity+
+		} else if (e.getKeyCode()==KeyEvent.VK_DIVIDE) {
+			//TODO material emissivity-
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD9) {
 			float newtransparency = this.drawmat.transparency+0.01f; if (newtransparency>1.0f) {newtransparency = 1.0f;}
 			float[] colorvalues = this.drawmat.facecolor.getRGBColorComponents(new float[3]);
@@ -311,6 +315,10 @@ public class CADApp extends AppHandlerPanel {
 					stri[0].norm = stri[0].norm.invert();
 				}
 			}
+		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD6) {
+			//TODO material roughness+
+		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD5) {
+			//TODO material roughness-
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD4) {
 			if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
 				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
