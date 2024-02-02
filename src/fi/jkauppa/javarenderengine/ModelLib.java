@@ -90,6 +90,7 @@ public class ModelLib {
 		public double[][] zbuffer = null;
 		public Entity[][] ebuffer = null;
 		public Triangle[][] tbuffer = null;
+		public Direction[][] nbuffer = null;
 		public Coordinate[][] cbuffer = null;
 		public Triangle[] mouseovertriangle = null;
 		public Position[] mouseoververtex = null;
