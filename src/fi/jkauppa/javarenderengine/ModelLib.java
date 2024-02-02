@@ -32,9 +32,12 @@ public class ModelLib {
 		public BufferedImage snapimage = null;
 		public String filename = null;
 		public Color facecolor = null;
+		public float emissivity = 0.0f;
 		public float transparency = 1.0f;
+		public float roughness = 1.0f;
+		public float metallic = 0.0f;
 		public Material() {}
-		public Material(Color facecolori, float transparencyi) {this.facecolor=facecolori;this.transparency=transparencyi;}
+		public Material(Color facecolori, float transparencyi, VolatileImage fileimagei) {this.facecolor=facecolori;this.transparency=transparencyi;this.fileimage=fileimagei;}
 		@Override public int compareTo(Material o) {
 			int k=-1;
 			if(this.facecolor.getRed()>o.facecolor.getRed()) {
@@ -69,7 +72,7 @@ public class ModelLib {
 			return k;
 		}
 		public Material copy(){
-			Material k=new Material(this.facecolor,this.transparency);
+			Material k=new Material(this.facecolor,this.transparency,this.fileimage);
 			k.fileimage = null;
 			if (this.fileimage!=null) {
 				k.fileimage = gc.createCompatibleVolatileImage(this.fileimage.getWidth(),this.fileimage.getHeight(),Transparency.TRANSLUCENT);
@@ -704,7 +707,7 @@ public class ModelLib {
 					    if (fline.toLowerCase().startsWith("#")) {
 					    }else if (fline.toLowerCase().startsWith("newmtl ")) {
 					    	String farg = fline.substring(7).trim();
-					    	modelmaterials.add(new Material());
+					    	modelmaterials.add(new Material(Color.WHITE, 1.0f, null));
 					    	modelmaterials.get(modelmaterials.size()-1).materialname = farg;
 					    }else if (fline.toLowerCase().startsWith("map_kd ")) {
 					    	String farg = fline.substring(7).trim();

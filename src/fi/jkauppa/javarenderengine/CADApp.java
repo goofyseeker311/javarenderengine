@@ -11,6 +11,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.awt.image.VolatileImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,8 +49,9 @@ public class CADApp extends AppHandlerPanel {
 	private static final long serialVersionUID = 1L;
 	private boolean draglinemode = false;
 	private boolean snaplinemode = false;
-	private Material drawmat = new Material(Color.getHSBColor(0.0f, 0.0f, 1.0f),1.0f);
+	private Material drawmat = new Material(Color.getHSBColor(0.0f, 0.0f, 1.0f),1.0f,null);
 	private int polygonfillmode = 1;
+	private boolean unlitrender = false;
 	private Position[] selecteddragvertex = null;
 	private Triangle[] mouseovertriangle = null;
 	private Position[] mouseoververtex = null;
@@ -242,8 +244,10 @@ public class CADApp extends AppHandlerPanel {
 	}
 	@Override public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
-			this.linelisttree.clear();
-			this.entitylist = null;
+			if (!e.isShiftDown()) {
+				this.linelisttree.clear();
+				this.entitylist = null;
+			}
 			this.editpos = new Position(0.0f, 0.0f, 0.0f);
 			this.campos = new Position(0.0f,0.0f,this.editplanedistance);
 			this.camrot = new Rotation(0.0f, 0.0f, 0.0f);
@@ -254,56 +258,58 @@ public class CADApp extends AppHandlerPanel {
 			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
-			this.drawmat = new Material(newfacecolor,this.drawmat.transparency);
+			this.drawmat = new Material(newfacecolor,this.drawmat.transparency,null);
 		} else if (e.getKeyCode()==KeyEvent.VK_DELETE) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[0] -= 0.01f; if (drawcolorhsb[0]<0.0f) {drawcolorhsb[0] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
-			this.drawmat = new Material(newfacecolor,this.drawmat.transparency);
+			this.drawmat = new Material(newfacecolor,this.drawmat.transparency,null);
 		} else if (e.getKeyCode()==KeyEvent.VK_HOME) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[1] += 0.01f; if (drawcolorhsb[1]>1.0f) {drawcolorhsb[1] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
-			this.drawmat = new Material(newfacecolor,this.drawmat.transparency);
+			this.drawmat = new Material(newfacecolor,this.drawmat.transparency,null);
 		} else if (e.getKeyCode()==KeyEvent.VK_END) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[1] -= 0.01f; if (drawcolorhsb[1]<0.0f) {drawcolorhsb[1] = 0.0f;}
 			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
-			this.drawmat = new Material(newfacecolor,this.drawmat.transparency);
+			this.drawmat = new Material(newfacecolor,this.drawmat.transparency,null);
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_UP) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[2] += 0.01f; if (drawcolorhsb[2]>1.0f) {drawcolorhsb[2] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
-			this.drawmat = new Material(newfacecolor,this.drawmat.transparency);
+			this.drawmat = new Material(newfacecolor,this.drawmat.transparency,null);
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_DOWN) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[2] -= 0.01f; if (drawcolorhsb[2]<0.0f) {drawcolorhsb[2] = 0.0f;}
 			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
-			this.drawmat = new Material(newfacecolor,this.drawmat.transparency);
+			this.drawmat = new Material(newfacecolor,this.drawmat.transparency,null);
 		} else if (e.getKeyCode()==KeyEvent.VK_MULTIPLY) {
-			//TODO material emissivity+
+			float newemissivity = this.drawmat.emissivity+0.01f; if (newemissivity>1.0f) {newemissivity = 1.0f;}
+			this.drawmat.emissivity = newemissivity;
 		} else if (e.getKeyCode()==KeyEvent.VK_DIVIDE) {
-			//TODO material emissivity-
+			float newemissivity = this.drawmat.emissivity-0.01f; if (newemissivity<0.0f) {newemissivity = 0.0f;}
+			this.drawmat.emissivity = newemissivity;
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD9) {
 			float newtransparency = this.drawmat.transparency+0.01f; if (newtransparency>1.0f) {newtransparency = 1.0f;}
 			float[] colorvalues = this.drawmat.facecolor.getRGBColorComponents(new float[3]);
-			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
-			this.drawmat = new Material(newfacecolor,newtransparency);
+			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],newtransparency);
+			this.drawmat = new Material(newfacecolor,newtransparency,this.drawmat.fileimage);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD8) {
 			float newtransparency = this.drawmat.transparency-0.01f; if (newtransparency<0.0f) {newtransparency = 0.0f;}
 			float[] colorvalues = this.drawmat.facecolor.getRGBColorComponents(new float[3]);
-			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
-			this.drawmat = new Material(newfacecolor,newtransparency);
+			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],newtransparency);
+			this.drawmat = new Material(newfacecolor,newtransparency,this.drawmat.fileimage);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD7) {
 			if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
 				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
@@ -316,33 +322,22 @@ public class CADApp extends AppHandlerPanel {
 				}
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD6) {
-			//TODO material roughness+
+			float newroughness = this.drawmat.roughness+0.01f; if (newroughness>1.0f) {newroughness = 1.0f;}
+			this.drawmat.roughness= newroughness;
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD5) {
-			//TODO material roughness-
+			float newroughness = this.drawmat.roughness-0.01f; if (newroughness<0.0f) {newroughness = 0.0f;}
+			this.drawmat.roughness= newroughness;
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD4) {
 			if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
 				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
 				stri[0].norm = new Direction(0.0f,0.0f,0.0f);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD3) {
-			this.editpos = new Position(0.0f, 0.0f, 0.0f);
-			this.campos = new Position(0.0f,0.0f,this.editplanedistance);
-			this.camrot = new Rotation(0.0f, 0.0f, 0.0f);
-			updateCameraDirections();
+			float newmetallic = this.drawmat.metallic+0.01f; if (newmetallic>1.0f) {newmetallic = 1.0f;}
+			this.drawmat.metallic = newmetallic;
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD2) {
-	    	Triangle mousetriangle = null;
-    		if (this.softwarerenderview!=null) {
-    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
-    			}
-    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
-    		}
-			if (mousetriangle!=null) {
-	    		mousetriangle.pos1.tex = new Coordinate(0.0f,0.0f);
-	    		mousetriangle.pos2.tex = new Coordinate(1.0f,0.0f);
-	    		mousetriangle.pos3.tex = new Coordinate(0.0f,1.0f);
-			}
+			float newmetallic = this.drawmat.metallic-0.01f; if (newmetallic<0.0f) {newmetallic = 0.0f;}
+			this.drawmat.metallic = newmetallic;
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD1) {
 	    	Triangle mousetriangle = null;
     		if (this.softwarerenderview!=null) {
@@ -353,19 +348,49 @@ public class CADApp extends AppHandlerPanel {
     			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
     		}
 			if (mousetriangle!=null) {
-	        	mousetriangle.pos1.tex = mousetriangle.pos1.tex.copy();
-	        	mousetriangle.pos2.tex = mousetriangle.pos2.tex.copy();
-	        	mousetriangle.pos3.tex = mousetriangle.pos3.tex.copy();
-	    		mousetriangle.pos1.tex.u = -mousetriangle.pos1.tex.u;
-	    		mousetriangle.pos2.tex.u = -mousetriangle.pos2.tex.u;
-	    		mousetriangle.pos3.tex.u = -mousetriangle.pos3.tex.u;
+	    		Coordinate defaultpos1tex = new Coordinate(0.0f,0.0f);
+	    		Coordinate defaultpos2tex = new Coordinate(1.0f,0.0f);
+	    		Coordinate defaultpos3tex = new Coordinate(1.0f,1.0f);
+	    		Coordinate newpos1tex = defaultpos1tex;
+	    		Coordinate newpos2tex = defaultpos2tex;
+	    		Coordinate newpos3tex = defaultpos3tex;
+				if ((mousetriangle.pos1.tex!=null)&&(mousetriangle.pos2.tex!=null)&&(mousetriangle.pos3.tex!=null)) {
+					if ((mousetriangle.pos1.tex.equals(newpos1tex))&&(mousetriangle.pos2.tex.equals(newpos2tex))&&(mousetriangle.pos3.tex.equals(newpos3tex))) {
+			    		newpos1tex = defaultpos2tex;
+			    		newpos2tex = defaultpos3tex;
+			    		newpos3tex = defaultpos1tex;
+					} else if ((mousetriangle.pos1.tex.equals(newpos2tex))&&(mousetriangle.pos2.tex.equals(newpos3tex))&&(mousetriangle.pos3.tex.equals(newpos1tex))) {
+			    		newpos1tex = defaultpos3tex;
+			    		newpos2tex = defaultpos1tex;
+			    		newpos3tex = defaultpos2tex;
+					} else if ((mousetriangle.pos1.tex.equals(newpos3tex))&&(mousetriangle.pos2.tex.equals(newpos1tex))&&(mousetriangle.pos3.tex.equals(newpos2tex))) {
+			    		newpos1tex = defaultpos1tex;
+			    		newpos2tex = defaultpos3tex;
+			    		newpos3tex = defaultpos2tex;
+					} else if ((mousetriangle.pos1.tex.equals(newpos1tex))&&(mousetriangle.pos2.tex.equals(newpos3tex))&&(mousetriangle.pos3.tex.equals(newpos2tex))) {
+			    		newpos1tex = defaultpos3tex;
+			    		newpos2tex = defaultpos2tex;
+			    		newpos3tex = defaultpos1tex;
+					} else if ((mousetriangle.pos1.tex.equals(newpos3tex))&&(mousetriangle.pos2.tex.equals(newpos2tex))&&(mousetriangle.pos3.tex.equals(newpos1tex))) {
+			    		newpos1tex = defaultpos2tex;
+			    		newpos2tex = defaultpos1tex;
+			    		newpos3tex = defaultpos3tex;
+					}
+				}
+	    		mousetriangle.pos1.tex = newpos1tex;
+	    		mousetriangle.pos2.tex = newpos2tex;
+	    		mousetriangle.pos3.tex = newpos3tex;
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD0) {
 			(new EntityListUpdater()).start();
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
-			this.polygonfillmode += 1;
-			if (this.polygonfillmode>3) {
-				this.polygonfillmode = 1;
+			if (e.isShiftDown()) {
+				this.unlitrender = !this.unlitrender;
+			} else {
+				this.polygonfillmode += 1;
+				if (this.polygonfillmode>3) {
+					this.polygonfillmode = 1;
+				}
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_UP) {
 			this.pitchupkeydown = true;
@@ -522,8 +547,8 @@ public class CADApp extends AppHandlerPanel {
 				this.imagechooser.setApproveButtonText("Load");
 				if (this.imagechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 					File loadfile = this.imagechooser.getSelectedFile();
-					Material newmat = new Material(Color.WHITE,1.0f);
-					newmat.fileimage = UtilLib.loadImage(loadfile.getPath(), false);
+					VolatileImage fileimage = UtilLib.loadImage(loadfile.getPath(), false);
+					Material newmat = new Material(Color.WHITE,1.0f,fileimage);
 					this.drawmat = newmat;
 				}
 		    } else if (f3ctrldown) {
@@ -539,7 +564,7 @@ public class CADApp extends AppHandlerPanel {
 						newentitylist[0].trianglelist = ModelLib.loadSTLFile(loadfile.getPath(), false);
 						for (int i=0;i<newentitylist[0].trianglelist.length;i++) {
 							if (newentitylist[0].trianglelist[i].mat==null) {
-								newentitylist[0].trianglelist[i].mat = new Material(Color.WHITE,1.0f);
+								newentitylist[0].trianglelist[i].mat = new Material(Color.WHITE,1.0f,null);
 							}
 						}
 						this.linelisttree.addAll(Arrays.asList(MathLib.generateLineList(newentitylist[0].trianglelist)));
@@ -578,7 +603,7 @@ public class CADApp extends AppHandlerPanel {
 										}
 									}
 									if (foundmat==null) {
-										foundmat = new Material(Color.WHITE,1.0f);
+										foundmat = new Material(Color.WHITE,1.0f,null);
 									}
 									Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
 									Position pos2 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
@@ -1051,7 +1076,7 @@ public class CADApp extends AppHandlerPanel {
 					CADApp.this.mouseoverline = CADApp.this.hardwarerenderview.mouseoverline;
 					CADApp.this.mouseoververtex = CADApp.this.hardwarerenderview.mouseoververtex;
 				} else if (CADApp.this.polygonfillmode==2) { 
-					CADApp.this.hardwarerenderview = RenderLib.renderProjectedPolygonViewHardware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, false, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.hardwarerenderview = RenderLib.renderProjectedPolygonViewHardware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseovertriangle = CADApp.this.hardwarerenderview.mouseovertriangle;
 				}
 				HardwareRenderViewUpdater.renderupdaterrunning = false;
@@ -1065,7 +1090,7 @@ public class CADApp extends AppHandlerPanel {
 			if (!SoftwareRenderViewUpdater.renderupdaterrunning) {
 				SoftwareRenderViewUpdater.renderupdaterrunning = true;
 				if (CADApp.this.polygonfillmode==3) {
-					CADApp.this.softwarerenderview = RenderLib.renderProjectedPlaneViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, false, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.softwarerenderview = RenderLib.renderProjectedPlaneViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseovertriangle = CADApp.this.softwarerenderview.mouseovertriangle;
 				}
 				SoftwareRenderViewUpdater.renderupdaterrunning = false;
