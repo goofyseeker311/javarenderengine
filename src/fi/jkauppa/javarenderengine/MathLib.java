@@ -1310,14 +1310,11 @@ public class MathLib {
 		double[] vangles  = spheremapAngles(vvres, 180.0f);
 		Direction[] vvecs = new Direction[vvres];
 		for (int i=0;i<vvres;i++) {
-			vvecs[i] = new Direction(cosd(vangles[i]), 0.0f, sind(vangles[i]));
+			vvecs[i] = new Direction(0.0f, -sind(vangles[i]), -cosd(vangles[i]));
 		}
-		Matrix drotzn90 = rotationMatrix(0.0f, 0.0f, -180.0f);
-		Matrix drotxn90 = rotationMatrix(90.0f, 0.0f, 0.0f);
-		Matrix drot = matrixMultiply(vmat, matrixMultiply(drotxn90, drotzn90));
 		for (int i=0;i<vhres;i++) {
-			Matrix hmat = rotationMatrix(0, 0, hangles[i]);
-			Matrix hdmat = matrixMultiply(drot, hmat);
+			Matrix hmat = rotationMatrix(0, -hangles[i], 0);
+			Matrix hdmat = matrixMultiply(vmat, hmat);
 			k[i] = matrixMultiply(vvecs, hdmat);
 		}
 		return k;

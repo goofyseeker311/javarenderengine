@@ -184,7 +184,7 @@ public class ModelApp extends AppHandlerPanel {
 			this.rollrightkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
 			this.polygonfillmode += 1;
-			if (this.polygonfillmode>4) {
+			if (this.polygonfillmode>6) {
 				this.polygonfillmode = 1;
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
@@ -286,6 +286,10 @@ public class ModelApp extends AppHandlerPanel {
 					ModelApp.this.renderview = RenderLib.renderCubemapPlaneViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), (int)Math.floor(((double)ModelApp.this.getHeight())/2.0f), ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				} else if (ModelApp.this.polygonfillmode==4) {
 					ModelApp.this.renderview = RenderLib.renderProjectedRayViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+				} else if (ModelApp.this.polygonfillmode==5) {
+					ModelApp.this.renderview = RenderLib.renderSpheremapRayViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+				} else if (ModelApp.this.polygonfillmode==6) {
+					ModelApp.this.renderview = RenderLib.renderCubemapRayViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), (int)Math.floor(((double)ModelApp.this.getHeight())/2.0f), ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				}
 				RenderViewUpdater.renderupdaterrunning = false;
 			}

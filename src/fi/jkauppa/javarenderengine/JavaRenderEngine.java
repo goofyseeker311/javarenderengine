@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.1.3");
+		this.setTitle("Java Render Engine v2.1.4");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -191,7 +191,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		for (int j=0;j<prjrays.length;j++) {System.out.print("prjrays["+j+"]=");for (int i=0;i<prjrays[j].length;i++) {System.out.print(" ["+prjrays[j][i].dx+","+prjrays[j][i].dy+","+prjrays[j][i].dz+"]");}System.out.println();}
 		double[] sang = MathLib.spheremapAngles(8, 360.0f);
 		Position spos = new Position(0.0f,0.0f,0.0f);
-		Matrix smat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
+		Matrix smat = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
 		Plane[] splanes = MathLib.spheremapPlanes(spos, 8, smat);
 		Direction[][] srays = MathLib.spheremapRays(9, 5, smat);
 		for (int i=0;i<sang.length;i++) {System.out.println("sang["+i+"]="+sang[i]);}
