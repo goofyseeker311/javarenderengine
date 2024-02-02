@@ -78,9 +78,13 @@ PGUP              -- brightness positive change (minmax)
 PGDOWN            -- brightness negative change (minmax)
 NUMPAD+           -- camera location change forward (minmax)
 NUMPAD-           -- camera location change backward (minmax)
+NUMPAD*           -- material emissivity positive (minmax)
+NUMPAD/           -- material emissivity negative (minmax)
 NUMPAD9           -- pencil transparency positive (minmax)
 NUMPAD8           -- pencil transparency negative (minmax)
 NUMPAD7           -- triangle single sided normal invert (looping)
+NUMPAD6           -- material roughness positive (minmax)
+NUMPAD5           -- material roughness negative (minmax)
 NUMPAD4           -- triangle double sided zero normal (set)
 NUMPAD3           -- restore camera location and rotation to default
 NUMPAD2           -- triangle texture coordinate reset to default
