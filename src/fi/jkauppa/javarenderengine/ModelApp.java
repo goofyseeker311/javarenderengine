@@ -279,13 +279,13 @@ public class ModelApp extends AppHandlerPanel {
 			if (!RenderViewUpdater.renderupdaterrunning) {
 				RenderViewUpdater.renderupdaterrunning = true;
 				if (ModelApp.this.polygonfillmode==1) {
-					ModelApp.this.renderview = ModelLib.renderProjectedPlaneViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+					ModelApp.this.renderview = RenderLib.renderProjectedPlaneViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				} else if (ModelApp.this.polygonfillmode==2) {
-					ModelApp.this.renderview = ModelLib.renderSpheremapPlaneViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+					ModelApp.this.renderview = RenderLib.renderSpheremapPlaneViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				} else if (ModelApp.this.polygonfillmode==3) {
-					ModelApp.this.renderview = ModelLib.renderCubemapPlaneViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), (int)Math.floor(((double)ModelApp.this.getHeight())/2.0f), ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+					ModelApp.this.renderview = RenderLib.renderCubemapPlaneViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), (int)Math.floor(((double)ModelApp.this.getHeight())/2.0f), ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				} else if (ModelApp.this.polygonfillmode==4) {
-					ModelApp.this.renderview = ModelLib.renderProjectedRayViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+					ModelApp.this.renderview = RenderLib.renderProjectedRayViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, false, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				}
 				RenderViewUpdater.renderupdaterrunning = false;
 			}

@@ -1039,11 +1039,11 @@ public class CADApp extends AppHandlerPanel {
 				HardwareRenderViewUpdater.renderupdaterrunning = true;
 				if (CADApp.this.polygonfillmode==1) {
 					Line[] linelist = CADApp.this.linelisttree.toArray(new Line[CADApp.this.linelisttree.size()]);
-					CADApp.this.hardwarerenderview = ModelLib.renderProjectedLineViewHardware(CADApp.this.campos, linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.hardwarerenderview = RenderLib.renderProjectedLineViewHardware(CADApp.this.campos, linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseoverline = CADApp.this.hardwarerenderview.mouseoverline;
 					CADApp.this.mouseoververtex = CADApp.this.hardwarerenderview.mouseoververtex;
 				} else if (CADApp.this.polygonfillmode==2) { 
-					CADApp.this.hardwarerenderview = ModelLib.renderProjectedPolygonViewHardware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, false, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.hardwarerenderview = RenderLib.renderProjectedPolygonViewHardware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, false, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseovertriangle = CADApp.this.hardwarerenderview.mouseovertriangle;
 				}
 				HardwareRenderViewUpdater.renderupdaterrunning = false;
@@ -1057,7 +1057,7 @@ public class CADApp extends AppHandlerPanel {
 			if (!SoftwareRenderViewUpdater.renderupdaterrunning) {
 				SoftwareRenderViewUpdater.renderupdaterrunning = true;
 				if (CADApp.this.polygonfillmode==3) {
-					CADApp.this.softwarerenderview = ModelLib.renderProjectedPlaneViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, false, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.softwarerenderview = RenderLib.renderProjectedPlaneViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, false, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseovertriangle = CADApp.this.softwarerenderview.mouseovertriangle;
 				}
 				SoftwareRenderViewUpdater.renderupdaterrunning = false;
