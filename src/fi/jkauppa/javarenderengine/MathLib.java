@@ -1355,7 +1355,7 @@ public class MathLib {
 		rightdirupvectors[2] = upvector;
 	    return matrixMultiply(rightdirupvectors, vmat);
 	}
-	public static Direction[] projectedVectors(int vres, double vfov, Matrix vmat) {
+	public static Direction[] projectedPlaneVectors(int vres, double vfov, Matrix vmat) {
 	    double[] steps = projectedStep(vres,vfov);
 		Direction[] fwdvectors = new Direction[vres];
 	    for (int i=0;i<vres;i++) {
@@ -1365,7 +1365,7 @@ public class MathLib {
 	    return matrixMultiply(fwdvectors, vmat);
 	}
 	public static Plane[] projectedPlanes(Position vpos, int vres, double vfov, Matrix vmat) {
-		Direction[] fwdvectors = projectedVectors(vres, vfov, vmat);
+		Direction[] fwdvectors = projectedPlaneVectors(vres, vfov, vmat);
 		Direction[] dirrightupvectors = projectedPlaneDirections(vmat);
 		Direction rightvector = dirrightupvectors[1];
 		Direction[] planenormalvectors = vectorCross(fwdvectors,rightvector);
@@ -1515,7 +1515,6 @@ public class MathLib {
 	}
 	
 	public static Rectangle[] projectedSphereIntersection(Position vpos, Sphere[] vsphere, int hres, int vres, double hfov, double vfov, Matrix vmat) {
-		//TODO fix incorrect sphere rectangle image area
 		Rectangle[] k = null;
 		if ((vpos!=null)&&(vsphere!=null)&&(vmat!=null)) {
 			k = new Rectangle[vsphere.length];
@@ -1659,7 +1658,6 @@ public class MathLib {
 		return k;
 	}
 	public static Rectangle[] spheremapSphereIntersection(Position vpos, Sphere[] vsphere, int hres, int vres, Matrix vmat) {
-		//TODO fix incorrect sphere rectangle image area
 		Rectangle[] k = null;
 		if ((vpos!=null)&&(vsphere!=null)&&(vmat!=null)) {
 			k = new Rectangle[vsphere.length];
@@ -1748,12 +1746,12 @@ public class MathLib {
 			Direction[] toparg = {new Direction(v12D[0]*v13[0].dx-v13D[0]*v12[0].dx,v12D[0]*v13[0].dy-v13D[0]*v12[0].dy,v12D[0]*v13[0].dz-v13D[0]*v12[0].dz)};
 			Direction[] top = vectorCross(toparg,cv12v13);
 			double bottom = 2.0f*cv12v13D[0];
-			Position p1 = trianglelist[i].pos1;
+			Position[] p1 = {trianglelist[i].pos1};
 			if (bottom!=0) {
-				Position spherecenter = new Position(top[0].dx/bottom+p1.x,top[0].dy/bottom+p1.y,top[0].dz/bottom+p1.z);
-				Direction[] sphereradiusvector = {new Direction(spherecenter.x-p1.x,spherecenter.y-p1.y,spherecenter.z-p1.z)};
+				Direction[] sphereradiusvector = {new Direction(top[0].dx/bottom, top[0].dy/bottom, top[0].dz/bottom)};
+				Position[] spherecenter = translate(p1, sphereradiusvector[0], 1.0f);
 				double[] sphereradius = vectorLength(sphereradiusvector);
-				k[i] = new Sphere(spherecenter.x,spherecenter.y,spherecenter.z,sphereradius[0]);
+				k[i] = new Sphere(spherecenter[0].x,spherecenter[0].y,spherecenter[0].z,sphereradius[0]);
 			}
 		}
 		return k;

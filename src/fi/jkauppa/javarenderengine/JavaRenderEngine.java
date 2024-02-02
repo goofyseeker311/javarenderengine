@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.1.4");
+		this.setTitle("Java Render Engine v2.1.5");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -177,7 +177,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		double[] prjangles = MathLib.projectedAngles(8, 70.0f);
 		Direction[] prjdirs = MathLib.projectedPlaneDirections(matrot1);
 		Direction[] prjdirs2 = MathLib.projectedPlaneDirections(matrot2);
-		Direction[] prjvectors = MathLib.projectedVectors(8, 70.0f, matrot1);
+		Direction[] prjvectors = MathLib.projectedPlaneVectors(8, 70.0f, matrot1);
 		Plane[] prjplane = MathLib.projectedPlanes(campos, 8, 70.0f, matrot1);
 		Plane[] prjplane2 = MathLib.projectedPlanes(campos2[0], 8, 70.0f, matrot2);
 		for (int i=0;i<prjstep.length;i++) {System.out.println("prjstep["+i+"]: "+prjstep[i]);}
