@@ -50,10 +50,12 @@ CTRL-V            -- paste image from clipboard
 
 CAD App Keys:
 ENTER             -- changes between polygon flat/textured/none fill modes (looping)
+SHIFT-ENTER       -- changes between unlit and lit render modes (looping)
 WASD              -- camera location change up/left/down/right (minmax)
 C-SPACE           -- camera location change backward/forward (minmax)
 QE                -- camera tilt change left/right (looping)
 BACKSPACE         -- removes all vector lines
+SHIFT-BACKSPACE   -- reset camera to starting location
 DRAG-LMB          -- material drag triangle paint
 SHIFT-LMB         -- material picker at cursor
 CTRL-DRAG-LMB     -- move line vertex
@@ -86,9 +88,9 @@ NUMPAD7           -- triangle single sided normal invert (looping)
 NUMPAD6           -- material roughness positive (minmax)
 NUMPAD5           -- material roughness negative (minmax)
 NUMPAD4           -- triangle double sided zero normal (set)
-NUMPAD3           -- restore camera location and rotation to default
-NUMPAD2           -- triangle texture coordinate reset to default
-NUMPAD1           -- triangle texture coordinate mirror toggle
+NUMPAD3           -- material metallic positive (minmax)
+NUMPAD2           -- material metallic negative (minmax)
+NUMPAD1           -- triangle texture coordinate reset, mirror and rotate (looping)
 NUMPAD0           -- run entity list updater
 F2                -- save model file dialog (all primitives)
 SHIFT-F2          -- save model file dialog (surface only)
@@ -105,6 +107,7 @@ QE                -- camera tilt change left/right (looping)
 F3                -- load model file dialog
 ENTER             -- changes between plane-projection/plane-spheremap/plane-cubemap/
                      ray-projection/ray-spheremap/ray-cubemap renderers (looping)
+SHIFT-ENTER       -- changes between unlit and lit render modes (looping)
 
 Editor App Keys:
 -- none --        -- placeholder key binding
