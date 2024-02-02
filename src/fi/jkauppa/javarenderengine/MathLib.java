@@ -301,7 +301,7 @@ public class MathLib {
 			double[][] tpdist = rayPlaneDistance(vpos, vdir, tplanes);
 			for (int n=0;n<vdir.length;n++) {
 				for (int m=0;m<vtri.length;m++) {
-					if ((Double.isFinite(tpdist[n][m]))&&(tpdist[n][m]>=1.0f)) {
+					if (Double.isFinite(tpdist[n][m])) {
 						Position[] p4 = {new Position(vpos.x+vdir[n].dx*tpdist[n][m],vpos.y+vdir[n].dy*tpdist[n][m],vpos.z+vdir[n].dz*tpdist[n][m])};
 						Position[] p1 = {vtri[m].pos1};
 						Position[] p2 = {vtri[m].pos2};
@@ -1415,33 +1415,17 @@ public class MathLib {
 		Coordinate[][] k = null;
 		if ((vpos!=null)&&(vline!=null)&&(vmat!=null)) {
 			k = new Coordinate[vline.length][2];
-			double halfhfovmult = (1.0f/tand(hfov/2.0f));
-			double halfvfovmult = (1.0f/tand(vfov/2.0f));
-			double origindeltax = ((double)(hres-1))/2.0f;
-			double origindeltay = ((double)(vres-1))/2.0f;
-			double halfhres = ((double)hres)/2.0f;
-			double halfvres = ((double)vres)/2.0f;
-			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
-			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
-			Position[] vlinepoint1 = new Position[vline.length];
-			Position[] vlinepoint2 = new Position[vline.length];
+			Position[] vlinepos1 = new Position[vline.length];
+			Position[] vlinepos2 = new Position[vline.length];
 			for (int i=0;i<vline.length;i++) {
-				vlinepoint1[i]=vline[i].pos1;
-				vlinepoint2[i]=vline[i].pos2;
+				vlinepos1[i] = vline[i].pos1;
+				vlinepos2[i] = vline[i].pos2;
 			}
-			double[][] fwdintpointsdist1 = planePointDistance(vlinepoint1, dirrightupplanes);
-			double[][] fwdintpointsdist2 = planePointDistance(vlinepoint2, dirrightupplanes);
-			for (int i=0;i<vline.length;i++) {
-				if (fwdintpointsdist1[i][0]>=1.0f) {
-					double hind = halfhfovmult*halfhres*fwdintpointsdist1[i][1]/fwdintpointsdist1[i][0]+origindeltax;
-					double vind = halfvfovmult*halfvres*fwdintpointsdist1[i][2]/fwdintpointsdist1[i][0]+origindeltay;
-					k[i][0] = new Coordinate(hind,vind);
-				}
-				if (fwdintpointsdist2[i][0]>=1.0f) {
-					double hind = halfhfovmult*halfhres*fwdintpointsdist2[i][1]/fwdintpointsdist2[i][0]+origindeltax;
-					double vind = halfvfovmult*halfvres*fwdintpointsdist2[i][2]/fwdintpointsdist2[i][0]+origindeltay;
-					k[i][1] = new Coordinate(hind,vind);
-				}
+			Coordinate[] vlinepos1pixel = projectedPoints(vpos, vlinepos1, hres, hfov, vres, vfov, vmat);
+			Coordinate[] vlinepos2pixel = projectedPoints(vpos, vlinepos2, hres, hfov, vres, vfov, vmat);
+			for (int j=0;j<vline.length;j++) {
+				k[j][0] = vlinepos1pixel[j];
+				k[j][1] = vlinepos2pixel[j];
 			}
 		}
 		return k;
@@ -1450,41 +1434,21 @@ public class MathLib {
 		Coordinate[][] k = null;
 		if ((vpos!=null)&&(vtri!=null)&&(vmat!=null)) {
 			k = new Coordinate[vtri.length][3];
-			double halfhfovmult = (1.0f/tand(hfov/2.0f));
-			double halfvfovmult = (1.0f/tand(vfov/2.0f));
-			double origindeltax = ((double)(hres-1))/2.0f;
-			double origindeltay = ((double)(vres-1))/2.0f;
-			double halfhres = ((double)hres)/2.0f;
-			double halfvres = ((double)vres)/2.0f;
-			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
-			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
-			Position[] vtripoint1 = new Position[vtri.length];
-			Position[] vtripoint2 = new Position[vtri.length];
-			Position[] vtripoint3 = new Position[vtri.length];
+			Position[] vtripos1 = new Position[vtri.length];
+			Position[] vtripos2 = new Position[vtri.length];
+			Position[] vtripos3 = new Position[vtri.length];
 			for (int i=0;i<vtri.length;i++) {
-				vtripoint1[i]=vtri[i].pos1;
-				vtripoint2[i]=vtri[i].pos2;
-				vtripoint3[i]=vtri[i].pos3;
+				vtripos1[i] = vtri[i].pos1;
+				vtripos2[i] = vtri[i].pos2;
+				vtripos3[i] = vtri[i].pos3;
 			}
-			double[][] fwdintpointsdist1 = planePointDistance(vtripoint1, dirrightupplanes);
-			double[][] fwdintpointsdist2 = planePointDistance(vtripoint2, dirrightupplanes);
-			double[][] fwdintpointsdist3 = planePointDistance(vtripoint3, dirrightupplanes);
-			for (int i=0;i<vtri.length;i++) {
-				if (fwdintpointsdist1[i][0]>=1.0f) {
-					double hind = halfhfovmult*halfhres*fwdintpointsdist1[i][1]/fwdintpointsdist1[i][0]+origindeltax;
-					double vind = halfvfovmult*halfvres*fwdintpointsdist1[i][2]/fwdintpointsdist1[i][0]+origindeltay;
-					k[i][0] = new Coordinate(hind,vind);
-				}
-				if (fwdintpointsdist2[i][0]>=1.0f) {
-					double hind = halfhfovmult*halfhres*fwdintpointsdist2[i][1]/fwdintpointsdist2[i][0]+origindeltax;
-					double vind = halfvfovmult*halfvres*fwdintpointsdist2[i][2]/fwdintpointsdist2[i][0]+origindeltay;
-					k[i][1] = new Coordinate(hind,vind);
-				}
-				if (fwdintpointsdist3[i][0]>=1.0f) {
-					double hind = halfhfovmult*halfhres*fwdintpointsdist3[i][1]/fwdintpointsdist3[i][0]+origindeltax;
-					double vind = halfvfovmult*halfvres*fwdintpointsdist3[i][2]/fwdintpointsdist3[i][0]+origindeltay;
-					k[i][2] = new Coordinate(hind,vind);
-				}
+			Coordinate[] vtripos1pixel = projectedPoints(vpos, vtripos1, hres, hfov, vres, vfov, vmat);
+			Coordinate[] vtripos2pixel = projectedPoints(vpos, vtripos2, hres, hfov, vres, vfov, vmat);
+			Coordinate[] vtripos3pixel = projectedPoints(vpos, vtripos3, hres, hfov, vres, vfov, vmat);
+			for (int j=0;j<vtri.length;j++) {
+				k[j][0] = vtripos1pixel[j];
+				k[j][1] = vtripos2pixel[j];
+				k[j][2] = vtripos3pixel[j];
 			}
 		}
 		return k;
@@ -1493,49 +1457,25 @@ public class MathLib {
 		Coordinate[][] k = null;
 		if ((vpos!=null)&&(vquad!=null)&&(vmat!=null)) {
 			k = new Coordinate[vquad.length][4];
-			double halfhfovmult = (1.0f/tand(hfov/2.0f));
-			double halfvfovmult = (1.0f/tand(vfov/2.0f));
-			double origindeltax = ((double)(hres-1))/2.0f;
-			double origindeltay = ((double)(vres-1))/2.0f;
-			double halfhres = ((double)hres)/2.0f;
-			double halfvres = ((double)vres)/2.0f;
-			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
-			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
-			Position[] vquadpoint1 = new Position[vquad.length];
-			Position[] vquadpoint2 = new Position[vquad.length];
-			Position[] vquadpoint3 = new Position[vquad.length];
-			Position[] vquadpoint4 = new Position[vquad.length];
+			Position[] vquadpos1 = new Position[vquad.length];
+			Position[] vquadpos2 = new Position[vquad.length];
+			Position[] vquadpos3 = new Position[vquad.length];
+			Position[] vquadpos4 = new Position[vquad.length];
 			for (int i=0;i<vquad.length;i++) {
-				vquadpoint1[i]=vquad[i].pos1;
-				vquadpoint2[i]=vquad[i].pos2;
-				vquadpoint3[i]=vquad[i].pos3;
-				vquadpoint4[i]=vquad[i].pos4;
+				vquadpos1[i] = vquad[i].pos1;
+				vquadpos2[i] = vquad[i].pos2;
+				vquadpos3[i] = vquad[i].pos3;
+				vquadpos4[i] = vquad[i].pos4;
 			}
-			double[][] fwdintpointsdist1 = planePointDistance(vquadpoint1, dirrightupplanes);
-			double[][] fwdintpointsdist2 = planePointDistance(vquadpoint2, dirrightupplanes);
-			double[][] fwdintpointsdist3 = planePointDistance(vquadpoint3, dirrightupplanes);
-			double[][] fwdintpointsdist4 = planePointDistance(vquadpoint4, dirrightupplanes);
-			for (int i=0;i<vquad.length;i++) {
-				if (fwdintpointsdist1[i][0]>=1.0f) {
-					double hind = halfhfovmult*halfhres*fwdintpointsdist1[i][1]/fwdintpointsdist1[i][0]+origindeltax;
-					double vind = halfvfovmult*halfvres*fwdintpointsdist1[i][2]/fwdintpointsdist1[i][0]+origindeltay;
-					k[i][0] = new Coordinate(hind,vind);
-				}
-				if (fwdintpointsdist2[i][0]>=1.0f) {
-					double hind = halfhfovmult*halfhres*fwdintpointsdist2[i][1]/fwdintpointsdist2[i][0]+origindeltax;
-					double vind = halfvfovmult*halfvres*fwdintpointsdist2[i][2]/fwdintpointsdist2[i][0]+origindeltay;
-					k[i][1] = new Coordinate(hind,vind);
-				}
-				if (fwdintpointsdist3[i][0]>=1.0f) {
-					double hind = halfhfovmult*halfhres*fwdintpointsdist3[i][1]/fwdintpointsdist3[i][0]+origindeltax;
-					double vind = halfvfovmult*halfvres*fwdintpointsdist3[i][2]/fwdintpointsdist3[i][0]+origindeltay;
-					k[i][2] = new Coordinate(hind,vind);
-				}
-				if (fwdintpointsdist4[i][0]>=1.0f) {
-					double hind = halfhfovmult*halfhres*fwdintpointsdist4[i][1]/fwdintpointsdist4[i][0]+origindeltax;
-					double vind = halfvfovmult*halfvres*fwdintpointsdist4[i][2]/fwdintpointsdist4[i][0]+origindeltay;
-					k[i][3] = new Coordinate(hind,vind);
-				}
+			Coordinate[] vquadpos1pixel = projectedPoints(vpos, vquadpos1, hres, hfov, vres, vfov, vmat);
+			Coordinate[] vquadpos2pixel = projectedPoints(vpos, vquadpos2, hres, hfov, vres, vfov, vmat);
+			Coordinate[] vquadpos3pixel = projectedPoints(vpos, vquadpos3, hres, hfov, vres, vfov, vmat);
+			Coordinate[] vquadpos4pixel = projectedPoints(vpos, vquadpos4, hres, hfov, vres, vfov, vmat);
+			for (int j=0;j<vquad.length;j++) {
+				k[j][0] = vquadpos1pixel[j];
+				k[j][1] = vquadpos2pixel[j];
+				k[j][2] = vquadpos3pixel[j];
+				k[j][3] = vquadpos4pixel[j];
 			}
 		}
 		return k;
