@@ -1579,8 +1579,9 @@ public class MathLib {
 	
 	public static Rectangle[] projectedSphereIntersection(Position vpos, Sphere[] vsphere, int hres, int vres, double hfov, double vfov, Matrix vmat) {
 		//TODO fix incorrect sphere rectangle image area
-		Rectangle[] k = new Rectangle[vsphere.length];
+		Rectangle[] k = null;
 		if ((vpos!=null)&&(vsphere!=null)&&(vmat!=null)) {
+			k = new Rectangle[vsphere.length];
 			Position[] vpoint = sphereVertexList(vsphere);
 			Direction[] lvec = vectorFromPoints(vpos, vsphere);
 			double[] lvecl = vectorLength(lvec);
@@ -1647,16 +1648,84 @@ public class MathLib {
 		return k;
 	}
 
-	public static Rectangle[][] spheremapTrianglesIntersection(Position vpos, Triangle[] vtri, int hres, int vres, Matrix vmat) {
-		Rectangle[][] k = null;
+	public static Coordinate[] spheremapPoints(Position vpos, Position[] vpoint, int hres, int vres, Matrix vmat) {
+		Coordinate[] k = null;
+		if ((vpos!=null)&&(vpoint!=null)&&(vmat!=null)) {
+			k = new Coordinate[vpoint.length];
+			double halfhfov = 360.0f/2.0f;
+			double halfvfov = 180.0f/2.0f;
+			double halfhreshfovmult = (((double)hres)/2.0f)/halfhfov;
+			double halfvresvfovmult = (((double)vres)/2.0f)/halfvfov;
+			double origindeltax = ((double)(hres-1))/2.0f;
+			double origindeltay = ((double)(vres-1))/2.0f;
+			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
+			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
+			double[][] fwdintpointsdist = planePointDistance(vpoint, dirrightupplanes);
+			for (int i=0;i<vpoint.length;i++) {
+				Direction camfwdvector = new Direction(1.0f, 0.0f, 0.0f);
+				Direction[] posrightvector = {new Direction(fwdintpointsdist[i][0], fwdintpointsdist[i][1], 0.0f)};
+				double[] posrightvectorangle = vectorAngle(camfwdvector, posrightvector);
+				double[] posrightvectorlen = vectorLength(posrightvector);
+				double hangle = ((fwdintpointsdist[i][1]<0.0f)?-1:1)*posrightvectorangle[0];
+				double vangle = atand((fwdintpointsdist[i][2])/posrightvectorlen[0]);
+				double hind = halfhreshfovmult*hangle+origindeltax;
+				double vind = halfvresvfovmult*vangle+origindeltay;
+				k[i] = new Coordinate(hind,vind);
+			}
+		}
+		return k;
+	}
+	public static Rectangle[] spheremapTrianglesIntersection(Position vpos, Triangle[] vtri, int hres, int vres, Matrix vmat) {
+		Rectangle[] k = null;
 		if ((vpos!=null)&&(vtri!=null)&&(vmat!=null)) {
+			k = new Rectangle[vtri.length];
+			Position[] vtripos1 = new Position[vtri.length];
+			Position[] vtripos2 = new Position[vtri.length];
+			Position[] vtripos3 = new Position[vtri.length];
+			for (int i=0;i<vtri.length;i++) {
+				vtripos1[i] = vtri[i].pos1;
+				vtripos2[i] = vtri[i].pos2;
+				vtripos3[i] = vtri[i].pos3;
+			}
+			Coordinate[] vtripos1pixel = spheremapPoints(vpos, vtripos1, hres, vres, vmat);
+			Coordinate[] vtripos2pixel = spheremapPoints(vpos, vtripos2, hres, vres, vmat);
+			Coordinate[] vtripos3pixel = spheremapPoints(vpos, vtripos3, hres, vres, vmat);
+			for (int j=0;j<vtri.length;j++) {
+				if ((vtripos1pixel[j]!=null)&&(vtripos2pixel[j]!=null)&&(vtripos3pixel[j]!=null)) {
+					double minx = Double.POSITIVE_INFINITY;
+					double maxx = Double.NEGATIVE_INFINITY;
+					double miny = Double.POSITIVE_INFINITY;
+					double maxy = Double.NEGATIVE_INFINITY;
+					Coordinate[] vtripospixels = {vtripos1pixel[j], vtripos2pixel[j], vtripos3pixel[j]}; 
+					for (int i=0;i<vtripospixels.length;i++) {
+						if (vtripospixels[i].u<minx) {minx = vtripospixels[i].u;}
+						if (vtripospixels[i].u>maxx) {maxx = vtripospixels[i].u;}
+						if (vtripospixels[i].v<miny) {miny = vtripospixels[i].v;}
+						if (vtripospixels[i].v>maxy) {maxy = vtripospixels[i].v;}
+					}
+					int minxind = (int)Math.ceil(minx); 
+					int maxxind = (int)Math.floor(maxx); 
+					int minyind = (int)Math.ceil(miny); 
+					int maxyind = (int)Math.floor(maxy);
+					if (minxind<0) {minxind=0;}
+					if (maxxind>=hres) {maxxind=hres-1;}
+					if (minyind<0) {minyind=0;}
+					if (maxyind>=vres) {maxyind=vres-1;}
+					int triwidth = maxxind-minxind+1; 
+					int triheight = maxyind-minyind+1;
+					if ((minxind<hres)&&(maxxind>=0)&&(minyind<vres)&&(maxyind>=0)&&(triwidth>0)&&(triheight>0)) {
+						k[j] = new Rectangle(minxind,minyind,triwidth,triheight);
+					}
+				}
+			}
 		}
 		return k;
 	}
 	public static Rectangle[] spheremapSphereIntersection(Position vpos, Sphere[] vsphere, int hres, int vres, Matrix vmat) {
 		//TODO fix incorrect sphere rectangle image area
-		Rectangle[] k = new Rectangle[vsphere.length];
+		Rectangle[] k = null;
 		if ((vpos!=null)&&(vsphere!=null)&&(vmat!=null)) {
+			k = new Rectangle[vsphere.length];
 			Position[] vpoint = sphereVertexList(vsphere);
 			Direction[] lvec = vectorFromPoints(vpos, vsphere);
 			double[] lvecl = vectorLength(lvec);

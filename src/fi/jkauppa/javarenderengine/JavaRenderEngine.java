@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.1.1");
+		this.setTitle("Java Render Engine v2.1.2");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -217,7 +217,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		System.out.println("boundingsphere="+pointcloudsphere.x+","+pointcloudsphere.y+","+pointcloudsphere.z+" "+pointcloudsphere.r);
 		for (int i=0;i<trianglesphere.length;i++) {System.out.println("trianglesphere["+i+"]="+trianglesphere[i].x+" "+trianglesphere[i].y+" "+trianglesphere[i].z+" "+trianglesphere[i].r);}
 		Position pmsvpos = new Position(0,0,0);
-		Position[] pmstripos = {new Position(0.0f,-3.9f,0.0f),new Position(-1.0f,-3.9f,0.0f),new Position(1.0f,-3.9f,0.0f),new Position(0.0f,-3.9f,1.0f),new Position(0.0f,-3.9f,-1.0f)};
+		Position[] pmstripos = {new Position(0.0f,-3.9f,0.0f),new Position(-1.0f,-3.9f,0.0f),new Position(1.0f,-3.9f,0.0f),new Position(0.0f,-3.9f,1.0f),new Position(0.0f,-3.9f,-1.0f),new Position(-3.9f,0.0f,0.0f),new Position(3.9f,0.0f,0.0f),new Position(0.0f,3.9f,0.0f)};
 		Triangle[] pmsvtri = {new Triangle(pmstripos[0],pmstripos[1],pmstripos[3]), new Triangle(pmstripos[0],pmstripos[2],pmstripos[3]), new Triangle(pmstripos[0],pmstripos[1],pmstripos[4]), new Triangle(pmstripos[0],pmstripos[2],pmstripos[4])};
 		Sphere[] pmsvsph = {new Sphere(0,0,0,2), new Sphere(0,0,3.9,2), new Sphere(0,3.9,0,2), new Sphere(3.9,0,0,2)};
 		Matrix pmsrotx = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
@@ -227,6 +227,8 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Rectangle[] pmsint = MathLib.projectedSphereIntersection(pmsvpos, pmsvsph, 64, 64, 90, 90, pmsrot);
 		Rectangle[][] cmsint = MathLib.cubemapSphereIntersection(pmsvpos, pmsvsph, 64);
 		Rectangle[] smsint = MathLib.spheremapSphereIntersection(pmsvpos, pmsvsph, 64, 64, pmsrot);
+		Coordinate[] smpint = MathLib.spheremapPoints(pmsvpos, pmstripos, 64, 64, pmsrot);
+		Rectangle[] smtint = MathLib.spheremapTrianglesIntersection(pmsvpos, pmsvtri, 64, 64, pmsrot);
 		for (int i=0;i<pmtint.length;i++){if(pmtint[i]==null){pmtint[i]=new Rectangle(-1,-1,1,1);}}
 		for (int i=0;i<pmtint.length;i++) {System.out.println("pmtint["+i+"]= "+pmtint[i].x+","+pmtint[i].y+","+(pmtint[i].x+pmtint[i].width-1)+","+(pmtint[i].y+pmtint[i].height-1));}
 		for (int j=0;j<cmsint.length;j++) {for (int i=0;i<cmsint[0].length;i++){if(cmsint[j][i]==null){cmsint[j][i]=new Rectangle(-1,-1,1,1);}}}
@@ -235,6 +237,10 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		for (int i=0;i<pmsint.length;i++) {System.out.println("pmsint["+i+"]= "+pmsint[i].x+","+pmsint[i].y+","+(pmsint[i].x+pmsint[i].width-1)+","+(pmsint[i].y+pmsint[i].height-1));}
 		for (int i=0;i<smsint.length;i++){if(smsint[i]==null){smsint[i]=new Rectangle(-1,-1,1,1);}}
 		for (int i=0;i<smsint.length;i++) {System.out.println("smsint["+i+"]= "+smsint[i].x+","+smsint[i].y+","+(smsint[i].x+smsint[i].width-1)+","+(smsint[i].y+smsint[i].height-1));}
+		for (int i=0;i<smpint.length;i++){if(smpint[i]==null){smpint[i]=new Coordinate(-1,-1);}}
+		for (int i=0;i<smpint.length;i++) {System.out.println("smpint["+i+"]= "+smpint[i].u+","+smpint[i].v);}
+		for (int i=0;i<smtint.length;i++){if(smtint[i]==null){smtint[i]=new Rectangle(-1,-1,1,1);}}
+		for (int i=0;i<smtint.length;i++) {System.out.println("smtint["+i+"]= "+smtint[i].x+","+smtint[i].y+","+(smtint[i].x+smtint[i].width-1)+","+(smtint[i].y+smtint[i].height-1));}
 		Triangle[] sdtri = MathLib.subDivideTriangle(ptri);
 		for (int i=0;i<sdtri.length;i++) {System.out.println("sdtri["+i+"]="+sdtri[i].pos1.x+","+sdtri[i].pos1.y+","+sdtri[i].pos1.z+" "+sdtri[i].pos2.x+","+sdtri[i].pos2.y+","+sdtri[i].pos2.z+" "+sdtri[i].pos3.x+","+sdtri[i].pos3.y+","+sdtri[i].pos3.z);}
 		Position[] tpoint = {new Position(0.0f,0.0f,0.0f),new Position(-50.0f,30.0f,45.0f),new Position(-8.0f,3.0f,9.0f),new Position(-6.0f,1.0f,4.0f)};
