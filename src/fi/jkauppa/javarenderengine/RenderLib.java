@@ -344,6 +344,16 @@ public class RenderLib {
 									copymaterial.emissivesnapimage = copymaterial.emissivefileimage.getSnapshot();
 									emissivetextureimage = copymaterial.emissivesnapimage;
 								}
+								VolatileImage lightmaptexture = null;
+								BufferedImage lightmaptextureimage = null;
+								if (copytriangle[0].lmat!=null) {
+									lightmaptexture = copytriangle[0].lmat.fileimage;
+									lightmaptextureimage = copytriangle[0].lmat.snapimage;
+									if ((lightmaptexture!=null)&&(lightmaptextureimage==null)) {
+										copytriangle[0].lmat.snapimage = copytriangle[0].lmat.fileimage.getSnapshot();
+										lightmaptextureimage = copytriangle[0].lmat.snapimage;
+									}
+								}
 								for (int j=jstart;j<=jend;j++) {
 									Line drawline = vertplanetriangleint[j-jstart][0];
 									if (drawline!=null) {
@@ -405,6 +415,19 @@ public class RenderLib {
 														float shadingmultiplier = ((((float)triangleviewangle[0])/1.5f)+30.0f)/90.0f;
 														Coordinate tex1 = vpixelpoints[0].tex;
 														Coordinate tex2 = vpixelpoints[1].tex;
+														Color lightmapcolor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+														if ((lightmaptexture!=null)&&(tex1!=null)&&(tex2!=null)) {
+															Position[] lineuvpoint1 = {new Position(tex1.u*(tritexture.getWidth()-1),(1.0f-tex1.v)*(tritexture.getHeight()-1),0.0f)};
+															Position[] lineuvpoint2 = {new Position(tex2.u*(tritexture.getWidth()-1),(1.0f-tex2.v)*(tritexture.getHeight()-1),0.0f)};
+															Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
+															Position[] lineuvpos = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
+															int lineuvx = (int)Math.round(lineuvpos[0].x);
+															int lineuvy = (int)Math.round(lineuvpos[0].y);
+															if ((lineuvx>=0)&&(lineuvx<tritexture.getWidth())&&(lineuvy>=0)&&(lineuvy<tritexture.getHeight())) {
+																renderview.cbuffer[n][j] = new Coordinate(lineuvx,lineuvy);
+																lightmapcolor = new Color(lightmaptextureimage.getRGB(lineuvx, lineuvy));
+															}
+														}
 														if ((tritexture!=null)&&(tex1!=null)&&(tex2!=null)) {
 															Position[] lineuvpoint1 = {new Position(tex1.u*(tritexture.getWidth()-1),(1.0f-tex1.v)*(tritexture.getHeight()-1),0.0f)};
 															Position[] lineuvpoint2 = {new Position(tex2.u*(tritexture.getWidth()-1),(1.0f-tex2.v)*(tritexture.getHeight()-1),0.0f)};
@@ -420,6 +443,8 @@ public class RenderLib {
 																if (!unlit) {
 																	texcolorshade = new Color(texcolorcomp[0]*shadingmultiplier, texcolorcomp[1]*shadingmultiplier, texcolorcomp[2]*shadingmultiplier, alphacolor);
 																} else {
+																	g2.setColor(lightmapcolor);
+																	g2.drawLine(j, n, j, n);
 																	texcolorshade = new Color(0.0f, 0.0f, 0.0f, alphacolor);
 																	if (emissivetexture!=null) {
 																		texcolorshade = new Color(emissivetextureimage.getRGB(lineuvx, lineuvy));
@@ -432,6 +457,8 @@ public class RenderLib {
 															if (!unlit) {
 																trianglecolor = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
 															} else {
+																g2.setColor(lightmapcolor);
+																g2.drawLine(j, n, j, n);
 																trianglecolor = new Color(0.0f, 0.0f, 0.0f, alphacolor);
 																if (emissivecolor!=null) {
 																	trianglecolor = emissivecolor; 
