@@ -293,6 +293,7 @@ public class MathLib {
 		}
 		return k;
 	}
+	
 	public static Position[][] rayTriangleIntersection(Position vpos, Direction[] vdir, Triangle[] vtri) {
 		Position[][] k = null;
 		if ((vpos!=null)&&(vdir!=null)&&(vtri!=null)) {
