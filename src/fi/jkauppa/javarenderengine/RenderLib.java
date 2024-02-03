@@ -337,6 +337,13 @@ public class RenderLib {
 									copymaterial.snapimage = copymaterial.fileimage.getSnapshot();
 									tritextureimage = copymaterial.snapimage;
 								}
+								Color emissivecolor = copymaterial.emissivecolor;
+								VolatileImage emissivetexture = copymaterial.emissivefileimage;
+								BufferedImage emissivetextureimage = copymaterial.emissivesnapimage;
+								if ((emissivetexture!=null)&&(emissivetextureimage==null)) {
+									copymaterial.emissivesnapimage = copymaterial.emissivefileimage.getSnapshot();
+									emissivetextureimage = copymaterial.emissivesnapimage;
+								}
 								for (int j=jstart;j<=jend;j++) {
 									Line drawline = vertplanetriangleint[j-jstart][0];
 									if (drawline!=null) {
@@ -366,7 +373,7 @@ public class RenderLib {
 											double[] vpixelpoint1angled = MathLib.vectorAngle(vpixelpointdir1invd, vpixelpointdir12d);
 											double vpixelyangsort1 = vpixelyangs[vpixelyinds[0]]; 
 											int vpixelyind1 = (int)Math.ceil(vpixelysort[0]); 
-											int vpixelyind2 = (int)Math.floor(vpixelysort[1]); 
+											int vpixelyind2 = (int)Math.floor(vpixelysort[1]);
 											int vpixelystart = vpixelyind1;
 											int vpixelyend = vpixelyind2;
 											Direction[] vpixelpointdir12 = MathLib.vectorFromPoints(vpixelpoint1, vpixelpoint2);
@@ -412,6 +419,11 @@ public class RenderLib {
 																Color texcolorshade = new Color(texcolorcomp[0], texcolorcomp[1], texcolorcomp[2], alphacolor);
 																if (!unlit) {
 																	texcolorshade = new Color(texcolorcomp[0]*shadingmultiplier, texcolorcomp[1]*shadingmultiplier, texcolorcomp[2]*shadingmultiplier, alphacolor);
+																} else {
+																	texcolorshade = new Color(0.0f, 0.0f, 0.0f, alphacolor);
+																	if (emissivetexture!=null) {
+																		texcolorshade = new Color(emissivetextureimage.getRGB(lineuvx, lineuvy));
+																	}
 																}
 																g2.setColor(texcolorshade);
 																g2.drawLine(j, n, j, n);
@@ -419,6 +431,11 @@ public class RenderLib {
 														} else {
 															if (!unlit) {
 																trianglecolor = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
+															} else {
+																trianglecolor = new Color(0.0f, 0.0f, 0.0f, alphacolor);
+																if (emissivecolor!=null) {
+																	trianglecolor = emissivecolor; 
+																}
 															}
 															g2.setColor(trianglecolor);
 															g2.drawLine(j, n, j, n);
@@ -526,6 +543,13 @@ public class RenderLib {
 									copymaterial.snapimage = copymaterial.fileimage.getSnapshot();
 									tritextureimage = copymaterial.snapimage;
 								}
+								Color emissivecolor = copymaterial.emissivecolor;
+								VolatileImage emissivetexture = copymaterial.emissivefileimage;
+								BufferedImage emissivetextureimage = copymaterial.emissivesnapimage;
+								if ((emissivetexture!=null)&&(emissivetextureimage==null)) {
+									copymaterial.emissivesnapimage = copymaterial.emissivefileimage.getSnapshot();
+									emissivetextureimage = copymaterial.emissivesnapimage;
+								}
 								for (int j=jstart;j<=jend;j++) {
 									Line drawline = vertplanetriangleint[j-jstart][0];
 									if (drawline!=null) {
@@ -603,6 +627,11 @@ public class RenderLib {
 																Color texcolorshade = new Color(texcolorcomp[0], texcolorcomp[1], texcolorcomp[2], alphacolor);
 																if (!unlit) {
 																	texcolorshade = new Color(texcolorcomp[0]*shadingmultiplier, texcolorcomp[1]*shadingmultiplier, texcolorcomp[2]*shadingmultiplier, alphacolor);
+																} else {
+																	texcolorshade = new Color(0.0f, 0.0f, 0.0f, alphacolor);
+																	if (emissivetexture!=null) {
+																		texcolorshade = new Color(emissivetextureimage.getRGB(lineuvx, lineuvy));
+																	}
 																}
 																g2.setColor(texcolorshade);
 																g2.drawLine(j, n, j, n);
@@ -610,6 +639,11 @@ public class RenderLib {
 														} else {
 															if (!unlit) {
 																trianglecolor = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
+															} else {
+																trianglecolor = new Color(0.0f, 0.0f, 0.0f, alphacolor);
+																if (emissivecolor!=null) {
+																	trianglecolor = emissivecolor; 
+																}
 															}
 															g2.setColor(trianglecolor);
 															g2.drawLine(j, n, j, n);
@@ -765,6 +799,13 @@ public class RenderLib {
 									copymaterial.snapimage = copymaterial.fileimage.getSnapshot();
 									tritextureimage = copymaterial.snapimage;
 								}
+								Color emissivecolor = copymaterial.emissivecolor;
+								VolatileImage emissivetexture = copymaterial.emissivefileimage;
+								BufferedImage emissivetextureimage = copymaterial.emissivesnapimage;
+								if ((emissivetexture!=null)&&(emissivetextureimage==null)) {
+									copymaterial.emissivesnapimage = copymaterial.emissivefileimage.getSnapshot();
+									emissivetextureimage = copymaterial.emissivesnapimage;
+								}
 								int jstart = copytrianglelistint[it].y;
 								int jend = copytrianglelistint[it].y+copytrianglelistint[it].height-1;
 								int istart = copytrianglelistint[it].x;
@@ -803,6 +844,11 @@ public class RenderLib {
 														Color texcolorshade = new Color(texcolorcomp[0], texcolorcomp[1], texcolorcomp[2], alphacolor);
 														if (!unlit) {
 															texcolorshade = new Color(texcolorcomp[0]*shadingmultiplier, texcolorcomp[1]*shadingmultiplier, texcolorcomp[2]*shadingmultiplier, alphacolor);
+														} else {
+															texcolorshade = new Color(0.0f, 0.0f, 0.0f, alphacolor);
+															if (emissivetexture!=null) {
+																texcolorshade = new Color(emissivetextureimage.getRGB(lineuvx, lineuvy));
+															}
 														}
 														g2.setColor(texcolorshade);
 														g2.drawLine(i, j, i, j);
@@ -810,6 +856,11 @@ public class RenderLib {
 												} else {
 													if (!unlit) {
 														trianglecolor = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
+													} else {
+														trianglecolor = new Color(0.0f, 0.0f, 0.0f, alphacolor);
+														if (emissivecolor!=null) {
+															trianglecolor = emissivecolor; 
+														}
 													}
 													g2.setColor(trianglecolor);
 													g2.drawLine(i, j, i, j);
@@ -902,6 +953,13 @@ public class RenderLib {
 									copymaterial.snapimage = copymaterial.fileimage.getSnapshot();
 									tritextureimage = copymaterial.snapimage;
 								}
+								Color emissivecolor = copymaterial.emissivecolor;
+								VolatileImage emissivetexture = copymaterial.emissivefileimage;
+								BufferedImage emissivetextureimage = copymaterial.emissivesnapimage;
+								if ((emissivetexture!=null)&&(emissivetextureimage==null)) {
+									copymaterial.emissivesnapimage = copymaterial.emissivefileimage.getSnapshot();
+									emissivetextureimage = copymaterial.emissivesnapimage;
+								}
 								int jstart = copytrianglelistint[it].y;
 								int jend = copytrianglelistint[it].y+copytrianglelistint[it].height-1;
 								int istart = copytrianglelistint[it].x;
@@ -940,6 +998,11 @@ public class RenderLib {
 														Color texcolorshade = new Color(texcolorcomp[0], texcolorcomp[1], texcolorcomp[2], alphacolor);
 														if (!unlit) {
 															texcolorshade = new Color(texcolorcomp[0]*shadingmultiplier, texcolorcomp[1]*shadingmultiplier, texcolorcomp[2]*shadingmultiplier, alphacolor);
+														} else {
+															texcolorshade = new Color(0.0f, 0.0f, 0.0f, alphacolor);
+															if (emissivetexture!=null) {
+																texcolorshade = new Color(emissivetextureimage.getRGB(lineuvx, lineuvy));
+															}
 														}
 														g2.setColor(texcolorshade);
 														g2.drawLine(i, j, i, j);
@@ -947,6 +1010,11 @@ public class RenderLib {
 												} else {
 													if (!unlit) {
 														trianglecolor = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
+													} else {
+														trianglecolor = new Color(0.0f, 0.0f, 0.0f, alphacolor);
+														if (emissivecolor!=null) {
+															trianglecolor = emissivecolor; 
+														}
 													}
 													g2.setColor(trianglecolor);
 													g2.drawLine(i, j, i, j);
