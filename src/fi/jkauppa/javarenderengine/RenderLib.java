@@ -417,14 +417,13 @@ public class RenderLib {
 														Coordinate tex2 = vpixelpoints[1].tex;
 														Color lightmapcolor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
 														if ((lightmaptexture!=null)&&(tex1!=null)&&(tex2!=null)) {
-															Position[] lineuvpoint1 = {new Position(tex1.u*(tritexture.getWidth()-1),(1.0f-tex1.v)*(tritexture.getHeight()-1),0.0f)};
-															Position[] lineuvpoint2 = {new Position(tex2.u*(tritexture.getWidth()-1),(1.0f-tex2.v)*(tritexture.getHeight()-1),0.0f)};
+															Position[] lineuvpoint1 = {new Position(tex1.u*(lightmaptexture.getWidth()-1),(1.0f-tex1.v)*(lightmaptexture.getHeight()-1),0.0f)};
+															Position[] lineuvpoint2 = {new Position(tex2.u*(lightmaptexture.getWidth()-1),(1.0f-tex2.v)*(lightmaptexture.getHeight()-1),0.0f)};
 															Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
 															Position[] lineuvpos = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
 															int lineuvx = (int)Math.round(lineuvpos[0].x);
 															int lineuvy = (int)Math.round(lineuvpos[0].y);
-															if ((lineuvx>=0)&&(lineuvx<tritexture.getWidth())&&(lineuvy>=0)&&(lineuvy<tritexture.getHeight())) {
-																renderview.cbuffer[n][j] = new Coordinate(lineuvx,lineuvy);
+															if ((lineuvx>=0)&&(lineuvx<lightmaptexture.getWidth())&&(lineuvy>=0)&&(lineuvy<lightmaptexture.getHeight())) {
 																lightmapcolor = new Color(lightmaptextureimage.getRGB(lineuvx, lineuvy));
 															}
 														}
@@ -1120,63 +1119,147 @@ public class RenderLib {
 		return renderview;
 	}
 	
-	public static RenderView renderSurfaceCubemapPlaneViewSoftware(Position campos, Entity[] entitylist, Triangle surface, int renderwidth, int renderheight, int rendersize, Matrix viewrot, boolean unlit, int mouselocationx, int mouselocationy) {
-		RenderView renderview = new RenderView();
-		renderview.pos = campos.copy();
-		renderview.rot = viewrot.copy();
-		renderview.renderwidth = renderwidth;
-		renderview.renderheight = renderheight;
-		renderview.rendersize = rendersize;
-		renderview.hfov = 90.0f;
-		renderview.vfov = 90.0f;
-		renderview.unlit = unlit;
-		renderview.mouselocationx = mouselocationx;
-		renderview.mouselocationy = mouselocationy;
-		int renderposx1start = 0;
-		int renderposx1end = rendersize-1;
-		int renderposx2start = rendersize;
-		int renderposx2end = 2*rendersize-1;
-		int renderposx3start = 2*rendersize;
-		int renderposx3end = 3*rendersize-1;
-		int renderposy1start = 0;
-		int renderposy1end = rendersize-1;
-		int renderposy2start = rendersize;
-		int renderposy2end = 2*rendersize-1;
-		Matrix topmatrix = MathLib.rotationMatrix(-180.0f, 0.0f, 0.0f);
-		Matrix bottommatrix = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
-		Matrix forwardmatrix = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
-		Matrix rightmatrix = MathLib.matrixMultiply(MathLib.rotationMatrix(0.0f, 0.0f, 90.0f), forwardmatrix);
-		Matrix backwardmatrix = MathLib.matrixMultiply(MathLib.rotationMatrix(0.0f, 0.0f, 180.0f), forwardmatrix);
-		Matrix leftmatrix = MathLib.matrixMultiply(MathLib.rotationMatrix(0.0f, 0.0f, 270.0f), forwardmatrix);
-		topmatrix = MathLib.matrixMultiply(renderview.rot, topmatrix);
-		bottommatrix = MathLib.matrixMultiply(renderview.rot, bottommatrix);
-		forwardmatrix = MathLib.matrixMultiply(renderview.rot, forwardmatrix);
-		rightmatrix = MathLib.matrixMultiply(renderview.rot, rightmatrix);
-		backwardmatrix = MathLib.matrixMultiply(renderview.rot, backwardmatrix);
-		leftmatrix = MathLib.matrixMultiply(renderview.rot, leftmatrix);
-		renderview.cubemap = new Cubemap();
-		renderview.cubemap.topview = renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, topmatrix, renderview.unlit, mouselocationx, mouselocationy);
-		renderview.cubemap.bottomview = renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, bottommatrix, renderview.unlit, mouselocationx, mouselocationy); 
-		renderview.cubemap.forwardview = renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, forwardmatrix, renderview.unlit, mouselocationx, mouselocationy);
-		renderview.cubemap.rightview = renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, rightmatrix, renderview.unlit, mouselocationx, mouselocationy);
-		renderview.cubemap.backwardview = renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, backwardmatrix, renderview.unlit, mouselocationx, mouselocationy);
-		renderview.cubemap.leftview = renderProjectedPlaneViewSoftware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, leftmatrix, renderview.unlit, mouselocationx, mouselocationy);
-		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
-		Graphics2D rigfx = renderview.renderimage.createGraphics();
-		rigfx.setComposite(AlphaComposite.Src);
-		rigfx.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
-		rigfx.setPaint(null);
-		rigfx.setClip(null);
-		rigfx.fillRect(0, 0, renderwidth, renderheight);
-		rigfx.drawImage(renderview.cubemap.forwardview.renderimage, renderposx1start, renderposy1start, renderposx1end, renderposy1end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
-		rigfx.drawImage(renderview.cubemap.backwardview.renderimage, renderposx2start, renderposy1start, renderposx2end, renderposy1end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
-		rigfx.drawImage(renderview.cubemap.topview.renderimage, renderposx3start, renderposy1start, renderposx3end, renderposy1end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
-		rigfx.drawImage(renderview.cubemap.leftview.renderimage, renderposx1start, renderposy2start, renderposx1end, renderposy2end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
-		rigfx.drawImage(renderview.cubemap.bottomview.renderimage, renderposx2start, renderposy2start, renderposx2end, renderposy2end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
-		rigfx.drawImage(renderview.cubemap.rightview.renderimage, renderposx3start, renderposy2start, renderposx3end, renderposy2end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
-		rigfx.dispose();
-		renderview.snapimage = renderview.renderimage.getSnapshot();
-		return renderview;
+	public static void renderSurfaceCubemapPlaneViewSoftware(Entity[] entitylist, int rendersize, int texturesize) {
+		double multiplier = 1000.0f;
+		if (entitylist!=null) {
+			for (int j=0;j<entitylist.length;j++) {
+				if (entitylist[j].trianglelist!=null) {
+					for (int i=0;i<entitylist[j].trianglelist.length;i++) {
+						if (entitylist[j].trianglelist[i]!=null) {
+							VolatileImage lightmaptexture = gc.createCompatibleVolatileImage(texturesize, texturesize, Transparency.TRANSLUCENT);
+							Graphics2D lmgfx = lightmaptexture.createGraphics();
+							Material lightmapmaterial = new Material(Color.WHITE, 1.0f, lightmaptexture);
+							Position[] pos1 = {entitylist[j].trianglelist[i].pos1};
+							Position[] pos2 = {entitylist[j].trianglelist[i].pos2};
+							Position[] pos3 = {entitylist[j].trianglelist[i].pos3};
+							Direction[] posdir12 = MathLib.vectorFromPoints(pos1, pos2);
+							Direction[] posdir13 = MathLib.vectorFromPoints(pos1, pos3);
+							Coordinate coord1 = entitylist[j].trianglelist[i].pos1.tex;
+							Coordinate coord2 = entitylist[j].trianglelist[i].pos2.tex;
+							Coordinate coord3 = entitylist[j].trianglelist[i].pos3.tex;
+							double coord1x = coord1.u*(rendersize-1);
+							double coord1y = coord1.v*(rendersize-1);
+							double coord2x = coord2.u*(rendersize-1);
+							double coord2y = coord2.v*(rendersize-1);
+							double coord3x = coord3.u*(rendersize-1);
+							double coord3y = coord3.v*(rendersize-1);
+							double textureminx = coord1x;
+							double textureminy = coord1y;
+							double texturemaxx = coord1x;
+							double texturemaxy = coord1y;
+							if (coord2x<textureminx) {textureminx=coord2x;}
+							if (coord2y<textureminy) {textureminy=coord2y;}
+							if (coord2x>texturemaxx) {texturemaxx=coord2x;}
+							if (coord2y>texturemaxy) {texturemaxy=coord2y;}
+							if (coord3x<textureminx) {textureminx=coord3x;}
+							if (coord3y<textureminy) {textureminy=coord3y;}
+							if (coord3x>texturemaxx) {texturemaxx=coord3x;}
+							if (coord3y>texturemaxy) {texturemaxy=coord3y;}
+							int tminx = (int)Math.round(textureminx);
+							int tmaxx = (int)Math.round(texturemaxx);
+							int tminy = (int)Math.round(textureminy);
+							int tmaxy = (int)Math.round(texturemaxy);
+							Position[] coordp1 = {new Position(coord1x, coord1y, 0.0f)};
+							Position[] coordp2 = {new Position(coord2x, coord2y, 0.0f)};
+							Position[] coordp3 = {new Position(coord3x, coord3y, 0.0f)};
+							Direction[] coordv12 = {new Direction(coord2x-coord1x, coord2y-coord1y, 0.0f)};
+							Direction[] coordv13 = {new Direction(coord3x-coord1x, coord3y-coord1y, 0.0f)};
+							Direction[] coordv23 = {new Direction(coord3x-coord2x, coord3y-coord2y, 0.0f)};
+							Direction[] coordv21 = {coordv12[0].invert()};
+							Direction[] coordv31 = {coordv13[0].invert()};
+							Direction[] coordv32 = {coordv23[0].invert()};
+							double[] coordvl12 = MathLib.vectorLength(coordv12);
+							double[] coordvl13 = MathLib.vectorLength(coordv13);
+							double[] coorda1 = MathLib.vectorAngle(coordv12,coordv13);
+							double[] coorda2 = MathLib.vectorAngle(coordv21,coordv23);
+							double[] coorda3 = MathLib.vectorAngle(coordv31,coordv32);
+							double[] coordai1 = MathLib.vectorAngle(coordv21,coordv13);
+							for (int m=tminy;m<=tmaxy;m++) {
+								for (int n=tminx;n<=tmaxx;n++) {
+									Position[] coordp4 = {new Position(n, m, 0.0f)};
+									Direction[] coordt1 = MathLib.vectorFromPoints(coordp1, coordp4);
+									Direction[] coordt2 = MathLib.vectorFromPoints(coordp2, coordp4);
+									Direction[] coordt3 = MathLib.vectorFromPoints(coordp3, coordp4);
+									double[] coordtl1 = MathLib.vectorLength(coordt1);
+									double[] coordh12 = MathLib.vectorAngle(coordv12,coordt1);
+									double[] coordh13 = MathLib.vectorAngle(coordv13,coordt1);
+									double[] coordh21 = MathLib.vectorAngle(coordv21,coordt2);
+									double[] coordh23 = MathLib.vectorAngle(coordv23,coordt2);
+									double[] coordh31 = MathLib.vectorAngle(coordv31,coordt3);
+									double[] coordh32 = MathLib.vectorAngle(coordv32,coordt3);
+									boolean isatpoint1 = (coordt1[0].dx==0)&&(coordt1[0].dy==0)&&(coordt1[0].dz==0);
+									boolean isatpoint2 = (coordt2[0].dx==0)&&(coordt2[0].dy==0)&&(coordt2[0].dz==0);
+									boolean isatpoint3 = (coordt3[0].dx==0)&&(coordt3[0].dy==0)&&(coordt3[0].dz==0);
+									boolean withinangles = (coordh12[0]<=coorda1[0])&&(coordh13[0]<=coorda1[0])&&(coordh21[0]<=coorda2[0])&&(coordh23[0]<=coorda2[0])&&(coordh31[0]<=coorda3[0])&&(coordh32[0]<=coorda3[0]);
+									if(isatpoint1||isatpoint2||isatpoint3||withinangles) {
+										Position[] pos4 = null;
+										if (isatpoint1) {
+											pos4 = pos1;
+										} else if (isatpoint2) {
+											pos4 = pos2;
+										} else if (isatpoint3) {
+											pos4 = pos3;
+										} else {
+											double n12len = coordtl1[0]*(MathLib.sind(coordh13[0])/MathLib.sind(coordai1[0]));
+											double n13len = coordtl1[0]*(MathLib.sind(coordh12[0])/MathLib.sind(coordai1[0]));
+											double n12mult = n12len/coordvl12[0];
+											double n13mult = n13len/coordvl13[0];
+											Position[] tpos4 = MathLib.translate(pos1, posdir12[0], n12mult);
+											pos4 = MathLib.translate(tpos4, posdir13[0], n13mult);
+										}
+										RenderView p4pixel = renderCubemapPlaneViewSoftware(pos4[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
+										BufferedImage[] cubemapimages = new BufferedImage[6];
+										cubemapimages[0] = p4pixel.cubemap.backwardview.snapimage;
+										cubemapimages[1] = p4pixel.cubemap.bottomview.snapimage;
+										cubemapimages[2] = p4pixel.cubemap.forwardview.snapimage;
+										cubemapimages[3] = p4pixel.cubemap.leftview.snapimage;
+										cubemapimages[4] = p4pixel.cubemap.rightview.snapimage;
+										cubemapimages[5] = p4pixel.cubemap.topview.snapimage;
+										double p4pixelr = 0.0f;
+										double p4pixelg = 0.0f;
+										double p4pixelb = 0.0f;
+										for (int k=0;k<cubemapimages.length;k++) {
+											for (int ky=0;ky<cubemapimages[k].getHeight();ky++) {
+												for (int kx=0;kx<cubemapimages[k].getWidth();kx++) {
+													Color p4pixelcolor = new Color(cubemapimages[k].getRGB(kx, ky));
+													float[] p4pixelcolorcomp = p4pixelcolor.getRGBComponents(new float[4]);
+													p4pixelr += p4pixelcolorcomp[0];
+													p4pixelg += p4pixelcolorcomp[1];
+													p4pixelb += p4pixelcolorcomp[2];
+												}
+											}
+										}
+										double pixelcount = 6*rendersize*rendersize;
+										float p4pixelrt = (float)(multiplier*p4pixelr/pixelcount);
+										float p4pixelgt = (float)(multiplier*p4pixelg/pixelcount);
+										float p4pixelbt = (float)(multiplier*p4pixelb/pixelcount);
+										Color p4pixelcol = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
+										lmgfx.setColor(p4pixelcol);
+										lmgfx.drawLine(n, m, n, m);
+									}
+								}
+							}
+							if (entitylist[j].trianglelist[i].lmatl==null) {
+								entitylist[j].trianglelist[i].lmatl = new Material[1];
+							}
+							lmgfx.dispose();
+							entitylist[j].trianglelist[i].lmatl[0] = lightmapmaterial;
+						}
+					}
+				}
+			}
+		}
+		if (entitylist!=null) {
+			for (int j=0;j<entitylist.length;j++) {
+				if (entitylist[j].trianglelist!=null) {
+					for (int i=0;i<entitylist[j].trianglelist.length;i++) {
+						if (entitylist[j].trianglelist[i]!=null) {
+							entitylist[j].trianglelist[i].lmat = entitylist[j].trianglelist[i].lmatl[0];
+						}
+					}
+				}
+			}
+		}
 	}
 
 }

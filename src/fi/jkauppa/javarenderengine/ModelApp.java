@@ -139,6 +139,7 @@ public class ModelApp extends AppHandlerPanel {
 			updateCameraDirections();
 		}
 		(new RenderViewUpdater()).start();
+		(new LightMapUpdater()).start();
 	}
 
 	@Override public void keyReleased(KeyEvent e) {
@@ -309,6 +310,19 @@ public class ModelApp extends AppHandlerPanel {
 					ModelApp.this.renderview = RenderLib.renderCubemapRayViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), (int)Math.floor(((double)ModelApp.this.getHeight())/2.0f), ModelApp.this.cameramat, ModelApp.this.unlitrender, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				}
 				RenderViewUpdater.renderupdaterrunning = false;
+			}
+		}
+	}
+	
+	private class LightMapUpdater extends Thread {
+		private static boolean lightmapupdaterrunning = false;
+		public void run() {
+			if (!LightMapUpdater.lightmapupdaterrunning) {
+				LightMapUpdater.lightmapupdaterrunning = true;
+				if ((ModelApp.this.polygonfillmode==1)&&(ModelApp.this.unlitrender)) {
+					RenderLib.renderSurfaceCubemapPlaneViewSoftware(ModelApp.this.entitylist, 64, 16);
+				}
+				LightMapUpdater.lightmapupdaterrunning = false;
 			}
 		}
 	}
