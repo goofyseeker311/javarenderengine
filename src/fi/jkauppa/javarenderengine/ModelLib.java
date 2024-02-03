@@ -35,8 +35,16 @@ public class ModelLib {
 		public BufferedImage specularsnapimage = null;
 		public VolatileImage specularhighfileimage = null;
 		public BufferedImage specularhighsnapimage = null;
+		public VolatileImage emissivefileimage = null;
+		public BufferedImage emissivesnapimage = null;
 		public VolatileImage alphafileimage = null;
 		public BufferedImage alphasnapimage = null;
+		public VolatileImage roughnessfileimage = null;
+		public BufferedImage roughnesssnapimage = null;
+		public VolatileImage metallicfileimage = null;
+		public BufferedImage metallicsnapimage = null;
+		public VolatileImage sheenfileimage = null;
+		public BufferedImage sheensnapimage = null;
 		public VolatileImage bumpfileimage = null;
 		public BufferedImage bumpsnapimage = null;
 		public VolatileImage dispfileimage = null;
@@ -672,6 +680,38 @@ public class ModelLib {
 						File imagefile = new File(savemtlfile.getParent(), savefilename);
 						ImageIO.write(model.materials[i].specularhighfileimage.getSnapshot(), "PNG", imagefile);
 					}
+					if (model.materials[i].emissivefileimage!=null) {
+						String savefilename = model.materials[i].filename;
+						savefilename = savefilename.substring(0, savefilename.length()-4)+"_emissive.png";
+						modelobjfile.write("map_Ke "+savefilename);
+						modelobjfile.newLine();
+						File imagefile = new File(savemtlfile.getParent(), savefilename);
+						ImageIO.write(model.materials[i].emissivefileimage.getSnapshot(), "PNG", imagefile);
+					}
+					if (model.materials[i].roughnessfileimage!=null) {
+						String savefilename = model.materials[i].filename;
+						savefilename = savefilename.substring(0, savefilename.length()-4)+"_roughness.png";
+						modelobjfile.write("map_Pr "+savefilename);
+						modelobjfile.newLine();
+						File imagefile = new File(savemtlfile.getParent(), savefilename);
+						ImageIO.write(model.materials[i].roughnessfileimage.getSnapshot(), "PNG", imagefile);
+					}
+					if (model.materials[i].metallicfileimage!=null) {
+						String savefilename = model.materials[i].filename;
+						savefilename = savefilename.substring(0, savefilename.length()-4)+"_metallic.png";
+						modelobjfile.write("map_Pm "+savefilename);
+						modelobjfile.newLine();
+						File imagefile = new File(savemtlfile.getParent(), savefilename);
+						ImageIO.write(model.materials[i].metallicfileimage.getSnapshot(), "PNG", imagefile);
+					}
+					if (model.materials[i].sheenfileimage!=null) {
+						String savefilename = model.materials[i].filename;
+						savefilename = savefilename.substring(0, savefilename.length()-4)+"_sheen.png";
+						modelobjfile.write("map_Ps "+savefilename);
+						modelobjfile.newLine();
+						File imagefile = new File(savemtlfile.getParent(), savefilename);
+						ImageIO.write(model.materials[i].sheenfileimage.getSnapshot(), "PNG", imagefile);
+					}
 					if (model.materials[i].alphafileimage!=null) {
 						String savefilename = model.materials[i].filename;
 						savefilename = savefilename.substring(0, savefilename.length()-4)+"_alpha.png";
@@ -847,6 +887,26 @@ public class ModelLib {
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
 					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
 					    	modelmaterials.get(modelmaterials.size()-1).specularfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    }else if (fline.toLowerCase().startsWith("map_ke ")) {
+					    	String farg = fline.substring(7).trim();
+					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
+					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
+					    	modelmaterials.get(modelmaterials.size()-1).emissivefileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    }else if (fline.toLowerCase().startsWith("map_pr ")) {
+					    	String farg = fline.substring(7).trim();
+					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
+					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
+					    	modelmaterials.get(modelmaterials.size()-1).roughnessfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    }else if (fline.toLowerCase().startsWith("map_pm ")) {
+					    	String farg = fline.substring(7).trim();
+					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
+					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
+					    	modelmaterials.get(modelmaterials.size()-1).metallicfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    }else if (fline.toLowerCase().startsWith("map_ps ")) {
+					    	String farg = fline.substring(7).trim();
+					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
+					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
+					    	modelmaterials.get(modelmaterials.size()-1).sheenfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
 					    }else if (fline.toLowerCase().startsWith("map_ns ")) {
 					    	String farg = fline.substring(7).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
