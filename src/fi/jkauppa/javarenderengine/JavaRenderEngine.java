@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.1.7");
+		this.setTitle("Java Render Engine v2.1.8");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -315,6 +315,8 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Quad[] vrqiquads = {vrqiquad, vrqiquad, vrqiquad};
 		Position[][] rqint = MathLib.rayQuadIntersection(vrqipos, vrqidir, vrqiquads);
 		for (int j=0;j<rqint.length;j++) {for (int i=0;i<rqint[0].length;i++) {if(rqint[j][i]!=null){System.out.println("rqint["+i+"]["+j+"]="+rqint[j][i].x+" "+rqint[j][i].y+" "+rqint[j][i].z);}else{System.out.println("rqint["+i+"]["+j+"]=no hit.");}}}
+		String[] stringstosplit = {"0//0", "0/0/0", "0//"};
+		for (int j=0;j<stringstosplit.length;j++) {String[] stringsplit = stringstosplit[j].split("/");System.out.print("stringstosplit["+j+"]=\""+stringsplit.length+"\","+stringstosplit[j]+":");for (int i=0;i<stringsplit.length;i++) { if(!stringsplit[i].isBlank()) {System.out.print(" "+Integer.parseInt(stringsplit[i]));}}System.out.println();}
 		
 		new JavaRenderEngine();
 	}

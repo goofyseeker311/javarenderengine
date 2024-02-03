@@ -608,10 +608,22 @@ public class CADApp extends AppHandlerPanel {
 									Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
 									Position pos2 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
 									Position pos3 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[2].vertexindex-1];
-									Direction norm = loadmodel.facenormals[loadmodel.objects[j].faceindex[i].facevertexindex[0].normalindex-1];
-									Coordinate tex1 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[0].textureindex-1];
-									Coordinate tex2 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[1].textureindex-1];
-									Coordinate tex3 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[2].textureindex-1];
+									Direction norm = new Direction(0.0f, 0.0f, 0.0f);
+						    		Coordinate tex1 = new Coordinate(0.0f,0.0f);
+						    		Coordinate tex2 = new Coordinate(1.0f,0.0f);
+						    		Coordinate tex3 = new Coordinate(1.0f,1.0f);
+									if (loadmodel.objects[j].faceindex[i].facevertexindex[0].normalindex>0) {
+										norm = loadmodel.facenormals[loadmodel.objects[j].faceindex[i].facevertexindex[0].normalindex-1];
+									}
+						    		if (loadmodel.objects[j].faceindex[i].facevertexindex[0].textureindex>0) {
+						    			tex1 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[0].textureindex-1];
+						    		}
+						    		if (loadmodel.objects[j].faceindex[i].facevertexindex[1].textureindex>0) {
+						    			tex2 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[1].textureindex-1];
+						    		}
+						    		if (loadmodel.objects[j].faceindex[i].facevertexindex[2].textureindex>0) {
+						    			tex3 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[2].textureindex-1];
+						    		}
 									Triangle tri = new Triangle(new Position(pos1.x,pos1.y,pos1.z),new Position(pos2.x,pos2.y,pos2.z),new Position(pos3.x,pos3.y,pos3.z));
 									tri.norm = norm;
 									tri.pos1.tex = tex1;
