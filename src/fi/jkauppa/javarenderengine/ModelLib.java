@@ -8,7 +8,6 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -30,12 +29,36 @@ public class ModelLib {
 		public String materialname = null;
 		public VolatileImage fileimage = null;
 		public BufferedImage snapimage = null;
+		public VolatileImage ambientfileimage = null;
+		public BufferedImage ambientsnapimage = null;
+		public VolatileImage specularfileimage = null;
+		public BufferedImage specularsnapimage = null;
+		public VolatileImage specularhighfileimage = null;
+		public BufferedImage specularhighsnapimage = null;
+		public VolatileImage alphafileimage = null;
+		public BufferedImage alphasnapimage = null;
+		public VolatileImage bumpfileimage = null;
+		public BufferedImage bumpsnapimage = null;
+		public VolatileImage dispfileimage = null;
+		public BufferedImage dispsnapimage = null;
+		public VolatileImage decalfileimage = null;
+		public BufferedImage decalsnapimage = null;
 		public String filename = null;
 		public Color facecolor = null;
+		public Color ambientcolor = null;
+		public Color specularcolor = null;
+		public Color emissivecolor = null;
+		public float specularexp = 250.0f;
 		public float emissivity = 0.0f;
 		public float transparency = 1.0f;
 		public float roughness = 1.0f;
 		public float metallic = 0.0f;
+		public float sheen = 0.0f;
+		public float coatthickness = 0.0f;
+		public float coatroughtness = 0.0f;
+		public float anisotropy = 0.0f;
+		public float anisotropyrot = 0.0f;
+		public float refraction = 1.45f;
 		public Material() {}
 		public Material(Color facecolori, float transparencyi, VolatileImage fileimagei) {this.facecolor=facecolori;this.transparency=transparencyi;this.fileimage=fileimagei;}
 		@Override public int compareTo(Material o) {
@@ -389,7 +412,7 @@ public class ModelLib {
 			return k;
 		}
 	}
-	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public Direction norm; public Material mat; public int ind=-1; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;}
+	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public Direction norm; public Material mat; public Material lmat; public Material[] lmatl; public int ind=-1; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;}
 		@Override public int compareTo(Triangle o) {
 			int k = -1;
 			Position[] tposarray = {this.pos1,this.pos2,this.pos3};
@@ -535,10 +558,19 @@ public class ModelLib {
 							for (int i=0;i<model.objects[k].faceindex[j].facevertexindex.length;i++) {
 								if (i>0) {modelobjfile.write(" ");}
 								modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].vertexindex);
-								modelobjfile.write("/");
-								modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].textureindex);
-								modelobjfile.write("/");
-								modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].normalindex);
+								if ((model.objects[k].faceindex[j].facevertexindex[i].textureindex>0)&&(model.objects[k].faceindex[j].facevertexindex[i].normalindex>0)) {
+									modelobjfile.write("/");
+									modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].textureindex);
+									modelobjfile.write("/");
+									modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].normalindex);
+								} else if (model.objects[k].faceindex[j].facevertexindex[i].textureindex>0) {
+									modelobjfile.write("/");
+									modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].textureindex);
+								} else if (model.objects[k].faceindex[j].facevertexindex[i].normalindex>0) {
+									modelobjfile.write("/");
+									modelobjfile.write("/");
+									modelobjfile.write(""+model.objects[k].faceindex[j].facevertexindex[i].normalindex);
+								}
 							}
 							modelobjfile.newLine();
 						}
@@ -567,30 +599,110 @@ public class ModelLib {
 				for (int i=0;i<model.materials.length;i++) {
 					modelobjfile.write("newmtl "+model.materials[i].materialname);
 					modelobjfile.newLine();
-					modelobjfile.write("Ns 250.000000");
+					modelobjfile.write("Ns "+model.materials[i].specularexp);
 					modelobjfile.newLine();
-					modelobjfile.write("Ka 1.000000 1.000000 1.000000");
-					modelobjfile.newLine();
+					if (model.materials[i].ambientcolor!=null) {
+						float[] rgbcolor = model.materials[i].ambientcolor.getRGBColorComponents(new float[3]);
+						modelobjfile.write("Ka "+rgbcolor[0]+" "+rgbcolor[1]+" "+rgbcolor[2]);
+						modelobjfile.newLine();
+					}
 					if (model.materials[i].facecolor!=null) {
 						float[] rgbcolor = model.materials[i].facecolor.getRGBColorComponents(new float[3]);
 						modelobjfile.write("Kd "+rgbcolor[0]+" "+rgbcolor[1]+" "+rgbcolor[2]);
 						modelobjfile.newLine();
 					}
-					modelobjfile.write("Ks 0.500000 0.500000 0.500000");
-					modelobjfile.newLine();
-					modelobjfile.write("Ke 0.000000 0.000000 0.000000");
-					modelobjfile.newLine();
-					modelobjfile.write("Ni 1.450000");
+					if (model.materials[i].specularcolor!=null) {
+						float[] rgbcolor = model.materials[i].specularcolor.getRGBColorComponents(new float[3]);
+						modelobjfile.write("Ks "+rgbcolor[0]+" "+rgbcolor[1]+" "+rgbcolor[2]);
+						modelobjfile.newLine();
+					}
+					if (model.materials[i].emissivecolor!=null) {
+						float[] rgbcolor = model.materials[i].emissivecolor.getRGBColorComponents(new float[3]);
+						modelobjfile.write("Ke "+rgbcolor[0]+" "+rgbcolor[1]+" "+rgbcolor[2]);
+						modelobjfile.newLine();
+					}
+					modelobjfile.write("Ni "+model.materials[i].refraction);
 					modelobjfile.newLine();
 					modelobjfile.write("d "+model.materials[i].transparency);
 					modelobjfile.newLine();
 					modelobjfile.write("illum 2");
 					modelobjfile.newLine();
+					modelobjfile.write("Pr "+model.materials[i].roughness);
+					modelobjfile.newLine();
+					modelobjfile.write("Pm "+model.materials[i].metallic);
+					modelobjfile.newLine();
+					modelobjfile.write("Ps "+model.materials[i].sheen);
+					modelobjfile.newLine();
+					modelobjfile.write("Pc "+model.materials[i].coatthickness);
+					modelobjfile.newLine();
+					modelobjfile.write("Pcr "+model.materials[i].coatroughtness);
+					modelobjfile.newLine();
+					modelobjfile.write("aniso "+model.materials[i].anisotropy);
+					modelobjfile.newLine();
+					modelobjfile.write("anisor "+model.materials[i].anisotropyrot);
+					modelobjfile.newLine();
 					if (model.materials[i].fileimage!=null) {
-						modelobjfile.write("map_Kd "+model.materials[i].filename);
+						String savefilename = model.materials[i].filename;
+						modelobjfile.write("map_Kd "+savefilename);
 						modelobjfile.newLine();
-						File imagefile = new File(savemtlfile.getParent(), model.materials[i].filename);
+						File imagefile = new File(savemtlfile.getParent(), savefilename);
 						ImageIO.write(model.materials[i].fileimage.getSnapshot(), "PNG", imagefile);
+					}
+					if (model.materials[i].ambientfileimage!=null) {
+						String savefilename = model.materials[i].filename;
+						savefilename = savefilename.substring(0, savefilename.length()-4)+"_ambient.png";
+						modelobjfile.write("map_Ka "+savefilename);
+						modelobjfile.newLine();
+						File imagefile = new File(savemtlfile.getParent(), savefilename);
+						ImageIO.write(model.materials[i].ambientfileimage.getSnapshot(), "PNG", imagefile);
+					}
+					if (model.materials[i].specularfileimage!=null) {
+						String savefilename = model.materials[i].filename;
+						savefilename = savefilename.substring(0, savefilename.length()-4)+"_spec.png";
+						modelobjfile.write("map_Ks "+savefilename);
+						modelobjfile.newLine();
+						File imagefile = new File(savemtlfile.getParent(), savefilename);
+						ImageIO.write(model.materials[i].specularfileimage.getSnapshot(), "PNG", imagefile);
+					}
+					if (model.materials[i].specularhighfileimage!=null) {
+						String savefilename = model.materials[i].filename;
+						savefilename = savefilename.substring(0, savefilename.length()-4)+"_spechigh.png";
+						modelobjfile.write("map_Ns "+savefilename);
+						modelobjfile.newLine();
+						File imagefile = new File(savemtlfile.getParent(), savefilename);
+						ImageIO.write(model.materials[i].specularhighfileimage.getSnapshot(), "PNG", imagefile);
+					}
+					if (model.materials[i].alphafileimage!=null) {
+						String savefilename = model.materials[i].filename;
+						savefilename = savefilename.substring(0, savefilename.length()-4)+"_alpha.png";
+						modelobjfile.write("map_d "+savefilename);
+						modelobjfile.newLine();
+						File imagefile = new File(savemtlfile.getParent(), savefilename);
+						ImageIO.write(model.materials[i].alphafileimage.getSnapshot(), "PNG", imagefile);
+					}
+					if (model.materials[i].bumpfileimage!=null) {
+						String savefilename = model.materials[i].filename;
+						savefilename = savefilename.substring(0, savefilename.length()-4)+"_bump.png";
+						modelobjfile.write("bump "+savefilename);
+						modelobjfile.newLine();
+						File imagefile = new File(savemtlfile.getParent(), savefilename);
+						ImageIO.write(model.materials[i].bumpfileimage.getSnapshot(), "PNG", imagefile);
+					}
+					if (model.materials[i].dispfileimage!=null) {
+						String savefilename = model.materials[i].filename;
+						savefilename = savefilename.substring(0, savefilename.length()-4)+"_disp.png";
+						modelobjfile.write("disp "+savefilename);
+						modelobjfile.newLine();
+						File imagefile = new File(savemtlfile.getParent(), savefilename);
+						ImageIO.write(model.materials[i].dispfileimage.getSnapshot(), "PNG", imagefile);
+					}
+					if (model.materials[i].decalfileimage!=null) {
+						String savefilename = model.materials[i].filename;
+						savefilename = savefilename.substring(0, savefilename.length()-4)+"_decal.png";
+						modelobjfile.write("decal "+savefilename);
+						modelobjfile.newLine();
+						File imagefile = new File(savemtlfile.getParent(), savefilename);
+						ImageIO.write(model.materials[i].decalfileimage.getSnapshot(), "PNG", imagefile);
 					}
 					modelobjfile.newLine();
 				}
@@ -664,9 +776,20 @@ public class ModelLib {
 					    	String farg = fline.substring(2).trim();
 					    	String[] fargsplit = farg.split(" ");
 					    	ArrayList<ModelFaceVertexIndex> modelfacevertexindex = new ArrayList<ModelFaceVertexIndex>(); 
-					    	for (int i=0;i<fargsplit.length;i++) {
-						    	String[] fargsplit2 = fargsplit[i].split("/");
-						    	modelfacevertexindex.add(new ModelFaceVertexIndex(Integer.parseInt(fargsplit2[0]),Integer.parseInt(fargsplit2[1]),Integer.parseInt(fargsplit2[2])));
+					    	for (int j=0;j<fargsplit.length;j++) {
+						    	String[] fargsplit2 = fargsplit[j].split("/");
+						    	for (int i=0;i<fargsplit2.length;i++) {
+						    		if (fargsplit2[i].isBlank()) {
+						    			fargsplit2[i] = "0";
+						    		}
+						    	}
+						    	if (fargsplit2.length==1) {
+						    		modelfacevertexindex.add(new ModelFaceVertexIndex(Integer.parseInt(fargsplit2[0]),0,0));
+						    	} else if (fargsplit2.length==2) {
+						    		modelfacevertexindex.add(new ModelFaceVertexIndex(Integer.parseInt(fargsplit2[0]),Integer.parseInt(fargsplit2[1]),0));
+						    	} else {
+						    		modelfacevertexindex.add(new ModelFaceVertexIndex(Integer.parseInt(fargsplit2[0]),Integer.parseInt(fargsplit2[1]),Integer.parseInt(fargsplit2[2])));
+						    	}
 					    	}
 					    	ModelFaceIndex newmodelfaceindex = new ModelFaceIndex(modelfacevertexindex.toArray(new ModelFaceVertexIndex[modelfacevertexindex.size()]));
 					    	newmodelfaceindex.usemtl = lastusemtl;
@@ -713,23 +836,85 @@ public class ModelLib {
 					    	String farg = fline.substring(7).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
 					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
-					    	BufferedImage fileloadimage = null;
-							if (loadresourcefromjar) {
-								fileloadimage = ImageIO.read(new BufferedInputStream(ClassLoader.getSystemClassLoader().getResourceAsStream(loadimgfile.getPath().replace(File.separatorChar, '/'))));
-							}else {
-								fileloadimage = ImageIO.read(loadimgfile);
-							}
-					    	VolatileImage filestoreimage = gc.createCompatibleVolatileImage(fileloadimage.getWidth(),fileloadimage.getHeight(), Transparency.TRANSLUCENT);
-					    	Graphics2D filestoreimagegfx = filestoreimage.createGraphics();
-					    	filestoreimagegfx.drawImage(fileloadimage, 0, 0, null);
-					    	modelmaterials.get(modelmaterials.size()-1).fileimage = filestoreimage;
+					    	modelmaterials.get(modelmaterials.size()-1).fileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    }else if (fline.toLowerCase().startsWith("map_ka ")) {
+					    	String farg = fline.substring(7).trim();
+					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
+					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
+					    	modelmaterials.get(modelmaterials.size()-1).ambientfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    }else if (fline.toLowerCase().startsWith("map_ks ")) {
+					    	String farg = fline.substring(7).trim();
+					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
+					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
+					    	modelmaterials.get(modelmaterials.size()-1).specularfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    }else if (fline.toLowerCase().startsWith("map_ns ")) {
+					    	String farg = fline.substring(7).trim();
+					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
+					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
+					    	modelmaterials.get(modelmaterials.size()-1).specularhighfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    }else if (fline.toLowerCase().startsWith("map_d ")) {
+					    	String farg = fline.substring(6).trim();
+					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
+					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
+					    	modelmaterials.get(modelmaterials.size()-1).alphafileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    }else if (fline.toLowerCase().startsWith("bump ")) {
+					    	String farg = fline.substring(5).trim();
+					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
+					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
+					    	modelmaterials.get(modelmaterials.size()-1).bumpfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    }else if (fline.toLowerCase().startsWith("disp ")) {
+					    	String farg = fline.substring(5).trim();
+					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
+					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
+					    	modelmaterials.get(modelmaterials.size()-1).dispfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    }else if (fline.toLowerCase().startsWith("decal ")) {
+					    	String farg = fline.substring(5).trim();
+					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
+					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
+					    	modelmaterials.get(modelmaterials.size()-1).decalfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
 					    }else if (fline.toLowerCase().startsWith("kd ")) {
 					    	String farg = fline.substring(3).trim();
 					    	String[] fargsplit = farg.split(" ");
 					    	modelmaterials.get(modelmaterials.size()-1).facecolor = new Color(Float.parseFloat(fargsplit[0]), Float.parseFloat(fargsplit[1]), Float.parseFloat(fargsplit[2]));
+					    }else if (fline.toLowerCase().startsWith("ka ")) {
+					    	String farg = fline.substring(3).trim();
+					    	String[] fargsplit = farg.split(" ");
+					    	modelmaterials.get(modelmaterials.size()-1).ambientcolor = new Color(Float.parseFloat(fargsplit[0]), Float.parseFloat(fargsplit[1]), Float.parseFloat(fargsplit[2]));
+					    }else if (fline.toLowerCase().startsWith("ke ")) {
+					    	String farg = fline.substring(3).trim();
+					    	String[] fargsplit = farg.split(" ");
+					    	modelmaterials.get(modelmaterials.size()-1).emissivecolor = new Color(Float.parseFloat(fargsplit[0]), Float.parseFloat(fargsplit[1]), Float.parseFloat(fargsplit[2]));
+					    }else if (fline.toLowerCase().startsWith("ks ")) {
+					    	String farg = fline.substring(3).trim();
+					    	String[] fargsplit = farg.split(" ");
+					    	modelmaterials.get(modelmaterials.size()-1).specularcolor = new Color(Float.parseFloat(fargsplit[0]), Float.parseFloat(fargsplit[1]), Float.parseFloat(fargsplit[2]));
+					    }else if (fline.toLowerCase().startsWith("Ns ")) {
+					    	String farg = fline.substring(2).trim();
+					    	modelmaterials.get(modelmaterials.size()-1).specularexp = Float.parseFloat(farg);
 					    }else if (fline.toLowerCase().startsWith("d ")) {
 					    	String farg = fline.substring(2).trim();
 					    	modelmaterials.get(modelmaterials.size()-1).transparency = Float.parseFloat(farg);
+					    }else if (fline.toLowerCase().startsWith("ni ")) {
+					    	String farg = fline.substring(3).trim();
+					    	modelmaterials.get(modelmaterials.size()-1).refraction = Float.parseFloat(farg);
+					    }else if (fline.toLowerCase().startsWith("pr ")) {
+					    	String farg = fline.substring(3).trim();
+					    	modelmaterials.get(modelmaterials.size()-1).roughness = Float.parseFloat(farg);
+					    }else if (fline.toLowerCase().startsWith("pm ")) {
+					    	String farg = fline.substring(3).trim();
+					    	modelmaterials.get(modelmaterials.size()-1).metallic = Float.parseFloat(farg);
+					    }else if (fline.toLowerCase().startsWith("pc ")) {
+					    	String farg = fline.substring(3).trim();
+					    	modelmaterials.get(modelmaterials.size()-1).coatthickness = Float.parseFloat(farg);
+					    }else if (fline.toLowerCase().startsWith("pcr ")) {
+					    	String farg = fline.substring(4).trim();
+					    	modelmaterials.get(modelmaterials.size()-1).coatroughtness = Float.parseFloat(farg);
+					    }else if (fline.toLowerCase().startsWith("aniso ")) {
+					    	String farg = fline.substring(6).trim();
+					    	modelmaterials.get(modelmaterials.size()-1).anisotropy = Float.parseFloat(farg);
+					    }else if (fline.toLowerCase().startsWith("anisor ")) {
+					    	String farg = fline.substring(7).trim();
+					    	modelmaterials.get(modelmaterials.size()-1).anisotropyrot = Float.parseFloat(farg);
 					    }
 					}
 					k = modelmaterials.toArray(new Material[modelmaterials.size()]);
