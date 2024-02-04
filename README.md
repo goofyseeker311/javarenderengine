@@ -127,7 +127,7 @@ https://www.oracle.com/java/technologies/downloads/#java21
 Alternative way of running the program is to open a console window on the javarenderengine.jar location and type command
 "java -jar javarenderengine.jar", which will also show debug output text on the console window. Otherwise console debug output
 can be activated in the Java Control Panel or Configure Java application -> Advanced -> Java console -> Show console and
-Miscellaneous -> Place Java icon in system tray if tje java icon is not already visible on your operating system tray.
+Miscellaneous -> Place Java icon in system tray if the java icon is not already visible on your operating system tray.
 
 # Example Images
 
