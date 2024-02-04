@@ -1,11 +1,6 @@
 package fi.jkauppa.javarenderengine;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.io.BufferedReader;
@@ -21,10 +16,6 @@ import java.util.Comparator;
 import javax.imageio.ImageIO;
 
 public class ModelLib {
-	private static GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
-	private static GraphicsDevice gd = ge.getDefaultScreenDevice ();
-	private static GraphicsConfiguration gc = gd.getDefaultConfiguration ();
-
 	public static class Material implements Comparable<Material> {
 		public String materialname = null;
 		public VolatileImage fileimage = null;
@@ -102,17 +93,7 @@ public class ModelLib {
 			}
 			return k;
 		}
-		public Material copy(){
-			Material k=new Material(this.facecolor,this.transparency,this.fileimage);
-			k.fileimage = null;
-			if (this.fileimage!=null) {
-				k.fileimage = gc.createCompatibleVolatileImage(this.fileimage.getWidth(),this.fileimage.getHeight(),Transparency.TRANSLUCENT);
-				Graphics2D cgfx=k.fileimage.createGraphics();
-				cgfx.drawImage(this.fileimage, 0, 0, null);
-				cgfx.dispose();
-			}
-			return k;
-		}
+		public Material copy(){return new Material(this.facecolor,this.transparency,this.fileimage);}
 	}
 
 	public static class RenderView {
