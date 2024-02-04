@@ -1290,7 +1290,7 @@ public class RenderLib {
 		return renderview;
 	}
 
-	public static void renderSurfaceFaceCubemapPlaneViewHardware(Entity[] entitylist, int rendersize, int texturesize) {
+	public static void renderSurfaceFaceCubemapPlaneViewHardware(Entity[] entitylist, int rendersize) {
 		float multiplier = 10000.0f;
 		if (entitylist!=null) {
 			for (int j=0;j<entitylist.length;j++) {
@@ -1358,7 +1358,7 @@ public class RenderLib {
 		}
 	}
 	
-	public static void renderSurfaceFaceCubemapPlaneViewSoftware(Entity[] entitylist, int rendersize, int texturesize) {
+	public static void renderSurfaceFaceCubemapPlaneViewSoftware(Entity[] entitylist, int rendersize) {
 		float multiplier = 10000.0f;
 		if (entitylist!=null) {
 			for (int j=0;j<entitylist.length;j++) {
