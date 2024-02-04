@@ -327,9 +327,11 @@ public class ModelApp extends AppHandlerPanel {
 				EntityLightMapUpdater.entitylightmapupdaterrunning = true;
 				if (ModelApp.this.unlitrender) {
 					if (ModelApp.this.polygonfillmode==1) {
-						RenderLib.renderSurfaceFaceCubemapPlaneViewHardware(ModelApp.this.entitylist, 32);
-					} else {
-						RenderLib.renderSurfaceFaceCubemapPlaneViewSoftware(ModelApp.this.entitylist, 32);
+						RenderLib.renderSurfaceFaceCubemapPlaneViewHardware(ModelApp.this.entitylist, 32, 1);
+					} else if ((ModelApp.this.polygonfillmode==2)||(ModelApp.this.polygonfillmode==3)||(ModelApp.this.polygonfillmode==4)) {
+						RenderLib.renderSurfaceFaceCubemapPlaneViewSoftware(ModelApp.this.entitylist, 32, 1);
+					} else if ((ModelApp.this.polygonfillmode==5)||(ModelApp.this.polygonfillmode==6)||(ModelApp.this.polygonfillmode==7)) {
+						RenderLib.renderSurfaceFaceCubemapRayViewSoftware(ModelApp.this.entitylist, 32, 1);
 					}
 				}
 				EntityLightMapUpdater.entitylightmapupdaterrunning = false;
