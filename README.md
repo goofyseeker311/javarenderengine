@@ -124,6 +124,11 @@ https://www.eclipse.org/downloads/packages/release/2023-09/r/eclipse-ide-java-de
 Install JAVA JDK 21 or later at, and double click on the downloaded release javarenderengine.jar to run it directly:
 https://www.oracle.com/java/technologies/downloads/#java21
 
+Alternative way of running the program is to open a console window on the javarenderengine.jar location and type command
+"java -jar javarenderengine.jar", which will also show debug output text on the console window. Otherwise console debug output
+can be activated in the Java Control Panel or Configure Java application -> Advanced -> Java console -> Show console and
+Miscellaneous -> Place Java icon ins system tray if not already visible on your operating system tray.
+
 # Example Images
 
 Draw App:
