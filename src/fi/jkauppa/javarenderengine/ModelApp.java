@@ -263,29 +263,33 @@ public class ModelApp extends AppHandlerPanel {
 	@Override public void mouseReleased(MouseEvent e) {}
 	@Override public void mouseEntered(MouseEvent e) {}
 	@Override public void mouseExited(MouseEvent e) {
-		Point windowscreenlocation = this.getLocationOnScreen();
-		int origindeltax = (int)Math.floor(((double)(this.getWidth()-1))/2.0f);
-		int origindeltay = (int)Math.floor(((double)(this.getHeight()-1))/2.0f);
-		int windowcenterx = windowscreenlocation.x + origindeltax;
-		int windowcentery = windowscreenlocation.y + origindeltay;
-		this.mouselocationx = this.lastrenderwidth/2; 
-		this.mouselocationy = this.lastrenderheight/2; 
-		try {
-			Robot mouserobot = new Robot();
-			mouserobot.mouseMove(windowcenterx, windowcentery);
-		} catch (Exception ex) {ex.printStackTrace();}
+		if (this.isFocusOwner()) {
+			Point windowscreenlocation = this.getLocationOnScreen();
+			int origindeltax = (int)Math.floor(((double)(this.getWidth()-1))/2.0f);
+			int origindeltay = (int)Math.floor(((double)(this.getHeight()-1))/2.0f);
+			int windowcenterx = windowscreenlocation.x + origindeltax;
+			int windowcentery = windowscreenlocation.y + origindeltay;
+			this.mouselocationx = this.lastrenderwidth/2; 
+			this.mouselocationy = this.lastrenderheight/2; 
+			try {
+				Robot mouserobot = new Robot();
+				mouserobot.mouseMove(windowcenterx, windowcentery);
+			} catch (Exception ex) {ex.printStackTrace();}
+		}
 	}
 	@Override public void mouseMoved(MouseEvent e) {
-		this.mouselastlocationx=this.mouselocationx;this.mouselastlocationy=this.mouselocationy;
-		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
-    	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
-    	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-		this.camrot = this.camrot.copy();
-    	this.camrot.z -= mousedeltax*0.1f;
-    	this.camrot.x -= mousedeltay*0.1f;
-    	updateCameraDirections();
-		if ((this.mouselocationx<=0)||(this.mouselocationy<=0)||(this.mouselocationx>=(this.lastrenderwidth-1))||(this.mouselocationy>=(this.lastrenderheight-1))) {
-			mouseExited(e);
+		if (this.isFocusOwner()) {
+			this.mouselastlocationx=this.mouselocationx;this.mouselastlocationy=this.mouselocationy;
+			this.mouselocationx=e.getX();this.mouselocationy=e.getY();
+	    	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
+	    	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+			this.camrot = this.camrot.copy();
+	    	this.camrot.z -= mousedeltax*0.1f;
+	    	this.camrot.x -= mousedeltay*0.1f;
+	    	updateCameraDirections();
+			if ((this.mouselocationx<=0)||(this.mouselocationy<=0)||(this.mouselocationx>=(this.lastrenderwidth-1))||(this.mouselocationy>=(this.lastrenderheight-1))) {
+				mouseExited(e);
+			}
 		}
 	}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
@@ -320,7 +324,7 @@ public class ModelApp extends AppHandlerPanel {
 			if (!EntityLightMapUpdater.entitylightmapupdaterrunning) {
 				EntityLightMapUpdater.entitylightmapupdaterrunning = true;
 				if (ModelApp.this.unlitrender) {
-					RenderLib.renderSurfaceCubemapPlaneViewSoftware(ModelApp.this.entitylist, 8, 8);
+					RenderLib.renderSurfaceCubemapPlaneViewSoftware(ModelApp.this.entitylist, 8, 16);
 				}
 				EntityLightMapUpdater.entitylightmapupdaterrunning = false;
 			}
