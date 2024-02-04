@@ -1758,4 +1758,13 @@ public class MathLib {
 		return k;
 	}
 	
+	public static Direction[] surfaceMirrorRays(Plane[] vsurf, Direction[] vdir, double refraction) {
+		Direction[]  k = null;
+		return k;
+	}
+	public static Direction[] surfaceRefractionRays(Plane[] vsurf, Direction[] vdir, double refraction) {
+		Direction[]  k = null;
+		return k;
+	}
+	
 }
