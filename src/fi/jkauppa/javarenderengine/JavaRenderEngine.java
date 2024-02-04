@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.1.12");
+		this.setTitle("Java Render Engine v2.1.13");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -71,7 +71,6 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 			this.setLocationByPlatform(true);
 		}
 		this.setFocusTraversalKeysEnabled(false);
-		this.addKeyListener(this);
 		this.setDropTarget(this.droptargethandler);
 		this.setActiveApp(drawapp);
 		this.setVisible(true);
@@ -363,6 +362,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 			this.activeapp.removeMouseListener(this);
 			this.activeapp.removeMouseMotionListener(this);
 			this.activeapp.removeMouseWheelListener(this);
+			this.activeapp.removeKeyListener(this);
 			appcanvaswidth = this.activeapp.getWidth();
 			appcanvasheight = this.activeapp.getHeight();
 		}
@@ -370,10 +370,12 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		this.activeapp.addMouseListener(this);
 		this.activeapp.addMouseMotionListener(this);
 		this.activeapp.addMouseWheelListener(this);
+		this.activeapp.addKeyListener(this);
 		this.activeapp.setPreferredSize(new Dimension(appcanvaswidth,appcanvasheight));
 		this.activeapp.setSize(appcanvaswidth,appcanvasheight);
 		this.setContentPane(this.activeapp);
 		this.pack();
+		this.activeapp.requestFocusInWindow();
 	}
 	
 	@Override public void actionPerformed(ActionEvent e) {
