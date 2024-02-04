@@ -148,23 +148,20 @@ public class RenderLib {
 	}
 
 	public static RenderView renderProjectedPolygonViewHardware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, int mouselocationx, int mouselocationy) {
-		int vertexradius = 2;
 		RenderView renderview = new RenderView();
-		renderview.mouselocationx = mouselocationx;
-		renderview.mouselocationy = mouselocationy;
+		int vertexradius = 2;
 		renderview.pos = campos.copy();
 		renderview.rot = viewrot.copy();
 		renderview.renderwidth = renderwidth;
 		renderview.renderheight = renderheight;
 		renderview.hfov = hfov;
-		renderview.vfov = vfov;
+		renderview.vfov = 2.0f*MathLib.atand((((double)renderheight)/((double)renderwidth))*MathLib.tand(renderview.hfov/2.0f));
 		renderview.unlit = unlit;
-		renderview.mouselocationx = mouselocationx; 
-		renderview.mouselocationy = mouselocationy; 
-		renderview.dirs = MathLib.projectedCameraDirections(viewrot);
+		renderview.mouselocationx = mouselocationx;
+		renderview.mouselocationy = mouselocationy;
+		renderview.dirs = MathLib.projectedCameraDirections(renderview.rot);
+		renderview.planes = MathLib.projectedPlanes(renderview.pos, renderwidth, hfov, renderview.rot); 
 		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
-		renderview.zbuffer = new double[renderheight][renderwidth];
-		for (int i=0;i<renderview.zbuffer.length;i++) {Arrays.fill(renderview.zbuffer[i],Double.POSITIVE_INFINITY);}
 		Graphics2D g2 = renderview.renderimage.createGraphics();
 		g2.setComposite(AlphaComposite.Src);
 		g2.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
@@ -173,12 +170,8 @@ public class RenderLib {
 		g2.fillRect(0, 0, renderwidth, renderheight);
 		g2.setComposite(AlphaComposite.SrcOver);
 		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
-		g2.setComposite(AlphaComposite.Src);
-		g2.setColor(Color.BLACK);
-		g2.setPaint(null);
-		g2.fillRect(0, 0, renderwidth, renderheight);
-		g2.setComposite(AlphaComposite.SrcOver);
 		if (entitylist!=null) {
+			Direction[] camray = {renderview.dirs[0]};
 			Sphere[] entityspherelist = new Sphere[entitylist.length]; 
 			for (int k=0;k<entitylist.length;k++) {
 				entityspherelist[k] = entitylist[k].sphereboundaryvolume;
@@ -191,56 +184,77 @@ public class RenderLib {
 			for (int k=sortedentityspherelist.length-1;k>=0;k--) {
 				if (sortedentityspherelistint[k]!=null) {
 					Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
-					if (copytrianglelist!=null) {
-						if (copytrianglelist.length>0) {
-							for (int i=0;i<copytrianglelist.length;i++) {copytrianglelist[i].ind = i;}
-							Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
-							for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
-							Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
-							Arrays.sort(sortedtrianglespherelist, distcomp);
-							float[] triangleshadingmultipliers = new float[copytrianglelist.length];
-							for (int i=0;i<copytrianglelist.length;i++) {
-								Direction[] trianglenormal = {copytrianglelist[i].norm};
-								double[] triangleviewangles = MathLib.vectorAngle(renderview.dirs[0], trianglenormal);
-								if (!Double.isFinite(triangleviewangles[0])) {
-									Triangle[] copyplanetriangle = {copytrianglelist[i]};
-									Plane[] triangleplanes = MathLib.planeFromPoints(copyplanetriangle);
-									Direction[] trianglenormals = MathLib.planeNormals(triangleplanes);
-									triangleviewangles = MathLib.vectorAngle(renderview.dirs[0], trianglenormals);
-									if (triangleviewangles[0]<90.0f) {triangleviewangles[0]=180.0f-triangleviewangles[0];}
-								}
-								double triangleviewangle = triangleviewangles[0];
-								triangleviewangle -= 90.0f;
-								if (triangleviewangle<0.0f) {triangleviewangle = 0.0f;}
-								triangleshadingmultipliers[i] = ((((float)triangleviewangle)/1.5f)+30.0f)/90.0f;
+					if (copytrianglelist.length>0) {
+						Direction[] trianglenormallist = new Direction[copytrianglelist.length];
+						for (int i=0;i<copytrianglelist.length;i++) {
+							trianglenormallist[i] = copytrianglelist[i].norm;
+							if (copytrianglelist[i].norm.isZero()) {
+								Triangle[] copyplanetriangle = {copytrianglelist[i]};
+								Plane[] triangleplanes = MathLib.planeFromPoints(copyplanetriangle);
+								Direction[] trianglenormal = MathLib.planeNormals(triangleplanes);
+								trianglenormallist[i] = trianglenormal[0];
 							}
-							Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangles(renderview.pos, copytrianglelist, renderwidth, hfov, renderheight, vfov, viewrot);
-							for (int j=sortedtrianglespherelist.length-1;j>=0;j--) {
-								Coordinate coord1 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][0];
-								Coordinate coord2 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][1];
-								Coordinate coord3 = copytrianglelistcoords[sortedtrianglespherelist[j].ind][2];
-								if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)) {
-									int i = sortedtrianglespherelist[j].ind;
-									Triangle copytriangle = copytrianglelist[i];
-									float shadingmultiplier = triangleshadingmultipliers[i];
-									Material copymaterial = copytriangle.mat;
-									Color tricolor = copymaterial.facecolor;
-									float alphacolor = copymaterial.transparency;
-									if (tricolor==null) {tricolor = Color.WHITE;}
-									float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
-									Color trianglecolor = new Color(tricolorcomp[0], tricolorcomp[1], tricolorcomp[2], alphacolor);
-									if (!unlit) {
-										trianglecolor = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
+						}
+						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
+						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
+						Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
+						Arrays.sort(sortedtrianglespherelist, distcomp);
+						Rectangle[] copytrianglelistint = MathLib.projectedTrianglesIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, hfov, vfov, renderview.rot);
+						Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangles(renderview.pos, copytrianglelist, renderwidth, hfov, renderheight, vfov, viewrot);
+						for (int i=sortedtrianglespherelist.length-1;i>=0;i--) {
+							int it = sortedtrianglespherelist[i].ind;
+							if (copytrianglelistint[it]!=null) {
+								Triangle[] copytriangle = {copytrianglelist[it]};
+								Material copymaterial = copytriangle[0].mat;
+								Direction copytrianglenormal = trianglenormallist[it];
+								Color trianglecolor = copymaterial.facecolor;
+								float alphacolor = copymaterial.transparency;
+								if (trianglecolor==null) {trianglecolor = Color.WHITE;}
+								float[] trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+								trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
+								trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+								Color emissivecolor = copymaterial.emissivecolor;
+								float[] emissivecolorcomp = null;
+								if (emissivecolor!=null) {emissivecolorcomp = emissivecolor.getRGBComponents(new float[4]);}
+								Color lightmapcolor = copymaterial.ambientcolor;
+								if (lightmapcolor==null) {lightmapcolor = Color.BLACK;}
+								float[] lightmapcolorcomp = lightmapcolor.getRGBComponents(new float[4]);
+								double[] triangleviewangle = MathLib.vectorAngle(copytrianglenormal, camray);
+								if ((copytriangle[0].norm.isZero())&&(triangleviewangle[0]<90.0f)) {
+									triangleviewangle[0] = 180.0f - triangleviewangle[0];
+								}
+								triangleviewangle[0] -= 90.0f;
+								if (triangleviewangle[0]<0.0f) {triangleviewangle[0] = 0.0f;}
+								float shadingmultiplier = ((((float)triangleviewangle[0])/1.5f)+30.0f)/90.0f;
+								if (!unlit) {
+									trianglecolor = new Color(trianglecolorcomp[0]*shadingmultiplier, trianglecolorcomp[1]*shadingmultiplier, trianglecolorcomp[2]*shadingmultiplier, alphacolor);
+								} else {
+									float texr = trianglecolorcomp[0]*lightmapcolorcomp[0];
+									float texg = trianglecolorcomp[1]*lightmapcolorcomp[1];
+									float texb = trianglecolorcomp[2]*lightmapcolorcomp[2];
+									if (emissivecolor!=null) {
+										texr += emissivecolorcomp[0];
+										texg += emissivecolorcomp[1];
+										texb += emissivecolorcomp[2];
 									}
-									g2.setColor(trianglecolor);
+									if (texr>1.0f) {texr=1.0f;}
+									if (texg>1.0f) {texg=1.0f;}
+									if (texb>1.0f) {texb=1.0f;}
+									trianglecolor = new Color(texr, texg, texb, alphacolor);
+								}
+								Coordinate coord1 = copytrianglelistcoords[it][0];
+								Coordinate coord2 = copytrianglelistcoords[it][1];
+								Coordinate coord3 = copytrianglelistcoords[it][2];
+								if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)) {
 									Polygon trianglepolygon = new Polygon();
 									trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
 									trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
 									trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
+									g2.setColor(trianglecolor);
 									g2.fill(trianglepolygon);
 									boolean mouseoverhit = g2.hit(new Rectangle(mouselocationx-vertexradius,mouselocationy-vertexradius,3,3), trianglepolygon, false);
 									if (mouseoverhit) {
-										mouseoverhittriangle.add(copytrianglelist[i]);
+										mouseoverhittriangle.add(copytrianglelist[it]);
 									}
 								}
 							}
@@ -250,6 +264,65 @@ public class RenderLib {
 			}
 		}
 		renderview.mouseovertriangle = mouseoverhittriangle.toArray(new Triangle[mouseoverhittriangle.size()]);
+		renderview.snapimage = renderview.renderimage.getSnapshot();
+		return renderview;
+	}
+
+	public static RenderView renderCubemapPolygonViewHardware(Position campos, Entity[] entitylist, int renderwidth, int renderheight, int rendersize, Matrix viewrot, boolean unlit, int mouselocationx, int mouselocationy) {
+		RenderView renderview = new RenderView();
+		renderview.pos = campos.copy();
+		renderview.rot = viewrot.copy();
+		renderview.renderwidth = renderwidth;
+		renderview.renderheight = renderheight;
+		renderview.rendersize = rendersize;
+		renderview.hfov = 90.0f;
+		renderview.vfov = 90.0f;
+		renderview.unlit = unlit;
+		renderview.mouselocationx = mouselocationx;
+		renderview.mouselocationy = mouselocationy;
+		int renderposx1start = 0;
+		int renderposx1end = rendersize-1;
+		int renderposx2start = rendersize;
+		int renderposx2end = 2*rendersize-1;
+		int renderposx3start = 2*rendersize;
+		int renderposx3end = 3*rendersize-1;
+		int renderposy1start = 0;
+		int renderposy1end = rendersize-1;
+		int renderposy2start = rendersize;
+		int renderposy2end = 2*rendersize-1;
+		Matrix topmatrix = MathLib.rotationMatrix(-180.0f, 0.0f, 0.0f);
+		Matrix bottommatrix = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
+		Matrix forwardmatrix = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
+		Matrix rightmatrix = MathLib.matrixMultiply(MathLib.rotationMatrix(0.0f, 0.0f, 90.0f), forwardmatrix);
+		Matrix backwardmatrix = MathLib.matrixMultiply(MathLib.rotationMatrix(0.0f, 0.0f, 180.0f), forwardmatrix);
+		Matrix leftmatrix = MathLib.matrixMultiply(MathLib.rotationMatrix(0.0f, 0.0f, 270.0f), forwardmatrix);
+		topmatrix = MathLib.matrixMultiply(renderview.rot, topmatrix);
+		bottommatrix = MathLib.matrixMultiply(renderview.rot, bottommatrix);
+		forwardmatrix = MathLib.matrixMultiply(renderview.rot, forwardmatrix);
+		rightmatrix = MathLib.matrixMultiply(renderview.rot, rightmatrix);
+		backwardmatrix = MathLib.matrixMultiply(renderview.rot, backwardmatrix);
+		leftmatrix = MathLib.matrixMultiply(renderview.rot, leftmatrix);
+		renderview.cubemap = new Cubemap();
+		renderview.cubemap.topview = renderProjectedPolygonViewHardware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, topmatrix, renderview.unlit, mouselocationx, mouselocationy);
+		renderview.cubemap.bottomview = renderProjectedPolygonViewHardware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, bottommatrix, renderview.unlit, mouselocationx, mouselocationy); 
+		renderview.cubemap.forwardview = renderProjectedPolygonViewHardware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, forwardmatrix, renderview.unlit, mouselocationx, mouselocationy);
+		renderview.cubemap.rightview = renderProjectedPolygonViewHardware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, rightmatrix, renderview.unlit, mouselocationx, mouselocationy);
+		renderview.cubemap.backwardview = renderProjectedPolygonViewHardware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, backwardmatrix, renderview.unlit, mouselocationx, mouselocationy);
+		renderview.cubemap.leftview = renderProjectedPolygonViewHardware(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, leftmatrix, renderview.unlit, mouselocationx, mouselocationy);
+		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
+		Graphics2D rigfx = renderview.renderimage.createGraphics();
+		rigfx.setComposite(AlphaComposite.Src);
+		rigfx.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
+		rigfx.setPaint(null);
+		rigfx.setClip(null);
+		rigfx.fillRect(0, 0, renderwidth, renderheight);
+		rigfx.drawImage(renderview.cubemap.forwardview.renderimage, renderposx1start, renderposy1start, renderposx1end, renderposy1end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
+		rigfx.drawImage(renderview.cubemap.backwardview.renderimage, renderposx2start, renderposy1start, renderposx2end, renderposy1end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
+		rigfx.drawImage(renderview.cubemap.topview.renderimage, renderposx3start, renderposy1start, renderposx3end, renderposy1end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
+		rigfx.drawImage(renderview.cubemap.leftview.renderimage, renderposx1start, renderposy2start, renderposx1end, renderposy2end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
+		rigfx.drawImage(renderview.cubemap.bottomview.renderimage, renderposx2start, renderposy2start, renderposx2end, renderposy2end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
+		rigfx.drawImage(renderview.cubemap.rightview.renderimage, renderposx3start, renderposy2start, renderposx3end, renderposy2end, 0, 0, renderview.rendersize-1, renderview.rendersize-1, null);
+		rigfx.dispose();
 		renderview.snapimage = renderview.renderimage.getSnapshot();
 		return renderview;
 	}
@@ -347,7 +420,8 @@ public class RenderLib {
 									copymaterial.emissivesnapimage = copymaterial.emissivefileimage.getSnapshot();
 									emissivetextureimage = copymaterial.emissivesnapimage;
 								}
-								Color lightmapcolor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+								Color lightmapcolor = copymaterial.ambientcolor;
+								if (lightmapcolor==null) {lightmapcolor = Color.BLACK;}
 								float[] lightmapcolorcomp = lightmapcolor.getRGBComponents(new float[4]);
 								VolatileImage lightmaptexture = copymaterial.ambientfileimage;
 								BufferedImage lightmaptextureimage = copymaterial.ambientsnapimage;
@@ -586,7 +660,8 @@ public class RenderLib {
 									copymaterial.emissivesnapimage = copymaterial.emissivefileimage.getSnapshot();
 									emissivetextureimage = copymaterial.emissivesnapimage;
 								}
-								Color lightmapcolor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+								Color lightmapcolor = copymaterial.ambientcolor;
+								if (lightmapcolor==null) {lightmapcolor = Color.BLACK;}
 								float[] lightmapcolorcomp = lightmapcolor.getRGBComponents(new float[4]);
 								VolatileImage lightmaptexture = copymaterial.ambientfileimage;
 								BufferedImage lightmaptextureimage = copymaterial.ambientsnapimage;
@@ -875,7 +950,8 @@ public class RenderLib {
 									copymaterial.emissivesnapimage = copymaterial.emissivefileimage.getSnapshot();
 									emissivetextureimage = copymaterial.emissivesnapimage;
 								}
-								Color lightmapcolor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+								Color lightmapcolor = copymaterial.ambientcolor;
+								if (lightmapcolor==null) {lightmapcolor = Color.BLACK;}
 								float[] lightmapcolorcomp = lightmapcolor.getRGBComponents(new float[4]);
 								VolatileImage lightmaptexture = copymaterial.ambientfileimage;
 								BufferedImage lightmaptextureimage = copymaterial.ambientsnapimage;
@@ -1056,7 +1132,8 @@ public class RenderLib {
 									copymaterial.emissivesnapimage = copymaterial.emissivefileimage.getSnapshot();
 									emissivetextureimage = copymaterial.emissivesnapimage;
 								}
-								Color lightmapcolor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+								Color lightmapcolor = copymaterial.ambientcolor;
+								if (lightmapcolor==null) {lightmapcolor = Color.BLACK;}
 								float[] lightmapcolorcomp = lightmapcolor.getRGBComponents(new float[4]);
 								VolatileImage lightmaptexture = copymaterial.ambientfileimage;
 								BufferedImage lightmaptextureimage = copymaterial.ambientsnapimage;
@@ -1212,59 +1289,185 @@ public class RenderLib {
 		renderview.snapimage = renderview.renderimage.getSnapshot();
 		return renderview;
 	}
-	
-	public static void renderSurfaceCubemapPlaneViewSoftware(Entity[] entitylist, int rendersize, int texturesize) {
-		float multiplier = 1000.0f;
+
+	public static void renderSurfaceFaceCubemapPlaneViewHardware(Entity[] entitylist, int rendersize, int texturesize) {
+		float multiplier = 10000.0f;
 		if (entitylist!=null) {
 			for (int j=0;j<entitylist.length;j++) {
 				if (entitylist[j]!=null) {
-					Sphere[] entitysphere = {entitylist[j].sphereboundaryvolume};
-					Position[] entityspherepoint = MathLib.sphereVertexList(entitysphere);
-					Entity[] otherentities = new Entity[entitylist.length-1];
-					int i2 = 0;
-					for (int i=0;i<entitylist.length;i++) {
-						if (i!=j) {
-							otherentities[i2] = entitylist[i];
-							i2+=1;
-						}
-					}
-					RenderView p4pixelview = renderCubemapPlaneViewSoftware(entityspherepoint[0], otherentities, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
-					BufferedImage[] cubemapimages = new BufferedImage[6];
-					cubemapimages[0] = p4pixelview.cubemap.backwardview.snapimage;
-					cubemapimages[1] = p4pixelview.cubemap.bottomview.snapimage;
-					cubemapimages[2] = p4pixelview.cubemap.forwardview.snapimage;
-					cubemapimages[3] = p4pixelview.cubemap.leftview.snapimage;
-					cubemapimages[4] = p4pixelview.cubemap.rightview.snapimage;
-					cubemapimages[5] = p4pixelview.cubemap.topview.snapimage;
-					float p4pixelr = 0.0f;
-					float p4pixelg = 0.0f;
-					float p4pixelb = 0.0f;
-					for (int k=0;k<cubemapimages.length;k++) {
-						for (int ky=0;ky<cubemapimages[k].getHeight();ky++) {
-							for (int kx=0;kx<cubemapimages[k].getWidth();kx++) {
-								Color p4pixelcolor = new Color(cubemapimages[k].getRGB(kx, ky));
-								float[] p4pixelcolorcomp = p4pixelcolor.getRGBComponents(new float[4]);
-								p4pixelr += p4pixelcolorcomp[0];
-								p4pixelg += p4pixelcolorcomp[1];
-								p4pixelb += p4pixelcolorcomp[2];
+					if (entitylist[j].trianglelist!=null) {
+						Sphere[] trianglespherelist = MathLib.triangleCircumSphere(entitylist[j].trianglelist);
+						for (int i=0;i<entitylist[j].trianglelist.length;i++) {
+							if (entitylist[j].trianglelist[i]!=null) {
+								Sphere[] trianglesphere = {trianglespherelist[i]};
+								Position[] trianglespherepoint = MathLib.sphereVertexList(trianglesphere);
+								RenderView p4pixelview = renderCubemapPolygonViewHardware(trianglespherepoint[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
+								BufferedImage[] cubemapimages = new BufferedImage[6];
+								cubemapimages[0] = p4pixelview.cubemap.backwardview.snapimage;
+								cubemapimages[1] = p4pixelview.cubemap.bottomview.snapimage;
+								cubemapimages[2] = p4pixelview.cubemap.forwardview.snapimage;
+								cubemapimages[3] = p4pixelview.cubemap.leftview.snapimage;
+								cubemapimages[4] = p4pixelview.cubemap.rightview.snapimage;
+								cubemapimages[5] = p4pixelview.cubemap.topview.snapimage;
+								float p4pixelr = 0.0f;
+								float p4pixelg = 0.0f;
+								float p4pixelb = 0.0f;
+								for (int k=0;k<cubemapimages.length;k++) {
+									for (int ky=0;ky<cubemapimages[k].getHeight();ky++) {
+										for (int kx=0;kx<cubemapimages[k].getWidth();kx++) {
+											Color p4pixelcolor = new Color(cubemapimages[k].getRGB(kx, ky));
+											float[] p4pixelcolorcomp = p4pixelcolor.getRGBComponents(new float[4]);
+											p4pixelr += p4pixelcolorcomp[0];
+											p4pixelg += p4pixelcolorcomp[1];
+											p4pixelb += p4pixelcolorcomp[2];
+										}
+									}
+								}
+								float pixelcount = 6*rendersize*rendersize;
+								float p4pixelrt = multiplier*p4pixelr/pixelcount;
+								float p4pixelgt = multiplier*p4pixelg/pixelcount;
+								float p4pixelbt = multiplier*p4pixelb/pixelcount;
+								if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
+								if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
+								if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
+								Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
+								System.out.println("entitylist["+j+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
+								Material[] newlmatl = {new Material(p4pixelcolor, 1.0f, null)};
+								entitylist[j].trianglelist[i].lmatl = newlmatl;
 							}
 						}
 					}
-					float pixelcount = 6*rendersize*rendersize;
-					float p4pixelrt = multiplier*p4pixelr/pixelcount;
-					float p4pixelgt = multiplier*p4pixelg/pixelcount;
-					float p4pixelbt = multiplier*p4pixelb/pixelcount;
-					if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
-					if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
-					if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
-					if (p4pixelrt<0.1f) {p4pixelrt=0.1f;}
-					if (p4pixelgt<0.1f) {p4pixelgt=0.1f;}
-					if (p4pixelbt<0.1f) {p4pixelbt=0.1f;}
-					Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
-					System.out.println("entitylist["+j+"]="+entityspherepoint[0].x+","+entityspherepoint[0].y+","+entityspherepoint[0].z);
+				}
+			}
+		}
+		if (entitylist!=null) {
+			for (int j=0;j<entitylist.length;j++) {
+				if (entitylist[j]!=null) {
 					if (entitylist[j].trianglelist!=null) {
 						for (int i=0;i<entitylist[j].trianglelist.length;i++) {
 							if (entitylist[j].trianglelist[i]!=null) {
+								if ((entitylist[j].trianglelist[i].mat!=null)&&(entitylist[j].trianglelist[i].lmatl!=null)) {
+									entitylist[j].trianglelist[i].mat = entitylist[j].trianglelist[i].mat.copy();
+									entitylist[j].trianglelist[i].mat.ambientcolor = entitylist[j].trianglelist[i].lmatl[0].facecolor;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	public static void renderSurfaceFaceCubemapPlaneViewSoftware(Entity[] entitylist, int rendersize, int texturesize) {
+		float multiplier = 10000.0f;
+		if (entitylist!=null) {
+			for (int j=0;j<entitylist.length;j++) {
+				if (entitylist[j]!=null) {
+					if (entitylist[j].trianglelist!=null) {
+						Sphere[] trianglespherelist = MathLib.triangleCircumSphere(entitylist[j].trianglelist);
+						for (int i=0;i<entitylist[j].trianglelist.length;i++) {
+							if (entitylist[j].trianglelist[i]!=null) {
+								Sphere[] trianglesphere = {trianglespherelist[i]};
+								Position[] trianglespherepoint = MathLib.sphereVertexList(trianglesphere);
+								RenderView p4pixelview = renderCubemapPlaneViewSoftware(trianglespherepoint[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
+								BufferedImage[] cubemapimages = new BufferedImage[6];
+								cubemapimages[0] = p4pixelview.cubemap.backwardview.snapimage;
+								cubemapimages[1] = p4pixelview.cubemap.bottomview.snapimage;
+								cubemapimages[2] = p4pixelview.cubemap.forwardview.snapimage;
+								cubemapimages[3] = p4pixelview.cubemap.leftview.snapimage;
+								cubemapimages[4] = p4pixelview.cubemap.rightview.snapimage;
+								cubemapimages[5] = p4pixelview.cubemap.topview.snapimage;
+								float p4pixelr = 0.0f;
+								float p4pixelg = 0.0f;
+								float p4pixelb = 0.0f;
+								for (int k=0;k<cubemapimages.length;k++) {
+									for (int ky=0;ky<cubemapimages[k].getHeight();ky++) {
+										for (int kx=0;kx<cubemapimages[k].getWidth();kx++) {
+											Color p4pixelcolor = new Color(cubemapimages[k].getRGB(kx, ky));
+											float[] p4pixelcolorcomp = p4pixelcolor.getRGBComponents(new float[4]);
+											p4pixelr += p4pixelcolorcomp[0];
+											p4pixelg += p4pixelcolorcomp[1];
+											p4pixelb += p4pixelcolorcomp[2];
+										}
+									}
+								}
+								float pixelcount = 6*rendersize*rendersize;
+								float p4pixelrt = multiplier*p4pixelr/pixelcount;
+								float p4pixelgt = multiplier*p4pixelg/pixelcount;
+								float p4pixelbt = multiplier*p4pixelb/pixelcount;
+								if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
+								if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
+								if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
+								Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
+								System.out.println("entitylist["+j+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
+								Material[] newlmatl = {new Material(p4pixelcolor, 1.0f, null)};
+								entitylist[j].trianglelist[i].lmatl = newlmatl;
+							}
+						}
+					}
+				}
+			}
+		}
+		if (entitylist!=null) {
+			for (int j=0;j<entitylist.length;j++) {
+				if (entitylist[j]!=null) {
+					if (entitylist[j].trianglelist!=null) {
+						for (int i=0;i<entitylist[j].trianglelist.length;i++) {
+							if (entitylist[j].trianglelist[i]!=null) {
+								if ((entitylist[j].trianglelist[i].mat!=null)&&(entitylist[j].trianglelist[i].lmatl!=null)) {
+									entitylist[j].trianglelist[i].mat = entitylist[j].trianglelist[i].mat.copy();
+									entitylist[j].trianglelist[i].mat.ambientcolor = entitylist[j].trianglelist[i].lmatl[0].facecolor;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	public static void renderSurfacePixelCubemapPlaneViewSoftware(Entity[] entitylist, int rendersize, int texturesize) {
+		float multiplier = 10000.0f;
+		if (entitylist!=null) {
+			for (int j=0;j<entitylist.length;j++) {
+				if (entitylist[j]!=null) {
+					if (entitylist[j].trianglelist!=null) {
+						Sphere[] trianglespherelist = MathLib.triangleCircumSphere(entitylist[j].trianglelist);
+						for (int i=0;i<entitylist[j].trianglelist.length;i++) {
+							if (entitylist[j].trianglelist[i]!=null) {
+								Sphere[] trianglesphere = {trianglespherelist[i]};
+								Position[] trianglespherepoint = MathLib.sphereVertexList(trianglesphere);
+								RenderView p4pixelview = renderCubemapPlaneViewSoftware(trianglespherepoint[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
+								BufferedImage[] cubemapimages = new BufferedImage[6];
+								cubemapimages[0] = p4pixelview.cubemap.backwardview.snapimage;
+								cubemapimages[1] = p4pixelview.cubemap.bottomview.snapimage;
+								cubemapimages[2] = p4pixelview.cubemap.forwardview.snapimage;
+								cubemapimages[3] = p4pixelview.cubemap.leftview.snapimage;
+								cubemapimages[4] = p4pixelview.cubemap.rightview.snapimage;
+								cubemapimages[5] = p4pixelview.cubemap.topview.snapimage;
+								float p4pixelr = 0.0f;
+								float p4pixelg = 0.0f;
+								float p4pixelb = 0.0f;
+								for (int k=0;k<cubemapimages.length;k++) {
+									for (int ky=0;ky<cubemapimages[k].getHeight();ky++) {
+										for (int kx=0;kx<cubemapimages[k].getWidth();kx++) {
+											Color p4pixelcolor = new Color(cubemapimages[k].getRGB(kx, ky));
+											float[] p4pixelcolorcomp = p4pixelcolor.getRGBComponents(new float[4]);
+											p4pixelr += p4pixelcolorcomp[0];
+											p4pixelg += p4pixelcolorcomp[1];
+											p4pixelb += p4pixelcolorcomp[2];
+										}
+									}
+								}
+								float pixelcount = 6*rendersize*rendersize;
+								float p4pixelrt = multiplier*p4pixelr/pixelcount;
+								float p4pixelgt = multiplier*p4pixelg/pixelcount;
+								float p4pixelbt = multiplier*p4pixelb/pixelcount;
+								if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
+								if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
+								if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
+								Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
+								System.out.println("entitylist["+j+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
 								VolatileImage lightmaptexture = gc.createCompatibleVolatileImage(texturesize, texturesize, Transparency.TRANSLUCENT);
 								Graphics2D lmgfx = lightmaptexture.createGraphics();
 								lmgfx.setComposite(AlphaComposite.Src);
@@ -1301,5 +1504,5 @@ public class RenderLib {
 			}
 		}
 	}
-
+	
 }
