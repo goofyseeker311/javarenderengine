@@ -1350,8 +1350,13 @@ public class RenderLib {
 		return renderview;
 	}
 
-	public static void renderSurfaceFaceCubemapPlaneViewHardware(Entity[] entitylist, int rendersize) {
+	public static void renderSurfaceFaceCubemapPlaneViewHardware(Entity[] entitylist, int rendersize, int bounces) {
 		float multiplier = 10000.0f;
+		Direction[][] cubemaprays = MathLib.projectedRays(rendersize, rendersize, 90.0f, 90.0f, MathLib.rotationMatrix(0.0f, 0.0f, 0.0f));
+		double[][] cubemapraylen = new double[rendersize][rendersize];
+		for (int i=0;i<cubemaprays.length;i++) {
+			cubemapraylen[i] = MathLib.vectorLength(cubemaprays[i]);
+		}
 		if (entitylist!=null) {
 			for (int j=0;j<entitylist.length;j++) {
 				if (entitylist[j]!=null) {
@@ -1362,24 +1367,24 @@ public class RenderLib {
 								Sphere[] trianglesphere = {trianglespherelist[i]};
 								Position[] trianglespherepoint = MathLib.sphereVertexList(trianglesphere);
 								RenderView p4pixelview = renderCubemapPolygonViewHardware(trianglespherepoint[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
-								BufferedImage[] cubemapimages = new BufferedImage[6];
-								cubemapimages[0] = p4pixelview.cubemap.backwardview.snapimage;
-								cubemapimages[1] = p4pixelview.cubemap.bottomview.snapimage;
-								cubemapimages[2] = p4pixelview.cubemap.forwardview.snapimage;
-								cubemapimages[3] = p4pixelview.cubemap.leftview.snapimage;
-								cubemapimages[4] = p4pixelview.cubemap.rightview.snapimage;
-								cubemapimages[5] = p4pixelview.cubemap.topview.snapimage;
+								RenderView[] cubemapviews = new RenderView[6];
+								cubemapviews[0] = p4pixelview.cubemap.backwardview;
+								cubemapviews[1] = p4pixelview.cubemap.bottomview;
+								cubemapviews[2] = p4pixelview.cubemap.forwardview;
+								cubemapviews[3] = p4pixelview.cubemap.leftview;
+								cubemapviews[4] = p4pixelview.cubemap.rightview;
+								cubemapviews[5] = p4pixelview.cubemap.topview;
 								float p4pixelr = 0.0f;
 								float p4pixelg = 0.0f;
 								float p4pixelb = 0.0f;
-								for (int k=0;k<cubemapimages.length;k++) {
-									for (int ky=0;ky<cubemapimages[k].getHeight();ky++) {
-										for (int kx=0;kx<cubemapimages[k].getWidth();kx++) {
-											Color p4pixelcolor = new Color(cubemapimages[k].getRGB(kx, ky));
+								for (int k=0;k<cubemapviews.length;k++) {
+									for (int ky=0;ky<cubemapviews[k].snapimage.getHeight();ky++) {
+										for (int kx=0;kx<cubemapviews[k].snapimage.getWidth();kx++) {
+											Color p4pixelcolor = new Color(cubemapviews[k].snapimage.getRGB(kx, ky));
 											float[] p4pixelcolorcomp = p4pixelcolor.getRGBComponents(new float[4]);
-											p4pixelr += p4pixelcolorcomp[0];
-											p4pixelg += p4pixelcolorcomp[1];
-											p4pixelb += p4pixelcolorcomp[2];
+											p4pixelr += p4pixelcolorcomp[0]/cubemapraylen[ky][kx];
+											p4pixelg += p4pixelcolorcomp[1]/cubemapraylen[ky][kx];
+											p4pixelb += p4pixelcolorcomp[2]/cubemapraylen[ky][kx];
 										}
 									}
 								}
@@ -1418,8 +1423,13 @@ public class RenderLib {
 		}
 	}
 	
-	public static void renderSurfaceFaceCubemapPlaneViewSoftware(Entity[] entitylist, int rendersize) {
+	public static void renderSurfaceFaceCubemapPlaneViewSoftware(Entity[] entitylist, int rendersize, int bounces) {
 		float multiplier = 10000.0f;
+		Direction[][] cubemaprays = MathLib.projectedRays(rendersize, rendersize, 90.0f, 90.0f, MathLib.rotationMatrix(0.0f, 0.0f, 0.0f));
+		double[][] cubemapraylen = new double[rendersize][rendersize];
+		for (int i=0;i<cubemaprays.length;i++) {
+			cubemapraylen[i] = MathLib.vectorLength(cubemaprays[i]);
+		}
 		if (entitylist!=null) {
 			for (int j=0;j<entitylist.length;j++) {
 				if (entitylist[j]!=null) {
@@ -1430,24 +1440,24 @@ public class RenderLib {
 								Sphere[] trianglesphere = {trianglespherelist[i]};
 								Position[] trianglespherepoint = MathLib.sphereVertexList(trianglesphere);
 								RenderView p4pixelview = renderCubemapPlaneViewSoftware(trianglespherepoint[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
-								BufferedImage[] cubemapimages = new BufferedImage[6];
-								cubemapimages[0] = p4pixelview.cubemap.backwardview.snapimage;
-								cubemapimages[1] = p4pixelview.cubemap.bottomview.snapimage;
-								cubemapimages[2] = p4pixelview.cubemap.forwardview.snapimage;
-								cubemapimages[3] = p4pixelview.cubemap.leftview.snapimage;
-								cubemapimages[4] = p4pixelview.cubemap.rightview.snapimage;
-								cubemapimages[5] = p4pixelview.cubemap.topview.snapimage;
+								RenderView[] cubemapviews = new RenderView[6];
+								cubemapviews[0] = p4pixelview.cubemap.backwardview;
+								cubemapviews[1] = p4pixelview.cubemap.bottomview;
+								cubemapviews[2] = p4pixelview.cubemap.forwardview;
+								cubemapviews[3] = p4pixelview.cubemap.leftview;
+								cubemapviews[4] = p4pixelview.cubemap.rightview;
+								cubemapviews[5] = p4pixelview.cubemap.topview;
 								float p4pixelr = 0.0f;
 								float p4pixelg = 0.0f;
 								float p4pixelb = 0.0f;
-								for (int k=0;k<cubemapimages.length;k++) {
-									for (int ky=0;ky<cubemapimages[k].getHeight();ky++) {
-										for (int kx=0;kx<cubemapimages[k].getWidth();kx++) {
-											Color p4pixelcolor = new Color(cubemapimages[k].getRGB(kx, ky));
+								for (int k=0;k<cubemapviews.length;k++) {
+									for (int ky=0;ky<cubemapviews[k].snapimage.getHeight();ky++) {
+										for (int kx=0;kx<cubemapviews[k].snapimage.getWidth();kx++) {
+											Color p4pixelcolor = new Color(cubemapviews[k].snapimage.getRGB(kx, ky));
 											float[] p4pixelcolorcomp = p4pixelcolor.getRGBComponents(new float[4]);
-											p4pixelr += p4pixelcolorcomp[0];
-											p4pixelg += p4pixelcolorcomp[1];
-											p4pixelb += p4pixelcolorcomp[2];
+											p4pixelr += p4pixelcolorcomp[0]/cubemapraylen[ky][kx];
+											p4pixelg += p4pixelcolorcomp[1]/cubemapraylen[ky][kx];
+											p4pixelb += p4pixelcolorcomp[2]/cubemapraylen[ky][kx];
 										}
 									}
 								}
@@ -1486,9 +1496,87 @@ public class RenderLib {
 		}
 	}
 
-	public static void renderSurfacePixelCubemapPlaneViewSoftware(Entity[] entitylist, int rendersize, int texturesize) {
+	public static void renderSurfaceFaceCubemapRayViewSoftware(Entity[] entitylist, int rendersize, int bounces) {
+		float multiplier = 10000.0f;
+		Direction[][] cubemaprays = MathLib.projectedRays(rendersize, rendersize, 90.0f, 90.0f, MathLib.rotationMatrix(0.0f, 0.0f, 0.0f));
+		double[][] cubemapraylen = new double[rendersize][rendersize];
+		for (int i=0;i<cubemaprays.length;i++) {
+			cubemapraylen[i] = MathLib.vectorLength(cubemaprays[i]);
+		}
+		if (entitylist!=null) {
+			for (int j=0;j<entitylist.length;j++) {
+				if (entitylist[j]!=null) {
+					if (entitylist[j].trianglelist!=null) {
+						Sphere[] trianglespherelist = MathLib.triangleCircumSphere(entitylist[j].trianglelist);
+						for (int i=0;i<entitylist[j].trianglelist.length;i++) {
+							if (entitylist[j].trianglelist[i]!=null) {
+								Sphere[] trianglesphere = {trianglespherelist[i]};
+								Position[] trianglespherepoint = MathLib.sphereVertexList(trianglesphere);
+								RenderView p4pixelview = renderCubemapRayViewSoftware(trianglespherepoint[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
+								RenderView[] cubemapviews = new RenderView[6];
+								cubemapviews[0] = p4pixelview.cubemap.backwardview;
+								cubemapviews[1] = p4pixelview.cubemap.bottomview;
+								cubemapviews[2] = p4pixelview.cubemap.forwardview;
+								cubemapviews[3] = p4pixelview.cubemap.leftview;
+								cubemapviews[4] = p4pixelview.cubemap.rightview;
+								cubemapviews[5] = p4pixelview.cubemap.topview;
+								float p4pixelr = 0.0f;
+								float p4pixelg = 0.0f;
+								float p4pixelb = 0.0f;
+								for (int k=0;k<cubemapviews.length;k++) {
+									for (int ky=0;ky<cubemapviews[k].snapimage.getHeight();ky++) {
+										for (int kx=0;kx<cubemapviews[k].snapimage.getWidth();kx++) {
+											Color p4pixelcolor = new Color(cubemapviews[k].snapimage.getRGB(kx, ky));
+											float[] p4pixelcolorcomp = p4pixelcolor.getRGBComponents(new float[4]);
+											p4pixelr += p4pixelcolorcomp[0]/cubemapraylen[ky][kx];
+											p4pixelg += p4pixelcolorcomp[1]/cubemapraylen[ky][kx];
+											p4pixelb += p4pixelcolorcomp[2]/cubemapraylen[ky][kx];
+										}
+									}
+								}
+								float pixelcount = 6*rendersize*rendersize;
+								float p4pixelrt = multiplier*p4pixelr/pixelcount;
+								float p4pixelgt = multiplier*p4pixelg/pixelcount;
+								float p4pixelbt = multiplier*p4pixelb/pixelcount;
+								if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
+								if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
+								if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
+								Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
+								System.out.println("entitylist["+j+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
+								Material[] newlmatl = {new Material(p4pixelcolor, 1.0f, null)};
+								entitylist[j].trianglelist[i].lmatl = newlmatl;
+							}
+						}
+					}
+				}
+			}
+		}
+		if (entitylist!=null) {
+			for (int j=0;j<entitylist.length;j++) {
+				if (entitylist[j]!=null) {
+					if (entitylist[j].trianglelist!=null) {
+						for (int i=0;i<entitylist[j].trianglelist.length;i++) {
+							if (entitylist[j].trianglelist[i]!=null) {
+								if ((entitylist[j].trianglelist[i].mat!=null)&&(entitylist[j].trianglelist[i].lmatl!=null)) {
+									entitylist[j].trianglelist[i].mat = entitylist[j].trianglelist[i].mat.copy();
+									entitylist[j].trianglelist[i].mat.ambientcolor = entitylist[j].trianglelist[i].lmatl[0].facecolor;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	public static void renderSurfacePixelCubemapPlaneViewSoftware(Entity[] entitylist, int rendersize, int texturesize, int bounces) {
 		//TODO pixel lightmap texture output
 		float multiplier = 10000.0f;
+		Direction[][] cubemaprays = MathLib.projectedRays(rendersize, rendersize, 90.0f, 90.0f, MathLib.rotationMatrix(0.0f, 0.0f, 0.0f));
+		double[][] cubemapraylen = new double[rendersize][rendersize];
+		for (int i=0;i<cubemaprays.length;i++) {
+			cubemapraylen[i] = MathLib.vectorLength(cubemaprays[i]);
+		}
 		if (entitylist!=null) {
 			for (int j=0;j<entitylist.length;j++) {
 				if (entitylist[j]!=null) {
@@ -1499,24 +1587,24 @@ public class RenderLib {
 								Sphere[] trianglesphere = {trianglespherelist[i]};
 								Position[] trianglespherepoint = MathLib.sphereVertexList(trianglesphere);
 								RenderView p4pixelview = renderCubemapPlaneViewSoftware(trianglespherepoint[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
-								BufferedImage[] cubemapimages = new BufferedImage[6];
-								cubemapimages[0] = p4pixelview.cubemap.backwardview.snapimage;
-								cubemapimages[1] = p4pixelview.cubemap.bottomview.snapimage;
-								cubemapimages[2] = p4pixelview.cubemap.forwardview.snapimage;
-								cubemapimages[3] = p4pixelview.cubemap.leftview.snapimage;
-								cubemapimages[4] = p4pixelview.cubemap.rightview.snapimage;
-								cubemapimages[5] = p4pixelview.cubemap.topview.snapimage;
+								RenderView[] cubemapviews = new RenderView[6];
+								cubemapviews[0] = p4pixelview.cubemap.backwardview;
+								cubemapviews[1] = p4pixelview.cubemap.bottomview;
+								cubemapviews[2] = p4pixelview.cubemap.forwardview;
+								cubemapviews[3] = p4pixelview.cubemap.leftview;
+								cubemapviews[4] = p4pixelview.cubemap.rightview;
+								cubemapviews[5] = p4pixelview.cubemap.topview;
 								float p4pixelr = 0.0f;
 								float p4pixelg = 0.0f;
 								float p4pixelb = 0.0f;
-								for (int k=0;k<cubemapimages.length;k++) {
-									for (int ky=0;ky<cubemapimages[k].getHeight();ky++) {
-										for (int kx=0;kx<cubemapimages[k].getWidth();kx++) {
-											Color p4pixelcolor = new Color(cubemapimages[k].getRGB(kx, ky));
+								for (int k=0;k<cubemapviews.length;k++) {
+									for (int ky=0;ky<cubemapviews[k].snapimage.getHeight();ky++) {
+										for (int kx=0;kx<cubemapviews[k].snapimage.getWidth();kx++) {
+											Color p4pixelcolor = new Color(cubemapviews[k].snapimage.getRGB(kx, ky));
 											float[] p4pixelcolorcomp = p4pixelcolor.getRGBComponents(new float[4]);
-											p4pixelr += p4pixelcolorcomp[0];
-											p4pixelg += p4pixelcolorcomp[1];
-											p4pixelb += p4pixelcolorcomp[2];
+											p4pixelr += p4pixelcolorcomp[0]/cubemapraylen[ky][kx];
+											p4pixelg += p4pixelcolorcomp[1]/cubemapraylen[ky][kx];
+											p4pixelb += p4pixelcolorcomp[2]/cubemapraylen[ky][kx];
 										}
 									}
 								}
