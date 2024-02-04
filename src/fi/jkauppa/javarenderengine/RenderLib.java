@@ -326,24 +326,28 @@ public class RenderLib {
 								Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(renderviewplanes, copytriangle);
 								Material copymaterial = copytriangle[0].mat;
 								Direction copytrianglenormal = trianglenormallist[it];
-								Color tricolor = copymaterial.facecolor;
+								Color trianglecolor = copymaterial.facecolor;
 								float alphacolor = copymaterial.transparency;
-								if (tricolor==null) {tricolor = Color.WHITE;}
-								float[] tricolorcomp = tricolor.getRGBComponents(new float[4]);
-								Color trianglecolor = new Color(tricolorcomp[0], tricolorcomp[1], tricolorcomp[2], alphacolor);
-								VolatileImage tritexture = copymaterial.fileimage;
-								BufferedImage tritextureimage = copymaterial.snapimage;
-								if ((tritexture!=null)&&(tritextureimage==null)) {
+								if (trianglecolor==null) {trianglecolor = Color.WHITE;}
+								float[] trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+								trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
+								trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+								VolatileImage triangletexture = copymaterial.fileimage;
+								BufferedImage triangletextureimage = copymaterial.snapimage;
+								if ((triangletexture!=null)&&(triangletextureimage==null)) {
 									copymaterial.snapimage = copymaterial.fileimage.getSnapshot();
-									tritextureimage = copymaterial.snapimage;
+									triangletextureimage = copymaterial.snapimage;
 								}
 								Color emissivecolor = copymaterial.emissivecolor;
+								float[] emissivecolorcomp = emissivecolor.getRGBComponents(new float[4]);
 								VolatileImage emissivetexture = copymaterial.emissivefileimage;
 								BufferedImage emissivetextureimage = copymaterial.emissivesnapimage;
 								if ((emissivetexture!=null)&&(emissivetextureimage==null)) {
 									copymaterial.emissivesnapimage = copymaterial.emissivefileimage.getSnapshot();
 									emissivetextureimage = copymaterial.emissivesnapimage;
 								}
+								Color lightmapcolor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+								float[] lightmapcolorcomp = lightmapcolor.getRGBComponents(new float[4]);
 								VolatileImage lightmaptexture = null;
 								BufferedImage lightmaptextureimage = null;
 								if (copytriangle[0].lmat!=null) {
@@ -415,57 +419,63 @@ public class RenderLib {
 														float shadingmultiplier = ((((float)triangleviewangle[0])/1.5f)+30.0f)/90.0f;
 														Coordinate tex1 = vpixelpoints[0].tex;
 														Coordinate tex2 = vpixelpoints[1].tex;
-														Color lightmapcolor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
-														if ((lightmaptexture!=null)&&(tex1!=null)&&(tex2!=null)) {
-															Position[] lineuvpoint1 = {new Position(tex1.u*(lightmaptexture.getWidth()-1),(1.0f-tex1.v)*(lightmaptexture.getHeight()-1),0.0f)};
-															Position[] lineuvpoint2 = {new Position(tex2.u*(lightmaptexture.getWidth()-1),(1.0f-tex2.v)*(lightmaptexture.getHeight()-1),0.0f)};
-															Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
-															Position[] lineuvpos = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
-															int lineuvx = (int)Math.round(lineuvpos[0].x);
-															int lineuvy = (int)Math.round(lineuvpos[0].y);
-															if ((lineuvx>=0)&&(lineuvx<lightmaptexture.getWidth())&&(lineuvy>=0)&&(lineuvy<lightmaptexture.getHeight())) {
-																lightmapcolor = new Color(lightmaptextureimage.getRGB(lineuvx, lineuvy));
+														if ((tex1!=null)&&(tex2!=null)) {
+															if (lightmaptexture!=null) {
+																Position[] lineuvpoint1 = {new Position(tex1.u*(lightmaptexture.getWidth()-1),(1.0f-tex1.v)*(lightmaptexture.getHeight()-1),0.0f)};
+																Position[] lineuvpoint2 = {new Position(tex2.u*(lightmaptexture.getWidth()-1),(1.0f-tex2.v)*(lightmaptexture.getHeight()-1),0.0f)};
+																Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
+																Position[] lineuvpos = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
+																int lineuvx = (int)Math.round(lineuvpos[0].x);
+																int lineuvy = (int)Math.round(lineuvpos[0].y);
+																if ((lineuvx>=0)&&(lineuvx<lightmaptexture.getWidth())&&(lineuvy>=0)&&(lineuvy<lightmaptexture.getHeight())) {
+																	lightmapcolor = new Color(lightmaptextureimage.getRGB(lineuvx, lineuvy));
+																	lightmapcolorcomp = lightmapcolor.getRGBComponents(new float[4]);
+																}
+															}
+															if (emissivetexture!=null) {
+																Position[] lineuvpoint1 = {new Position(tex1.u*(emissivetexture.getWidth()-1),(1.0f-tex1.v)*(emissivetexture.getHeight()-1),0.0f)};
+																Position[] lineuvpoint2 = {new Position(tex2.u*(emissivetexture.getWidth()-1),(1.0f-tex2.v)*(emissivetexture.getHeight()-1),0.0f)};
+																Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
+																Position[] lineuvpos = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
+																int lineuvx = (int)Math.round(lineuvpos[0].x);
+																int lineuvy = (int)Math.round(lineuvpos[0].y);
+																if ((lineuvx>=0)&&(lineuvx<emissivetexture.getWidth())&&(lineuvy>=0)&&(lineuvy<emissivetexture.getHeight())) {
+																	emissivecolor = new Color(emissivetextureimage.getRGB(lineuvx, lineuvy));
+																	emissivecolorcomp = emissivecolor.getRGBComponents(new float[4]);
+																}
+															}
+															if (triangletexture!=null) {
+																Position[] lineuvpoint1 = {new Position(tex1.u*(triangletexture.getWidth()-1),(1.0f-tex1.v)*(triangletexture.getHeight()-1),0.0f)};
+																Position[] lineuvpoint2 = {new Position(tex2.u*(triangletexture.getWidth()-1),(1.0f-tex2.v)*(triangletexture.getHeight()-1),0.0f)};
+																Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
+																Position[] lineuvpos = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
+																int lineuvx = (int)Math.round(lineuvpos[0].x);
+																int lineuvy = (int)Math.round(lineuvpos[0].y);
+																if ((lineuvx>=0)&&(lineuvx<triangletexture.getWidth())&&(lineuvy>=0)&&(lineuvy<triangletexture.getHeight())) {
+																	renderview.cbuffer[n][j] = new Coordinate(lineuvx,lineuvy);
+																	trianglecolor = new Color(triangletextureimage.getRGB(lineuvx, lineuvy));
+																	trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+																}
 															}
 														}
-														if ((tritexture!=null)&&(tex1!=null)&&(tex2!=null)) {
-															Position[] lineuvpoint1 = {new Position(tex1.u*(tritexture.getWidth()-1),(1.0f-tex1.v)*(tritexture.getHeight()-1),0.0f)};
-															Position[] lineuvpoint2 = {new Position(tex2.u*(tritexture.getWidth()-1),(1.0f-tex2.v)*(tritexture.getHeight()-1),0.0f)};
-															Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
-															Position[] lineuvpos = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
-															int lineuvx = (int)Math.round(lineuvpos[0].x);
-															int lineuvy = (int)Math.round(lineuvpos[0].y);
-															if ((lineuvx>=0)&&(lineuvx<tritexture.getWidth())&&(lineuvy>=0)&&(lineuvy<tritexture.getHeight())) {
-																renderview.cbuffer[n][j] = new Coordinate(lineuvx,lineuvy);
-																Color texcolor = new Color(tritextureimage.getRGB(lineuvx, lineuvy));
-																float[] texcolorcomp = texcolor.getRGBComponents(new float[4]);
-																Color texcolorshade = new Color(texcolorcomp[0], texcolorcomp[1], texcolorcomp[2], alphacolor);
-																if (!unlit) {
-																	texcolorshade = new Color(texcolorcomp[0]*shadingmultiplier, texcolorcomp[1]*shadingmultiplier, texcolorcomp[2]*shadingmultiplier, alphacolor);
-																} else {
-																	g2.setColor(lightmapcolor);
-																	g2.drawLine(j, n, j, n);
-																	texcolorshade = new Color(0.0f, 0.0f, 0.0f, alphacolor);
-																	if (emissivetexture!=null) {
-																		texcolorshade = new Color(emissivetextureimage.getRGB(lineuvx, lineuvy));
-																	}
-																}
-																g2.setColor(texcolorshade);
-																g2.drawLine(j, n, j, n);
-															}
+														if (!unlit) {
+															trianglecolor = new Color(trianglecolorcomp[0]*shadingmultiplier, trianglecolorcomp[1]*shadingmultiplier, trianglecolorcomp[2]*shadingmultiplier, alphacolor);
 														} else {
-															if (!unlit) {
-																trianglecolor = new Color(tricolorcomp[0]*shadingmultiplier, tricolorcomp[1]*shadingmultiplier, tricolorcomp[2]*shadingmultiplier, alphacolor);
-															} else {
-																g2.setColor(lightmapcolor);
-																g2.drawLine(j, n, j, n);
-																trianglecolor = new Color(0.0f, 0.0f, 0.0f, alphacolor);
-																if (emissivecolor!=null) {
-																	trianglecolor = emissivecolor; 
-																}
+															float texr = trianglecolorcomp[0]*lightmapcolorcomp[0];
+															float texg = trianglecolorcomp[1]*lightmapcolorcomp[1];
+															float texb = trianglecolorcomp[2]*lightmapcolorcomp[2];
+															if (emissivecolor!=null) {
+																texr += emissivecolorcomp[0];
+																texg += emissivecolorcomp[1];
+																texb += emissivecolorcomp[2];
 															}
-															g2.setColor(trianglecolor);
-															g2.drawLine(j, n, j, n);
+															if (texr>1.0f) {texr=1.0f;}
+															if (texg>1.0f) {texg=1.0f;}
+															if (texb>1.0f) {texb=1.0f;}
+															trianglecolor = new Color(texr, texg, texb, alphacolor);
 														}
+														g2.setColor(trianglecolor);
+														g2.drawLine(j, n, j, n);
 													}
 												}
 											}
@@ -1120,7 +1130,7 @@ public class RenderLib {
 	}
 	
 	public static void renderSurfaceCubemapPlaneViewSoftware(Entity[] entitylist, int rendersize, int texturesize) {
-		double multiplier = 1000.0f;
+		float multiplier = 1000.0f;
 		if (entitylist!=null) {
 			for (int j=0;j<entitylist.length;j++) {
 				if (entitylist[j].trianglelist!=null) {
@@ -1128,6 +1138,11 @@ public class RenderLib {
 						if (entitylist[j].trianglelist[i]!=null) {
 							VolatileImage lightmaptexture = gc.createCompatibleVolatileImage(texturesize, texturesize, Transparency.TRANSLUCENT);
 							Graphics2D lmgfx = lightmaptexture.createGraphics();
+							lmgfx.setComposite(AlphaComposite.Src);
+							//lmgfx.setColor(new Color(0.0f, 0.0f, 0.0f, 0.0f));
+							lmgfx.setColor(new Color(0.1f, 0.1f, 0.1f, 1.0f));
+							lmgfx.fillRect(0, 0, texturesize, texturesize);
+							lmgfx.setComposite(AlphaComposite.SrcOver);
 							Material lightmapmaterial = new Material(Color.WHITE, 1.0f, lightmaptexture);
 							Position[] pos1 = {entitylist[j].trianglelist[i].pos1};
 							Position[] pos2 = {entitylist[j].trianglelist[i].pos2};
@@ -1162,9 +1177,9 @@ public class RenderLib {
 							Position[] coordp1 = {new Position(coord1x, coord1y, 0.0f)};
 							Position[] coordp2 = {new Position(coord2x, coord2y, 0.0f)};
 							Position[] coordp3 = {new Position(coord3x, coord3y, 0.0f)};
-							Direction[] coordv12 = {new Direction(coord2x-coord1x, coord2y-coord1y, 0.0f)};
-							Direction[] coordv13 = {new Direction(coord3x-coord1x, coord3y-coord1y, 0.0f)};
-							Direction[] coordv23 = {new Direction(coord3x-coord2x, coord3y-coord2y, 0.0f)};
+							Direction[] coordv12 = MathLib.vectorFromPoints(coordp1, coordp2);
+							Direction[] coordv13 = MathLib.vectorFromPoints(coordp1, coordp3);
+							Direction[] coordv23 = MathLib.vectorFromPoints(coordp2, coordp3);
 							Direction[] coordv21 = {coordv12[0].invert()};
 							Direction[] coordv31 = {coordv13[0].invert()};
 							Direction[] coordv32 = {coordv23[0].invert()};
@@ -1174,6 +1189,7 @@ public class RenderLib {
 							double[] coorda2 = MathLib.vectorAngle(coordv21,coordv23);
 							double[] coorda3 = MathLib.vectorAngle(coordv31,coordv32);
 							double[] coordai1 = MathLib.vectorAngle(coordv21,coordv13);
+							System.out.println("entitylist["+j+"].trianglelist["+i+"]="+pos1[0].x+","+pos1[0].y+","+pos1[0].z+" "+pos2[0].x+","+pos2[0].y+","+pos2[0].z+" "+pos3[0].x+","+pos3[0].y+","+pos3[0].z);
 							for (int m=tminy;m<=tmaxy;m++) {
 								for (int n=tminx;n<=tmaxx;n++) {
 									Position[] coordp4 = {new Position(n, m, 0.0f)};
@@ -1207,17 +1223,17 @@ public class RenderLib {
 											Position[] tpos4 = MathLib.translate(pos1, posdir12[0], n12mult);
 											pos4 = MathLib.translate(tpos4, posdir13[0], n13mult);
 										}
-										RenderView p4pixel = renderCubemapPlaneViewSoftware(pos4[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
+										RenderView p4pixelview = renderCubemapPlaneViewSoftware(pos4[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
 										BufferedImage[] cubemapimages = new BufferedImage[6];
-										cubemapimages[0] = p4pixel.cubemap.backwardview.snapimage;
-										cubemapimages[1] = p4pixel.cubemap.bottomview.snapimage;
-										cubemapimages[2] = p4pixel.cubemap.forwardview.snapimage;
-										cubemapimages[3] = p4pixel.cubemap.leftview.snapimage;
-										cubemapimages[4] = p4pixel.cubemap.rightview.snapimage;
-										cubemapimages[5] = p4pixel.cubemap.topview.snapimage;
-										double p4pixelr = 0.0f;
-										double p4pixelg = 0.0f;
-										double p4pixelb = 0.0f;
+										cubemapimages[0] = p4pixelview.cubemap.backwardview.snapimage;
+										cubemapimages[1] = p4pixelview.cubemap.bottomview.snapimage;
+										cubemapimages[2] = p4pixelview.cubemap.forwardview.snapimage;
+										cubemapimages[3] = p4pixelview.cubemap.leftview.snapimage;
+										cubemapimages[4] = p4pixelview.cubemap.rightview.snapimage;
+										cubemapimages[5] = p4pixelview.cubemap.topview.snapimage;
+										float p4pixelr = 0.0f;
+										float p4pixelg = 0.0f;
+										float p4pixelb = 0.0f;
 										for (int k=0;k<cubemapimages.length;k++) {
 											for (int ky=0;ky<cubemapimages[k].getHeight();ky++) {
 												for (int kx=0;kx<cubemapimages[k].getWidth();kx++) {
@@ -1229,12 +1245,15 @@ public class RenderLib {
 												}
 											}
 										}
-										double pixelcount = 6*rendersize*rendersize;
-										float p4pixelrt = (float)(multiplier*p4pixelr/pixelcount);
-										float p4pixelgt = (float)(multiplier*p4pixelg/pixelcount);
-										float p4pixelbt = (float)(multiplier*p4pixelb/pixelcount);
-										Color p4pixelcol = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
-										lmgfx.setColor(p4pixelcol);
+										float pixelcount = 6*rendersize*rendersize;
+										float p4pixelrt = multiplier*p4pixelr/pixelcount;
+										float p4pixelgt = multiplier*p4pixelg/pixelcount;
+										float p4pixelbt = multiplier*p4pixelb/pixelcount;
+										if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
+										if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
+										if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
+										Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
+										lmgfx.setColor(p4pixelcolor);
 										lmgfx.drawLine(n, m, n, m);
 									}
 								}
