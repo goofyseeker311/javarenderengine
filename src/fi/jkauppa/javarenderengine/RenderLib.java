@@ -172,6 +172,9 @@ public class RenderLib {
 		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
 		if (entitylist!=null) {
 			Direction[] camray = {renderview.dirs[0]};
+			Position[] camposa = {renderview.pos};
+			Position[] rendercutpos = MathLib.translate(camposa, renderview.dirs[0], 1.1d);
+			Plane[] rendercutplane = MathLib.planeFromNormalAtPoint(rendercutpos, camray);
 			Sphere[] entityspherelist = new Sphere[entitylist.length]; 
 			for (int k=0;k<entitylist.length;k++) {
 				entityspherelist[k] = entitylist[k].sphereboundaryvolume;
@@ -180,97 +183,158 @@ public class RenderLib {
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
 			Sphere[] sortedentityspherelist = Arrays.copyOf(entityspherelist, entityspherelist.length);
 			Arrays.sort(sortedentityspherelist, distcomp);
-			Rectangle[] sortedentityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, sortedentityspherelist, renderwidth, renderheight, hfov, vfov, renderview.rot);
 			for (int k=sortedentityspherelist.length-1;k>=0;k--) {
-				if (sortedentityspherelistint[k]!=null) {
-					Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
-					if (copytrianglelist.length>0) {
-						Direction[] trianglenormallist = new Direction[copytrianglelist.length];
-						for (int i=0;i<copytrianglelist.length;i++) {
-							trianglenormallist[i] = copytrianglelist[i].norm;
-							if (copytrianglelist[i].norm.isZero()) {
-								Triangle[] copyplanetriangle = {copytrianglelist[i]};
-								Plane[] triangleplanes = MathLib.planeFromPoints(copyplanetriangle);
-								Direction[] trianglenormal = MathLib.planeNormals(triangleplanes);
-								trianglenormallist[i] = trianglenormal[0];
-							}
+				Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
+				if (copytrianglelist.length>0) {
+					Direction[] trianglenormallist = new Direction[copytrianglelist.length];
+					for (int i=0;i<copytrianglelist.length;i++) {
+						trianglenormallist[i] = copytrianglelist[i].norm;
+						if (copytrianglelist[i].norm.isZero()) {
+							Triangle[] copyplanetriangle = {copytrianglelist[i]};
+							Plane[] triangleplanes = MathLib.planeFromPoints(copyplanetriangle);
+							Direction[] trianglenormal = MathLib.planeNormals(triangleplanes);
+							trianglenormallist[i] = trianglenormal[0];
 						}
-						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
-						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
-						Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
-						Arrays.sort(sortedtrianglespherelist, distcomp);
-						Rectangle[] copytrianglelistint = MathLib.projectedTrianglesIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, hfov, vfov, renderview.rot);
-						Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangles(renderview.pos, copytrianglelist, renderwidth, hfov, renderheight, vfov, viewrot);
-						for (int i=sortedtrianglespherelist.length-1;i>=0;i--) {
-							int it = sortedtrianglespherelist[i].ind;
-							if (copytrianglelistint[it]!=null) {
-								Triangle[] copytriangle = {copytrianglelist[it]};
-								Material copymaterial = copytriangle[0].mat;
-								Direction copytrianglenormal = trianglenormallist[it];
-								Color trianglecolor = copymaterial.facecolor;
-								float alphacolor = copymaterial.transparency;
-								float[] trianglecolorcomp = null;
-								if (trianglecolor!=null) {
-									trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
-									trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
-								}
-								Color emissivecolor = copymaterial.emissivecolor;
-								float[] emissivecolorcomp = null;
-								if (emissivecolor!=null) {emissivecolorcomp = emissivecolor.getRGBComponents(new float[4]);}
-								Color lightmapcolor = copymaterial.ambientcolor;
-								float[] lightmapcolorcomp =  null;
-								if (lightmapcolor!=null) {
-									lightmapcolorcomp = lightmapcolor.getRGBComponents(new float[4]);
-								}
-								double[] triangleviewangle = MathLib.vectorAngle(copytrianglenormal, camray);
-								if ((copytriangle[0].norm.isZero())&&(triangleviewangle[0]<90.0f)) {
-									triangleviewangle[0] = 180.0f - triangleviewangle[0];
-								}
-								triangleviewangle[0] -= 90.0f;
-								if (triangleviewangle[0]<0.0f) {triangleviewangle[0] = 0.0f;}
-								float shadingmultiplier = ((((float)triangleviewangle[0])/1.5f)+30.0f)/90.0f;
-								if (trianglecolor!=null) {
-									float texr = trianglecolorcomp[0];
-									float texg = trianglecolorcomp[1];
-									float texb = trianglecolorcomp[2];
-									if (!unlit) {
-										texr *= shadingmultiplier;
-										texg *= shadingmultiplier;
-										texb *= shadingmultiplier;
-									}
-									if (lightmapcolor!=null) {
-										texr *= lightmapcolorcomp[0];
-										texg *= lightmapcolorcomp[1];
-										texb *= lightmapcolorcomp[2];
-									} else if (unlit) {
-										texr = 0.0f;
-										texg = 0.0f;
-										texb = 0.0f;
-									}
-									if (emissivecolor!=null) {
-										texr += emissivecolorcomp[0];
-										texg += emissivecolorcomp[1];
-										texb += emissivecolorcomp[2];
-									}
-									if (texr>1.0f) {texr=1.0f;}
-									if (texg>1.0f) {texg=1.0f;}
-									if (texb>1.0f) {texb=1.0f;}
-									trianglecolor = new Color(texr, texg, texb, alphacolor);
-									Coordinate coord1 = copytrianglelistcoords[it][0];
-									Coordinate coord2 = copytrianglelistcoords[it][1];
-									Coordinate coord3 = copytrianglelistcoords[it][2];
-									if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)) {
-										Polygon trianglepolygon = new Polygon();
+					}
+					Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
+					for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
+					Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
+					Arrays.sort(sortedtrianglespherelist, distcomp);
+					Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangles(renderview.pos, copytrianglelist, renderwidth, hfov, renderheight, vfov, viewrot);
+					for (int i=sortedtrianglespherelist.length-1;i>=0;i--) {
+						int it = sortedtrianglespherelist[i].ind;
+						Triangle[] copytriangle = {copytrianglelist[it]};
+						Material copymaterial = copytriangle[0].mat;
+						Direction copytrianglenormal = trianglenormallist[it];
+						Color trianglecolor = copymaterial.facecolor;
+						float alphacolor = copymaterial.transparency;
+						float[] trianglecolorcomp = null;
+						if (trianglecolor!=null) {
+							trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+							trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
+						}
+						Color emissivecolor = copymaterial.emissivecolor;
+						float[] emissivecolorcomp = null;
+						if (emissivecolor!=null) {emissivecolorcomp = emissivecolor.getRGBComponents(new float[4]);}
+						Color lightmapcolor = copymaterial.ambientcolor;
+						float[] lightmapcolorcomp =  null;
+						if (lightmapcolor!=null) {
+							lightmapcolorcomp = lightmapcolor.getRGBComponents(new float[4]);
+						}
+						double[] triangleviewangle = MathLib.vectorAngle(copytrianglenormal, camray);
+						if ((copytriangle[0].norm.isZero())&&(triangleviewangle[0]<90.0f)) {
+							triangleviewangle[0] = 180.0f - triangleviewangle[0];
+						}
+						triangleviewangle[0] -= 90.0f;
+						if (triangleviewangle[0]<0.0f) {triangleviewangle[0] = 0.0f;}
+						float shadingmultiplier = ((((float)triangleviewangle[0])/1.5f)+30.0f)/90.0f;
+						if (trianglecolor!=null) {
+							float texr = trianglecolorcomp[0];
+							float texg = trianglecolorcomp[1];
+							float texb = trianglecolorcomp[2];
+							if (!unlit) {
+								texr *= shadingmultiplier;
+								texg *= shadingmultiplier;
+								texb *= shadingmultiplier;
+							}
+							if (lightmapcolor!=null) {
+								texr *= lightmapcolorcomp[0];
+								texg *= lightmapcolorcomp[1];
+								texb *= lightmapcolorcomp[2];
+							} else if (unlit) {
+								texr = 0.0f;
+								texg = 0.0f;
+								texb = 0.0f;
+							}
+							if (emissivecolor!=null) {
+								texr += emissivecolorcomp[0];
+								texg += emissivecolorcomp[1];
+								texb += emissivecolorcomp[2];
+							}
+							if (texr>1.0f) {texr=1.0f;}
+							if (texg>1.0f) {texg=1.0f;}
+							if (texb>1.0f) {texb=1.0f;}
+							trianglecolor = new Color(texr, texg, texb, alphacolor);
+							Coordinate coord1 = copytrianglelistcoords[it][0];
+							Coordinate coord2 = copytrianglelistcoords[it][1];
+							Coordinate coord3 = copytrianglelistcoords[it][2];
+							if ((coord1!=null)||(coord2!=null)||(coord3!=null)) {
+								Polygon trianglepolygon = new Polygon();
+								if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)) {
+									trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
+									trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
+									trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
+								} else {
+									Position[] tripos1 = {copytriangle[0].pos1};
+									Position[] tripos2 = {copytriangle[0].pos2};
+									Position[] tripos3 = {copytriangle[0].pos3};
+									Direction[] tridir12 = MathLib.vectorFromPoints(tripos1, tripos2);
+									Direction[] tridir13 = MathLib.vectorFromPoints(tripos1, tripos3);
+									Direction[] tridir23 = MathLib.vectorFromPoints(tripos2, tripos3);
+									double[][] tridir12dist = MathLib.rayPlaneDistance(tripos1[0], tridir12, rendercutplane);
+									double[][] tridir13dist = MathLib.rayPlaneDistance(tripos1[0], tridir13, rendercutplane);
+									double[][] tridir23dist = MathLib.rayPlaneDistance(tripos2[0], tridir23, rendercutplane);
+									double tridir12len = tridir12dist[0][0];
+									double tridir13len = tridir13dist[0][0];
+									double tridir23len = tridir23dist[0][0];
+									if ((coord1!=null)&&(coord2!=null)&&(tridir13len>=0.0f)&&(tridir13len<=1.0f)&&(tridir23len>=0.0f)&&(tridir23len<=1.0f)) {
+										Position[] tripos4 = MathLib.translate(tripos1, tridir13[0], tridir13len);
+										Position[] tripos5 = MathLib.translate(tripos2, tridir23[0], tridir23len);
+										Position[] tripos = {tripos4[0], tripos5[0]};
+										Coordinate[] triposcoords = MathLib.projectedPoints(renderview.pos, tripos, renderwidth, hfov, renderheight, vfov, viewrot);
 										trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
 										trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
+										trianglepolygon.addPoint((int)Math.round(triposcoords[1].u), (int)Math.round(triposcoords[1].v));
+										trianglepolygon.addPoint((int)Math.round(triposcoords[0].u), (int)Math.round(triposcoords[0].v));
+									} else if ((coord1!=null)&&(coord3!=null)&&(tridir12len>=0.0f)&&(tridir12len<=1.0f)&&(tridir23len>=0.0f)&&(tridir23len<=1.0f)) {
+										Position[] tripos4 = MathLib.translate(tripos1, tridir12[0], tridir12len);
+										Position[] tripos5 = MathLib.translate(tripos2, tridir23[0], tridir23len);
+										Position[] tripos = {tripos4[0], tripos5[0]};
+										Coordinate[] triposcoords = MathLib.projectedPoints(renderview.pos, tripos, renderwidth, hfov, renderheight, vfov, viewrot);
+										trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
 										trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
-										g2.setColor(trianglecolor);
-										g2.fill(trianglepolygon);
-										boolean mouseoverhit = g2.hit(new Rectangle(mouselocationx-vertexradius,mouselocationy-vertexradius,3,3), trianglepolygon, false);
-										if (mouseoverhit) {
-											mouseoverhittriangle.add(copytrianglelist[it]);
-										}
+										trianglepolygon.addPoint((int)Math.round(triposcoords[1].u), (int)Math.round(triposcoords[1].v));
+										trianglepolygon.addPoint((int)Math.round(triposcoords[0].u), (int)Math.round(triposcoords[0].v));
+									} else if ((coord2!=null)&&(coord3!=null)&&(tridir12len>=0.0f)&&(tridir12len<=1.0f)&&(tridir13len>=0.0f)&&(tridir13len<=1.0f)) {
+										Position[] tripos4 = MathLib.translate(tripos1, tridir12[0], tridir12len);
+										Position[] tripos5 = MathLib.translate(tripos1, tridir13[0], tridir13len);
+										Position[] tripos = {tripos4[0], tripos5[0]};
+										Coordinate[] triposcoords = MathLib.projectedPoints(renderview.pos, tripos, renderwidth, hfov, renderheight, vfov, viewrot);
+										trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
+										trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
+										trianglepolygon.addPoint((int)Math.round(triposcoords[1].u), (int)Math.round(triposcoords[1].v));
+										trianglepolygon.addPoint((int)Math.round(triposcoords[0].u), (int)Math.round(triposcoords[0].v));
+									} else if ((coord1!=null)&&(tridir12len>=0.0f)&&(tridir12len<=1.0f)&&(tridir13len>=0.0f)&&(tridir13len<=1.0f)) {
+										Position[] tripos4 = MathLib.translate(tripos1, tridir12[0], tridir12len);
+										Position[] tripos5 = MathLib.translate(tripos1, tridir13[0], tridir13len);
+										Position[] tripos = {tripos4[0], tripos5[0]};
+										Coordinate[] triposcoords = MathLib.projectedPoints(renderview.pos, tripos, renderwidth, hfov, renderheight, vfov, viewrot);
+										trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
+										trianglepolygon.addPoint((int)Math.round(triposcoords[1].u), (int)Math.round(triposcoords[1].v));
+										trianglepolygon.addPoint((int)Math.round(triposcoords[0].u), (int)Math.round(triposcoords[0].v));
+									} else if ((coord2!=null)&&(tridir12len>=0.0f)&&(tridir12len<=1.0f)&&(tridir23len>=0.0f)&&(tridir23len<=1.0f)) {
+										Position[] tripos4 = MathLib.translate(tripos1, tridir12[0], tridir12len);
+										Position[] tripos5 = MathLib.translate(tripos2, tridir23[0], tridir23len);
+										Position[] tripos = {tripos4[0], tripos5[0]};
+										Coordinate[] triposcoords = MathLib.projectedPoints(renderview.pos, tripos, renderwidth, hfov, renderheight, vfov, viewrot);
+										trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
+										trianglepolygon.addPoint((int)Math.round(triposcoords[1].u), (int)Math.round(triposcoords[1].v));
+										trianglepolygon.addPoint((int)Math.round(triposcoords[0].u), (int)Math.round(triposcoords[0].v));
+									} else if ((coord3!=null)&&(tridir13len>=0.0f)&&(tridir13len<=1.0f)&&(tridir23len>=0.0f)&&(tridir23len<=1.0f)) {
+										Position[] tripos4 = MathLib.translate(tripos1, tridir13[0], tridir13len);
+										Position[] tripos5 = MathLib.translate(tripos2, tridir23[0], tridir23len);
+										Position[] tripos = {tripos4[0], tripos5[0]};
+										Coordinate[] triposcoords = MathLib.projectedPoints(renderview.pos, tripos, renderwidth, hfov, renderheight, vfov, viewrot);
+										trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
+										trianglepolygon.addPoint((int)Math.round(triposcoords[1].u), (int)Math.round(triposcoords[1].v));
+										trianglepolygon.addPoint((int)Math.round(triposcoords[0].u), (int)Math.round(triposcoords[0].v));
 									}
+								}
+								g2.setColor(trianglecolor);
+								g2.fill(trianglepolygon);
+								boolean mouseoverhit = g2.hit(new Rectangle(mouselocationx-vertexradius,mouselocationy-vertexradius,3,3), trianglepolygon, false);
+								if (mouseoverhit) {
+									mouseoverhittriangle.add(copytrianglelist[it]);
 								}
 							}
 						}

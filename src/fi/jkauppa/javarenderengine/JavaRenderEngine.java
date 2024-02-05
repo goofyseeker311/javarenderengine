@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.0");
+		this.setTitle("Java Render Engine v2.3.1");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -118,12 +118,16 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		for (int i=0;i<camdir2norm.length;i++) {System.out.println("JavaRenderEngine: main: camdir2norm: "+camdir2norm[i].dx+" "+camdir2norm[i].dy+" "+camdir2norm[i].dz);}
 		Plane[] tplane = {new Plane(1.0f,0.0f,0.0f,-2.0f)};
 		Plane[] tplane2 = {new Plane(1.0f,0.0f,0.0f,-2.0f), new Plane(1.0f,0.0f,0.0f,-2.0f), new Plane(1.0f,0.0f,0.0f,-2.0f)};
+		Plane[] tplane3 = {tplane[0], tplane[0].invert()};
+		Direction[] tdir = {camdir[0], camdir[0].invert()};
 		double[][] cpdist = MathLib.rayPlaneDistance(campos, camdirnorm, tplane);
 		double[][] cpdist2 = MathLib.rayPlaneDistance(campos, camdir2norm, tplane2);
 		double[][] cpdist3 = MathLib.rayPlaneDistance(campos, camdirnorm, tpplane);
+		double[][] cpdist4 = MathLib.rayPlaneDistance(campos, tdir, tplane3);
 		System.out.println("JavaRenderEngine: main: cpdist[0][0]: "+cpdist[0][0]);
 		for (int i=0;i<cpdist2.length;i++) {for (int j=0;j<cpdist2[i].length;j++) {System.out.println("JavaRenderEngine: main: cpdist2["+i+"]["+j+"]: "+cpdist2[i][j]);}}
 		for (int i=0;i<cpdist3.length;i++) {for (int j=0;j<cpdist3[i].length;j++) {System.out.println("JavaRenderEngine: main: cpdist3["+i+"]["+j+"]: "+cpdist3[i][j]);}}
+		for (int i=0;i<cpdist4.length;i++) {for (int j=0;j<cpdist4[i].length;j++) {System.out.println("JavaRenderEngine: main: cpdist4["+i+"]["+j+"]: "+cpdist4[i][j]);}}
 		Plane[] pplane = MathLib.planeFromNormalAtPoint(campos2, camdir2norm);
 		Plane[] camplane = MathLib.planeFromNormalAtPoint(camposa, camdir4norm);
 		for (int i=0;i<pplane.length;i++) {System.out.println("JavaRenderEngine: main: pplane: "+pplane[i].a+" "+pplane[i].b+" "+pplane[i].c+" "+pplane[i].d);}
@@ -204,10 +208,13 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Position[] vplanepoint = {new Position(1,1,0)};
 		Direction[] vplanenormal = {new Direction(-1,-1,0)};
 		Plane[] vplane = MathLib.planeFromNormalAtPoint(vplanepoint, vplanenormal);
+		Position[] vpoints = {new Position(1.0f,0.0f,0.0f),new Position(3.0f,0.0f,0.0f)}; 
 		double[][] vppdist = MathLib.planePointDistance(vpoint, vplane);
 		double[][] vppdist2 = MathLib.planePointDistance(campos2, tplane2);
+		double[][] vppdist3 = MathLib.planePointDistance(vpoints, tplane3);
 		System.out.println("JavaRenderEngine: main: vppdist="+vppdist[0][0]);
 		for (int j=0;j<vppdist2.length;j++) {System.out.print("JavaRenderEngine: main: vppdist2["+j+"]="); for (int i=0;i<vppdist2[0].length;i++) {System.out.print(" "+vppdist2[j][i]);}System.out.println();}
+		for (int j=0;j<vppdist3.length;j++) {System.out.print("JavaRenderEngine: main: vppdist3["+j+"]="); for (int i=0;i<vppdist3[0].length;i++) {System.out.print(" "+vppdist3[j][i]);}System.out.println();}
 		Position[] vertexlist = {new Position(-5,3,9),new Position(-7,-3,-1),new Position(4,-6,-7),new Position(2,4,11)};
 		AxisAlignedBoundingBox aabb = MathLib.axisAlignedBoundingBox(vertexlist);
 		Sphere pointcloudsphere = MathLib.pointCloudCircumSphere(vertexlist);
