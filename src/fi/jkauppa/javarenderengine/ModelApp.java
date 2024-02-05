@@ -187,11 +187,13 @@ public class ModelApp extends AppHandlerPanel {
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
 			if (e.isShiftDown()) {
 				this.unlitrender = !this.unlitrender;
+				System.out.println("ModelApp: keyPressed: key SHIFT-ENTER: unlitrender="+this.unlitrender);
 			} else {
 				this.polygonfillmode += 1;
 				if (this.polygonfillmode>7) {
 					this.polygonfillmode = 1;
 				}
+				System.out.println("ModelApp: keyPressed: key ENTER: polygonfillmode="+this.polygonfillmode);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
 			this.filechooser.setDialogTitle("Load File");

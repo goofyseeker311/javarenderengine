@@ -5,12 +5,14 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Transparency;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -155,54 +157,66 @@ public class CADApp extends AppHandlerPanel {
 			this.editpos = this.editpos.copy();
 			this.editpos.x -= movementstep*this.camdirs[1].dx;
 			this.editpos.y -= movementstep*this.camdirs[1].dy;
-			this.editpos.z -= movementstep*this.camdirs[1].dz;		} else if (this.rightkeydown) {
+			this.editpos.z -= movementstep*this.camdirs[1].dz;			System.out.println("CADApp: keyPressed: key A: edit plane position to left="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
+		} else if (this.rightkeydown) {
 			this.editpos = this.editpos.copy();
 			this.editpos.x += movementstep*this.camdirs[1].dx;
 			this.editpos.y += movementstep*this.camdirs[1].dy;
 			this.editpos.z += movementstep*this.camdirs[1].dz;
+			System.out.println("CADApp: keyPressed: key D: edit plane position to right="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
 		}
 		if (this.forwardkeydown) {
 			this.editpos = this.editpos.copy();
 			this.editpos.x += movementstep*this.camdirs[0].dx;
 			this.editpos.y += movementstep*this.camdirs[0].dy;
 			this.editpos.z += movementstep*this.camdirs[0].dz;
+			System.out.println("CADApp: keyPressed: key +/SPACE: edit plane position to forward="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
 		} else if (this.backwardkeydown) {
 			this.editpos = this.editpos.copy();
 			this.editpos.x -= movementstep*this.camdirs[0].dx;
 			this.editpos.y -= movementstep*this.camdirs[0].dy;
 			this.editpos.z -= movementstep*this.camdirs[0].dz;
+			System.out.println("CADApp: keyPressed: key -/C: edit plane position to backward="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
 		}
 		if (this.upwardkeydown) {
 			this.editpos = this.editpos.copy();
 			this.editpos.x -= movementstep*this.camdirs[2].dx;
 			this.editpos.y -= movementstep*this.camdirs[2].dy;
 			this.editpos.z -= movementstep*this.camdirs[2].dz;
+			System.out.println("CADApp: keyPressed: key W: edit plane position to upward="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
 		} else if (this.downwardkeydown) {
 			this.editpos = this.editpos.copy();
 			this.editpos.x += movementstep*this.camdirs[2].dx;
 			this.editpos.y += movementstep*this.camdirs[2].dy;
 			this.editpos.z += movementstep*this.camdirs[2].dz;
+			System.out.println("CADApp: keyPressed: key S: edit plane position to downward="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
 		}
 		if (this.rollleftkeydown) {
 			this.camrot = this.camrot.copy();
 			this.camrot.y -= (movementstep/((double)this.gridstep));
+			System.out.println("CADApp: keyPressed: key Q: camera roll rotation left="+this.camrot.x+","+this.camrot.y+","+this.camrot.z);
 		} else if (this.rollrightkeydown) {
 			this.camrot = this.camrot.copy();
 			this.camrot.y += (movementstep/((double)this.gridstep));
+			System.out.println("CADApp: keyPressed: key E: camera roll rotation right="+this.camrot.x+","+this.camrot.y+","+this.camrot.z);
 		}
 		if (this.yawleftkeydown) {
 			this.camrot = this.camrot.copy();
         	this.camrot.z += (movementstep/((double)this.gridstep))*1.0f;
+			System.out.println("CADApp: keyPressed: key ARROW-LEFT: camera yaw rotation left="+this.camrot.x+","+this.camrot.y+","+this.camrot.z);
 		} else if (this.yawrightkeydown) {
 			this.camrot = this.camrot.copy();
         	this.camrot.z -= (movementstep/((double)this.gridstep))*1.0f;
+			System.out.println("CADApp: keyPressed: key ARROW-RIGHT: camera yaw rotation right="+this.camrot.x+","+this.camrot.y+","+this.camrot.z);
 		}
 		if (this.pitchupkeydown) {
 			this.camrot = this.camrot.copy();
         	this.camrot.x += (movementstep/((double)this.gridstep))*1.0f;
+			System.out.println("CADApp: keyPressed: key ARROW-DOWN: camera yaw rotation down="+this.camrot.x+","+this.camrot.y+","+this.camrot.z);
 		} else if (this.pitchdownkeydown) {
 			this.camrot = this.camrot.copy();
         	this.camrot.x -= (movementstep/((double)this.gridstep))*1.0f;
+			System.out.println("CADApp: keyPressed: key ARROW-UP: camera yaw rotation up="+this.camrot.x+","+this.camrot.y+","+this.camrot.z);
 		}
 		updateCameraDirections();
 		(new HardwareRenderViewUpdater()).start();
@@ -269,6 +283,7 @@ public class CADApp extends AppHandlerPanel {
 				this.campos = new Position(0.0f,0.0f,this.editplanedistance);
 				this.camrot = new Rotation(0.0f, 0.0f, 0.0f);
 				updateCameraDirections();
+				System.out.println("CADApp: keyPressed: key BACKSPACE: reset edit plane position="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_INSERT) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
@@ -280,6 +295,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
+			System.out.println("CADApp: keyPressed: key INSERT: draw material color hue positive="+colorvalues[0]+" "+colorvalues[1]+" "+colorvalues[2]+" "+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_DELETE) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[0] -= 0.01f; if (drawcolorhsb[0]<0.0f) {drawcolorhsb[0] = 1.0f;}
@@ -290,6 +306,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
+			System.out.println("CADApp: keyPressed: key DELETE: draw material color hue negative="+colorvalues[0]+" "+colorvalues[1]+" "+colorvalues[2]+" "+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_HOME) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[1] += 0.01f; if (drawcolorhsb[1]>1.0f) {drawcolorhsb[1] = 1.0f;}
@@ -300,6 +317,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
+			System.out.println("CADApp: keyPressed: key HOME: draw material color saturation positive="+colorvalues[0]+" "+colorvalues[1]+" "+colorvalues[2]+" "+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_END) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[1] -= 0.01f; if (drawcolorhsb[1]<0.0f) {drawcolorhsb[1] = 0.0f;}
@@ -310,6 +328,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
+			System.out.println("CADApp: keyPressed: key END: draw material color saturation negative="+colorvalues[0]+" "+colorvalues[1]+" "+colorvalues[2]+" "+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_UP) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[2] += 0.01f; if (drawcolorhsb[2]>1.0f) {drawcolorhsb[2] = 1.0f;}
@@ -320,6 +339,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
+			System.out.println("CADApp: keyPressed: key PAGEUP: draw material color brightness positive="+colorvalues[0]+" "+colorvalues[1]+" "+colorvalues[2]+" "+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_DOWN) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[2] -= 0.01f; if (drawcolorhsb[2]<0.0f) {drawcolorhsb[2] = 0.0f;}
@@ -330,18 +350,25 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
+			System.out.println("CADApp: keyPressed: key PAGEDOWN: draw material color brightness negative="+colorvalues[0]+" "+colorvalues[1]+" "+colorvalues[2]+" "+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_MULTIPLY) {
 			float newemissivity = this.drawmat.emissivity*1.1f; if (newemissivity<=0.0f) {newemissivity = 0.00001f;} if (newemissivity>1.0f) {newemissivity = 1.0f;}
 			float[] drawcolorcomp = this.drawmat.facecolor.getRGBComponents(new float[4]);
 			this.drawmat = this.drawmat.copy();
 			this.drawmat.emissivity = newemissivity;
-			this.drawmat.emissivecolor = new Color(drawcolorcomp[0]*newemissivity,drawcolorcomp[1]*newemissivity,drawcolorcomp[2]*newemissivity,1.0f);
+			float[] newemissivecolor = {drawcolorcomp[0]*newemissivity,drawcolorcomp[1]*newemissivity,drawcolorcomp[2]*newemissivity,1.0f};
+			this.drawmat.emissivecolor = new Color(newemissivecolor[0],newemissivecolor[1],newemissivecolor[2],newemissivecolor[3]);
+			(new DrawEmissiveMaterialUpdater()).start();
+			System.out.println("CADApp: keyPressed: key NUMPAD*: draw material emissivity positive="+newemissivecolor[0]+" "+newemissivecolor[1]+" "+newemissivecolor[2]+" "+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_DIVIDE) {
 			float newemissivity = this.drawmat.emissivity/1.1f;
 			float[] drawcolorcomp = this.drawmat.facecolor.getRGBComponents(new float[4]);
-			this.drawmat = new Material(this.drawmat.facecolor,this.drawmat.transparency,this.drawmat.fileimage);
+			this.drawmat = this.drawmat.copy();
 			this.drawmat.emissivity = newemissivity;
-			this.drawmat.emissivecolor = new Color(drawcolorcomp[0]*newemissivity,drawcolorcomp[1]*newemissivity,drawcolorcomp[2]*newemissivity,1.0f);
+			float[] newemissivecolor = {drawcolorcomp[0]*newemissivity,drawcolorcomp[1]*newemissivity,drawcolorcomp[2]*newemissivity,1.0f};
+			this.drawmat.emissivecolor = new Color(newemissivecolor[0],newemissivecolor[1],newemissivecolor[2],newemissivecolor[3]);
+			(new DrawEmissiveMaterialUpdater()).start();
+			System.out.println("CADApp: keyPressed: key NUMPAD/: draw material emissivity negative="+newemissivecolor[0]+" "+newemissivecolor[1]+" "+newemissivecolor[2]+" "+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD9) {
 			float newtransparency = this.drawmat.transparency+0.01f; if (newtransparency>1.0f) {newtransparency = 1.0f;}
 			float[] colorvalues = this.drawmat.facecolor.getRGBColorComponents(new float[3]);
@@ -349,6 +376,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat = this.drawmat.copy();
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.transparency = newtransparency;
+			System.out.println("CADApp: keyPressed: key NUMPAD9: draw material transparency positive="+colorvalues[0]+" "+colorvalues[1]+" "+colorvalues[2]+" "+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD8) {
 			float newtransparency = this.drawmat.transparency-0.01f; if (newtransparency<0.0f) {newtransparency = 0.0f;}
 			float[] colorvalues = this.drawmat.facecolor.getRGBColorComponents(new float[3]);
@@ -356,6 +384,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat = this.drawmat.copy();
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.transparency = newtransparency;
+			System.out.println("CADApp: keyPressed: key NUMPAD8: draw material transparency negative="+colorvalues[0]+" "+colorvalues[1]+" "+colorvalues[2]+" "+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD7) {
 			if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
 				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
@@ -366,28 +395,34 @@ public class CADApp extends AppHandlerPanel {
 				} else {
 					stri[0].norm = stri[0].norm.invert();
 				}
+				System.out.println("CADApp: keyPressed: key NUMPAD7: invert triangle normal="+stri[0].norm.dx+","+stri[0].norm.dy+" "+stri[0].norm.dz);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD6) {
 			float newroughness = this.drawmat.roughness+0.01f; if (newroughness>1.0f) {newroughness = 1.0f;}
 			this.drawmat = this.drawmat.copy();
 			this.drawmat.roughness = newroughness;
+			System.out.println("CADApp: keyPressed: key NUMPAD6: draw material roughness positive="+this.drawmat.roughness);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD5) {
 			float newroughness = this.drawmat.roughness-0.01f; if (newroughness<0.0f) {newroughness = 0.0f;}
 			this.drawmat = this.drawmat.copy();
 			this.drawmat.roughness = newroughness;
+			System.out.println("CADApp: keyPressed: key NUMPAD5: draw material roughness negative="+this.drawmat.roughness);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD4) {
 			if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
 				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
 				stri[0].norm = new Direction(0.0f,0.0f,0.0f);
+				System.out.println("CADApp: keyPressed: key NUMPAD4: reset triangle normal="+stri[0].norm.dx+","+stri[0].norm.dy+" "+stri[0].norm.dz);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD3) {
 			float newmetallic = this.drawmat.metallic+0.01f; if (newmetallic>1.0f) {newmetallic = 1.0f;}
 			this.drawmat = this.drawmat.copy();
 			this.drawmat.metallic = newmetallic;
+			System.out.println("CADApp: keyPressed: key NUMPAD3: draw material metallic positive="+this.drawmat.metallic);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD2) {
 			float newmetallic = this.drawmat.metallic-0.01f; if (newmetallic<0.0f) {newmetallic = 0.0f;}
 			this.drawmat = this.drawmat.copy();
 			this.drawmat.metallic = newmetallic;
+			System.out.println("CADApp: keyPressed: key NUMPAD2: draw material metallic negative="+this.drawmat.metallic);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD1) {
 	    	Triangle mousetriangle = null;
     		if (this.softwarerenderview!=null) {
@@ -430,6 +465,7 @@ public class CADApp extends AppHandlerPanel {
 	    		mousetriangle.pos1.tex = newpos1tex;
 	    		mousetriangle.pos2.tex = newpos2tex;
 	    		mousetriangle.pos3.tex = newpos3tex;
+				System.out.println("CADApp: keyPressed: key NUMPAD1: reset/rotate/mirror texture coordinate="+mousetriangle.pos1.tex.u+","+mousetriangle.pos1.tex.v+" "+mousetriangle.pos2.tex.u+","+mousetriangle.pos2.tex.v+" "+mousetriangle.pos3.tex.u+","+mousetriangle.pos3.tex.v);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD0) {
 			(new EntityListUpdater()).start();
@@ -438,6 +474,7 @@ public class CADApp extends AppHandlerPanel {
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
 			if (e.isShiftDown()) {
 				this.unlitrender = !this.unlitrender;
+				System.out.println("CADApp: keyPressed: key SHIFT-ENTER: unlitrender="+this.unlitrender);
 			} else if (e.isControlDown()) {
 		    	(new EntityLightMapUpdater()).start();
 			} else {
@@ -445,6 +482,7 @@ public class CADApp extends AppHandlerPanel {
 				if (this.polygonfillmode>3) {
 					this.polygonfillmode = 1;
 				}
+				System.out.println("CADApp: keyPressed: key ENTER: polygonfillmode="+this.polygonfillmode);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_UP) {
 			this.pitchupkeydown = true;
@@ -597,13 +635,15 @@ public class CADApp extends AppHandlerPanel {
 		    int offmaskf3ctrldown = KeyEvent.SHIFT_DOWN_MASK|KeyEvent.ALT_DOWN_MASK;
 		    boolean f3ctrldown = (e.getModifiersEx() & (onmaskf3ctrldown | offmaskf3ctrldown)) == onmaskf3ctrldown;
 		    if (f3shiftdown) {
+		    	this.snaplinemode = false;
 				this.imagechooser.setDialogTitle("Load File");
 				this.imagechooser.setApproveButtonText("Load");
 				if (this.imagechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 					File loadfile = this.imagechooser.getSelectedFile();
 					VolatileImage fileimage = UtilLib.loadImage(loadfile.getPath(), false);
-					Material newmat = new Material(Color.WHITE,1.0f,fileimage);
-					this.drawmat = newmat;
+					this.drawmat = this.drawmat.copy();
+					this.drawmat.fileimage = fileimage;
+					this.drawmat.snapimage = fileimage.getSnapshot();
 				}
 		    } else if (f3ctrldown) {
 		    	//TODO load insert object
@@ -789,10 +829,12 @@ public class CADApp extends AppHandlerPanel {
 			if (this.drawstartpos==null) {
 				this.drawstartpos = drawposarray[0].copy();
 			}
-			this.linelisttree.add(new Line(this.drawstartpos, drawposarray[0]));
+			Line addline = new Line(this.drawstartpos, drawposarray[0]);
+			this.linelisttree.add(addline);
 			this.draglinemode = true;
 			this.selecteddragvertex = drawposarray;
 			(new EntityListUpdater()).start();
+			System.out.println("CADApp: mousePressed: key ALT-LMB: adding line="+addline.pos1.x+","+addline.pos1.y+","+addline.pos1.z+" "+addline.pos2.x+","+addline.pos2.y+","+addline.pos2.z);
     	}
 		mouseDragged(e);
 	}
@@ -825,6 +867,8 @@ public class CADApp extends AppHandlerPanel {
     		}
 			if (mousetriangle!=null) {
 				mousetriangle.mat = this.drawmat;
+				float[] facecolorcomp = mousetriangle.mat.facecolor.getRGBComponents(new float[4]);
+				System.out.println("CADApp: mouseDragged: key DRAG-LMB: painted material color="+facecolorcomp[0]+" "+facecolorcomp[1]+" "+facecolorcomp[2]+" "+facecolorcomp[3]);
 			}
     	}
 	    int onmask1shiftdown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
@@ -841,6 +885,8 @@ public class CADApp extends AppHandlerPanel {
     		}
 			if (mousetriangle!=null) {
 				this.drawmat = mousetriangle.mat;
+				float[] facecolorcomp = this.drawmat.facecolor.getRGBComponents(new float[4]);
+				System.out.println("CADApp: mouseDragged: key SHIFT-DRAG-LMB: selected material color="+facecolorcomp[0]+" "+facecolorcomp[1]+" "+facecolorcomp[2]+" "+facecolorcomp[3]);
 			}
 	    }
 	    int onmask1ctrldown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
@@ -873,6 +919,7 @@ public class CADApp extends AppHandlerPanel {
 					this.selecteddragvertex[i].z = drawlocation.z;
 				}
 				(new EntityListUpdater()).start();
+				System.out.println("CADApp: mouseDragged: key CTRL/ALT-DRAG-LMB: drag vertex position="+drawlocation.x+","+drawlocation.y+","+drawlocation.z);
     		}
 		}
 	    int onmask1ctrlaltdown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
@@ -914,6 +961,7 @@ public class CADApp extends AppHandlerPanel {
 	    		mousetriangle.pos2.tex.v += texdeltav;
 	    		mousetriangle.pos3.tex.u -= texdeltau;
 	    		mousetriangle.pos3.tex.v += texdeltav;
+				System.out.println("CADApp: mouseDragged: key DRAG-CMB: drag texture coordinate="+mousetriangle.pos1.tex.u+","+mousetriangle.pos1.tex.v+" "+mousetriangle.pos2.tex.u+","+mousetriangle.pos2.tex.v+" "+mousetriangle.pos3.tex.u+","+mousetriangle.pos3.tex.v);
 			}
     	}
 	    int onmask2ctrldown = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
@@ -933,6 +981,7 @@ public class CADApp extends AppHandlerPanel {
     		this.editpos.x -= mousedeltay*movementstep*this.camdirs[2].dx;
     		this.editpos.y -= mousedeltay*movementstep*this.camdirs[2].dy;
     		this.editpos.z -= mousedeltay*movementstep*this.camdirs[2].dz;
+			System.out.println("CADApp: mouseDragged: edit plane position="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
     	}
 	    int onmask2ctrlaltdown = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    int offmask2ctrlaltdown = 0;
@@ -948,6 +997,7 @@ public class CADApp extends AppHandlerPanel {
         	this.camrot.z -= mousedeltax*(movementstep/((double)this.gridstep))*0.1f;
         	this.camrot.x -= mousedeltay*(movementstep/((double)this.gridstep))*0.1f;
         	updateCameraDirections();
+			System.out.println("CADApp: mouseDragged: key CTRL-ALT-DRAG-CMB: camera rotation angles="+this.camrot.x+","+this.camrot.y+","+this.camrot.z);
     	}
 	    int onmask3down = MouseEvent.BUTTON3_DOWN_MASK;
 	    int offmask3down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
@@ -997,6 +1047,7 @@ public class CADApp extends AppHandlerPanel {
 	    		mousetriangle.pos2.tex.v *= 1-(0.01f*e.getWheelRotation());
 	    		mousetriangle.pos3.tex.u *= 1-(0.01f*e.getWheelRotation());
 	    		mousetriangle.pos3.tex.v *= 1-(0.01f*e.getWheelRotation());
+				System.out.println("CADApp: mouseWheelMoved: key MWHEEL: zoom texture coordinate="+mousetriangle.pos1.tex.u+","+mousetriangle.pos1.tex.v+" "+mousetriangle.pos2.tex.u+","+mousetriangle.pos2.tex.v+" "+mousetriangle.pos3.tex.u+","+mousetriangle.pos3.tex.v);
 			}
 	    }
 	    int onmaskshiftdown = MouseEvent.SHIFT_DOWN_MASK;
@@ -1023,6 +1074,7 @@ public class CADApp extends AppHandlerPanel {
 	        	mousetriangle.pos1.tex = new Coordinate(pos1tex.getX(),pos1tex.getY());
 	        	mousetriangle.pos2.tex = new Coordinate(pos2tex.getX(),pos2tex.getY());
 	        	mousetriangle.pos3.tex = new Coordinate(pos3tex.getX(),pos3tex.getY());
+				System.out.println("CADApp: mouseWheelMoved: key SHIFT-MWHEEL: rotate texture coordinate="+mousetriangle.pos1.tex.u+","+mousetriangle.pos1.tex.v+" "+mousetriangle.pos2.tex.u+","+mousetriangle.pos2.tex.v+" "+mousetriangle.pos3.tex.u+","+mousetriangle.pos3.tex.v);
 			}
 	    }
 	    int onmaskaltdown = MouseEvent.ALT_DOWN_MASK;
@@ -1049,6 +1101,7 @@ public class CADApp extends AppHandlerPanel {
 	        	mousetriangle.pos1.tex = new Coordinate(pos1tex.getX(),pos1tex.getY());
 	        	mousetriangle.pos2.tex = new Coordinate(pos2tex.getX(),pos2tex.getY());
 	        	mousetriangle.pos3.tex = new Coordinate(pos3tex.getX(),pos3tex.getY());
+				System.out.println("CADApp: mouseWheelMoved: key ALT-MWHEEL: scale texture coordinate="+mousetriangle.pos1.tex.u+","+mousetriangle.pos1.tex.v+" "+mousetriangle.pos2.tex.u+","+mousetriangle.pos2.tex.v+" "+mousetriangle.pos3.tex.u+","+mousetriangle.pos3.tex.v);
 			}
 	    }
 	    int onmaskaltshiftdown = MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
@@ -1075,6 +1128,7 @@ public class CADApp extends AppHandlerPanel {
 	        	mousetriangle.pos1.tex = new Coordinate(pos1tex.getX(),pos1tex.getY());
 	        	mousetriangle.pos2.tex = new Coordinate(pos2tex.getX(),pos2tex.getY());
 	        	mousetriangle.pos3.tex = new Coordinate(pos3tex.getX(),pos3tex.getY());
+				System.out.println("CADApp: mouseWheelMoved: key ALT-SHIFT-MWHEEL: shear texture coordinate="+mousetriangle.pos1.tex.u+","+mousetriangle.pos1.tex.v+" "+mousetriangle.pos2.tex.u+","+mousetriangle.pos2.tex.v+" "+mousetriangle.pos3.tex.u+","+mousetriangle.pos3.tex.v);
 			}
 	    }
 	    int onmaskctrldown = MouseEvent.CTRL_DOWN_MASK;
@@ -1089,6 +1143,7 @@ public class CADApp extends AppHandlerPanel {
 			this.editpos.x -= movementstep*this.camdirs[0].dx;
 			this.editpos.y -= movementstep*this.camdirs[0].dy;
 			this.editpos.z -= movementstep*this.camdirs[0].dz;
+			System.out.println("CADApp: mouseWheelMoved: key CTRL-MWHEEL: edit plane position="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
 	    }
 	}
 	@Override public void mouseClicked(MouseEvent e) {}
@@ -1177,6 +1232,38 @@ public class CADApp extends AppHandlerPanel {
 					RenderLib.renderSurfaceFaceCubemapPlaneViewSoftware(CADApp.this.entitylist, 32, 0);
 				}
 				EntityLightMapUpdater.entitylightmapupdaterrunning = false;
+			}
+		}
+	}
+
+	private class DrawEmissiveMaterialUpdater extends Thread {
+		private static boolean drawemissivematerialupdaterrunning = false;
+		public void run() {
+			if (!DrawEmissiveMaterialUpdater.drawemissivematerialupdaterrunning) {
+				DrawEmissiveMaterialUpdater.drawemissivematerialupdaterrunning = true;
+				if (CADApp.this.drawmat.fileimage!=null) {
+					VolatileImage fileimage = CADApp.this.drawmat.fileimage;
+					BufferedImage snapimage = CADApp.this.drawmat.snapimage;
+					float newemissivity = CADApp.this.drawmat.emissivity;
+					VolatileImage emissivefileimage = gc.createCompatibleVolatileImage(fileimage.getWidth(), fileimage.getHeight(), Transparency.TRANSLUCENT);
+					Graphics2D emgfx = emissivefileimage.createGraphics();
+					emgfx.setComposite(AlphaComposite.Src);
+					emgfx.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
+					emgfx.fillRect(0, 0, emissivefileimage.getWidth(), emissivefileimage.getHeight());
+					for (int j=0;j<snapimage.getHeight();j++) {
+						for (int i=0;i<snapimage.getWidth();i++) {
+							Color pixelcolor = new Color(snapimage.getRGB(i, j));
+							float[] pixelcolorcomp = pixelcolor.getRGBComponents(new float[4]);
+							float[] emissivepixelcolorcomp = {pixelcolorcomp[0]*newemissivity,pixelcolorcomp[1]*newemissivity,pixelcolorcomp[2]*newemissivity,1.0f}; 
+							Color emissivepixelcolor = new Color(emissivepixelcolorcomp[0],emissivepixelcolorcomp[1],emissivepixelcolorcomp[2],1.0f);
+							emgfx.setColor(emissivepixelcolor);
+							emgfx.drawLine(i, j, i, j);
+						}
+					}
+					CADApp.this.drawmat.emissivefileimage = emissivefileimage;
+					CADApp.this.drawmat.emissivesnapimage = emissivefileimage.getSnapshot();
+				}
+				DrawEmissiveMaterialUpdater.drawemissivematerialupdaterrunning = false;
 			}
 		}
 	}
