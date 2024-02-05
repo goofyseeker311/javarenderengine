@@ -51,11 +51,13 @@ CTRL-V            -- paste image from clipboard
 CAD App Keys:
 ENTER             -- changes between polygon flat/textured/none fill modes (looping)
 SHIFT-ENTER       -- changes between unlit and lit render modes (looping)
+CTRL-ENTER        -- re-calculates all entity triangle surface light maps
 WASD              -- camera location change up/left/down/right (minmax)
 C-SPACE           -- camera location change backward/forward (minmax)
 QE                -- camera tilt change left/right (looping)
 BACKSPACE         -- removes all vector lines
 SHIFT-BACKSPACE   -- reset camera to starting location
+CTRL-BACKSPACE    -- reset all entity triangle surface light maps to zero
 DRAG-LMB          -- material drag triangle paint
 SHIFT-LMB         -- material picker at cursor
 CTRL-DRAG-LMB     -- move line vertex

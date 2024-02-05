@@ -1766,5 +1766,13 @@ public class MathLib {
 		Direction[]  k = null;
 		return k;
 	}
+	public static Plane[] surfaceMirrorPlanes(Plane[] vsurf, Plane[] vplane, double refraction) {
+		Plane[]  k = null;
+		return k;
+	}
+	public static Plane[] surfaceRefractionPlanes(Plane[] vsurf, Plane[] vplane, double refraction) {
+		Plane[]  k = null;
+		return k;
+	}
 	
 }
