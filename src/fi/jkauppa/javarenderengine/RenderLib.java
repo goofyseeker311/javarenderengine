@@ -209,10 +209,11 @@ public class RenderLib {
 								Direction copytrianglenormal = trianglenormallist[it];
 								Color trianglecolor = copymaterial.facecolor;
 								float alphacolor = copymaterial.transparency;
-								if (trianglecolor==null) {trianglecolor = Color.WHITE;}
-								float[] trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
-								trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
-								trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+								float[] trianglecolorcomp = null;
+								if (trianglecolor!=null) {
+									trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+									trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
+								}
 								Color emissivecolor = copymaterial.emissivecolor;
 								float[] emissivecolorcomp = null;
 								if (emissivecolor!=null) {emissivecolorcomp = emissivecolor.getRGBComponents(new float[4]);}
@@ -228,45 +229,47 @@ public class RenderLib {
 								triangleviewangle[0] -= 90.0f;
 								if (triangleviewangle[0]<0.0f) {triangleviewangle[0] = 0.0f;}
 								float shadingmultiplier = ((((float)triangleviewangle[0])/1.5f)+30.0f)/90.0f;
-								float texr = trianglecolorcomp[0];
-								float texg = trianglecolorcomp[1];
-								float texb = trianglecolorcomp[2];
-								if (!unlit) {
-									texr *= shadingmultiplier;
-									texg *= shadingmultiplier;
-									texb *= shadingmultiplier;
-								}
-								if (lightmapcolor!=null) {
-									texr *= lightmapcolorcomp[0];
-									texg *= lightmapcolorcomp[1];
-									texb *= lightmapcolorcomp[2];
-								} else if (unlit) {
-									texr = 0.0f;
-									texg = 0.0f;
-									texb = 0.0f;
-								}
-								if (emissivecolor!=null) {
-									texr += emissivecolorcomp[0];
-									texg += emissivecolorcomp[1];
-									texb += emissivecolorcomp[2];
-								}
-								if (texr>1.0f) {texr=1.0f;}
-								if (texg>1.0f) {texg=1.0f;}
-								if (texb>1.0f) {texb=1.0f;}
-								trianglecolor = new Color(texr, texg, texb, alphacolor);
-								Coordinate coord1 = copytrianglelistcoords[it][0];
-								Coordinate coord2 = copytrianglelistcoords[it][1];
-								Coordinate coord3 = copytrianglelistcoords[it][2];
-								if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)) {
-									Polygon trianglepolygon = new Polygon();
-									trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
-									trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
-									trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
-									g2.setColor(trianglecolor);
-									g2.fill(trianglepolygon);
-									boolean mouseoverhit = g2.hit(new Rectangle(mouselocationx-vertexradius,mouselocationy-vertexradius,3,3), trianglepolygon, false);
-									if (mouseoverhit) {
-										mouseoverhittriangle.add(copytrianglelist[it]);
+								if (trianglecolor!=null) {
+									float texr = trianglecolorcomp[0];
+									float texg = trianglecolorcomp[1];
+									float texb = trianglecolorcomp[2];
+									if (!unlit) {
+										texr *= shadingmultiplier;
+										texg *= shadingmultiplier;
+										texb *= shadingmultiplier;
+									}
+									if (lightmapcolor!=null) {
+										texr *= lightmapcolorcomp[0];
+										texg *= lightmapcolorcomp[1];
+										texb *= lightmapcolorcomp[2];
+									} else if (unlit) {
+										texr = 0.0f;
+										texg = 0.0f;
+										texb = 0.0f;
+									}
+									if (emissivecolor!=null) {
+										texr += emissivecolorcomp[0];
+										texg += emissivecolorcomp[1];
+										texb += emissivecolorcomp[2];
+									}
+									if (texr>1.0f) {texr=1.0f;}
+									if (texg>1.0f) {texg=1.0f;}
+									if (texb>1.0f) {texb=1.0f;}
+									trianglecolor = new Color(texr, texg, texb, alphacolor);
+									Coordinate coord1 = copytrianglelistcoords[it][0];
+									Coordinate coord2 = copytrianglelistcoords[it][1];
+									Coordinate coord3 = copytrianglelistcoords[it][2];
+									if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)) {
+										Polygon trianglepolygon = new Polygon();
+										trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
+										trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
+										trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
+										g2.setColor(trianglecolor);
+										g2.fill(trianglepolygon);
+										boolean mouseoverhit = g2.hit(new Rectangle(mouselocationx-vertexradius,mouselocationy-vertexradius,3,3), trianglepolygon, false);
+										if (mouseoverhit) {
+											mouseoverhittriangle.add(copytrianglelist[it]);
+										}
 									}
 								}
 							}
@@ -413,10 +416,11 @@ public class RenderLib {
 								Direction copytrianglenormal = trianglenormallist[it];
 								Color trianglecolor = copymaterial.facecolor;
 								float alphacolor = copymaterial.transparency;
-								if (trianglecolor==null) {trianglecolor = Color.WHITE;}
-								float[] trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
-								trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
-								trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+								float[] trianglecolorcomp = null;
+								if (trianglecolor!=null) {
+									trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+									trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
+								}
 								VolatileImage triangletexture = copymaterial.fileimage;
 								BufferedImage triangletextureimage = copymaterial.snapimage;
 								if ((triangletexture!=null)&&(triangletextureimage==null)) {
@@ -515,6 +519,9 @@ public class RenderLib {
 																if ((lineuvx>=0)&&(lineuvx<lightmaptexture.getWidth())&&(lineuvy>=0)&&(lineuvy<lightmaptexture.getHeight())) {
 																	lightmapcolor = new Color(lightmaptextureimage.getRGB(lineuvx, lineuvy));
 																	lightmapcolorcomp = lightmapcolor.getRGBComponents(new float[4]);
+																} else {
+																	lightmapcolor = null;
+																	lightmapcolorcomp = null;
 																}
 															}
 															if (emissivetexture!=null) {
@@ -527,6 +534,9 @@ public class RenderLib {
 																if ((lineuvx>=0)&&(lineuvx<emissivetexture.getWidth())&&(lineuvy>=0)&&(lineuvy<emissivetexture.getHeight())) {
 																	emissivecolor = new Color(emissivetextureimage.getRGB(lineuvx, lineuvy));
 																	emissivecolorcomp = emissivecolor.getRGBComponents(new float[4]);
+																} else {
+																	emissivecolor = null;
+																	emissivecolorcomp = null;
 																}
 															}
 															if (triangletexture!=null) {
@@ -538,39 +548,45 @@ public class RenderLib {
 																int lineuvy = (int)Math.round(lineuvpos[0].y);
 																if ((lineuvx>=0)&&(lineuvx<triangletexture.getWidth())&&(lineuvy>=0)&&(lineuvy<triangletexture.getHeight())) {
 																	renderview.cbuffer[n][j] = new Coordinate(lineuvx,lineuvy);
-																	trianglecolor = new Color(triangletextureimage.getRGB(lineuvx, lineuvy));
-																	trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+																	Color triangletexturecolor = new Color(triangletextureimage.getRGB(lineuvx, lineuvy));
+																	trianglecolorcomp = triangletexturecolor.getRGBComponents(new float[4]);
+																	trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
+																} else {
+																	trianglecolor = null;
+																	trianglecolorcomp = null;
 																}
 															}
 														}
-														float texr = trianglecolorcomp[0];
-														float texg = trianglecolorcomp[1];
-														float texb = trianglecolorcomp[2];
-														if (!unlit) {
-															texr *= shadingmultiplier;
-															texg *= shadingmultiplier;
-															texb *= shadingmultiplier;
+														if (trianglecolor!=null) {
+															float texr = trianglecolorcomp[0];
+															float texg = trianglecolorcomp[1];
+															float texb = trianglecolorcomp[2];
+															if (!unlit) {
+																texr *= shadingmultiplier;
+																texg *= shadingmultiplier;
+																texb *= shadingmultiplier;
+															}
+															if (lightmapcolor!=null) {
+																texr *= lightmapcolorcomp[0];
+																texg *= lightmapcolorcomp[1];
+																texb *= lightmapcolorcomp[2];
+															} else if (unlit) {
+																texr = 0.0f;
+																texg = 0.0f;
+																texb = 0.0f;
+															}
+															if (emissivecolor!=null) {
+																texr += emissivecolorcomp[0];
+																texg += emissivecolorcomp[1];
+																texb += emissivecolorcomp[2];
+															}
+															if (texr>1.0f) {texr=1.0f;}
+															if (texg>1.0f) {texg=1.0f;}
+															if (texb>1.0f) {texb=1.0f;}
+															trianglecolor = new Color(texr, texg, texb, alphacolor);
+															g2.setColor(trianglecolor);
+															g2.drawLine(j, n, j, n);
 														}
-														if (lightmapcolor!=null) {
-															texr *= lightmapcolorcomp[0];
-															texg *= lightmapcolorcomp[1];
-															texb *= lightmapcolorcomp[2];
-														} else if (unlit) {
-															texr = 0.0f;
-															texg = 0.0f;
-															texb = 0.0f;
-														}
-														if (emissivecolor!=null) {
-															texr += emissivecolorcomp[0];
-															texg += emissivecolorcomp[1];
-															texb += emissivecolorcomp[2];
-														}
-														if (texr>1.0f) {texr=1.0f;}
-														if (texg>1.0f) {texg=1.0f;}
-														if (texb>1.0f) {texb=1.0f;}
-														trianglecolor = new Color(texr, texg, texb, alphacolor);
-														g2.setColor(trianglecolor);
-														g2.drawLine(j, n, j, n);
 													}
 												}
 											}
@@ -665,10 +681,11 @@ public class RenderLib {
 								Direction copytrianglenormal = trianglenormallist[it];
 								Color trianglecolor = copymaterial.facecolor;
 								float alphacolor = copymaterial.transparency;
-								if (trianglecolor==null) {trianglecolor = Color.WHITE;}
-								float[] trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
-								trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
-								trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+								float[] trianglecolorcomp = null;
+								if (trianglecolor!=null) {
+									trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+									trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
+								}
 								VolatileImage triangletexture = copymaterial.fileimage;
 								BufferedImage triangletextureimage = copymaterial.snapimage;
 								if ((triangletexture!=null)&&(triangletextureimage==null)) {
@@ -769,6 +786,9 @@ public class RenderLib {
 																if ((lineuvx>=0)&&(lineuvx<lightmaptexture.getWidth())&&(lineuvy>=0)&&(lineuvy<lightmaptexture.getHeight())) {
 																	lightmapcolor = new Color(lightmaptextureimage.getRGB(lineuvx, lineuvy));
 																	lightmapcolorcomp = lightmapcolor.getRGBComponents(new float[4]);
+																} else {
+																	lightmapcolor = null;
+																	lightmapcolorcomp = null;
 																}
 															}
 															if (emissivetexture!=null) {
@@ -781,6 +801,9 @@ public class RenderLib {
 																if ((lineuvx>=0)&&(lineuvx<emissivetexture.getWidth())&&(lineuvy>=0)&&(lineuvy<emissivetexture.getHeight())) {
 																	emissivecolor = new Color(emissivetextureimage.getRGB(lineuvx, lineuvy));
 																	emissivecolorcomp = emissivecolor.getRGBComponents(new float[4]);
+																} else {
+																	emissivecolor = null;
+																	emissivecolorcomp = null;
 																}
 															}
 															if (triangletexture!=null) {
@@ -792,39 +815,45 @@ public class RenderLib {
 																int lineuvy = (int)Math.round(lineuvpos[0].y);
 																if ((lineuvx>=0)&&(lineuvx<triangletexture.getWidth())&&(lineuvy>=0)&&(lineuvy<triangletexture.getHeight())) {
 																	renderview.cbuffer[n][j] = new Coordinate(lineuvx,lineuvy);
-																	trianglecolor = new Color(triangletextureimage.getRGB(lineuvx, lineuvy));
-																	trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+																	Color triangletexturecolor = new Color(triangletextureimage.getRGB(lineuvx, lineuvy));
+																	trianglecolorcomp = triangletexturecolor.getRGBComponents(new float[4]);
+																	trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
+																} else {
+																	trianglecolor = null;
+																	trianglecolorcomp = null;
 																}
 															}
 														}
-														float texr = trianglecolorcomp[0];
-														float texg = trianglecolorcomp[1];
-														float texb = trianglecolorcomp[2];
-														if (!unlit) {
-															texr *= shadingmultiplier;
-															texg *= shadingmultiplier;
-															texb *= shadingmultiplier;
+														if (trianglecolor!=null) {
+															float texr = trianglecolorcomp[0];
+															float texg = trianglecolorcomp[1];
+															float texb = trianglecolorcomp[2];
+															if (!unlit) {
+																texr *= shadingmultiplier;
+																texg *= shadingmultiplier;
+																texb *= shadingmultiplier;
+															}
+															if (lightmapcolor!=null) {
+																texr *= lightmapcolorcomp[0];
+																texg *= lightmapcolorcomp[1];
+																texb *= lightmapcolorcomp[2];
+															} else if (unlit) {
+																texr = 0.0f;
+																texg = 0.0f;
+																texb = 0.0f;
+															}
+															if (emissivecolor!=null) {
+																texr += emissivecolorcomp[0];
+																texg += emissivecolorcomp[1];
+																texb += emissivecolorcomp[2];
+															}
+															if (texr>1.0f) {texr=1.0f;}
+															if (texg>1.0f) {texg=1.0f;}
+															if (texb>1.0f) {texb=1.0f;}
+															trianglecolor = new Color(texr, texg, texb, alphacolor);
+															g2.setColor(trianglecolor);
+															g2.drawLine(j, n, j, n);
 														}
-														if (lightmapcolor!=null) {
-															texr *= lightmapcolorcomp[0];
-															texg *= lightmapcolorcomp[1];
-															texb *= lightmapcolorcomp[2];
-														} else if (unlit) {
-															texr = 0.0f;
-															texg = 0.0f;
-															texb = 0.0f;
-														}
-														if (emissivecolor!=null) {
-															texr += emissivecolorcomp[0];
-															texg += emissivecolorcomp[1];
-															texb += emissivecolorcomp[2];
-														}
-														if (texr>1.0f) {texr=1.0f;}
-														if (texg>1.0f) {texg=1.0f;}
-														if (texb>1.0f) {texb=1.0f;}
-														trianglecolor = new Color(texr, texg, texb, alphacolor);
-														g2.setColor(trianglecolor);
-														g2.drawLine(j, n, j, n);
 													}
 												}
 											}
@@ -967,10 +996,11 @@ public class RenderLib {
 								Direction copytrianglenormal = trianglenormallist[it];
 								Color trianglecolor = copymaterial.facecolor;
 								float alphacolor = copymaterial.transparency;
-								if (trianglecolor==null) {trianglecolor = Color.WHITE;}
-								float[] trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
-								trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
-								trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+								float[] trianglecolorcomp = null;
+								if (trianglecolor!=null) {
+									trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+									trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
+								}
 								VolatileImage triangletexture = copymaterial.fileimage;
 								BufferedImage triangletextureimage = copymaterial.snapimage;
 								if ((triangletexture!=null)&&(triangletextureimage==null)) {
@@ -1032,6 +1062,9 @@ public class RenderLib {
 														if ((lineuvx>=0)&&(lineuvx<lightmaptexture.getWidth())&&(lineuvy>=0)&&(lineuvy<lightmaptexture.getHeight())) {
 															lightmapcolor = new Color(lightmaptextureimage.getRGB(lineuvx, lineuvy));
 															lightmapcolorcomp = lightmapcolor.getRGBComponents(new float[4]);
+														} else {
+															lightmapcolor = null;
+															lightmapcolorcomp = null;
 														}
 													}
 													if (emissivetexture!=null) {
@@ -1041,6 +1074,9 @@ public class RenderLib {
 														if ((lineuvx>=0)&&(lineuvx<emissivetexture.getWidth())&&(lineuvy>=0)&&(lineuvy<emissivetexture.getHeight())) {
 															emissivecolor = new Color(emissivetextureimage.getRGB(lineuvx, lineuvy));
 															emissivecolorcomp = emissivecolor.getRGBComponents(new float[4]);
+														} else {
+															emissivecolor = null;
+															emissivecolorcomp = null;
 														}
 													}
 													if (triangletexture!=null) {
@@ -1049,39 +1085,45 @@ public class RenderLib {
 														int lineuvy = (int)Math.round(lineuvpoint[0].y);
 														if ((lineuvx>=0)&&(lineuvx<triangletexture.getWidth())&&(lineuvy>=0)&&(lineuvy<triangletexture.getHeight())) {
 															renderview.cbuffer[n][j] = new Coordinate(lineuvx,lineuvy);
-															trianglecolor = new Color(triangletextureimage.getRGB(lineuvx, lineuvy));
-															trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+															Color triangletexturecolor = new Color(triangletextureimage.getRGB(lineuvx, lineuvy));
+															trianglecolorcomp = triangletexturecolor.getRGBComponents(new float[4]);
+															trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
+														} else {
+															trianglecolor = null;
+															trianglecolorcomp = null;
 														}
 													}
 												}
-												float texr = trianglecolorcomp[0];
-												float texg = trianglecolorcomp[1];
-												float texb = trianglecolorcomp[2];
-												if (!unlit) {
-													texr *= shadingmultiplier;
-													texg *= shadingmultiplier;
-													texb *= shadingmultiplier;
+												if (trianglecolor!=null) {
+													float texr = trianglecolorcomp[0];
+													float texg = trianglecolorcomp[1];
+													float texb = trianglecolorcomp[2];
+													if (!unlit) {
+														texr *= shadingmultiplier;
+														texg *= shadingmultiplier;
+														texb *= shadingmultiplier;
+													}
+													if (lightmapcolor!=null) {
+														texr *= lightmapcolorcomp[0];
+														texg *= lightmapcolorcomp[1];
+														texb *= lightmapcolorcomp[2];
+													} else if (unlit) {
+														texr = 0.0f;
+														texg = 0.0f;
+														texb = 0.0f;
+													}
+													if (emissivecolor!=null) {
+														texr += emissivecolorcomp[0];
+														texg += emissivecolorcomp[1];
+														texb += emissivecolorcomp[2];
+													}
+													if (texr>1.0f) {texr=1.0f;}
+													if (texg>1.0f) {texg=1.0f;}
+													if (texb>1.0f) {texb=1.0f;}
+													trianglecolor = new Color(texr, texg, texb, alphacolor);
+													g2.setColor(trianglecolor);
+													g2.drawLine(i, j, i, j);
 												}
-												if (lightmapcolor!=null) {
-													texr *= lightmapcolorcomp[0];
-													texg *= lightmapcolorcomp[1];
-													texb *= lightmapcolorcomp[2];
-												} else if (unlit) {
-													texr = 0.0f;
-													texg = 0.0f;
-													texb = 0.0f;
-												}
-												if (emissivecolor!=null) {
-													texr += emissivecolorcomp[0];
-													texg += emissivecolorcomp[1];
-													texb += emissivecolorcomp[2];
-												}
-												if (texr>1.0f) {texr=1.0f;}
-												if (texg>1.0f) {texg=1.0f;}
-												if (texb>1.0f) {texb=1.0f;}
-												trianglecolor = new Color(texr, texg, texb, alphacolor);
-												g2.setColor(trianglecolor);
-												g2.drawLine(i, j, i, j);
 											}
 										}
 									}
@@ -1161,10 +1203,11 @@ public class RenderLib {
 								Direction copytrianglenormal = trianglenormallist[it];
 								Color trianglecolor = copymaterial.facecolor;
 								float alphacolor = copymaterial.transparency;
-								if (trianglecolor==null) {trianglecolor = Color.WHITE;}
-								float[] trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
-								trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
-								trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+								float[] trianglecolorcomp = null;
+								if (trianglecolor!=null) {
+									trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+									trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
+								}
 								VolatileImage triangletexture = copymaterial.fileimage;
 								BufferedImage triangletextureimage = copymaterial.snapimage;
 								if ((triangletexture!=null)&&(triangletextureimage==null)) {
@@ -1226,6 +1269,9 @@ public class RenderLib {
 														if ((lineuvx>=0)&&(lineuvx<lightmaptexture.getWidth())&&(lineuvy>=0)&&(lineuvy<lightmaptexture.getHeight())) {
 															lightmapcolor = new Color(lightmaptextureimage.getRGB(lineuvx, lineuvy));
 															lightmapcolorcomp = lightmapcolor.getRGBComponents(new float[4]);
+														} else {
+															lightmapcolor = null;
+															lightmapcolorcomp = null;
 														}
 													}
 													if (emissivetexture!=null) {
@@ -1235,6 +1281,9 @@ public class RenderLib {
 														if ((lineuvx>=0)&&(lineuvx<emissivetexture.getWidth())&&(lineuvy>=0)&&(lineuvy<emissivetexture.getHeight())) {
 															emissivecolor = new Color(emissivetextureimage.getRGB(lineuvx, lineuvy));
 															emissivecolorcomp = emissivecolor.getRGBComponents(new float[4]);
+														} else {
+															emissivecolor = null;
+															emissivecolorcomp = null;
 														}
 													}
 													if (triangletexture!=null) {
@@ -1243,39 +1292,45 @@ public class RenderLib {
 														int lineuvy = (int)Math.round(lineuvpoint[0].y);
 														if ((lineuvx>=0)&&(lineuvx<triangletexture.getWidth())&&(lineuvy>=0)&&(lineuvy<triangletexture.getHeight())) {
 															renderview.cbuffer[n][j] = new Coordinate(lineuvx,lineuvy);
-															trianglecolor = new Color(triangletextureimage.getRGB(lineuvx, lineuvy));
-															trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
+															Color triangletexturecolor = new Color(triangletextureimage.getRGB(lineuvx, lineuvy));
+															trianglecolorcomp = triangletexturecolor.getRGBComponents(new float[4]);
+															trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
+														} else {
+															trianglecolor = null;
+															trianglecolorcomp = null;
 														}
 													}
 												}
-												float texr = trianglecolorcomp[0];
-												float texg = trianglecolorcomp[1];
-												float texb = trianglecolorcomp[2];
-												if (!unlit) {
-													texr *= shadingmultiplier;
-													texg *= shadingmultiplier;
-													texb *= shadingmultiplier;
+												if (trianglecolor!=null) {
+													float texr = trianglecolorcomp[0];
+													float texg = trianglecolorcomp[1];
+													float texb = trianglecolorcomp[2];
+													if (!unlit) {
+														texr *= shadingmultiplier;
+														texg *= shadingmultiplier;
+														texb *= shadingmultiplier;
+													}
+													if (lightmapcolor!=null) {
+														texr *= lightmapcolorcomp[0];
+														texg *= lightmapcolorcomp[1];
+														texb *= lightmapcolorcomp[2];
+													} else if (unlit) {
+														texr = 0.0f;
+														texg = 0.0f;
+														texb = 0.0f;
+													}
+													if (emissivecolor!=null) {
+														texr += emissivecolorcomp[0];
+														texg += emissivecolorcomp[1];
+														texb += emissivecolorcomp[2];
+													}
+													if (texr>1.0f) {texr=1.0f;}
+													if (texg>1.0f) {texg=1.0f;}
+													if (texb>1.0f) {texb=1.0f;}
+													trianglecolor = new Color(texr, texg, texb, alphacolor);
+													g2.setColor(trianglecolor);
+													g2.drawLine(i, j, i, j);
 												}
-												if (lightmapcolor!=null) {
-													texr *= lightmapcolorcomp[0];
-													texg *= lightmapcolorcomp[1];
-													texb *= lightmapcolorcomp[2];
-												} else if (unlit) {
-													texr = 0.0f;
-													texg = 0.0f;
-													texb = 0.0f;
-												}
-												if (emissivecolor!=null) {
-													texr += emissivecolorcomp[0];
-													texg += emissivecolorcomp[1];
-													texb += emissivecolorcomp[2];
-												}
-												if (texr>1.0f) {texr=1.0f;}
-												if (texg>1.0f) {texg=1.0f;}
-												if (texb>1.0f) {texb=1.0f;}
-												trianglecolor = new Color(texr, texg, texb, alphacolor);
-												g2.setColor(trianglecolor);
-												g2.drawLine(i, j, i, j);
 											}
 										}
 									}
@@ -1402,7 +1457,7 @@ public class RenderLib {
 								if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
 								if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
 								Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
-								System.out.println("entitylist["+j+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
+								System.out.println("RenderLib: renderSurfaceFaceCubemapPlaneViewHardware: entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
 								Material[] newlmatl = {new Material(p4pixelcolor, 1.0f, null)};
 								entitylist[j].trianglelist[i].lmatl = newlmatl;
 							}
@@ -1481,7 +1536,7 @@ public class RenderLib {
 								if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
 								if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
 								Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
-								System.out.println("entitylist["+j+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
+								System.out.println("RenderLib: renderSurfaceFaceCubemapPlaneViewSoftware: entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
 								Material[] newlmatl = {new Material(p4pixelcolor, 1.0f, null)};
 								entitylist[j].trianglelist[i].lmatl = newlmatl;
 							}
@@ -1560,7 +1615,7 @@ public class RenderLib {
 								if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
 								if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
 								Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
-								System.out.println("entitylist["+j+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
+								System.out.println("RenderLib: renderSurfaceFaceCubemapRayViewSoftware: entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
 								Material[] newlmatl = {new Material(p4pixelcolor, 1.0f, null)};
 								entitylist[j].trianglelist[i].lmatl = newlmatl;
 							}
@@ -1587,7 +1642,7 @@ public class RenderLib {
 		}
 	}
 	
-	public static void renderSurfacePixelCubemapPlaneViewSoftware(Entity[] entitylist, int rendersize, int texturesize, int bounces) {
+	public static void renderSurfaceTextureCubemapPlaneViewSoftware(Entity[] entitylist, int rendersize, int texturesize, int bounces) {
 		//TODO pixel lightmap texture output
 		float multiplier = 10000.0f;
 		Direction[][] cubemaprays = MathLib.projectedRays(rendersize, rendersize, 90.0f, 90.0f, MathLib.rotationMatrix(0.0f, 0.0f, 0.0f));
@@ -1640,7 +1695,7 @@ public class RenderLib {
 								if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
 								if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
 								Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
-								System.out.println("entitylist["+j+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
+								System.out.println("RenderLib: renderSurfaceTextureCubemapPlaneViewSoftware: entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
 								VolatileImage lightmaptexture = gc.createCompatibleVolatileImage(texturesize, texturesize, Transparency.TRANSLUCENT);
 								Graphics2D lmgfx = lightmaptexture.createGraphics();
 								lmgfx.setComposite(AlphaComposite.Src);
