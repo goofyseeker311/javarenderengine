@@ -108,6 +108,7 @@ public class CADApp extends AppHandlerPanel {
 		this.imagechooser.addChoosableFileFilter(this.wbmpfilefilter);
 		this.imagechooser.setFileFilter(this.pngfilefilter);
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+		this.setFocusTraversalKeysEnabled(false);
 	}
 	@Override public void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -244,72 +245,117 @@ public class CADApp extends AppHandlerPanel {
 	}
 	@Override public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
-			if (!e.isShiftDown()) {
-				this.linelisttree.clear();
-				this.entitylist = null;
+			if (e.isControlDown()) {
+				if (this.entitylist!=null) {
+					for (int j=0;j<this.entitylist.length;j++) {
+						if (this.entitylist[j].trianglelist!=null) {
+							for (int i=0;i<this.entitylist[j].trianglelist.length;i++) {
+								if (this.entitylist[j].trianglelist[i].mat!=null) {
+									this.entitylist[j].trianglelist[i].mat = this.entitylist[j].trianglelist[i].mat.copy();
+									this.entitylist[j].trianglelist[i].mat.ambientcolor = null;
+									this.entitylist[j].trianglelist[i].mat.ambientfileimage = null;
+									this.entitylist[j].trianglelist[i].mat.ambientsnapimage = null;
+								}
+							}
+						}
+					}
+				}
+			} else {
+				if (!e.isShiftDown()) {
+					this.linelisttree.clear();
+					this.entitylist = null;
+				}
+				this.editpos = new Position(0.0f, 0.0f, 0.0f);
+				this.campos = new Position(0.0f,0.0f,this.editplanedistance);
+				this.camrot = new Rotation(0.0f, 0.0f, 0.0f);
+				updateCameraDirections();
 			}
-			this.editpos = new Position(0.0f, 0.0f, 0.0f);
-			this.campos = new Position(0.0f,0.0f,this.editplanedistance);
-			this.camrot = new Rotation(0.0f, 0.0f, 0.0f);
-			updateCameraDirections();
 		} else if (e.getKeyCode()==KeyEvent.VK_INSERT) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[0] += 0.01f; if (drawcolorhsb[0]>1.0f) {drawcolorhsb[0] = 0.0f;}
 			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
-			this.drawmat = new Material(newfacecolor,this.drawmat.transparency,null);
+			this.drawmat = this.drawmat.copy();
+			this.drawmat.facecolor = newfacecolor;
+			this.drawmat.fileimage = null;
+			this.drawmat.snapimage = null;
 		} else if (e.getKeyCode()==KeyEvent.VK_DELETE) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[0] -= 0.01f; if (drawcolorhsb[0]<0.0f) {drawcolorhsb[0] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
-			this.drawmat = new Material(newfacecolor,this.drawmat.transparency,null);
+			this.drawmat = this.drawmat.copy();
+			this.drawmat.facecolor = newfacecolor;
+			this.drawmat.fileimage = null;
+			this.drawmat.snapimage = null;
 		} else if (e.getKeyCode()==KeyEvent.VK_HOME) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[1] += 0.01f; if (drawcolorhsb[1]>1.0f) {drawcolorhsb[1] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
-			this.drawmat = new Material(newfacecolor,this.drawmat.transparency,null);
+			this.drawmat = this.drawmat.copy();
+			this.drawmat.facecolor = newfacecolor;
+			this.drawmat.fileimage = null;
+			this.drawmat.snapimage = null;
 		} else if (e.getKeyCode()==KeyEvent.VK_END) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[1] -= 0.01f; if (drawcolorhsb[1]<0.0f) {drawcolorhsb[1] = 0.0f;}
 			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
-			this.drawmat = new Material(newfacecolor,this.drawmat.transparency,null);
+			this.drawmat = this.drawmat.copy();
+			this.drawmat.facecolor = newfacecolor;
+			this.drawmat.fileimage = null;
+			this.drawmat.snapimage = null;
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_UP) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[2] += 0.01f; if (drawcolorhsb[2]>1.0f) {drawcolorhsb[2] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
-			this.drawmat = new Material(newfacecolor,this.drawmat.transparency,null);
+			this.drawmat = this.drawmat.copy();
+			this.drawmat.facecolor = newfacecolor;
+			this.drawmat.fileimage = null;
+			this.drawmat.snapimage = null;
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_DOWN) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[2] -= 0.01f; if (drawcolorhsb[2]<0.0f) {drawcolorhsb[2] = 0.0f;}
 			Color hsbcolor = Color.getHSBColor(drawcolorhsb[0], drawcolorhsb[1], drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.drawmat.transparency);
-			this.drawmat = new Material(newfacecolor,this.drawmat.transparency,null);
+			this.drawmat = this.drawmat.copy();
+			this.drawmat.facecolor = newfacecolor;
+			this.drawmat.fileimage = null;
+			this.drawmat.snapimage = null;
 		} else if (e.getKeyCode()==KeyEvent.VK_MULTIPLY) {
-			float newemissivity = this.drawmat.emissivity+0.01f; if (newemissivity>1.0f) {newemissivity = 1.0f;}
+			float newemissivity = this.drawmat.emissivity*1.1f; if (newemissivity<=0.0f) {newemissivity = 0.00001f;} if (newemissivity>1.0f) {newemissivity = 1.0f;}
+			float[] drawcolorcomp = this.drawmat.facecolor.getRGBComponents(new float[4]);
+			this.drawmat = this.drawmat.copy();
 			this.drawmat.emissivity = newemissivity;
+			this.drawmat.emissivecolor = new Color(drawcolorcomp[0]*newemissivity,drawcolorcomp[1]*newemissivity,drawcolorcomp[2]*newemissivity,1.0f);
 		} else if (e.getKeyCode()==KeyEvent.VK_DIVIDE) {
-			float newemissivity = this.drawmat.emissivity-0.01f; if (newemissivity<0.0f) {newemissivity = 0.0f;}
+			float newemissivity = this.drawmat.emissivity/1.1f;
+			float[] drawcolorcomp = this.drawmat.facecolor.getRGBComponents(new float[4]);
+			this.drawmat = new Material(this.drawmat.facecolor,this.drawmat.transparency,this.drawmat.fileimage);
 			this.drawmat.emissivity = newemissivity;
+			this.drawmat.emissivecolor = new Color(drawcolorcomp[0]*newemissivity,drawcolorcomp[1]*newemissivity,drawcolorcomp[2]*newemissivity,1.0f);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD9) {
 			float newtransparency = this.drawmat.transparency+0.01f; if (newtransparency>1.0f) {newtransparency = 1.0f;}
 			float[] colorvalues = this.drawmat.facecolor.getRGBColorComponents(new float[3]);
 			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],newtransparency);
-			this.drawmat = new Material(newfacecolor,newtransparency,this.drawmat.fileimage);
+			this.drawmat = this.drawmat.copy();
+			this.drawmat.facecolor = newfacecolor;
+			this.drawmat.transparency = newtransparency;
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD8) {
 			float newtransparency = this.drawmat.transparency-0.01f; if (newtransparency<0.0f) {newtransparency = 0.0f;}
 			float[] colorvalues = this.drawmat.facecolor.getRGBColorComponents(new float[3]);
 			Color newfacecolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],newtransparency);
-			this.drawmat = new Material(newfacecolor,newtransparency,this.drawmat.fileimage);
+			this.drawmat = this.drawmat.copy();
+			this.drawmat.facecolor = newfacecolor;
+			this.drawmat.transparency = newtransparency;
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD7) {
 			if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
 				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
@@ -323,10 +369,12 @@ public class CADApp extends AppHandlerPanel {
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD6) {
 			float newroughness = this.drawmat.roughness+0.01f; if (newroughness>1.0f) {newroughness = 1.0f;}
-			this.drawmat.roughness= newroughness;
+			this.drawmat = this.drawmat.copy();
+			this.drawmat.roughness = newroughness;
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD5) {
 			float newroughness = this.drawmat.roughness-0.01f; if (newroughness<0.0f) {newroughness = 0.0f;}
-			this.drawmat.roughness= newroughness;
+			this.drawmat = this.drawmat.copy();
+			this.drawmat.roughness = newroughness;
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD4) {
 			if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
 				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
@@ -334,9 +382,11 @@ public class CADApp extends AppHandlerPanel {
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD3) {
 			float newmetallic = this.drawmat.metallic+0.01f; if (newmetallic>1.0f) {newmetallic = 1.0f;}
+			this.drawmat = this.drawmat.copy();
 			this.drawmat.metallic = newmetallic;
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD2) {
 			float newmetallic = this.drawmat.metallic-0.01f; if (newmetallic<0.0f) {newmetallic = 0.0f;}
+			this.drawmat = this.drawmat.copy();
 			this.drawmat.metallic = newmetallic;
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD1) {
 	    	Triangle mousetriangle = null;
@@ -383,9 +433,13 @@ public class CADApp extends AppHandlerPanel {
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD0) {
 			(new EntityListUpdater()).start();
+		} else if (e.getKeyCode()==KeyEvent.VK_TAB) {
+			//TODO <tbd>
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
 			if (e.isShiftDown()) {
 				this.unlitrender = !this.unlitrender;
+			} else if (e.isControlDown()) {
+		    	(new EntityLightMapUpdater()).start();
 			} else {
 				this.polygonfillmode += 1;
 				if (this.polygonfillmode>3) {
@@ -1106,6 +1160,21 @@ public class CADApp extends AppHandlerPanel {
 					CADApp.this.mouseovertriangle = CADApp.this.softwarerenderview.mouseovertriangle;
 				}
 				SoftwareRenderViewUpdater.renderupdaterrunning = false;
+			}
+		}
+	}
+
+	private class EntityLightMapUpdater extends Thread {
+		private static boolean entitylightmapupdaterrunning = false;
+		public void run() {
+			if (!EntityLightMapUpdater.entitylightmapupdaterrunning) {
+				EntityLightMapUpdater.entitylightmapupdaterrunning = true;
+				if (CADApp.this.polygonfillmode==2) {
+					RenderLib.renderSurfaceFaceCubemapPlaneViewHardware(CADApp.this.entitylist, 32, 1);
+				} else if (CADApp.this.polygonfillmode==3) {
+					RenderLib.renderSurfaceFaceCubemapPlaneViewSoftware(CADApp.this.entitylist, 32, 1);
+				}
+				EntityLightMapUpdater.entitylightmapupdaterrunning = false;
 			}
 		}
 	}

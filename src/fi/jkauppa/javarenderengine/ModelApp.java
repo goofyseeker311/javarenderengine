@@ -66,6 +66,7 @@ public class ModelApp extends AppHandlerPanel {
 		this.filechooser.setFileFilter(this.objfilefilter);
 		this.filechooser.setAcceptAllFileFilterUsed(false);
 		this.setCursor(this.customcursor);
+		this.setFocusTraversalKeysEnabled(false);
 	}
 
 	@Override public void paintComponent(Graphics g) {

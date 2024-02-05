@@ -93,7 +93,51 @@ public class ModelLib {
 			}
 			return k;
 		}
-		public Material copy(){return new Material(this.facecolor,this.transparency,this.fileimage);}
+		public Material copy(){
+			Material k = new Material();
+			k.materialname = this.materialname;
+			k.fileimage = this.fileimage;
+			k.snapimage = this.snapimage;
+			k.ambientfileimage = this.ambientfileimage;
+			k.ambientsnapimage = this.ambientsnapimage;
+			k.specularfileimage = this.specularfileimage;
+			k.specularsnapimage = this.specularsnapimage;
+			k.specularhighfileimage = this.specularhighfileimage;
+			k.specularhighsnapimage = this.specularhighsnapimage;
+			k.emissivefileimage = this.emissivefileimage;
+			k.emissivesnapimage = this.emissivesnapimage;
+			k.alphafileimage = this.alphafileimage;
+			k.alphasnapimage = this.alphasnapimage;
+			k.roughnessfileimage = this.roughnessfileimage;
+			k.roughnesssnapimage = this.roughnesssnapimage;
+			k.metallicfileimage = this.metallicfileimage;
+			k.metallicsnapimage = this.metallicsnapimage;
+			k.sheenfileimage = this.sheenfileimage;
+			k.sheensnapimage = this.sheensnapimage;
+			k.bumpfileimage = this.bumpfileimage;
+			k.bumpsnapimage = this.bumpsnapimage;
+			k.dispfileimage = this.dispfileimage;
+			k.dispsnapimage = this.dispsnapimage;
+			k.decalfileimage = this.decalfileimage;
+			k.decalsnapimage = this.decalsnapimage;
+			k.filename = this.filename;
+			k.facecolor = this.facecolor;
+			k.ambientcolor = this.ambientcolor;
+			k.specularcolor = this.specularcolor;
+			k.emissivecolor = this.emissivecolor;
+			k.specularexp = this.specularexp;
+			k.emissivity = this.emissivity;
+			k.transparency = this.transparency;
+			k.roughness = this.roughness;
+			k.metallic = this.metallic;
+			k.sheen = this.sheen;
+			k.coatthickness = this.coatthickness;
+			k.coatroughtness = this.coatroughtness;
+			k.anisotropy = this.anisotropy;
+			k.anisotropyrot = this.anisotropyrot;
+			k.refraction = this.refraction;
+			return k;
+		}
 	}
 
 	public static class RenderView {
@@ -453,7 +497,7 @@ public class ModelLib {
 			}
 			return k;
 		}
-		public Triangle copy(){Triangle k=new Triangle(this.pos1.copy(),this.pos2.copy(),this.pos3.copy());k.norm=this.norm;k.mat=this.mat;k.ind=this.ind;return k;}
+		public Triangle copy(){Triangle k=new Triangle(this.pos1.copy(),this.pos2.copy(),this.pos3.copy());k.norm=this.norm;k.mat=this.mat;k.lmatl=this.lmatl;k.ind=this.ind;return k;}
 	}
 	public static class Entity implements Comparable<Entity> {
 		public Entity[] childlist = null;

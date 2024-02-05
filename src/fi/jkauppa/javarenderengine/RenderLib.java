@@ -1377,6 +1377,13 @@ public class RenderLib {
 								float p4pixelr = 0.0f;
 								float p4pixelg = 0.0f;
 								float p4pixelb = 0.0f;
+								float pixelcount = 6*rendersize*rendersize;
+								if (entitylist[j].trianglelist[i].mat.emissivecolor!=null) {
+									float[] triangleemissivecolorcomp = entitylist[j].trianglelist[i].mat.emissivecolor.getRGBComponents(new float[4]);
+									p4pixelr = triangleemissivecolorcomp[0]*pixelcount;
+									p4pixelg = triangleemissivecolorcomp[1]*pixelcount;
+									p4pixelb = triangleemissivecolorcomp[2]*pixelcount;
+								}
 								for (int k=0;k<cubemapviews.length;k++) {
 									for (int ky=0;ky<cubemapviews[k].snapimage.getHeight();ky++) {
 										for (int kx=0;kx<cubemapviews[k].snapimage.getWidth();kx++) {
@@ -1388,7 +1395,6 @@ public class RenderLib {
 										}
 									}
 								}
-								float pixelcount = 6*rendersize*rendersize;
 								float p4pixelrt = multiplier*p4pixelr/pixelcount;
 								float p4pixelgt = multiplier*p4pixelg/pixelcount;
 								float p4pixelbt = multiplier*p4pixelb/pixelcount;
@@ -1450,6 +1456,13 @@ public class RenderLib {
 								float p4pixelr = 0.0f;
 								float p4pixelg = 0.0f;
 								float p4pixelb = 0.0f;
+								float pixelcount = 6*rendersize*rendersize;
+								if (entitylist[j].trianglelist[i].mat.emissivecolor!=null) {
+									float[] triangleemissivecolorcomp = entitylist[j].trianglelist[i].mat.emissivecolor.getRGBComponents(new float[4]);
+									p4pixelr = triangleemissivecolorcomp[0]*pixelcount;
+									p4pixelg = triangleemissivecolorcomp[1]*pixelcount;
+									p4pixelb = triangleemissivecolorcomp[2]*pixelcount;
+								}
 								for (int k=0;k<cubemapviews.length;k++) {
 									for (int ky=0;ky<cubemapviews[k].snapimage.getHeight();ky++) {
 										for (int kx=0;kx<cubemapviews[k].snapimage.getWidth();kx++) {
@@ -1461,7 +1474,6 @@ public class RenderLib {
 										}
 									}
 								}
-								float pixelcount = 6*rendersize*rendersize;
 								float p4pixelrt = multiplier*p4pixelr/pixelcount;
 								float p4pixelgt = multiplier*p4pixelg/pixelcount;
 								float p4pixelbt = multiplier*p4pixelb/pixelcount;
@@ -1523,6 +1535,13 @@ public class RenderLib {
 								float p4pixelr = 0.0f;
 								float p4pixelg = 0.0f;
 								float p4pixelb = 0.0f;
+								float pixelcount = 6*rendersize*rendersize;
+								if (entitylist[j].trianglelist[i].mat.emissivecolor!=null) {
+									float[] triangleemissivecolorcomp = entitylist[j].trianglelist[i].mat.emissivecolor.getRGBComponents(new float[4]);
+									p4pixelr = triangleemissivecolorcomp[0]*pixelcount;
+									p4pixelg = triangleemissivecolorcomp[1]*pixelcount;
+									p4pixelb = triangleemissivecolorcomp[2]*pixelcount;
+								}
 								for (int k=0;k<cubemapviews.length;k++) {
 									for (int ky=0;ky<cubemapviews[k].snapimage.getHeight();ky++) {
 										for (int kx=0;kx<cubemapviews[k].snapimage.getWidth();kx++) {
@@ -1534,7 +1553,6 @@ public class RenderLib {
 										}
 									}
 								}
-								float pixelcount = 6*rendersize*rendersize;
 								float p4pixelrt = multiplier*p4pixelr/pixelcount;
 								float p4pixelgt = multiplier*p4pixelg/pixelcount;
 								float p4pixelbt = multiplier*p4pixelb/pixelcount;
@@ -1597,6 +1615,13 @@ public class RenderLib {
 								float p4pixelr = 0.0f;
 								float p4pixelg = 0.0f;
 								float p4pixelb = 0.0f;
+								float pixelcount = 6*rendersize*rendersize;
+								if (entitylist[j].trianglelist[i].mat.emissivecolor!=null) {
+									float[] triangleemissivecolorcomp = entitylist[j].trianglelist[i].mat.emissivecolor.getRGBComponents(new float[4]);
+									p4pixelr = triangleemissivecolorcomp[0]*pixelcount;
+									p4pixelg = triangleemissivecolorcomp[1]*pixelcount;
+									p4pixelb = triangleemissivecolorcomp[2]*pixelcount;
+								}
 								for (int k=0;k<cubemapviews.length;k++) {
 									for (int ky=0;ky<cubemapviews[k].snapimage.getHeight();ky++) {
 										for (int kx=0;kx<cubemapviews[k].snapimage.getWidth();kx++) {
@@ -1608,7 +1633,6 @@ public class RenderLib {
 										}
 									}
 								}
-								float pixelcount = 6*rendersize*rendersize;
 								float p4pixelrt = multiplier*p4pixelr/pixelcount;
 								float p4pixelgt = multiplier*p4pixelg/pixelcount;
 								float p4pixelbt = multiplier*p4pixelb/pixelcount;

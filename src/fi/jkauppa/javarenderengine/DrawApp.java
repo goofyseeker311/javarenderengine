@@ -78,6 +78,7 @@ public class DrawApp extends AppHandlerPanel {
 		this.filechooser.addChoosableFileFilter(this.wbmpfilefilter);
 		this.filechooser.setFileFilter(this.pngfilefilter);
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+		this.setFocusTraversalKeysEnabled(false);
 	}
 	
 	@Override public void paintComponent(Graphics g) {
