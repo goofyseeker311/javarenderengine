@@ -252,7 +252,6 @@ public class ModelApp extends AppHandlerPanel {
 					}
 				}
 				this.entitylist = newentitylist.toArray(new Entity[newentitylist.size()]);
-				(new EntityLightMapUpdater()).start();
 			}
 		}
 	}
@@ -317,25 +316,6 @@ public class ModelApp extends AppHandlerPanel {
 					ModelApp.this.renderview = RenderLib.renderCubemapRayViewSoftware(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), (int)Math.floor(((double)ModelApp.this.getHeight())/2.0f), ModelApp.this.cameramat, ModelApp.this.unlitrender, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				}
 				RenderViewUpdater.renderupdaterrunning = false;
-			}
-		}
-	}
-	
-	private class EntityLightMapUpdater extends Thread {
-		private static boolean entitylightmapupdaterrunning = false;
-		public void run() {
-			if (!EntityLightMapUpdater.entitylightmapupdaterrunning) {
-				EntityLightMapUpdater.entitylightmapupdaterrunning = true;
-				if (ModelApp.this.unlitrender) {
-					if (ModelApp.this.polygonfillmode==1) {
-						RenderLib.renderSurfaceFaceCubemapPlaneViewHardware(ModelApp.this.entitylist, 32, 1);
-					} else if ((ModelApp.this.polygonfillmode==2)||(ModelApp.this.polygonfillmode==3)||(ModelApp.this.polygonfillmode==4)) {
-						RenderLib.renderSurfaceFaceCubemapPlaneViewSoftware(ModelApp.this.entitylist, 32, 1);
-					} else if ((ModelApp.this.polygonfillmode==5)||(ModelApp.this.polygonfillmode==6)||(ModelApp.this.polygonfillmode==7)) {
-						RenderLib.renderSurfaceFaceCubemapRayViewSoftware(ModelApp.this.entitylist, 32, 1);
-					}
-				}
-				EntityLightMapUpdater.entitylightmapupdaterrunning = false;
 			}
 		}
 	}
