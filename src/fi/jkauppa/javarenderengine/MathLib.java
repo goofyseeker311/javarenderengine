@@ -1293,6 +1293,14 @@ public class MathLib {
 		for (int i=0;i<vres;i++){k[i]=-halfvfov+vstep*i;}
 		return k;
 	}
+	public static Direction[] spheremapPlaneVectors(Position vpos, int vhres, Matrix vmat) {
+		Direction[] vupdir = {new Direction(0.0f,-1.0f,0.0f)};
+		Direction[] vupdirrot = matrixMultiply(vupdir, vmat);
+		Plane[] spheremapplanes = spheremapPlanes(vpos, vhres, vmat);
+		Direction[] planenormals = planeNormals(spheremapplanes);
+		Direction[] spheremapforwardvectors = vectorCross(vupdirrot[0], planenormals);
+		return normalizeVector(spheremapforwardvectors);
+	}
 	public static Plane[] spheremapPlanes(Position vpos, int vhres, Matrix vmat) {
 		double[] hangles  = spheremapAngles(vhres, 360.0f);
 		Direction[] smvecs = new Direction[vhres];
