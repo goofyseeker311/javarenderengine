@@ -165,6 +165,7 @@ public class ModelLib {
 		public Direction[] dirs;
 		public Direction[][] rays;
 		public Plane[] planes;
+		public Direction[] fwddirs;
 	}
 	
 	public static class Cubemap {
