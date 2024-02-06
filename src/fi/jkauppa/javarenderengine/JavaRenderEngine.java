@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.3");
+		this.setTitle("Java Render Engine v2.3.4");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -218,10 +218,14 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Position[] vertexlist = {new Position(-5,3,9),new Position(-7,-3,-1),new Position(4,-6,-7),new Position(2,4,11)};
 		AxisAlignedBoundingBox aabb = MathLib.axisAlignedBoundingBox(vertexlist);
 		Sphere pointcloudsphere = MathLib.pointCloudCircumSphere(vertexlist);
+		double[] trianglearea = MathLib.triangleArea(ptri);
 		Sphere[] trianglesphere = MathLib.triangleCircumSphere(ptri);
+		Sphere[] triangleinsphere = MathLib.triangleInSphere(ptri);
 		System.out.println("JavaRenderEngine: main: aabb="+aabb.x1+","+aabb.y1+","+aabb.z1+" "+aabb.x2+" "+aabb.y2+" "+aabb.z2);
 		System.out.println("JavaRenderEngine: main: boundingsphere="+pointcloudsphere.x+","+pointcloudsphere.y+","+pointcloudsphere.z+" "+pointcloudsphere.r);
+		System.out.println("JavaRenderEngine: main: trianglearea="+trianglearea[0]);
 		for (int i=0;i<trianglesphere.length;i++) {System.out.println("JavaRenderEngine: main: trianglesphere["+i+"]="+trianglesphere[i].x+" "+trianglesphere[i].y+" "+trianglesphere[i].z+" "+trianglesphere[i].r);}
+		for (int i=0;i<triangleinsphere.length;i++) {System.out.println("JavaRenderEngine: main: triangleinsphere["+i+"]="+triangleinsphere[i].x+" "+triangleinsphere[i].y+" "+triangleinsphere[i].z+" "+triangleinsphere[i].r);}
 		Position pmsvpos = new Position(0,0,0);
 		Position[] pmstripos = {new Position(0.0f,-3.9f,0.0f),new Position(-1.0f,-3.9f,0.0f),new Position(1.0f,-3.9f,0.0f),new Position(0.0f,-3.9f,1.0f),new Position(0.0f,-3.9f,-1.0f),new Position(-3.9f,0.0f,0.0f),new Position(3.9f,0.0f,0.0f),new Position(0.0f,3.9f,0.0f)};
 		Triangle[] pmsvtri = {new Triangle(pmstripos[0],pmstripos[1],pmstripos[3]), new Triangle(pmstripos[0],pmstripos[2],pmstripos[3]), new Triangle(pmstripos[0],pmstripos[1],pmstripos[4]), new Triangle(pmstripos[0],pmstripos[2],pmstripos[4])};

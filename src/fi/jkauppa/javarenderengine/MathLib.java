@@ -1765,6 +1765,47 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static Sphere[] triangleInSphere(Triangle[] trianglelist) {
+		Sphere[] k = new Sphere[trianglelist.length];
+		for (int i=0;i<trianglelist.length;i++) {
+			Position[] tripos1 = {trianglelist[i].pos1};
+			Position[] tripos2 = {trianglelist[i].pos2};
+			Position[] tripos3 = {trianglelist[i].pos3};
+			Direction[] tridir12 = vectorFromPoints(tripos1, tripos2);
+			Direction[] tridir13 = vectorFromPoints(tripos1, tripos3);
+			Direction[] tridir23 = vectorFromPoints(tripos2, tripos3);
+			double[] tridir12len = vectorLength(tridir12);
+			double[] tridir13len = vectorLength(tridir13);
+			double[] tridir23len = vectorLength(tridir23);
+			double lensum = tridir12len[0]+tridir13len[0]+tridir23len[0];
+			double xcoord = (tridir12len[0]*tripos3[0].x+tridir13len[0]*tripos2[0].x+tridir23len[0]*tripos1[0].x)/lensum;
+			double ycoord = (tridir12len[0]*tripos3[0].y+tridir13len[0]*tripos2[0].y+tridir23len[0]*tripos1[0].y)/lensum;
+			double zcoord = (tridir12len[0]*tripos3[0].z+tridir13len[0]*tripos2[0].z+tridir23len[0]*tripos1[0].z)/lensum;
+			double semiperimeter = 0.5f*lensum;
+			double trianglearea = Math.sqrt(semiperimeter*(semiperimeter-tridir12len[0])*(semiperimeter-tridir13len[0])*(semiperimeter-tridir23len[0]));
+			double insphereradius = trianglearea/semiperimeter;
+			k[i] = new Sphere(xcoord,ycoord,zcoord,insphereradius);
+		}
+		return k;
+	}
+	public static double[] triangleArea(Triangle[] trianglelist) {
+		double[] k = new double[trianglelist.length];
+		for (int i=0;i<trianglelist.length;i++) {
+			Position[] tripos1 = {trianglelist[i].pos1};
+			Position[] tripos2 = {trianglelist[i].pos2};
+			Position[] tripos3 = {trianglelist[i].pos3};
+			Direction[] tridir12 = vectorFromPoints(tripos1, tripos2);
+			Direction[] tridir13 = vectorFromPoints(tripos1, tripos3);
+			Direction[] tridir23 = vectorFromPoints(tripos2, tripos3);
+			double[] tridir12len = vectorLength(tridir12);
+			double[] tridir13len = vectorLength(tridir13);
+			double[] tridir23len = vectorLength(tridir23);
+			double lensum = tridir12len[0]+tridir13len[0]+tridir23len[0];
+			double semiperimeter = 0.5f*lensum;
+			k[i] = Math.sqrt(semiperimeter*(semiperimeter-tridir12len[0])*(semiperimeter-tridir13len[0])*(semiperimeter-tridir23len[0]));
+		}
+		return k;
+	}
 	
 	public static Direction[] surfaceMirrorRays(Plane[] vsurf, Direction[] vdir, double refraction) {
 		Direction[]  k = null;
