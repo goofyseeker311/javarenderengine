@@ -1494,69 +1494,74 @@ public class RenderLib {
 		for (int i=0;i<cubemaprays.length;i++) {
 			cubemapraylen[i] = MathLib.vectorLength(cubemaprays[i]);
 		}
-		if (entitylist!=null) {
-			for (int j=0;j<entitylist.length;j++) {
-				if (entitylist[j]!=null) {
-					if (entitylist[j].trianglelist!=null) {
-						Sphere[] trianglespherelist = MathLib.triangleCircumSphere(entitylist[j].trianglelist);
-						for (int i=0;i<entitylist[j].trianglelist.length;i++) {
-							if (entitylist[j].trianglelist[i]!=null) {
-								Sphere[] trianglesphere = {trianglespherelist[i]};
-								Position[] trianglespherepoint = MathLib.sphereVertexList(trianglesphere);
-								RenderView p4pixelview = renderCubemapPolygonViewHardware(trianglespherepoint[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
-								RenderView[] cubemapviews = new RenderView[6];
-								cubemapviews[0] = p4pixelview.cubemap.backwardview;
-								cubemapviews[1] = p4pixelview.cubemap.bottomview;
-								cubemapviews[2] = p4pixelview.cubemap.forwardview;
-								cubemapviews[3] = p4pixelview.cubemap.leftview;
-								cubemapviews[4] = p4pixelview.cubemap.rightview;
-								cubemapviews[5] = p4pixelview.cubemap.topview;
-								float p4pixelr = 0.0f;
-								float p4pixelg = 0.0f;
-								float p4pixelb = 0.0f;
-								float pixelcount = 6*rendersize*rendersize;
-								if (entitylist[j].trianglelist[i].mat.emissivecolor!=null) {
-									float[] triangleemissivecolorcomp = entitylist[j].trianglelist[i].mat.emissivecolor.getRGBComponents(new float[4]);
-									p4pixelr = triangleemissivecolorcomp[0]*pixelcount;
-									p4pixelg = triangleemissivecolorcomp[1]*pixelcount;
-									p4pixelb = triangleemissivecolorcomp[2]*pixelcount;
-								}
-								for (int k=0;k<cubemapviews.length;k++) {
-									for (int ky=0;ky<cubemapviews[k].snapimage.getHeight();ky++) {
-										for (int kx=0;kx<cubemapviews[k].snapimage.getWidth();kx++) {
-											Color p4pixelcolor = new Color(cubemapviews[k].snapimage.getRGB(kx, ky));
-											float[] p4pixelcolorcomp = p4pixelcolor.getRGBComponents(new float[4]);
-											p4pixelr += p4pixelcolorcomp[0]/cubemapraylen[ky][kx];
-											p4pixelg += p4pixelcolorcomp[1]/cubemapraylen[ky][kx];
-											p4pixelb += p4pixelcolorcomp[2]/cubemapraylen[ky][kx];
+		int lightbounces = (bounces>0)?bounces:1;
+		for (int l=0;l<lightbounces;l++) {
+			if (entitylist!=null) {
+				for (int j=0;j<entitylist.length;j++) {
+					if (entitylist[j]!=null) {
+						if (entitylist[j].trianglelist!=null) {
+							Sphere[] trianglespherelist = MathLib.triangleInSphere(entitylist[j].trianglelist);
+							for (int i=0;i<entitylist[j].trianglelist.length;i++) {
+								if (entitylist[j].trianglelist[i]!=null) {
+									Sphere[] trianglesphere = {trianglespherelist[i]};
+									Position[] trianglespherepoint = MathLib.sphereVertexList(trianglesphere);
+									RenderView p4pixelview = renderCubemapPolygonViewHardware(trianglespherepoint[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
+									RenderView[] cubemapviews = new RenderView[6];
+									cubemapviews[0] = p4pixelview.cubemap.backwardview;
+									cubemapviews[1] = p4pixelview.cubemap.bottomview;
+									cubemapviews[2] = p4pixelview.cubemap.forwardview;
+									cubemapviews[3] = p4pixelview.cubemap.leftview;
+									cubemapviews[4] = p4pixelview.cubemap.rightview;
+									cubemapviews[5] = p4pixelview.cubemap.topview;
+									float p4pixelr = 0.0f;
+									float p4pixelg = 0.0f;
+									float p4pixelb = 0.0f;
+									float pixelcount = 6*rendersize*rendersize;
+									if (entitylist[j].trianglelist[i].mat.emissivecolor!=null) {
+										float[] triangleemissivecolorcomp = entitylist[j].trianglelist[i].mat.emissivecolor.getRGBComponents(new float[4]);
+										p4pixelr = triangleemissivecolorcomp[0]*pixelcount;
+										p4pixelg = triangleemissivecolorcomp[1]*pixelcount;
+										p4pixelb = triangleemissivecolorcomp[2]*pixelcount;
+									}
+									for (int k=0;k<cubemapviews.length;k++) {
+										for (int ky=0;ky<cubemapviews[k].snapimage.getHeight();ky++) {
+											for (int kx=0;kx<cubemapviews[k].snapimage.getWidth();kx++) {
+												Color p4pixelcolor = new Color(cubemapviews[k].snapimage.getRGB(kx, ky));
+												float[] p4pixelcolorcomp = p4pixelcolor.getRGBComponents(new float[4]);
+												p4pixelr += p4pixelcolorcomp[0]/cubemapraylen[ky][kx];
+												p4pixelg += p4pixelcolorcomp[1]/cubemapraylen[ky][kx];
+												p4pixelb += p4pixelcolorcomp[2]/cubemapraylen[ky][kx];
+											}
 										}
 									}
+									float p4pixelrt = multiplier*p4pixelr/pixelcount;
+									float p4pixelgt = multiplier*p4pixelg/pixelcount;
+									float p4pixelbt = multiplier*p4pixelb/pixelcount;
+									if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
+									if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
+									if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
+									Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
+									System.out.println("RenderLib: renderSurfaceFaceCubemapPlaneViewHardware: bounce["+l+"] entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
+									if ((entitylist[j].trianglelist[i].lmatl==null)||(entitylist[j].trianglelist[i].lmatl.length!=lightbounces)) {
+										entitylist[j].trianglelist[i].lmatl = new Material[lightbounces];
+									}
+									entitylist[j].trianglelist[i].lmatl[l] = new Material(p4pixelcolor, 1.0f, null);
 								}
-								float p4pixelrt = multiplier*p4pixelr/pixelcount;
-								float p4pixelgt = multiplier*p4pixelg/pixelcount;
-								float p4pixelbt = multiplier*p4pixelb/pixelcount;
-								if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
-								if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
-								if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
-								Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
-								System.out.println("RenderLib: renderSurfaceFaceCubemapPlaneViewHardware: entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
-								Material[] newlmatl = {new Material(p4pixelcolor, 1.0f, null)};
-								entitylist[j].trianglelist[i].lmatl = newlmatl;
 							}
 						}
 					}
 				}
 			}
-		}
-		if (entitylist!=null) {
-			for (int j=0;j<entitylist.length;j++) {
-				if (entitylist[j]!=null) {
-					if (entitylist[j].trianglelist!=null) {
-						for (int i=0;i<entitylist[j].trianglelist.length;i++) {
-							if (entitylist[j].trianglelist[i]!=null) {
-								if ((entitylist[j].trianglelist[i].mat!=null)&&(entitylist[j].trianglelist[i].lmatl!=null)) {
-									entitylist[j].trianglelist[i].mat = entitylist[j].trianglelist[i].mat.copy();
-									entitylist[j].trianglelist[i].mat.ambientcolor = entitylist[j].trianglelist[i].lmatl[0].facecolor;
+			if (entitylist!=null) {
+				for (int j=0;j<entitylist.length;j++) {
+					if (entitylist[j]!=null) {
+						if (entitylist[j].trianglelist!=null) {
+							for (int i=0;i<entitylist[j].trianglelist.length;i++) {
+								if (entitylist[j].trianglelist[i]!=null) {
+									if ((entitylist[j].trianglelist[i].mat!=null)&&(entitylist[j].trianglelist[i].lmatl!=null)) {
+										entitylist[j].trianglelist[i].mat = entitylist[j].trianglelist[i].mat.copy();
+										entitylist[j].trianglelist[i].mat.ambientcolor = entitylist[j].trianglelist[i].lmatl[l].facecolor;
+									}
 								}
 							}
 						}
@@ -1573,69 +1578,74 @@ public class RenderLib {
 		for (int i=0;i<cubemaprays.length;i++) {
 			cubemapraylen[i] = MathLib.vectorLength(cubemaprays[i]);
 		}
-		if (entitylist!=null) {
-			for (int j=0;j<entitylist.length;j++) {
-				if (entitylist[j]!=null) {
-					if (entitylist[j].trianglelist!=null) {
-						Sphere[] trianglespherelist = MathLib.triangleCircumSphere(entitylist[j].trianglelist);
-						for (int i=0;i<entitylist[j].trianglelist.length;i++) {
-							if (entitylist[j].trianglelist[i]!=null) {
-								Sphere[] trianglesphere = {trianglespherelist[i]};
-								Position[] trianglespherepoint = MathLib.sphereVertexList(trianglesphere);
-								RenderView p4pixelview = renderCubemapPlaneViewSoftware(trianglespherepoint[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
-								RenderView[] cubemapviews = new RenderView[6];
-								cubemapviews[0] = p4pixelview.cubemap.backwardview;
-								cubemapviews[1] = p4pixelview.cubemap.bottomview;
-								cubemapviews[2] = p4pixelview.cubemap.forwardview;
-								cubemapviews[3] = p4pixelview.cubemap.leftview;
-								cubemapviews[4] = p4pixelview.cubemap.rightview;
-								cubemapviews[5] = p4pixelview.cubemap.topview;
-								float p4pixelr = 0.0f;
-								float p4pixelg = 0.0f;
-								float p4pixelb = 0.0f;
-								float pixelcount = 6*rendersize*rendersize;
-								if (entitylist[j].trianglelist[i].mat.emissivecolor!=null) {
-									float[] triangleemissivecolorcomp = entitylist[j].trianglelist[i].mat.emissivecolor.getRGBComponents(new float[4]);
-									p4pixelr = triangleemissivecolorcomp[0]*pixelcount;
-									p4pixelg = triangleemissivecolorcomp[1]*pixelcount;
-									p4pixelb = triangleemissivecolorcomp[2]*pixelcount;
-								}
-								for (int k=0;k<cubemapviews.length;k++) {
-									for (int ky=0;ky<cubemapviews[k].snapimage.getHeight();ky++) {
-										for (int kx=0;kx<cubemapviews[k].snapimage.getWidth();kx++) {
-											Color p4pixelcolor = new Color(cubemapviews[k].snapimage.getRGB(kx, ky));
-											float[] p4pixelcolorcomp = p4pixelcolor.getRGBComponents(new float[4]);
-											p4pixelr += p4pixelcolorcomp[0]/cubemapraylen[ky][kx];
-											p4pixelg += p4pixelcolorcomp[1]/cubemapraylen[ky][kx];
-											p4pixelb += p4pixelcolorcomp[2]/cubemapraylen[ky][kx];
+		int lightbounces = (bounces>0)?bounces:1;
+		for (int l=0;l<lightbounces;l++) {
+			if (entitylist!=null) {
+				for (int j=0;j<entitylist.length;j++) {
+					if (entitylist[j]!=null) {
+						if (entitylist[j].trianglelist!=null) {
+							Sphere[] trianglespherelist = MathLib.triangleInSphere(entitylist[j].trianglelist);
+							for (int i=0;i<entitylist[j].trianglelist.length;i++) {
+								if (entitylist[j].trianglelist[i]!=null) {
+									Sphere[] trianglesphere = {trianglespherelist[i]};
+									Position[] trianglespherepoint = MathLib.sphereVertexList(trianglesphere);
+									RenderView p4pixelview = renderCubemapPlaneViewSoftware(trianglespherepoint[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
+									RenderView[] cubemapviews = new RenderView[6];
+									cubemapviews[0] = p4pixelview.cubemap.backwardview;
+									cubemapviews[1] = p4pixelview.cubemap.bottomview;
+									cubemapviews[2] = p4pixelview.cubemap.forwardview;
+									cubemapviews[3] = p4pixelview.cubemap.leftview;
+									cubemapviews[4] = p4pixelview.cubemap.rightview;
+									cubemapviews[5] = p4pixelview.cubemap.topview;
+									float p4pixelr = 0.0f;
+									float p4pixelg = 0.0f;
+									float p4pixelb = 0.0f;
+									float pixelcount = 6*rendersize*rendersize;
+									if (entitylist[j].trianglelist[i].mat.emissivecolor!=null) {
+										float[] triangleemissivecolorcomp = entitylist[j].trianglelist[i].mat.emissivecolor.getRGBComponents(new float[4]);
+										p4pixelr = triangleemissivecolorcomp[0]*pixelcount;
+										p4pixelg = triangleemissivecolorcomp[1]*pixelcount;
+										p4pixelb = triangleemissivecolorcomp[2]*pixelcount;
+									}
+									for (int k=0;k<cubemapviews.length;k++) {
+										for (int ky=0;ky<cubemapviews[k].snapimage.getHeight();ky++) {
+											for (int kx=0;kx<cubemapviews[k].snapimage.getWidth();kx++) {
+												Color p4pixelcolor = new Color(cubemapviews[k].snapimage.getRGB(kx, ky));
+												float[] p4pixelcolorcomp = p4pixelcolor.getRGBComponents(new float[4]);
+												p4pixelr += p4pixelcolorcomp[0]/cubemapraylen[ky][kx];
+												p4pixelg += p4pixelcolorcomp[1]/cubemapraylen[ky][kx];
+												p4pixelb += p4pixelcolorcomp[2]/cubemapraylen[ky][kx];
+											}
 										}
 									}
+									float p4pixelrt = multiplier*p4pixelr/pixelcount;
+									float p4pixelgt = multiplier*p4pixelg/pixelcount;
+									float p4pixelbt = multiplier*p4pixelb/pixelcount;
+									if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
+									if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
+									if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
+									Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
+									System.out.println("RenderLib: renderSurfaceFaceCubemapPlaneViewSoftware: bounce["+l+"] entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
+									if ((entitylist[j].trianglelist[i].lmatl==null)||(entitylist[j].trianglelist[i].lmatl.length!=lightbounces)) {
+										entitylist[j].trianglelist[i].lmatl = new Material[lightbounces];
+									}
+									entitylist[j].trianglelist[i].lmatl[l] = new Material(p4pixelcolor, 1.0f, null);
 								}
-								float p4pixelrt = multiplier*p4pixelr/pixelcount;
-								float p4pixelgt = multiplier*p4pixelg/pixelcount;
-								float p4pixelbt = multiplier*p4pixelb/pixelcount;
-								if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
-								if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
-								if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
-								Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
-								System.out.println("RenderLib: renderSurfaceFaceCubemapPlaneViewSoftware: entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
-								Material[] newlmatl = {new Material(p4pixelcolor, 1.0f, null)};
-								entitylist[j].trianglelist[i].lmatl = newlmatl;
 							}
 						}
 					}
 				}
 			}
-		}
-		if (entitylist!=null) {
-			for (int j=0;j<entitylist.length;j++) {
-				if (entitylist[j]!=null) {
-					if (entitylist[j].trianglelist!=null) {
-						for (int i=0;i<entitylist[j].trianglelist.length;i++) {
-							if (entitylist[j].trianglelist[i]!=null) {
-								if ((entitylist[j].trianglelist[i].mat!=null)&&(entitylist[j].trianglelist[i].lmatl!=null)) {
-									entitylist[j].trianglelist[i].mat = entitylist[j].trianglelist[i].mat.copy();
-									entitylist[j].trianglelist[i].mat.ambientcolor = entitylist[j].trianglelist[i].lmatl[0].facecolor;
+			if (entitylist!=null) {
+				for (int j=0;j<entitylist.length;j++) {
+					if (entitylist[j]!=null) {
+						if (entitylist[j].trianglelist!=null) {
+							for (int i=0;i<entitylist[j].trianglelist.length;i++) {
+								if (entitylist[j].trianglelist[i]!=null) {
+									if ((entitylist[j].trianglelist[i].mat!=null)&&(entitylist[j].trianglelist[i].lmatl!=null)) {
+										entitylist[j].trianglelist[i].mat = entitylist[j].trianglelist[i].mat.copy();
+										entitylist[j].trianglelist[i].mat.ambientcolor = entitylist[j].trianglelist[i].lmatl[l].facecolor;
+									}
 								}
 							}
 						}
@@ -1652,69 +1662,74 @@ public class RenderLib {
 		for (int i=0;i<cubemaprays.length;i++) {
 			cubemapraylen[i] = MathLib.vectorLength(cubemaprays[i]);
 		}
-		if (entitylist!=null) {
-			for (int j=0;j<entitylist.length;j++) {
-				if (entitylist[j]!=null) {
-					if (entitylist[j].trianglelist!=null) {
-						Sphere[] trianglespherelist = MathLib.triangleCircumSphere(entitylist[j].trianglelist);
-						for (int i=0;i<entitylist[j].trianglelist.length;i++) {
-							if (entitylist[j].trianglelist[i]!=null) {
-								Sphere[] trianglesphere = {trianglespherelist[i]};
-								Position[] trianglespherepoint = MathLib.sphereVertexList(trianglesphere);
-								RenderView p4pixelview = renderCubemapRayViewSoftware(trianglespherepoint[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
-								RenderView[] cubemapviews = new RenderView[6];
-								cubemapviews[0] = p4pixelview.cubemap.backwardview;
-								cubemapviews[1] = p4pixelview.cubemap.bottomview;
-								cubemapviews[2] = p4pixelview.cubemap.forwardview;
-								cubemapviews[3] = p4pixelview.cubemap.leftview;
-								cubemapviews[4] = p4pixelview.cubemap.rightview;
-								cubemapviews[5] = p4pixelview.cubemap.topview;
-								float p4pixelr = 0.0f;
-								float p4pixelg = 0.0f;
-								float p4pixelb = 0.0f;
-								float pixelcount = 6*rendersize*rendersize;
-								if (entitylist[j].trianglelist[i].mat.emissivecolor!=null) {
-									float[] triangleemissivecolorcomp = entitylist[j].trianglelist[i].mat.emissivecolor.getRGBComponents(new float[4]);
-									p4pixelr = triangleemissivecolorcomp[0]*pixelcount;
-									p4pixelg = triangleemissivecolorcomp[1]*pixelcount;
-									p4pixelb = triangleemissivecolorcomp[2]*pixelcount;
-								}
-								for (int k=0;k<cubemapviews.length;k++) {
-									for (int ky=0;ky<cubemapviews[k].snapimage.getHeight();ky++) {
-										for (int kx=0;kx<cubemapviews[k].snapimage.getWidth();kx++) {
-											Color p4pixelcolor = new Color(cubemapviews[k].snapimage.getRGB(kx, ky));
-											float[] p4pixelcolorcomp = p4pixelcolor.getRGBComponents(new float[4]);
-											p4pixelr += p4pixelcolorcomp[0]/cubemapraylen[ky][kx];
-											p4pixelg += p4pixelcolorcomp[1]/cubemapraylen[ky][kx];
-											p4pixelb += p4pixelcolorcomp[2]/cubemapraylen[ky][kx];
+		int lightbounces = (bounces>0)?bounces:1;
+		for (int l=0;l<lightbounces;l++) {
+			if (entitylist!=null) {
+				for (int j=0;j<entitylist.length;j++) {
+					if (entitylist[j]!=null) {
+						if (entitylist[j].trianglelist!=null) {
+							Sphere[] trianglespherelist = MathLib.triangleInSphere(entitylist[j].trianglelist);
+							for (int i=0;i<entitylist[j].trianglelist.length;i++) {
+								if (entitylist[j].trianglelist[i]!=null) {
+									Sphere[] trianglesphere = {trianglespherelist[i]};
+									Position[] trianglespherepoint = MathLib.sphereVertexList(trianglesphere);
+									RenderView p4pixelview = renderCubemapRayViewSoftware(trianglespherepoint[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
+									RenderView[] cubemapviews = new RenderView[6];
+									cubemapviews[0] = p4pixelview.cubemap.backwardview;
+									cubemapviews[1] = p4pixelview.cubemap.bottomview;
+									cubemapviews[2] = p4pixelview.cubemap.forwardview;
+									cubemapviews[3] = p4pixelview.cubemap.leftview;
+									cubemapviews[4] = p4pixelview.cubemap.rightview;
+									cubemapviews[5] = p4pixelview.cubemap.topview;
+									float p4pixelr = 0.0f;
+									float p4pixelg = 0.0f;
+									float p4pixelb = 0.0f;
+									float pixelcount = 6*rendersize*rendersize;
+									if (entitylist[j].trianglelist[i].mat.emissivecolor!=null) {
+										float[] triangleemissivecolorcomp = entitylist[j].trianglelist[i].mat.emissivecolor.getRGBComponents(new float[4]);
+										p4pixelr = triangleemissivecolorcomp[0]*pixelcount;
+										p4pixelg = triangleemissivecolorcomp[1]*pixelcount;
+										p4pixelb = triangleemissivecolorcomp[2]*pixelcount;
+									}
+									for (int k=0;k<cubemapviews.length;k++) {
+										for (int ky=0;ky<cubemapviews[k].snapimage.getHeight();ky++) {
+											for (int kx=0;kx<cubemapviews[k].snapimage.getWidth();kx++) {
+												Color p4pixelcolor = new Color(cubemapviews[k].snapimage.getRGB(kx, ky));
+												float[] p4pixelcolorcomp = p4pixelcolor.getRGBComponents(new float[4]);
+												p4pixelr += p4pixelcolorcomp[0]/cubemapraylen[ky][kx];
+												p4pixelg += p4pixelcolorcomp[1]/cubemapraylen[ky][kx];
+												p4pixelb += p4pixelcolorcomp[2]/cubemapraylen[ky][kx];
+											}
 										}
 									}
+									float p4pixelrt = multiplier*p4pixelr/pixelcount;
+									float p4pixelgt = multiplier*p4pixelg/pixelcount;
+									float p4pixelbt = multiplier*p4pixelb/pixelcount;
+									if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
+									if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
+									if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
+									Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
+									System.out.println("RenderLib: renderSurfaceFaceCubemapRayViewSoftware: bounce["+l+"] entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
+									if ((entitylist[j].trianglelist[i].lmatl==null)||(entitylist[j].trianglelist[i].lmatl.length!=lightbounces)) {
+										entitylist[j].trianglelist[i].lmatl = new Material[lightbounces];
+									}
+									entitylist[j].trianglelist[i].lmatl[l] = new Material(p4pixelcolor, 1.0f, null);
 								}
-								float p4pixelrt = multiplier*p4pixelr/pixelcount;
-								float p4pixelgt = multiplier*p4pixelg/pixelcount;
-								float p4pixelbt = multiplier*p4pixelb/pixelcount;
-								if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
-								if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
-								if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
-								Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
-								System.out.println("RenderLib: renderSurfaceFaceCubemapRayViewSoftware: entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
-								Material[] newlmatl = {new Material(p4pixelcolor, 1.0f, null)};
-								entitylist[j].trianglelist[i].lmatl = newlmatl;
 							}
 						}
 					}
 				}
 			}
-		}
-		if (entitylist!=null) {
-			for (int j=0;j<entitylist.length;j++) {
-				if (entitylist[j]!=null) {
-					if (entitylist[j].trianglelist!=null) {
-						for (int i=0;i<entitylist[j].trianglelist.length;i++) {
-							if (entitylist[j].trianglelist[i]!=null) {
-								if ((entitylist[j].trianglelist[i].mat!=null)&&(entitylist[j].trianglelist[i].lmatl!=null)) {
-									entitylist[j].trianglelist[i].mat = entitylist[j].trianglelist[i].mat.copy();
-									entitylist[j].trianglelist[i].mat.ambientcolor = entitylist[j].trianglelist[i].lmatl[0].facecolor;
+			if (entitylist!=null) {
+				for (int j=0;j<entitylist.length;j++) {
+					if (entitylist[j]!=null) {
+						if (entitylist[j].trianglelist!=null) {
+							for (int i=0;i<entitylist[j].trianglelist.length;i++) {
+								if (entitylist[j].trianglelist[i]!=null) {
+									if ((entitylist[j].trianglelist[i].mat!=null)&&(entitylist[j].trianglelist[i].lmatl!=null)) {
+										entitylist[j].trianglelist[i].mat = entitylist[j].trianglelist[i].mat.copy();
+										entitylist[j].trianglelist[i].mat.ambientcolor = entitylist[j].trianglelist[i].lmatl[l].facecolor;
+									}
 								}
 							}
 						}
@@ -1732,80 +1747,86 @@ public class RenderLib {
 		for (int i=0;i<cubemaprays.length;i++) {
 			cubemapraylen[i] = MathLib.vectorLength(cubemaprays[i]);
 		}
-		if (entitylist!=null) {
-			for (int j=0;j<entitylist.length;j++) {
-				if (entitylist[j]!=null) {
-					if (entitylist[j].trianglelist!=null) {
-						Sphere[] trianglespherelist = MathLib.triangleCircumSphere(entitylist[j].trianglelist);
-						for (int i=0;i<entitylist[j].trianglelist.length;i++) {
-							if (entitylist[j].trianglelist[i]!=null) {
-								Sphere[] trianglesphere = {trianglespherelist[i]};
-								Position[] trianglespherepoint = MathLib.sphereVertexList(trianglesphere);
-								RenderView p4pixelview = renderCubemapPlaneViewSoftware(trianglespherepoint[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
-								RenderView[] cubemapviews = new RenderView[6];
-								cubemapviews[0] = p4pixelview.cubemap.backwardview;
-								cubemapviews[1] = p4pixelview.cubemap.bottomview;
-								cubemapviews[2] = p4pixelview.cubemap.forwardview;
-								cubemapviews[3] = p4pixelview.cubemap.leftview;
-								cubemapviews[4] = p4pixelview.cubemap.rightview;
-								cubemapviews[5] = p4pixelview.cubemap.topview;
-								float p4pixelr = 0.0f;
-								float p4pixelg = 0.0f;
-								float p4pixelb = 0.0f;
-								float pixelcount = 6*rendersize*rendersize;
-								if (entitylist[j].trianglelist[i].mat.emissivecolor!=null) {
-									float[] triangleemissivecolorcomp = entitylist[j].trianglelist[i].mat.emissivecolor.getRGBComponents(new float[4]);
-									p4pixelr = triangleemissivecolorcomp[0]*pixelcount;
-									p4pixelg = triangleemissivecolorcomp[1]*pixelcount;
-									p4pixelb = triangleemissivecolorcomp[2]*pixelcount;
-								}
-								for (int k=0;k<cubemapviews.length;k++) {
-									for (int ky=0;ky<cubemapviews[k].snapimage.getHeight();ky++) {
-										for (int kx=0;kx<cubemapviews[k].snapimage.getWidth();kx++) {
-											Color p4pixelcolor = new Color(cubemapviews[k].snapimage.getRGB(kx, ky));
-											float[] p4pixelcolorcomp = p4pixelcolor.getRGBComponents(new float[4]);
-											p4pixelr += p4pixelcolorcomp[0]/cubemapraylen[ky][kx];
-											p4pixelg += p4pixelcolorcomp[1]/cubemapraylen[ky][kx];
-											p4pixelb += p4pixelcolorcomp[2]/cubemapraylen[ky][kx];
+		int lightbounces = (bounces>0)?bounces:1;
+		for (int l=0;l<lightbounces;l++) {
+			if (entitylist!=null) {
+				for (int j=0;j<entitylist.length;j++) {
+					if (entitylist[j]!=null) {
+						if (entitylist[j].trianglelist!=null) {
+							Sphere[] trianglespherelist = MathLib.triangleInSphere(entitylist[j].trianglelist);
+							for (int i=0;i<entitylist[j].trianglelist.length;i++) {
+								if (entitylist[j].trianglelist[i]!=null) {
+									Sphere[] trianglesphere = {trianglespherelist[i]};
+									Position[] trianglespherepoint = MathLib.sphereVertexList(trianglesphere);
+									RenderView p4pixelview = renderCubemapPlaneViewSoftware(trianglespherepoint[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, 0, 0);
+									RenderView[] cubemapviews = new RenderView[6];
+									cubemapviews[0] = p4pixelview.cubemap.backwardview;
+									cubemapviews[1] = p4pixelview.cubemap.bottomview;
+									cubemapviews[2] = p4pixelview.cubemap.forwardview;
+									cubemapviews[3] = p4pixelview.cubemap.leftview;
+									cubemapviews[4] = p4pixelview.cubemap.rightview;
+									cubemapviews[5] = p4pixelview.cubemap.topview;
+									float p4pixelr = 0.0f;
+									float p4pixelg = 0.0f;
+									float p4pixelb = 0.0f;
+									float pixelcount = 6*rendersize*rendersize;
+									if (entitylist[j].trianglelist[i].mat.emissivecolor!=null) {
+										float[] triangleemissivecolorcomp = entitylist[j].trianglelist[i].mat.emissivecolor.getRGBComponents(new float[4]);
+										p4pixelr = triangleemissivecolorcomp[0]*pixelcount;
+										p4pixelg = triangleemissivecolorcomp[1]*pixelcount;
+										p4pixelb = triangleemissivecolorcomp[2]*pixelcount;
+									}
+									for (int k=0;k<cubemapviews.length;k++) {
+										for (int ky=0;ky<cubemapviews[k].snapimage.getHeight();ky++) {
+											for (int kx=0;kx<cubemapviews[k].snapimage.getWidth();kx++) {
+												Color p4pixelcolor = new Color(cubemapviews[k].snapimage.getRGB(kx, ky));
+												float[] p4pixelcolorcomp = p4pixelcolor.getRGBComponents(new float[4]);
+												p4pixelr += p4pixelcolorcomp[0]/cubemapraylen[ky][kx];
+												p4pixelg += p4pixelcolorcomp[1]/cubemapraylen[ky][kx];
+												p4pixelb += p4pixelcolorcomp[2]/cubemapraylen[ky][kx];
+											}
 										}
 									}
+									float p4pixelrt = multiplier*p4pixelr/pixelcount;
+									float p4pixelgt = multiplier*p4pixelg/pixelcount;
+									float p4pixelbt = multiplier*p4pixelb/pixelcount;
+									if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
+									if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
+									if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
+									Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
+									System.out.println("RenderLib: renderSurfaceTextureCubemapPlaneViewSoftware: bounce["+l+"] entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
+									if ((entitylist[j].trianglelist[i].lmatl==null)||(entitylist[j].trianglelist[i].lmatl.length!=lightbounces)) {
+										entitylist[j].trianglelist[i].lmatl = new Material[lightbounces];
+									}
+									VolatileImage lightmaptexture = gc.createCompatibleVolatileImage(texturesize, texturesize, Transparency.TRANSLUCENT);
+									Graphics2D lmgfx = lightmaptexture.createGraphics();
+									lmgfx.setComposite(AlphaComposite.Src);
+									lmgfx.setColor(new Color(0.0f, 0.0f, 0.0f, 0.0f));
+									lmgfx.fillRect(0, 0, texturesize, texturesize);
+									lmgfx.setComposite(AlphaComposite.SrcOver);
+									lmgfx.setColor(p4pixelcolor);
+									lmgfx.fillRect(0, 0, texturesize, texturesize);
+									lmgfx.dispose();
+									Material newlmatl = new Material(Color.WHITE, 1.0f, lightmaptexture);
+									newlmatl.snapimage = lightmaptexture.getSnapshot(); 
+									entitylist[j].trianglelist[i].lmatl[l] = newlmatl;
 								}
-								float p4pixelrt = multiplier*p4pixelr/pixelcount;
-								float p4pixelgt = multiplier*p4pixelg/pixelcount;
-								float p4pixelbt = multiplier*p4pixelb/pixelcount;
-								if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
-								if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
-								if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
-								Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
-								System.out.println("RenderLib: renderSurfaceTextureCubemapPlaneViewSoftware: entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
-								VolatileImage lightmaptexture = gc.createCompatibleVolatileImage(texturesize, texturesize, Transparency.TRANSLUCENT);
-								Graphics2D lmgfx = lightmaptexture.createGraphics();
-								lmgfx.setComposite(AlphaComposite.Src);
-								lmgfx.setColor(new Color(0.0f, 0.0f, 0.0f, 0.0f));
-								lmgfx.fillRect(0, 0, texturesize, texturesize);
-								lmgfx.setComposite(AlphaComposite.SrcOver);
-								lmgfx.setColor(p4pixelcolor);
-								lmgfx.fillRect(0, 0, texturesize, texturesize);
-								lmgfx.dispose();
-								Material[] newlmatl = {new Material(Color.WHITE, 1.0f, lightmaptexture)};
-								newlmatl[0].snapimage = lightmaptexture.getSnapshot(); 
-								entitylist[j].trianglelist[i].lmatl = newlmatl;
 							}
 						}
 					}
 				}
 			}
-		}
-		if (entitylist!=null) {
-			for (int j=0;j<entitylist.length;j++) {
-				if (entitylist[j]!=null) {
-					if (entitylist[j].trianglelist!=null) {
-						for (int i=0;i<entitylist[j].trianglelist.length;i++) {
-							if (entitylist[j].trianglelist[i]!=null) {
-								if ((entitylist[j].trianglelist[i].mat!=null)&&(entitylist[j].trianglelist[i].lmatl!=null)) {
-									entitylist[j].trianglelist[i].mat = entitylist[j].trianglelist[i].mat.copy();
-									entitylist[j].trianglelist[i].mat.ambientfileimage = entitylist[j].trianglelist[i].lmatl[0].fileimage;
-									entitylist[j].trianglelist[i].mat.ambientsnapimage = entitylist[j].trianglelist[i].lmatl[0].snapimage;
+			if (entitylist!=null) {
+				for (int j=0;j<entitylist.length;j++) {
+					if (entitylist[j]!=null) {
+						if (entitylist[j].trianglelist!=null) {
+							for (int i=0;i<entitylist[j].trianglelist.length;i++) {
+								if (entitylist[j].trianglelist[i]!=null) {
+									if ((entitylist[j].trianglelist[i].mat!=null)&&(entitylist[j].trianglelist[i].lmatl!=null)) {
+										entitylist[j].trianglelist[i].mat = entitylist[j].trianglelist[i].mat.copy();
+										entitylist[j].trianglelist[i].mat.ambientfileimage = entitylist[j].trianglelist[i].lmatl[l].fileimage;
+										entitylist[j].trianglelist[i].mat.ambientsnapimage = entitylist[j].trianglelist[i].lmatl[l].snapimage;
+									}
 								}
 							}
 						}
