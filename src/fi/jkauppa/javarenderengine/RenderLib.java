@@ -1534,9 +1534,9 @@ public class RenderLib {
 											}
 										}
 									}
-									float p4pixelrt = multiplier*p4pixelr/pixelcount;
-									float p4pixelgt = multiplier*p4pixelg/pixelcount;
-									float p4pixelbt = multiplier*p4pixelb/pixelcount;
+									float p4pixelrt = multiplier*p4pixelr/(float)Math.pow(pixelcount,l+1);
+									float p4pixelgt = multiplier*p4pixelg/(float)Math.pow(pixelcount,l+1);
+									float p4pixelbt = multiplier*p4pixelb/(float)Math.pow(pixelcount,l+1);
 									if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
 									if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
 									if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
@@ -1560,7 +1560,18 @@ public class RenderLib {
 								if (entitylist[j].trianglelist[i]!=null) {
 									if ((entitylist[j].trianglelist[i].mat!=null)&&(entitylist[j].trianglelist[i].lmatl!=null)) {
 										entitylist[j].trianglelist[i].mat = entitylist[j].trianglelist[i].mat.copy();
-										entitylist[j].trianglelist[i].mat.ambientcolor = entitylist[j].trianglelist[i].lmatl[l].facecolor;
+										if (entitylist[j].trianglelist[i].mat.ambientcolor==null) {
+											entitylist[j].trianglelist[i].mat.ambientcolor = Color.BLACK;
+										}
+										float[] ambcolorcomp = entitylist[j].trianglelist[i].mat.ambientcolor.getRGBComponents(new float[4]);
+										float[] lightcolorcomp = entitylist[j].trianglelist[i].lmatl[l].facecolor.getRGBComponents(new float[4]);
+										float newr = ambcolorcomp[0]+lightcolorcomp[0];
+										float newg = ambcolorcomp[1]+lightcolorcomp[1];
+										float newb = ambcolorcomp[2]+lightcolorcomp[2];
+										if (newr>1.0f) {newr=1.0f;}
+										if (newg>1.0f) {newg=1.0f;}
+										if (newb>1.0f) {newb=1.0f;}
+										entitylist[j].trianglelist[i].mat.ambientcolor = new Color(newr,newg,newb,1.0f);
 									}
 								}
 							}
@@ -1618,14 +1629,14 @@ public class RenderLib {
 											}
 										}
 									}
-									float p4pixelrt = multiplier*p4pixelr/pixelcount;
-									float p4pixelgt = multiplier*p4pixelg/pixelcount;
-									float p4pixelbt = multiplier*p4pixelb/pixelcount;
+									float p4pixelrt = multiplier*p4pixelr/(float)Math.pow(pixelcount,l+1);
+									float p4pixelgt = multiplier*p4pixelg/(float)Math.pow(pixelcount,l+1);
+									float p4pixelbt = multiplier*p4pixelb/(float)Math.pow(pixelcount,l+1);
 									if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
 									if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
 									if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
 									Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
-									System.out.println("RenderLib: renderSurfaceFaceCubemapPlaneViewSoftware: bounce["+l+"] entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
+									System.out.println("RenderLib: renderSurfaceFaceCubemapPlaneViewHardware: bounce["+l+"] entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
 									if ((entitylist[j].trianglelist[i].lmatl==null)||(entitylist[j].trianglelist[i].lmatl.length!=lightbounces)) {
 										entitylist[j].trianglelist[i].lmatl = new Material[lightbounces];
 									}
@@ -1644,7 +1655,18 @@ public class RenderLib {
 								if (entitylist[j].trianglelist[i]!=null) {
 									if ((entitylist[j].trianglelist[i].mat!=null)&&(entitylist[j].trianglelist[i].lmatl!=null)) {
 										entitylist[j].trianglelist[i].mat = entitylist[j].trianglelist[i].mat.copy();
-										entitylist[j].trianglelist[i].mat.ambientcolor = entitylist[j].trianglelist[i].lmatl[l].facecolor;
+										if (entitylist[j].trianglelist[i].mat.ambientcolor==null) {
+											entitylist[j].trianglelist[i].mat.ambientcolor = Color.BLACK;
+										}
+										float[] ambcolorcomp = entitylist[j].trianglelist[i].mat.ambientcolor.getRGBComponents(new float[4]);
+										float[] lightcolorcomp = entitylist[j].trianglelist[i].lmatl[l].facecolor.getRGBComponents(new float[4]);
+										float newr = ambcolorcomp[0]+lightcolorcomp[0];
+										float newg = ambcolorcomp[1]+lightcolorcomp[1];
+										float newb = ambcolorcomp[2]+lightcolorcomp[2];
+										if (newr>1.0f) {newr=1.0f;}
+										if (newg>1.0f) {newg=1.0f;}
+										if (newb>1.0f) {newb=1.0f;}
+										entitylist[j].trianglelist[i].mat.ambientcolor = new Color(newr,newg,newb,1.0f);
 									}
 								}
 							}
@@ -1702,14 +1724,14 @@ public class RenderLib {
 											}
 										}
 									}
-									float p4pixelrt = multiplier*p4pixelr/pixelcount;
-									float p4pixelgt = multiplier*p4pixelg/pixelcount;
-									float p4pixelbt = multiplier*p4pixelb/pixelcount;
+									float p4pixelrt = multiplier*p4pixelr/(float)Math.pow(pixelcount,l+1);
+									float p4pixelgt = multiplier*p4pixelg/(float)Math.pow(pixelcount,l+1);
+									float p4pixelbt = multiplier*p4pixelb/(float)Math.pow(pixelcount,l+1);
 									if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
 									if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
 									if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
 									Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
-									System.out.println("RenderLib: renderSurfaceFaceCubemapRayViewSoftware: bounce["+l+"] entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
+									System.out.println("RenderLib: renderSurfaceFaceCubemapPlaneViewHardware: bounce["+l+"] entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
 									if ((entitylist[j].trianglelist[i].lmatl==null)||(entitylist[j].trianglelist[i].lmatl.length!=lightbounces)) {
 										entitylist[j].trianglelist[i].lmatl = new Material[lightbounces];
 									}
@@ -1728,7 +1750,18 @@ public class RenderLib {
 								if (entitylist[j].trianglelist[i]!=null) {
 									if ((entitylist[j].trianglelist[i].mat!=null)&&(entitylist[j].trianglelist[i].lmatl!=null)) {
 										entitylist[j].trianglelist[i].mat = entitylist[j].trianglelist[i].mat.copy();
-										entitylist[j].trianglelist[i].mat.ambientcolor = entitylist[j].trianglelist[i].lmatl[l].facecolor;
+										if (entitylist[j].trianglelist[i].mat.ambientcolor==null) {
+											entitylist[j].trianglelist[i].mat.ambientcolor = Color.BLACK;
+										}
+										float[] ambcolorcomp = entitylist[j].trianglelist[i].mat.ambientcolor.getRGBComponents(new float[4]);
+										float[] lightcolorcomp = entitylist[j].trianglelist[i].lmatl[l].facecolor.getRGBComponents(new float[4]);
+										float newr = ambcolorcomp[0]+lightcolorcomp[0];
+										float newg = ambcolorcomp[1]+lightcolorcomp[1];
+										float newb = ambcolorcomp[2]+lightcolorcomp[2];
+										if (newr>1.0f) {newr=1.0f;}
+										if (newg>1.0f) {newg=1.0f;}
+										if (newb>1.0f) {newb=1.0f;}
+										entitylist[j].trianglelist[i].mat.ambientcolor = new Color(newr,newg,newb,1.0f);
 									}
 								}
 							}
@@ -1787,9 +1820,9 @@ public class RenderLib {
 											}
 										}
 									}
-									float p4pixelrt = multiplier*p4pixelr/pixelcount;
-									float p4pixelgt = multiplier*p4pixelg/pixelcount;
-									float p4pixelbt = multiplier*p4pixelb/pixelcount;
+									float p4pixelrt = multiplier*p4pixelr/(float)Math.pow(pixelcount,l+1);
+									float p4pixelgt = multiplier*p4pixelg/(float)Math.pow(pixelcount,l+1);
+									float p4pixelbt = multiplier*p4pixelb/(float)Math.pow(pixelcount,l+1);
 									if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
 									if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
 									if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
