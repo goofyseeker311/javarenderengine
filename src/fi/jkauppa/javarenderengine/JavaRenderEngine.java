@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.7");
+		this.setTitle("Java Render Engine v2.3.8");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -227,8 +227,8 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		for (int i=0;i<trianglesphere.length;i++) {System.out.println("JavaRenderEngine: main: trianglesphere["+i+"]="+trianglesphere[i].x+" "+trianglesphere[i].y+" "+trianglesphere[i].z+" "+trianglesphere[i].r);}
 		for (int i=0;i<triangleinsphere.length;i++) {System.out.println("JavaRenderEngine: main: triangleinsphere["+i+"]="+triangleinsphere[i].x+" "+triangleinsphere[i].y+" "+triangleinsphere[i].z+" "+triangleinsphere[i].r);}
 		Position pmsvpos = new Position(0,0,0);
-		Position[] pmstripos = {new Position(0.0f,-3.9f,0.0f),new Position(-1.0f,-3.9f,0.0f),new Position(1.0f,-3.9f,0.0f),new Position(0.0f,-3.9f,1.0f),new Position(0.0f,-3.9f,-1.0f),new Position(-3.9f,0.0f,0.0f),new Position(3.9f,0.0f,0.0f),new Position(0.0f,3.9f,0.0f)};
-		Triangle[] pmsvtri = {new Triangle(pmstripos[0],pmstripos[1],pmstripos[3]), new Triangle(pmstripos[0],pmstripos[2],pmstripos[3]), new Triangle(pmstripos[0],pmstripos[1],pmstripos[4]), new Triangle(pmstripos[0],pmstripos[2],pmstripos[4])};
+		Position[] pmstripos = {new Position(0.0f,-3.9f,0.0f),new Position(-1.0f,-3.9f,0.0f),new Position(1.0f,-3.9f,0.0f),new Position(0.0f,-3.9f,1.0f),new Position(0.0f,-3.9f,-1.0f),new Position(-3.9f,0.0f,0.0f),new Position(3.9f,0.0f,0.0f),new Position(0.0f,3.9f,0.0f),new Position(-1.0f,3.9f,0.0f),new Position(1.0f,3.9f,0.0f),new Position(1.0f,3.9f,1.0f),new Position(-1.0f,3.9f,1.0f),new Position(1.0f,3.9f,1.0f),new Position(-1.0f,3.9f,-1.0f),new Position(1.0f,3.9f,-1.0f)};
+		Triangle[] pmsvtri = {new Triangle(pmstripos[0],pmstripos[1],pmstripos[3]), new Triangle(pmstripos[0],pmstripos[2],pmstripos[3]), new Triangle(pmstripos[0],pmstripos[1],pmstripos[4]), new Triangle(pmstripos[0],pmstripos[2],pmstripos[4]), new Triangle(pmstripos[8],pmstripos[9],pmstripos[10]), new Triangle(pmstripos[1],pmstripos[2],pmstripos[7]), new Triangle(pmstripos[3],pmstripos[11],pmstripos[12]), new Triangle(pmstripos[4],pmstripos[13],pmstripos[14])};
 		Sphere[] pmsvsph = {new Sphere(0,0,0,2), new Sphere(0,0,3.9,2), new Sphere(0,3.9,0,2), new Sphere(3.9,0,0,2)};
 		Matrix pmsrotx = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
 		Matrix pmsrotz = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
@@ -327,6 +327,8 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		for (int j=0;j<rqint.length;j++) {for (int i=0;i<rqint[0].length;i++) {if(rqint[j][i]!=null){System.out.println("JavaRenderEngine: main: rqint["+i+"]["+j+"]="+rqint[j][i].x+" "+rqint[j][i].y+" "+rqint[j][i].z);}else{System.out.println("JavaRenderEngine: main: rqint["+i+"]["+j+"]=no hit.");}}}
 		String[] stringstosplit = {"0//0", "0/0/0", "0//"};
 		for (int j=0;j<stringstosplit.length;j++) {String[] stringsplit = stringstosplit[j].split("/");System.out.print("JavaRenderEngine: main: stringstosplit["+j+"]=\""+stringsplit.length+"\","+stringstosplit[j]+":");for (int i=0;i<stringsplit.length;i++) { if(!stringsplit[i].isBlank()) {System.out.print(" "+Integer.parseInt(stringsplit[i]));}}System.out.println();}
+		Rectangle[] negrect = {new Rectangle(0,0,-5,-5),new Rectangle(0,0,0,0),new Rectangle(0,0,-1,-1),new Rectangle(0,0,1,1)};
+		for (int i=0;i<negrect.length;i++) {System.out.println("JavaRenderEngine: main: negrect["+i+"]= "+negrect[i].x+","+negrect[i].y+","+(negrect[i].x+negrect[i].width-1)+","+(negrect[i].y+negrect[i].height-1));}
 		
 		new JavaRenderEngine();
 	}

@@ -1422,12 +1422,12 @@ public class MathLib {
 		Coordinate[][] k = null;
 		if ((vpos!=null)&&(vline!=null)&&(vmat!=null)) {
 			k = new Coordinate[vline.length][3];
-			Direction[] dirs = MathLib.projectedCameraDirections(vmat);
+			Direction[] dirs = projectedCameraDirections(vmat);
 			Direction[] camdir = {dirs[0]};
 			Position[] camposa = {vpos};
-			Position[] rendercutpos = MathLib.translate(camposa, dirs[0], 1.1d);
-			Plane[] rendercutplane = MathLib.planeFromNormalAtPoint(rendercutpos, camdir);
-			Plane[] camdirrightupplanes = MathLib.planeFromNormalAtPoint(vpos, dirs);
+			Position[] rendercutpos = translate(camposa, dirs[0], 1.1d);
+			Plane[] rendercutplane = planeFromNormalAtPoint(rendercutpos, camdir);
+			Plane[] camdirrightupplanes = planeFromNormalAtPoint(vpos, dirs);
 			Plane[] camfwdplane = {camdirrightupplanes[0]};
 			Position[][] vlinepos = new Position[3][vline.length];
 			for (int i=0;i<vline.length;i++) {
@@ -1435,16 +1435,16 @@ public class MathLib {
 				vlinepos[1][i] = vline[i].pos2;
 				vlinepos[2][i] = vline[i].pos1;
 				Position[] vlinepoints = {vline[i].pos1, vline[i].pos2};
-				double[][] fwdintpointsdist = MathLib.planePointDistance(vlinepoints, camfwdplane);
+				double[][] fwdintpointsdist = planePointDistance(vlinepoints, camfwdplane);
 				boolean vlinepos1visible = fwdintpointsdist[0][0]>=1.0f;
 				boolean vlinepos2visible = fwdintpointsdist[1][0]>=1.0f;
 				if (vlinepos1visible||vlinepos2visible) {
 					if (!(vlinepos1visible&&vlinepos2visible)) {
 						Position[] vlinepos1 = {vline[i].pos1};
 						Position[] vlinepos2 = {vline[i].pos2};
-						Direction[] vlinedir12 = MathLib.vectorFromPoints(vlinepos1, vlinepos2);
-						double[][] vlinedir12dist = MathLib.rayPlaneDistance(vlinepos1[0], vlinedir12, rendercutplane);
-						Position[] vlinepos3 = MathLib.translate(vlinepos1, vlinedir12[0], vlinedir12dist[0][0]);
+						Direction[] vlinedir12 = vectorFromPoints(vlinepos1, vlinepos2);
+						double[][] vlinedir12dist = rayPlaneDistance(vlinepos1[0], vlinedir12, rendercutplane);
+						Position[] vlinepos3 = translate(vlinepos1, vlinedir12[0], vlinedir12dist[0][0]);
 						vlinepos[2][i] = vlinepos3[0];
 					}
 				}
@@ -1462,12 +1462,12 @@ public class MathLib {
 		Coordinate[][] k = null;
 		if ((vpos!=null)&&(vtri!=null)&&(vmat!=null)) {
 			k = new Coordinate[vtri.length][5];
-			Direction[] dirs = MathLib.projectedCameraDirections(vmat);
+			Direction[] dirs = projectedCameraDirections(vmat);
 			Direction[] camdir = {dirs[0]};
 			Position[] camposa = {vpos};
-			Position[] rendercutpos = MathLib.translate(camposa, dirs[0], 1.1d);
-			Plane[] rendercutplane = MathLib.planeFromNormalAtPoint(rendercutpos, camdir);
-			Plane[] camdirrightupplanes = MathLib.planeFromNormalAtPoint(vpos, dirs);
+			Position[] rendercutpos = translate(camposa, dirs[0], 1.1d);
+			Plane[] rendercutplane = planeFromNormalAtPoint(rendercutpos, camdir);
+			Plane[] camdirrightupplanes = planeFromNormalAtPoint(vpos, dirs);
 			Plane[] camfwdplane = {camdirrightupplanes[0]};
 			Position[][] vtripos = new Position[5][vtri.length];
 			for (int i=0;i<vtri.length;i++) {
@@ -1477,7 +1477,7 @@ public class MathLib {
 				vtripos[3][i] = vtri[i].pos1;
 				vtripos[4][i] = vtri[i].pos1;
 				Position[] vtripoints = {vtri[i].pos1, vtri[i].pos2, vtri[i].pos3};
-				double[][] fwdintpointsdist = MathLib.planePointDistance(vtripoints, camfwdplane);
+				double[][] fwdintpointsdist = planePointDistance(vtripoints, camfwdplane);
 				boolean vtripos1visible = fwdintpointsdist[0][0]>=1.0f;
 				boolean vtripos2visible = fwdintpointsdist[1][0]>=1.0f;
 				boolean vtripos3visible = fwdintpointsdist[2][0]>=1.0f;
@@ -1486,15 +1486,15 @@ public class MathLib {
 						Position[] vtripos1 = {vtri[i].pos1};
 						Position[] vtripos2 = {vtri[i].pos2};
 						Position[] vtripos3 = {vtri[i].pos3};
-						Direction[] vtridir12 = MathLib.vectorFromPoints(vtripos1, vtripos2);
-						Direction[] vtridir13 = MathLib.vectorFromPoints(vtripos1, vtripos3);
-						Direction[] vtridir23 = MathLib.vectorFromPoints(vtripos2, vtripos3);
-						double[][] vtridir12dist = MathLib.rayPlaneDistance(vtripos1[0], vtridir12, rendercutplane);
-						double[][] vtridir13dist = MathLib.rayPlaneDistance(vtripos1[0], vtridir13, rendercutplane);
-						double[][] vtridir23dist = MathLib.rayPlaneDistance(vtripos2[0], vtridir23, rendercutplane);
-						Position[] vtripos12 = MathLib.translate(vtripos1, vtridir12[0], vtridir12dist[0][0]);
-						Position[] vtripos13 = MathLib.translate(vtripos1, vtridir13[0], vtridir13dist[0][0]);
-						Position[] vtripos23 = MathLib.translate(vtripos2, vtridir23[0], vtridir23dist[0][0]);
+						Direction[] vtridir12 = vectorFromPoints(vtripos1, vtripos2);
+						Direction[] vtridir13 = vectorFromPoints(vtripos1, vtripos3);
+						Direction[] vtridir23 = vectorFromPoints(vtripos2, vtripos3);
+						double[][] vtridir12dist = rayPlaneDistance(vtripos1[0], vtridir12, rendercutplane);
+						double[][] vtridir13dist = rayPlaneDistance(vtripos1[0], vtridir13, rendercutplane);
+						double[][] vtridir23dist = rayPlaneDistance(vtripos2[0], vtridir23, rendercutplane);
+						Position[] vtripos12 = translate(vtripos1, vtridir12[0], vtridir12dist[0][0]);
+						Position[] vtripos13 = translate(vtripos1, vtridir13[0], vtridir13dist[0][0]);
+						Position[] vtripos23 = translate(vtripos2, vtridir23[0], vtridir23dist[0][0]);
 						if (vtripos1visible&&vtripos2visible) {
 							vtripos[3][i] = vtripos13[0];
 							vtripos[4][i] = vtripos23[0];
@@ -1529,12 +1529,12 @@ public class MathLib {
 	public static Coordinate[][] projectedQuads(Position vpos, Quad[] vquad, int hres, double hfov, int vres, double vfov, Matrix vmat) {
 		Coordinate[][] k = null;
 		if ((vpos!=null)&&(vquad!=null)&&(vmat!=null)) {
-			//Direction[] dirs = MathLib.projectedCameraDirections(vmat);
+			//Direction[] dirs = projectedCameraDirections(vmat);
 			//Direction[] camdir = {dirs[0]};
 			//Position[] camposa = {vpos};
-			//Position[] rendercutpos = MathLib.translate(camposa, dirs[0], 1.1d);
-			//Plane[] rendercutplane = MathLib.planeFromNormalAtPoint(rendercutpos, camdir);
-			//Plane[] camdirrightupplanes = MathLib.planeFromNormalAtPoint(vpos, dirs);
+			//Position[] rendercutpos = translate(camposa, dirs[0], 1.1d);
+			//Plane[] rendercutplane = planeFromNormalAtPoint(rendercutpos, camdir);
+			//Plane[] camdirrightupplanes = planeFromNormalAtPoint(vpos, dirs);
 			//Plane[] camfwdplane = {camdirrightupplanes[0]};
 			k = new Coordinate[vquad.length][4];
 			Position[] vquadpos1 = new Position[vquad.length];
@@ -1717,6 +1717,11 @@ public class MathLib {
 		Rectangle[] k = null;
 		if ((vpos!=null)&&(vtri!=null)&&(vmat!=null)) {
 			k = new Rectangle[vtri.length];
+			double halfhres = ((double)(hres-1))/2.0f;
+			Position[] vposa = {vpos};
+			Direction[] dirs = projectedCameraDirections(vmat);
+			Direction[] dirup = {dirs[2]};
+			Position[][] poleint = rayTriangleIntersection(vpos, dirup, vtri);
 			Position[] vtripos1 = new Position[vtri.length];
 			Position[] vtripos2 = new Position[vtri.length];
 			Position[] vtripos3 = new Position[vtri.length];
@@ -1741,17 +1746,31 @@ public class MathLib {
 						if (vtripospixels[i].v<miny) {miny = vtripospixels[i].v;}
 						if (vtripospixels[i].v>maxy) {maxy = vtripospixels[i].v;}
 					}
-					int minxind = (int)Math.ceil(minx); 
-					int maxxind = (int)Math.floor(maxx); 
-					int minyind = (int)Math.ceil(miny); 
+					double xdif = maxx-minx;
+					if (xdif>halfhres) {
+						double tminx = minx;
+						double tmaxx = maxx;
+						minx = tmaxx;
+						maxx = tminx;
+					}
+					if (poleint[0][j]!=null) {
+						minx = 0;
+						maxx = hres-1;
+						Position[] poleintpos = {poleint[0][j]};
+						Direction[] poleintdir = vectorFromPoints(vposa, poleintpos);
+						if (poleintdir[0].dz<0) {
+							miny = 0;
+						} else if (poleintdir[0].dz>0) {
+							maxy = vres-1;
+						}
+					}
+					int minxind = (int)Math.ceil(minx);
+					int maxxind = (int)Math.floor(maxx);
+					int minyind = (int)Math.ceil(miny);
 					int maxyind = (int)Math.floor(maxy);
-					if (minxind<0) {minxind=0;}
-					if (maxxind>=hres) {maxxind=hres-1;}
-					if (minyind<0) {minyind=0;}
-					if (maxyind>=vres) {maxyind=vres-1;}
-					int triwidth = maxxind-minxind+1; 
+					int triwidth = maxxind-minxind+1;
 					int triheight = maxyind-minyind+1;
-					if ((minxind<hres)&&(maxxind>=0)&&(minyind<vres)&&(maxyind>=0)&&(triwidth>0)&&(triheight>0)) {
+					if ((triwidth!=0)&&(triheight!=0)) {
 						k[j] = new Rectangle(minxind,minyind,triwidth,triheight);
 					}
 				}
