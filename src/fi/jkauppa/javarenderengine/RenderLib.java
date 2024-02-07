@@ -198,6 +198,7 @@ public class RenderLib {
 					}
 					Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
 					for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
+					Direction[] copyviewtrianglespheredir = MathLib.vectorFromPoints(campos, copytrianglespherelist);
 					Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
 					Arrays.sort(sortedtrianglespherelist, distcomp);
 					Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangles(renderview.pos, copytrianglelist, renderwidth, hfov, renderheight, vfov, viewrot);
@@ -206,6 +207,7 @@ public class RenderLib {
 						Triangle[] copytriangle = {copytrianglelist[it]};
 						Material copymaterial = copytriangle[0].mat;
 						Direction copytrianglenormal = trianglenormallist[it];
+						Direction[] copytriangledir = {copyviewtrianglespheredir[it]};
 						Color trianglecolor = copymaterial.facecolor;
 						float alphacolor = copymaterial.transparency;
 						float[] trianglecolorcomp = null;
@@ -221,24 +223,25 @@ public class RenderLib {
 						if (lightmapcolor!=null) {
 							lightmapcolorcomp = lightmapcolor.getRGBComponents(new float[4]);
 						}
-						double[] triangleviewangle = MathLib.vectorAngle(copytrianglenormal, camdir);
+						double[] triangleviewangle = MathLib.vectorAngle(copytrianglenormal, copytriangledir);
 						if ((copytriangle[0].norm.isZero())&&(triangleviewangle[0]<90.0f)) {
 							triangleviewangle[0] = 180.0f - triangleviewangle[0];
 						}
 						triangleviewangle[0] -= 90.0f;
-						if (triangleviewangle[0]<0.0f) {triangleviewangle[0] = 0.0f;}
+						boolean frontsidevisible = true;
+						if (triangleviewangle[0]<0.0f) {triangleviewangle[0]=0.0f;frontsidevisible=false;}
 						float shadingmultiplier = ((((float)triangleviewangle[0])/1.5f)+30.0f)/90.0f;
 						if (trianglecolor!=null) {
 							float texr = trianglecolorcomp[0];
 							float texg = trianglecolorcomp[1];
 							float texb = trianglecolorcomp[2];
+							float multiplier = 10.0f;
 							if (!unlit) {
 								texr *= shadingmultiplier;
 								texg *= shadingmultiplier;
 								texb *= shadingmultiplier;
 							}
-							if (lightmapcolor!=null) {
-								float multiplier = 10.0f;
+							if ((frontsidevisible)&&(lightmapcolor!=null)) {
 								texr *= lightmapcolorcomp[0]*multiplier;
 								texg *= lightmapcolorcomp[1]*multiplier;
 								texb *= lightmapcolorcomp[2]*multiplier;
@@ -247,10 +250,10 @@ public class RenderLib {
 								texg = 0.0f;
 								texb = 0.0f;
 							}
-							if (emissivecolor!=null) {
-								texr += emissivecolorcomp[0];
-								texg += emissivecolorcomp[1];
-								texb += emissivecolorcomp[2];
+							if ((frontsidevisible)&&(emissivecolor!=null)) {
+								texr += emissivecolorcomp[0]*multiplier;
+								texg += emissivecolorcomp[1]*multiplier;
+								texb += emissivecolorcomp[2]*multiplier;
 							}
 							if (texr>1.0f) {texr=1.0f;}
 							if (texg>1.0f) {texg=1.0f;}
@@ -583,7 +586,8 @@ public class RenderLib {
 													triangleviewangle[0] = 180.0f - triangleviewangle[0];
 												}
 												triangleviewangle[0] -= 90.0f;
-												if (triangleviewangle[0]<0.0f) {triangleviewangle[0] = 0.0f;}
+												boolean frontsidevisible = true;
+												if (triangleviewangle[0]<0.0f) {triangleviewangle[0]=0.0f;frontsidevisible=false;}
 												float shadingmultiplier = ((((float)triangleviewangle[0])/1.5f)+30.0f)/90.0f;
 												Coordinate tex1 = vpixelpoints[0].tex;
 												Coordinate tex2 = vpixelpoints[1].tex;
@@ -640,13 +644,13 @@ public class RenderLib {
 													float texr = trianglecolorcomp[0];
 													float texg = trianglecolorcomp[1];
 													float texb = trianglecolorcomp[2];
+													float multiplier = 10.0f;
 													if (!unlit) {
 														texr *= shadingmultiplier;
 														texg *= shadingmultiplier;
 														texb *= shadingmultiplier;
 													}
-													if (lightmapcolor!=null) {
-														float multiplier = 10.0f;
+													if ((frontsidevisible)&&(lightmapcolor!=null)) {
 														texr *= lightmapcolorcomp[0]*multiplier;
 														texg *= lightmapcolorcomp[1]*multiplier;
 														texb *= lightmapcolorcomp[2]*multiplier;
@@ -655,10 +659,10 @@ public class RenderLib {
 														texg = 0.0f;
 														texb = 0.0f;
 													}
-													if (emissivecolor!=null) {
-														texr += emissivecolorcomp[0];
-														texg += emissivecolorcomp[1];
-														texb += emissivecolorcomp[2];
+													if ((frontsidevisible)&&(emissivecolor!=null)) {
+														texr += emissivecolorcomp[0]*multiplier;
+														texg += emissivecolorcomp[1]*multiplier;
+														texb += emissivecolorcomp[2]*multiplier;
 													}
 													if (texr>1.0f) {texr=1.0f;}
 													if (texg>1.0f) {texg=1.0f;}
@@ -865,7 +869,8 @@ public class RenderLib {
 													triangleviewangle[0] = 180.0f - triangleviewangle[0];
 												}
 												triangleviewangle[0] -= 90.0f;
-												if (triangleviewangle[0]<0.0f) {triangleviewangle[0] = 0.0f;}
+												boolean frontsidevisible = true;
+												if (triangleviewangle[0]<0.0f) {triangleviewangle[0]=0.0f;frontsidevisible=false;}
 												float shadingmultiplier = ((((float)triangleviewangle[0])/1.5f)+30.0f)/90.0f;
 												Coordinate tex1 = vpixelpoints[0].tex;
 												Coordinate tex2 = vpixelpoints[1].tex;
@@ -922,13 +927,13 @@ public class RenderLib {
 													float texr = trianglecolorcomp[0];
 													float texg = trianglecolorcomp[1];
 													float texb = trianglecolorcomp[2];
+													float multiplier = 10.0f;
 													if (!unlit) {
 														texr *= shadingmultiplier;
 														texg *= shadingmultiplier;
 														texb *= shadingmultiplier;
 													}
-													if (lightmapcolor!=null) {
-														float multiplier = 10.0f;
+													if ((frontsidevisible)&&(lightmapcolor!=null)) {
 														texr *= lightmapcolorcomp[0]*multiplier;
 														texg *= lightmapcolorcomp[1]*multiplier;
 														texb *= lightmapcolorcomp[2]*multiplier;
@@ -937,10 +942,10 @@ public class RenderLib {
 														texg = 0.0f;
 														texb = 0.0f;
 													}
-													if (emissivecolor!=null) {
-														texr += emissivecolorcomp[0];
-														texg += emissivecolorcomp[1];
-														texb += emissivecolorcomp[2];
+													if ((frontsidevisible)&&(emissivecolor!=null)) {
+														texr += emissivecolorcomp[0]*multiplier;
+														texg += emissivecolorcomp[1]*multiplier;
+														texb += emissivecolorcomp[2]*multiplier;
 													}
 													if (texr>1.0f) {texr=1.0f;}
 													if (texg>1.0f) {texg=1.0f;}
@@ -1139,7 +1144,8 @@ public class RenderLib {
 											triangleviewangle[0] = 180.0f - triangleviewangle[0];
 										}
 										triangleviewangle[0] -= 90.0f;
-										if (triangleviewangle[0]<0.0f) {triangleviewangle[0] = 0.0f;}
+										boolean frontsidevisible = true;
+										if (triangleviewangle[0]<0.0f) {triangleviewangle[0]=0.0f;frontsidevisible=false;}
 										float shadingmultiplier = ((((float)triangleviewangle[0])/1.5f)+30.0f)/90.0f;
 										Coordinate tex = camrayint[0][0].tex;
 										if (tex!=null) {
@@ -1186,13 +1192,13 @@ public class RenderLib {
 											float texr = trianglecolorcomp[0];
 											float texg = trianglecolorcomp[1];
 											float texb = trianglecolorcomp[2];
+											float multiplier = 10.0f;
 											if (!unlit) {
 												texr *= shadingmultiplier;
 												texg *= shadingmultiplier;
 												texb *= shadingmultiplier;
 											}
-											if (lightmapcolor!=null) {
-												float multiplier = 10.0f;
+											if ((frontsidevisible)&&(lightmapcolor!=null)) {
 												texr *= lightmapcolorcomp[0]*multiplier;
 												texg *= lightmapcolorcomp[1]*multiplier;
 												texb *= lightmapcolorcomp[2]*multiplier;
@@ -1201,10 +1207,10 @@ public class RenderLib {
 												texg = 0.0f;
 												texb = 0.0f;
 											}
-											if (emissivecolor!=null) {
-												texr += emissivecolorcomp[0];
-												texg += emissivecolorcomp[1];
-												texb += emissivecolorcomp[2];
+											if ((frontsidevisible)&&(emissivecolor!=null)) {
+												texr += emissivecolorcomp[0]*multiplier;
+												texg += emissivecolorcomp[1]*multiplier;
+												texb += emissivecolorcomp[2]*multiplier;
 											}
 											if (texr>1.0f) {texr=1.0f;}
 											if (texg>1.0f) {texg=1.0f;}
@@ -1341,7 +1347,8 @@ public class RenderLib {
 											triangleviewangle[0] = 180.0f - triangleviewangle[0];
 										}
 										triangleviewangle[0] -= 90.0f;
-										if (triangleviewangle[0]<0.0f) {triangleviewangle[0] = 0.0f;}
+										boolean frontsidevisible = true;
+										if (triangleviewangle[0]<0.0f) {triangleviewangle[0]=0.0f;frontsidevisible=false;}
 										float shadingmultiplier = ((((float)triangleviewangle[0])/1.5f)+30.0f)/90.0f;
 										Coordinate tex = camrayint[0][0].tex;
 										if (tex!=null) {
@@ -1388,13 +1395,13 @@ public class RenderLib {
 											float texr = trianglecolorcomp[0];
 											float texg = trianglecolorcomp[1];
 											float texb = trianglecolorcomp[2];
+											float multiplier = 10.0f;
 											if (!unlit) {
 												texr *= shadingmultiplier;
 												texg *= shadingmultiplier;
 												texb *= shadingmultiplier;
 											}
-											if (lightmapcolor!=null) {
-												float multiplier = 10.0f;
+											if ((frontsidevisible)&&(lightmapcolor!=null)) {
 												texr *= lightmapcolorcomp[0]*multiplier;
 												texg *= lightmapcolorcomp[1]*multiplier;
 												texb *= lightmapcolorcomp[2]*multiplier;
@@ -1403,10 +1410,10 @@ public class RenderLib {
 												texg = 0.0f;
 												texb = 0.0f;
 											}
-											if (emissivecolor!=null) {
-												texr += emissivecolorcomp[0];
-												texg += emissivecolorcomp[1];
-												texb += emissivecolorcomp[2];
+											if ((frontsidevisible)&&(emissivecolor!=null)) {
+												texr += emissivecolorcomp[0]*multiplier;
+												texg += emissivecolorcomp[1]*multiplier;
+												texb += emissivecolorcomp[2]*multiplier;
 											}
 											if (texr>1.0f) {texr=1.0f;}
 											if (texg>1.0f) {texg=1.0f;}
@@ -1488,7 +1495,7 @@ public class RenderLib {
 	}
 
 	public static void renderSurfaceFaceCubemapPlaneViewHardware(Entity[] entitylist, int rendersize, int bounces) {
-		float multiplier = 10000.0f;
+		float multiplier = 1000.0f;
 		Direction[][] cubemaprays = MathLib.projectedRays(rendersize, rendersize, 90.0f, 90.0f, MathLib.rotationMatrix(0.0f, 0.0f, 0.0f));
 		double[][] cubemapraylen = new double[rendersize][rendersize];
 		for (int i=0;i<cubemaprays.length;i++) {
@@ -1583,7 +1590,7 @@ public class RenderLib {
 	}
 	
 	public static void renderSurfaceFaceCubemapPlaneViewSoftware(Entity[] entitylist, int rendersize, int bounces) {
-		float multiplier = 10000.0f;
+		float multiplier = 1000.0f;
 		Direction[][] cubemaprays = MathLib.projectedRays(rendersize, rendersize, 90.0f, 90.0f, MathLib.rotationMatrix(0.0f, 0.0f, 0.0f));
 		double[][] cubemapraylen = new double[rendersize][rendersize];
 		for (int i=0;i<cubemaprays.length;i++) {
@@ -1678,7 +1685,7 @@ public class RenderLib {
 	}
 
 	public static void renderSurfaceFaceCubemapRayViewSoftware(Entity[] entitylist, int rendersize, int bounces) {
-		float multiplier = 10000.0f;
+		float multiplier = 1000.0f;
 		Direction[][] cubemaprays = MathLib.projectedRays(rendersize, rendersize, 90.0f, 90.0f, MathLib.rotationMatrix(0.0f, 0.0f, 0.0f));
 		double[][] cubemapraylen = new double[rendersize][rendersize];
 		for (int i=0;i<cubemaprays.length;i++) {
@@ -1774,7 +1781,7 @@ public class RenderLib {
 	
 	public static void renderSurfaceTextureCubemapPlaneViewSoftware(Entity[] entitylist, int rendersize, int texturesize, int bounces) {
 		//TODO pixel lightmap texture output
-		float multiplier = 10000.0f;
+		float multiplier = 1000.0f;
 		Direction[][] cubemaprays = MathLib.projectedRays(rendersize, rendersize, 90.0f, 90.0f, MathLib.rotationMatrix(0.0f, 0.0f, 0.0f));
 		double[][] cubemapraylen = new double[rendersize][rendersize];
 		for (int i=0;i<cubemaprays.length;i++) {
