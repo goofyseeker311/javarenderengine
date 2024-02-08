@@ -162,6 +162,7 @@ public class ModelLib {
 		public double hfov=0.0f, vfov=43.0f;
 		public boolean rendered = false;
 		public boolean unlit = false;
+		public int mode = 1;
 		public Direction[] dirs;
 		public Direction[][] rays;
 		public Plane[] planes;

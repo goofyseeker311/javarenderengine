@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.8");
+		this.setTitle("Java Render Engine v2.3.9");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -195,9 +195,11 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		double[] sang = MathLib.spheremapAngles(8, 360.0f);
 		Position spos = new Position(0.0f,0.0f,0.0f);
 		Matrix smat = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
+		Direction[] svectors = MathLib.spheremapVectors(9, smat);
 		Plane[] splanes = MathLib.spheremapPlanes(spos, 8, smat);
 		Direction[][] srays = MathLib.spheremapRays(9, 5, smat);
 		for (int i=0;i<sang.length;i++) {System.out.println("JavaRenderEngine: main: sang["+i+"]="+sang[i]);}
+		for (int i=0;i<svectors.length;i++) {System.out.println("JavaRenderEngine: main: svectors["+i+"]="+svectors[i].dx+" "+svectors[i].dy+" "+svectors[i].dz);}
 		for (int i=0;i<splanes.length;i++) {System.out.println("JavaRenderEngine: main: splanes["+i+"]="+splanes[i].a+" "+splanes[i].b+" "+splanes[i].c+" "+splanes[i].d);}
 		for (int j=0;j<srays.length;j++) { for (int i=0;i<srays[0].length;i++) {System.out.println("JavaRenderEngine: main: srays["+j+"]["+i+"]="+srays[j][i].dx+" "+srays[j][i].dy+" "+srays[j][i].dz);}}
 		Direction[] camfwd = {new Direction(1,0,0)};
@@ -233,12 +235,12 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Matrix pmsrotx = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
 		Matrix pmsrotz = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 		Matrix pmsrot = MathLib.matrixMultiply(pmsrotz, pmsrotx);
-		Rectangle[] pmtint = MathLib.projectedTrianglesIntersection(pmsvpos, pmsvtri, 64, 64, 90, 90, pmsrot);
+		Rectangle[] pmtint = MathLib.projectedTriangleIntersection(pmsvpos, pmsvtri, 64, 64, 90, 90, pmsrot);
 		Rectangle[] pmsint = MathLib.projectedSphereIntersection(pmsvpos, pmsvsph, 64, 64, 90, 90, pmsrot);
 		Rectangle[][] cmsint = MathLib.cubemapSphereIntersection(pmsvpos, pmsvsph, 64);
 		Rectangle[] smsint = MathLib.spheremapSphereIntersection(pmsvpos, pmsvsph, 64, 64, pmsrot);
-		Coordinate[] smpint = MathLib.spheremapPoints(pmsvpos, pmstripos, 64, 64, pmsrot);
-		Rectangle[] smtint = MathLib.spheremapTrianglesIntersection(pmsvpos, pmsvtri, 64, 64, pmsrot);
+		Coordinate[] smpint = MathLib.spheremapPoint(pmsvpos, pmstripos, 64, 64, pmsrot);
+		Rectangle[] smtint = MathLib.spheremapTriangleIntersection(pmsvpos, pmsvtri, 64, 64, pmsrot);
 		for (int i=0;i<pmtint.length;i++){if(pmtint[i]==null){pmtint[i]=new Rectangle(-1,-1,1,1);}}
 		for (int i=0;i<pmtint.length;i++) {System.out.println("JavaRenderEngine: main: pmtint["+i+"]= "+pmtint[i].x+","+pmtint[i].y+","+(pmtint[i].x+pmtint[i].width-1)+","+(pmtint[i].y+pmtint[i].height-1));}
 		for (int j=0;j<cmsint.length;j++) {for (int i=0;i<cmsint[0].length;i++){if(cmsint[j][i]==null){cmsint[j][i]=new Rectangle(-1,-1,1,1);}}}
@@ -273,7 +275,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Position prjpoint = new Position(0.0f,0.0f,0.0f);
 		Position[] prjpoints = {new Position(5.0f,0.0f,0.0f),new Position(5.0f,0.0f,-5.0f),new Position(0.0f,0.0f,-5.0f)};
 		Matrix prjmat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
-		Coordinate[] prjcoords = MathLib.projectedPoints(prjpoint, prjpoints, 64, 90.0f, 64, 90.0f, prjmat);
+		Coordinate[] prjcoords = MathLib.projectedPoint(prjpoint, prjpoints, 64, 90.0f, 64, 90.0f, prjmat);
 		for (int i=0;i<prjcoords.length;i++) { if(prjcoords[i]!=null){System.out.println("JavaRenderEngine: main: prjcoords[i]="+prjcoords[i].u+" "+prjcoords[i].v);}else{System.out.println("JavaRenderEngine: main: prjcoords[i]=not visible.");}}
 		Position rpdpos = new Position(0.0f,0.0f,0.0f); 
 		Position rpdpos2 = new Position(0.0f,0.0f,1.0f); 

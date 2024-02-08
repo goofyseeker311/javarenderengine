@@ -390,7 +390,7 @@ public class CADApp extends AppHandlerPanel {
 				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
 				if ((stri[0].norm==null)||(stri[0].norm.isZero())) {
 					Plane[] striplane = MathLib.planeFromPoints(stri);
-					Direction[] strinorm = MathLib.planeNormals(striplane);
+					Direction[] strinorm = MathLib.planeNormal(striplane);
 					stri[0].norm = strinorm[0];
 				} else {
 					stri[0].norm = stri[0].norm.invert();
@@ -1225,11 +1225,11 @@ public class CADApp extends AppHandlerPanel {
 			if (!EntityLightMapUpdater.entitylightmapupdaterrunning) {
 				EntityLightMapUpdater.entitylightmapupdaterrunning = true;
 				if (CADApp.this.polygonfillmode==1) {
-					RenderLib.renderSurfaceFaceCubemapRayViewSoftware(CADApp.this.entitylist, 32, 2);
+					RenderLib.renderSurfaceFaceLightmapCubemapView(CADApp.this.entitylist, 32, 2, 3);
 				} else if (CADApp.this.polygonfillmode==2) {
-					RenderLib.renderSurfaceFaceCubemapPlaneViewHardware(CADApp.this.entitylist, 32, 2);
+					RenderLib.renderSurfaceFaceLightmapCubemapView(CADApp.this.entitylist, 32, 2, 1);
 				} else if (CADApp.this.polygonfillmode==3) {
-					RenderLib.renderSurfaceFaceCubemapPlaneViewSoftware(CADApp.this.entitylist, 32, 2);
+					RenderLib.renderSurfaceFaceLightmapCubemapView(CADApp.this.entitylist, 32, 2, 2);
 				}
 				EntityLightMapUpdater.entitylightmapupdaterrunning = false;
 			}
