@@ -1728,6 +1728,8 @@ public class MathLib {
 				Direction[] vpointvdir = {new Direction(fwdpointsdist[i][0],rightpointsdist[i][0],uppointsdist[i][0])};
 				double[] hanglea = vectorAngle(vpointhdir, camfwddir);
 				double[] vanglea = vectorAngle(vpointhdir, vpointvdir);
+				if (!Double.isFinite(hanglea[0])) {hanglea[0]=0.0f;};
+				if (!Double.isFinite(vanglea[0])) {vanglea[0]=90.0f;};
 				double hangle = ((rightpointsdist[i][0]>=0.0)?1.0f:-1.0f)*hanglea[0];
 				double vangle = ((uppointsdist[i][0]>=0.0)?1.0f:-1.0f)*vanglea[0];
 				double hind = halfhreshfovmult*hangle+origindeltax;
@@ -1762,8 +1764,10 @@ public class MathLib {
 				if ((vtripos1pixel[j]!=null)&&(vtripos2pixel[j]!=null)&&(vtripos3pixel[j]!=null)) {
 					double minx = Double.POSITIVE_INFINITY;
 					double maxx = Double.NEGATIVE_INFINITY;
-					double miny = Double.POSITIVE_INFINITY;
-					double maxy = Double.NEGATIVE_INFINITY;
+					//double miny = Double.POSITIVE_INFINITY;
+					//double maxy = Double.NEGATIVE_INFINITY;
+					double miny = 0;
+					double maxy = vres-1;
 					Coordinate[] vtripospixels = {vtripos1pixel[j], vtripos2pixel[j], vtripos3pixel[j]};
 					for (int i=0;i<vtripospixels.length;i++) {
 						if (vtripospixels[i].u<minx) {minx = vtripospixels[i].u;}
@@ -1798,7 +1802,7 @@ public class MathLib {
 					int maxyind = (int)Math.floor(maxy);
 					int triwidth = maxxind-minxind+1;
 					int triheight = maxyind-minyind+1;
-					if ((triwidth!=0)&&(triheight!=0)) {
+					if ((triwidth!=0)&&(triheight>0)) {
 						k[j] = new Rectangle(minxind,minyind,triwidth,triheight);
 					}
 				}

@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.12");
+		this.setTitle("Java Render Engine v2.3.13");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -132,8 +132,11 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Plane[] camplane = MathLib.planeFromNormalAtPoint(camposa, camdir4norm);
 		for (int i=0;i<pplane.length;i++) {System.out.println("JavaRenderEngine: main: pplane: "+pplane[i].a+" "+pplane[i].b+" "+pplane[i].c+" "+pplane[i].d);}
 		for (int i=0;i<camplane.length;i++) {System.out.println("JavaRenderEngine: main: camplane: "+camplane[i].a+" "+camplane[i].b+" "+camplane[i].c+" "+camplane[i].d);}
+		Direction[] zerodir = {new Direction(0.0f,0.0f,0.0f)};
 		double[] camdirang = MathLib.vectorAngle(camdir2, camdir3);
+		double[] camdirang2 = MathLib.vectorAngle(zerodir, zerodir);
 		for (int i=0;i<camdirang.length;i++) {System.out.println("JavaRenderEngine: main: camdirang: "+camdirang[i]);}
+		for (int i=0;i<camdirang2.length;i++) {System.out.println("JavaRenderEngine: main: camdirang2: "+camdirang2[i]);}
 		Position[][] camrtint = MathLib.rayTriangleIntersection(campos, camdir3, ptri);
 		for (int i=0;i<camrtint.length;i++) {for (int j=0;j<camrtint[i].length;j++) {if(camrtint[i][j]!=null) {System.out.println("JavaRenderEngine: main: camrtint["+i+"]["+j+"]: "+camrtint[i][j].x+" "+camrtint[i][j].y+" "+camrtint[i][j].z+" ("+camrtint[i][j].tex.u+" "+camrtint[i][j].tex.v+")");}else{System.out.println("JavaRenderEngine: main: camrtint["+i+"]["+j+"]: no hit.");}}}
 		Line[][] camptint = MathLib.planeTriangleIntersection(camplane, ptri);
@@ -338,7 +341,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Line[] vlines = {vline, vline};
 		double[] projangles = MathLib.projectedAngles(8, 90);
 		double[][] lenfrac = MathLib.linearAngleLengthInterpolation(vpos, vlines, projangles);
-		for (int j=0;j<lenfrac.length;j++) {for (int i=0;i<lenfrac[j].length;i++) {System.out.println("lenfrac["+j+"]["+i+"]="+lenfrac[j][i]);}}
+		for (int j=0;j<lenfrac.length;j++) {for (int i=0;i<lenfrac[j].length;i++) {System.out.println("JavaRenderEngine: main: lenfrac["+j+"]["+i+"]="+lenfrac[j][i]);}}
 		
 		new JavaRenderEngine();
 	}
