@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.9");
+		this.setTitle("Java Render Engine v2.3.10");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -331,6 +331,14 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		for (int j=0;j<stringstosplit.length;j++) {String[] stringsplit = stringstosplit[j].split("/");System.out.print("JavaRenderEngine: main: stringstosplit["+j+"]=\""+stringsplit.length+"\","+stringstosplit[j]+":");for (int i=0;i<stringsplit.length;i++) { if(!stringsplit[i].isBlank()) {System.out.print(" "+Integer.parseInt(stringsplit[i]));}}System.out.println();}
 		Rectangle[] negrect = {new Rectangle(0,0,-5,-5),new Rectangle(0,0,0,0),new Rectangle(0,0,-1,-1),new Rectangle(0,0,1,1)};
 		for (int i=0;i<negrect.length;i++) {System.out.println("JavaRenderEngine: main: negrect["+i+"]= "+negrect[i].x+","+negrect[i].y+","+(negrect[i].x+negrect[i].width-1)+","+(negrect[i].y+negrect[i].height-1));}
+		Position vpos = new Position(0.0f,0.0f,0.0f);
+		Position lpos1 = new Position(3.0f,0.0f,-1.0f);
+		Position lpos2 = new Position(3.0f,0.0f,1.0f);
+		Line vline = new Line(lpos1,lpos2);
+		Line[] vlines = {vline, vline};
+		double[] projangles = MathLib.projectedAngles(64, 90);
+		double[][] lenfrac = MathLib.linearAngleLengthInterpolation(vpos, vlines, projangles);
+		for (int j=0;j<lenfrac.length;j++) {for (int i=0;i<lenfrac[j].length;i++) {System.out.println("lenfrac["+j+"]["+i+"]="+lenfrac[j][i]);}}
 		
 		new JavaRenderEngine();
 	}
