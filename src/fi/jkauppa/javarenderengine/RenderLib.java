@@ -666,7 +666,7 @@ public class RenderLib {
 										Coordinate pointuv = null;
 										if (tex!=null) {
 											pointuv = new Coordinate(tex.u,1.0f-tex.v);
-											renderview.cbuffer[n][j] = pointuv;
+											renderview.cbuffer[j][i] = pointuv;
 										}
 										Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, camrayintpos);
 										double[] linepointdirlen = MathLib.vectorLength(linepointdir);
@@ -782,7 +782,7 @@ public class RenderLib {
 										Coordinate pointuv = null;
 										if (tex!=null) {
 											pointuv = new Coordinate(tex.u,1.0f-tex.v);
-											renderview.cbuffer[n][j] = pointuv;
+											renderview.cbuffer[j][i] = pointuv;
 										}
 										Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, camrayintpos);
 										double[] linepointdirlen = MathLib.vectorLength(linepointdir);
