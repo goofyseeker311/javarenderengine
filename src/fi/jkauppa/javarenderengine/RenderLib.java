@@ -308,6 +308,15 @@ public class RenderLib {
 											Direction[] drawlinedir12 = MathLib.vectorFromPoints(drawlinepos1, drawlinepos2);
 											double[][] drawlinedir12dist = MathLib.rayPlaneDistance(drawlinepos1[0], drawlinedir12, rendercutplane);
 											Position[] drawlinepos3 = MathLib.translate(drawlinepos1, drawlinedir12[0], drawlinedir12dist[0][0]);
+											Coordinate tex1 = drawlinepos1[0].tex; 
+											Coordinate tex2 = drawlinepos2[0].tex; 
+											if ((tex1!=null)&&(tex2!=null)) {
+												Position[] drawlinepostex1 = {new Position(tex1.u,tex1.v,0.0f)};
+												Position[] drawlinepostex2 = {new Position(tex2.u,tex2.v,0.0f)};
+												Direction[] drawlinetexdir12 = MathLib.vectorFromPoints(drawlinepostex1, drawlinepostex2);
+												Position[] drawlinepostex3 = MathLib.translate(drawlinepostex1, drawlinetexdir12[0], drawlinedir12dist[0][0]);
+												drawlinepos3[0].tex = new Coordinate(drawlinepostex3[0].x, drawlinepostex3[0].y);
+											}
 											if (fwdintpointsdist[0][0]>=1.0f) {
 												Position[] newdrawlinepoints = {drawlinepos1[0], drawlinepos3[0]};
 												drawlinepoints = newdrawlinepoints;
@@ -498,6 +507,15 @@ public class RenderLib {
 											Direction[] drawlinedir12 = MathLib.vectorFromPoints(drawlinepos1, drawlinepos2);
 											double[][] drawlinedir12dist = MathLib.rayPlaneDistance(drawlinepos1[0], drawlinedir12, rendercutplane);
 											Position[] drawlinepos3 = MathLib.translate(drawlinepos1, drawlinedir12[0], drawlinedir12dist[0][0]);
+											Coordinate tex1 = drawlinepos1[0].tex; 
+											Coordinate tex2 = drawlinepos2[0].tex; 
+											if ((tex1!=null)&&(tex2!=null)) {
+												Position[] drawlinepostex1 = {new Position(tex1.u,tex1.v,0.0f)};
+												Position[] drawlinepostex2 = {new Position(tex2.u,tex2.v,0.0f)};
+												Direction[] drawlinetexdir12 = MathLib.vectorFromPoints(drawlinepostex1, drawlinepostex2);
+												Position[] drawlinepostex3 = MathLib.translate(drawlinepostex1, drawlinetexdir12[0], drawlinedir12dist[0][0]);
+												drawlinepos3[0].tex = new Coordinate(drawlinepostex3[0].x, drawlinepostex3[0].y);
+											}
 											if (fwdintpointsdist[0][0]>=1.0f) {
 												Position[] newdrawlinepoints = {drawlinepos1[0], drawlinepos3[0]};
 												drawlinepoints = newdrawlinepoints;
