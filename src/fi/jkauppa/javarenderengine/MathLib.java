@@ -1741,7 +1741,7 @@ public class MathLib {
 		Rectangle[] k = null;
 		if ((vpos!=null)&&(vtri!=null)&&(vmat!=null)) {
 			k = new Rectangle[vtri.length];
-			//double halfhres = ((double)(hres-1))/2.0f;
+			double halfhres = ((double)(hres-1))/2.0f;
 			Direction[] camdirs = projectedCameraDirections(vmat);
 			Plane[] camplanes = planeFromNormalAtPoint(vpos, camdirs);
 			Plane[] camupplane = {camplanes[2]};
@@ -1764,27 +1764,23 @@ public class MathLib {
 					double maxx = Double.NEGATIVE_INFINITY;
 					double miny = Double.POSITIVE_INFINITY;
 					double maxy = Double.NEGATIVE_INFINITY;
-					Coordinate[] vtripospixels = {vtripos1pixel[j], vtripos2pixel[j], vtripos3pixel[j]}; 
+					Coordinate[] vtripospixels = {vtripos1pixel[j], vtripos2pixel[j], vtripos3pixel[j]};
 					for (int i=0;i<vtripospixels.length;i++) {
 						if (vtripospixels[i].u<minx) {minx = vtripospixels[i].u;}
 						if (vtripospixels[i].u>maxx) {maxx = vtripospixels[i].u;}
 						if (vtripospixels[i].v<miny) {miny = vtripospixels[i].v;}
 						if (vtripospixels[i].v>maxy) {maxy = vtripospixels[i].v;}
 					}
-					/*
-					double vtripospixel12dif = vtripospixels[1].u-vtripospixels[0].u;
-					double vtripospixel13dif = vtripospixels[2].u-vtripospixels[0].u;
-					double vtripospixel23dif = vtripospixels[2].u-vtripospixels[1].u;
-					if (vtripospixel12dif<=halfhres) {
-					} else {
+					double vtripospixel12dif = Math.abs(vtripospixels[1].u-vtripospixels[0].u);
+					double vtripospixel13dif = Math.abs(vtripospixels[2].u-vtripospixels[0].u);
+					double vtripospixel23dif = Math.abs(vtripospixels[2].u-vtripospixels[1].u);
+					boolean vtripospixel12crossingbehind = vtripospixel12dif>halfhres;
+					boolean vtripospixel13crossingbehind = vtripospixel13dif>halfhres;
+					boolean vtripospixel23crossingbehind = vtripospixel23dif>halfhres;
+					if (vtripospixel12crossingbehind||vtripospixel13crossingbehind||vtripospixel23crossingbehind) {
+						minx = 0;
+						maxx = hres-1;
 					}
-					if (vtripospixel13dif<=halfhres) {
-					} else {
-					}
-					if (vtripospixel23dif<=halfhres) {
-					} else {
-					}
-					*/
 					if (poleint[0][j]!=null) {
 						minx = 0;
 						maxx = hres-1;

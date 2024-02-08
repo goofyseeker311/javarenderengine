@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.11");
+		this.setTitle("Java Render Engine v2.3.12");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -336,7 +336,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Position lpos2 = new Position(3.0f,0.0f,1.0f);
 		Line vline = new Line(lpos1,lpos2);
 		Line[] vlines = {vline, vline};
-		double[] projangles = MathLib.projectedAngles(64, 90);
+		double[] projangles = MathLib.projectedAngles(8, 90);
 		double[][] lenfrac = MathLib.linearAngleLengthInterpolation(vpos, vlines, projangles);
 		for (int j=0;j<lenfrac.length;j++) {for (int i=0;i<lenfrac[j].length;i++) {System.out.println("lenfrac["+j+"]["+i+"]="+lenfrac[j][i]);}}
 		
