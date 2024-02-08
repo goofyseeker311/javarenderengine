@@ -332,12 +332,7 @@ public class RenderLib {
 										Position[] vcamposd = {new Position(0.0f,0.0f,0.0f)};
 										Position[] vpixelpoint1d = {new Position(fwdintpointsdist[vpixelyinds[0]][0],upintpointsdist[vpixelyinds[0]][0],0.0f)};
 										Position[] vpixelpoint2d = {new Position(fwdintpointsdist[vpixelyinds[1]][0],upintpointsdist[vpixelyinds[1]][0],0.0f)};
-										Direction[] vpixelpointdir1d = MathLib.vectorFromPoints(vcamposd, vpixelpoint1d);
-										double[] vpixelpointdirlen1d = MathLib.vectorLength(vpixelpointdir1d);
-										Direction[] vpixelpointdir1invd = {vpixelpointdir1d[0].invert()};
-										Direction[] vpixelpointdir12d = MathLib.vectorFromPoints(vpixelpoint1d, vpixelpoint2d);
-										double[] vpixelpointdir12lend = MathLib.vectorLength(vpixelpointdir12d);
-										double[] vpixelpoint1angled = MathLib.vectorAngle(vpixelpointdir1invd, vpixelpointdir12d);
+										Line[] vpixelline = {new Line(vpixelpoint1d[0], vpixelpoint2d[0])};
 										double vpixelyangsort1 = vpixelyangs[vpixelyinds[0]]; 
 										int vpixelyind1 = (int)Math.ceil(vpixelysort[0]); 
 										int vpixelyind2 = (int)Math.floor(vpixelysort[1]);
@@ -348,10 +343,9 @@ public class RenderLib {
 											if (vpixelystart<0) {vpixelystart=0;}
 											if (vpixelyend>=renderheight) {vpixelyend=renderheight-1;}
 											for (int n=vpixelystart;n<=vpixelyend;n++) {
-												double vpixelcampointangle = verticalangles[n]-vpixelyangsort1;
-												double vpixelpointangle = 180.0f-vpixelpoint1angled[0]-vpixelcampointangle;
-												double vpixelpointlen = vpixelpointdirlen1d[0]*(MathLib.sind(vpixelcampointangle)/MathLib.sind(vpixelpointangle));
-												double vpixelpointlenfrac = vpixelpointlen/vpixelpointdir12lend[0];
+												double[] vpixelcampointangle = {verticalangles[n]-vpixelyangsort1};
+												double[][] vpixelpointlenfraca = MathLib.linearAngleLengthInterpolation(vcamposd[0], vpixelline, vpixelcampointangle);
+												double vpixelpointlenfrac = vpixelpointlenfraca[0][0];
 												Coordinate tex1 = vpixelpoints[0].tex;
 												Coordinate tex2 = vpixelpoints[1].tex;
 												Coordinate lineuv = null;
@@ -528,12 +522,7 @@ public class RenderLib {
 										Position[] vcamposd = {new Position(0.0f,0.0f,0.0f)};
 										Position[] vpixelpoint1d = {new Position(fwdintpointsdist[vpixelyinds[0]][0],upintpointsdist[vpixelyinds[0]][0],0.0f)};
 										Position[] vpixelpoint2d = {new Position(fwdintpointsdist[vpixelyinds[1]][0],upintpointsdist[vpixelyinds[1]][0],0.0f)};
-										Direction[] vpixelpointdir1d = MathLib.vectorFromPoints(vcamposd, vpixelpoint1d);
-										double[] vpixelpointdirlen1d = MathLib.vectorLength(vpixelpointdir1d);
-										Direction[] vpixelpointdir1invd = {vpixelpointdir1d[0].invert()};
-										Direction[] vpixelpointdir12d = MathLib.vectorFromPoints(vpixelpoint1d, vpixelpoint2d);
-										double[] vpixelpointdir12lend = MathLib.vectorLength(vpixelpointdir12d);
-										double[] vpixelpoint1angled = MathLib.vectorAngle(vpixelpointdir1invd, vpixelpointdir12d);
+										Line[] vpixelline = {new Line(vpixelpoint1d[0], vpixelpoint2d[0])};
 										double vpixelyangsort1 = vpixelyangs[vpixelyinds[0]]; 
 										int vpixelyind1 = (int)Math.ceil(vpixelysort[0]); 
 										int vpixelyind2 = (int)Math.floor(vpixelysort[1]); 
@@ -544,10 +533,9 @@ public class RenderLib {
 											if (vpixelystart<0) {vpixelystart=0;}
 											if (vpixelyend>=renderheight) {vpixelyend=renderheight-1;}
 											for (int n=vpixelystart;n<=vpixelyend;n++) {
-												double vpixelcampointangle = verticalangles[n]-vpixelyangsort1;
-												double vpixelpointangle = 180.0f-vpixelpoint1angled[0]-vpixelcampointangle;
-												double vpixelpointlen = vpixelpointdirlen1d[0]*(MathLib.sind(vpixelcampointangle)/MathLib.sind(vpixelpointangle));
-												double vpixelpointlenfrac = vpixelpointlen/vpixelpointdir12lend[0];
+												double[] vpixelcampointangle = {verticalangles[n]-vpixelyangsort1};
+												double[][] vpixelpointlenfraca = MathLib.linearAngleLengthInterpolation(vcamposd[0], vpixelline, vpixelcampointangle);
+												double vpixelpointlenfrac = vpixelpointlenfraca[0][0];
 												Coordinate tex1 = vpixelpoints[0].tex;
 												Coordinate tex2 = vpixelpoints[1].tex;
 												Coordinate lineuv = null;
@@ -882,7 +870,6 @@ public class RenderLib {
 		renderview.snapimage = renderview.renderimage.getSnapshot();
 		return renderview;
 	}
-
 
 	public static Color trianglePixelShader(Triangle triangle, Direction trianglenormal, Coordinate texuv, Direction camray, boolean unlit) {
 		Triangle[] copytriangle = {triangle};

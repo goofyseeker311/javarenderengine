@@ -1951,6 +1951,31 @@ public class MathLib {
 		return k;
 	}
 	
+	public static double[][] linearAngleLengthInterpolation(Position vpos, Line[] vline, double[] vangle) {
+		double[][] k = null;
+		if ((vpos!=null)&&(vline!=null)&&(vangle!=null)) {
+			k = new double[vline.length][vangle.length];
+			for (int j=0;j<vline.length;j++) {
+				Position[] startpos = {vline[j].pos1};
+				Position[] endpos = {vline[j].pos2};
+				Direction[] vposstartdir = vectorFromPoints(vpos, startpos);
+				Direction[] startvposdir = {vposstartdir[0].invert()};
+				Direction[] startenddir = vectorFromPoints(startpos, endpos);
+				double[] vposstartdirlen = vectorLength(vposstartdir);
+				double[] startenddirlen = vectorLength(startenddir);
+				double[] startposangle = vectorAngle(startvposdir,startenddir);
+				for (int i=0;i<vangle.length;i++) {
+					double vposangle = vangle[i];
+					double endposangle = 180.0f-startposangle[0]-vposangle;
+					double startendangledirlen = vposstartdirlen[0]*(sind(vposangle)/sind(endposangle));
+					double startendangledirlenfrac = startendangledirlen/startenddirlen[0];
+					k[j][i] = startendangledirlenfrac;
+				}
+			}
+		}
+		return k;
+	}
+	
 	public static Direction[] surfaceMirrorRays(Plane[] vsurf, Direction[] vdir, double refraction) {
 		Direction[]  k = null;
 		return k;
