@@ -612,7 +612,7 @@ public class RenderLib {
 		renderview.mouselocationx = mouselocationx; 
 		renderview.mouselocationy = mouselocationy; 
 		renderview.dirs = MathLib.projectedCameraDirections(renderview.rot);
-		renderview.rays = MathLib.projectedRays(renderwidth, renderheight, renderview.hfov, renderview.vfov, renderview.rot);
+		renderview.rays = MathLib.projectedRays(renderwidth, renderheight, renderview.hfov, renderview.vfov, renderview.rot, true);
 		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
 		renderview.zbuffer = new double[renderheight][renderwidth];
 		renderview.tbuffer = new Triangle[renderheight][renderwidth];
@@ -1001,7 +1001,7 @@ public class RenderLib {
 	
 	public static void renderSurfaceFaceLightmapCubemapView(Entity[] entitylist, int rendersize, int bounces, int mode) {
 		float multiplier = 1000.0f;
-		Direction[][] cubemaprays = MathLib.projectedRays(rendersize, rendersize, 90.0f, 90.0f, MathLib.rotationMatrix(0.0f, 0.0f, 0.0f));
+		Direction[][] cubemaprays = MathLib.projectedRays(rendersize, rendersize, 90.0f, 90.0f, MathLib.rotationMatrix(0.0f, 0.0f, 0.0f), false);
 		double[][] cubemapraylen = new double[rendersize][rendersize];
 		for (int i=0;i<cubemaprays.length;i++) {
 			cubemapraylen[i] = MathLib.vectorLength(cubemaprays[i]);
@@ -1098,7 +1098,7 @@ public class RenderLib {
 	public static void renderSurfaceTextureLightmapCubemapView(Entity[] entitylist, int rendersize, int texturesize, int bounces, int mode) {
 		//TODO pixel lightmap texture output
 		float multiplier = 1000.0f;
-		Direction[][] cubemaprays = MathLib.projectedRays(rendersize, rendersize, 90.0f, 90.0f, MathLib.rotationMatrix(0.0f, 0.0f, 0.0f));
+		Direction[][] cubemaprays = MathLib.projectedRays(rendersize, rendersize, 90.0f, 90.0f, MathLib.rotationMatrix(0.0f, 0.0f, 0.0f), false);
 		double[][] cubemapraylen = new double[rendersize][rendersize];
 		for (int i=0;i<cubemaprays.length;i++) {
 			cubemapraylen[i] = MathLib.vectorLength(cubemaprays[i]);

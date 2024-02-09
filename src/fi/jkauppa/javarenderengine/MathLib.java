@@ -1400,7 +1400,7 @@ public class MathLib {
 		planenormalvectors = normalizeVector(planenormalvectors);
 	    return planeFromNormalAtPoint(vpos, planenormalvectors);
 	}
-	public static Direction[][] projectedRays(int vhres, int vvres, double vhfov, double vvfov, Matrix vmat) {
+	public static Direction[][] projectedRays(int vhres, int vvres, double vhfov, double vvfov, Matrix vmat, boolean norm) {
 		Direction[][] k = new Direction[vvres][vhres];
 		double[] hstep = projectedStep(vhres, vhfov);
 		double[] vstep = projectedStep(vvres, vvfov);
@@ -1408,7 +1408,9 @@ public class MathLib {
 			for (int i=0;i<vhres;i++) {
 				k[j][i] = new Direction(hstep[i],-vstep[j],-1);
 			}
-			k[j] = normalizeVector(k[j]);
+			if (norm) {
+				k[j] = normalizeVector(k[j]);
+			}
 			k[j] = matrixMultiply(k[j], vmat);
 		}
 		return k;
