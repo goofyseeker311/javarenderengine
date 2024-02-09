@@ -179,47 +179,50 @@ public class RenderLib {
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
 			Sphere[] sortedentityspherelist = Arrays.copyOf(entityspherelist, entityspherelist.length);
 			Arrays.sort(sortedentityspherelist, distcomp);
+			Rectangle[] sortedentityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, sortedentityspherelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot);
 			for (int k=sortedentityspherelist.length-1;k>=0;k--) {
-				Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
-				if (copytrianglelist.length>0) {
-					Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
-					Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
-					for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
-					Direction[] copyviewtrianglespheredir = MathLib.vectorFromPoints(campos, copytrianglespherelist);
-					Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
-					Arrays.sort(sortedtrianglespherelist, distcomp);
-					Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangle(renderview.pos, copytrianglelist, renderwidth, renderview.hfov, renderheight, renderview.vfov, viewrot);
-					for (int i=sortedtrianglespherelist.length-1;i>=0;i--) {
-						int it = sortedtrianglespherelist[i].ind;
-						Triangle[] copytriangle = {copytrianglelist[it]};
-						Direction copytrianglenormal = copytrianglenormallist[it];
-						Direction copytriangledir = copyviewtrianglespheredir[it];
-						Coordinate coord1 = copytrianglelistcoords[it][0];
-						Coordinate coord2 = copytrianglelistcoords[it][1];
-						Coordinate coord3 = copytrianglelistcoords[it][2];
-						Coordinate coord4 = copytrianglelistcoords[it][3];
-						Coordinate coord5 = copytrianglelistcoords[it][4];
-						if ((coord1!=null)||(coord2!=null)||(coord3!=null)) {
-							Polygon trianglepolygon = new Polygon();
-							if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)) {
-								trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
-								trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
-								trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
-							} else {
-								if (coord1!=null) {trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));}
-								if (coord2!=null) {trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));}
-								if (coord3!=null) {trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));}
-								trianglepolygon.addPoint((int)Math.round(coord5.u), (int)Math.round(coord5.v));
-								trianglepolygon.addPoint((int)Math.round(coord4.u), (int)Math.round(coord4.v));
-							}
-							boolean mouseoverhit = g2.hit(new Rectangle(mouselocationx-vertexradius,mouselocationy-vertexradius,3,3), trianglepolygon, false);
-							if (mouseoverhit) {
-								mouseoverhittriangle.add(copytrianglelist[it]);
-							}
-							Color trianglecolor = trianglePixelShader(copytriangle[0], copytrianglenormal, null, copytriangledir, unlit);
-							if (trianglecolor!=null) {
-								g2.setColor(trianglecolor);
-								g2.fill(trianglepolygon);
+				if (sortedentityspherelistint[k]!=null) {
+					Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
+					if (copytrianglelist.length>0) {
+						Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
+						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
+						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
+						Direction[] copyviewtrianglespheredir = MathLib.vectorFromPoints(campos, copytrianglespherelist);
+						Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
+						Arrays.sort(sortedtrianglespherelist, distcomp);
+						Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangle(renderview.pos, copytrianglelist, renderwidth, renderview.hfov, renderheight, renderview.vfov, viewrot);
+						for (int i=sortedtrianglespherelist.length-1;i>=0;i--) {
+							int it = sortedtrianglespherelist[i].ind;
+							Triangle[] copytriangle = {copytrianglelist[it]};
+							Direction copytrianglenormal = copytrianglenormallist[it];
+							Direction copytriangledir = copyviewtrianglespheredir[it];
+							Coordinate coord1 = copytrianglelistcoords[it][0];
+							Coordinate coord2 = copytrianglelistcoords[it][1];
+							Coordinate coord3 = copytrianglelistcoords[it][2];
+							Coordinate coord4 = copytrianglelistcoords[it][3];
+							Coordinate coord5 = copytrianglelistcoords[it][4];
+							if ((coord1!=null)||(coord2!=null)||(coord3!=null)) {
+								Polygon trianglepolygon = new Polygon();
+								if ((coord1!=null)&&(coord2!=null)&&(coord3!=null)) {
+									trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));
+									trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));
+									trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));
+								} else {
+									if (coord1!=null) {trianglepolygon.addPoint((int)Math.round(coord1.u), (int)Math.round(coord1.v));}
+									if (coord2!=null) {trianglepolygon.addPoint((int)Math.round(coord2.u), (int)Math.round(coord2.v));}
+									if (coord3!=null) {trianglepolygon.addPoint((int)Math.round(coord3.u), (int)Math.round(coord3.v));}
+									trianglepolygon.addPoint((int)Math.round(coord5.u), (int)Math.round(coord5.v));
+									trianglepolygon.addPoint((int)Math.round(coord4.u), (int)Math.round(coord4.v));
+								}
+								boolean mouseoverhit = g2.hit(new Rectangle(mouselocationx-vertexradius,mouselocationy-vertexradius,3,3), trianglepolygon, false);
+								if (mouseoverhit) {
+									mouseoverhittriangle.add(copytrianglelist[it]);
+								}
+								Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal, null, copytriangledir, unlit);
+								if (trianglecolor!=null) {
+									g2.setColor(trianglecolor);
+									g2.fill(trianglepolygon);
+								}
 							}
 						}
 					}
@@ -277,111 +280,114 @@ public class RenderLib {
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
 			Sphere[] sortedentityspherelist = Arrays.copyOf(entityspherelist, entityspherelist.length);
 			Arrays.sort(sortedentityspherelist, distcomp);
+			Rectangle[] sortedentityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, sortedentityspherelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot);
 			for (int k=sortedentityspherelist.length-1;k>=0;k--) {
-				Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
-				if (copytrianglelist.length>0) {
-					Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
-					Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
-					for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
-					Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
-					Arrays.sort(sortedtrianglespherelist, distcomp);
-					Rectangle[] copytrianglelistint = MathLib.projectedTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot);
-					for (int i=sortedtrianglespherelist.length-1;i>=0;i--) {
-						int it = sortedtrianglespherelist[i].ind;
-						if (copytrianglelistint[it]!=null) {
-							Triangle[] copytriangle = {copytrianglelist[it]};
-							Direction copytrianglenormal = copytrianglenormallist[it];
-							int jstart = copytrianglelistint[it].x;
-							int jend = copytrianglelistint[it].x+copytrianglelistint[it].width-1;
-							Plane[] renderviewplanes = Arrays.copyOfRange(renderview.planes, jstart, jend+1);
-							Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(renderviewplanes, copytriangle);
-							for (int j=jstart;j<=jend;j++) {
-								Line drawline = vertplanetriangleint[j-jstart][0];
-								if (drawline!=null) {
-									Position[] drawlinepoints = {drawline.pos1, drawline.pos2};
-									double[][] fwdintpointsdist = MathLib.planePointDistance(drawlinepoints, camfwdplane);
-									double[][] upintpointsdist = MathLib.planePointDistance(drawlinepoints, camupplane);
-									if ((fwdintpointsdist[0][0]>=1.0f)||(fwdintpointsdist[1][0]>=1.0f)) {
-										if (!((fwdintpointsdist[0][0]>=1.0f)&&(fwdintpointsdist[1][0]>=1.0f))) {
-											Position[] drawlinepos1 = {drawline.pos1};
-											Position[] drawlinepos2 = {drawline.pos2};
-											Direction[] drawlinedir12 = MathLib.vectorFromPoints(drawlinepos1, drawlinepos2);
-											double[][] drawlinedir12dist = MathLib.rayPlaneDistance(drawlinepos1[0], drawlinedir12, rendercutplane);
-											Position[] drawlinepos3 = MathLib.translate(drawlinepos1, drawlinedir12[0], drawlinedir12dist[0][0]);
-											Coordinate tex1 = drawlinepos1[0].tex; 
-											Coordinate tex2 = drawlinepos2[0].tex; 
-											if ((tex1!=null)&&(tex2!=null)) {
-												Position[] drawlinepostex1 = {new Position(tex1.u,tex1.v,0.0f)};
-												Position[] drawlinepostex2 = {new Position(tex2.u,tex2.v,0.0f)};
-												Direction[] drawlinetexdir12 = MathLib.vectorFromPoints(drawlinepostex1, drawlinepostex2);
-												Position[] drawlinepostex3 = MathLib.translate(drawlinepostex1, drawlinetexdir12[0], drawlinedir12dist[0][0]);
-												drawlinepos3[0].tex = new Coordinate(drawlinepostex3[0].x, drawlinepostex3[0].y);
-											}
-											if (fwdintpointsdist[0][0]>=1.0f) {
-												Position[] newdrawlinepoints = {drawlinepos1[0], drawlinepos3[0]};
-												drawlinepoints = newdrawlinepoints;
-											} else {
-												Position[] newdrawlinepoints = {drawlinepos2[0], drawlinepos3[0]};
-												drawlinepoints = newdrawlinepoints;
-											}
-											fwdintpointsdist = MathLib.planePointDistance(drawlinepoints, camfwdplane);
-											upintpointsdist = MathLib.planePointDistance(drawlinepoints, camupplane);
-										}
-										double vpixelyang1 = MathLib.atand(upintpointsdist[0][0]/fwdintpointsdist[0][0]);
-										double vpixelyang2 = MathLib.atand(upintpointsdist[1][0]/fwdintpointsdist[1][0]);
-										double vpixely1 = halfvfovmult*halfvres*(upintpointsdist[0][0]/fwdintpointsdist[0][0])+origindeltay;
-										double vpixely2 = halfvfovmult*halfvres*(upintpointsdist[1][0]/fwdintpointsdist[1][0])+origindeltay;
-										double[] vpixelys = {vpixely1, vpixely2};
-										double[] vpixelyangs = {vpixelyang1, vpixelyang2};
-										int[] vpixelyinds = UtilLib.indexSort(vpixelys);
-										double[] vpixelysort = UtilLib.indexValues(vpixelys, vpixelyinds);
-										Position[] vpixelpoints = {drawlinepoints[vpixelyinds[0]], drawlinepoints[vpixelyinds[1]]};
-										Position[] vpixelpoint1 = {vpixelpoints[0]};
-										Position[] vpixelpoint2 = {vpixelpoints[1]};
-										Position[] vcamposd = {new Position(0.0f,0.0f,0.0f)};
-										Position[] vpixelpoint1d = {new Position(fwdintpointsdist[vpixelyinds[0]][0],upintpointsdist[vpixelyinds[0]][0],0.0f)};
-										Position[] vpixelpoint2d = {new Position(fwdintpointsdist[vpixelyinds[1]][0],upintpointsdist[vpixelyinds[1]][0],0.0f)};
-										Line[] vpixelline = {new Line(vpixelpoint1d[0], vpixelpoint2d[0])};
-										double vpixelyangsort1 = vpixelyangs[vpixelyinds[0]]; 
-										int vpixelyind1 = (int)Math.ceil(vpixelysort[0]); 
-										int vpixelyind2 = (int)Math.floor(vpixelysort[1]);
-										int vpixelystart = vpixelyind1;
-										int vpixelyend = vpixelyind2;
-										Direction[] vpixelpointdir12 = MathLib.vectorFromPoints(vpixelpoint1, vpixelpoint2);
-										if ((vpixelyend>=0)&&(vpixelystart<=renderheight)) {
-											if (vpixelystart<0) {vpixelystart=0;}
-											if (vpixelyend>=renderheight) {vpixelyend=renderheight-1;}
-											for (int n=vpixelystart;n<=vpixelyend;n++) {
-												double[] vpixelcampointangle = {verticalangles[n]-vpixelyangsort1};
-												double[][] vpixelpointlenfraca = MathLib.linearAngleLengthInterpolation(vcamposd[0], vpixelline, vpixelcampointangle);
-												double vpixelpointlenfrac = vpixelpointlenfraca[0][0];
-												Coordinate tex1 = vpixelpoints[0].tex;
-												Coordinate tex2 = vpixelpoints[1].tex;
-												Coordinate lineuv = null;
+				if (sortedentityspherelistint[k]!=null) {
+					Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
+					if (copytrianglelist.length>0) {
+						Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
+						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
+						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
+						Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
+						Arrays.sort(sortedtrianglespherelist, distcomp);
+						Rectangle[] copytrianglelistint = MathLib.projectedTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot);
+						for (int i=sortedtrianglespherelist.length-1;i>=0;i--) {
+							int it = sortedtrianglespherelist[i].ind;
+							if (copytrianglelistint[it]!=null) {
+								Triangle[] copytriangle = {copytrianglelist[it]};
+								Direction copytrianglenormal = copytrianglenormallist[it];
+								int jstart = copytrianglelistint[it].x;
+								int jend = copytrianglelistint[it].x+copytrianglelistint[it].width-1;
+								Plane[] renderviewplanes = Arrays.copyOfRange(renderview.planes, jstart, jend+1);
+								Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(renderviewplanes, copytriangle);
+								for (int j=jstart;j<=jend;j++) {
+									Line drawline = vertplanetriangleint[j-jstart][0];
+									if (drawline!=null) {
+										Position[] drawlinepoints = {drawline.pos1, drawline.pos2};
+										double[][] fwdintpointsdist = MathLib.planePointDistance(drawlinepoints, camfwdplane);
+										double[][] upintpointsdist = MathLib.planePointDistance(drawlinepoints, camupplane);
+										if ((fwdintpointsdist[0][0]>=1.0f)||(fwdintpointsdist[1][0]>=1.0f)) {
+											if (!((fwdintpointsdist[0][0]>=1.0f)&&(fwdintpointsdist[1][0]>=1.0f))) {
+												Position[] drawlinepos1 = {drawline.pos1};
+												Position[] drawlinepos2 = {drawline.pos2};
+												Direction[] drawlinedir12 = MathLib.vectorFromPoints(drawlinepos1, drawlinepos2);
+												double[][] drawlinedir12dist = MathLib.rayPlaneDistance(drawlinepos1[0], drawlinedir12, rendercutplane);
+												Position[] drawlinepos3 = MathLib.translate(drawlinepos1, drawlinedir12[0], drawlinedir12dist[0][0]);
+												Coordinate tex1 = drawlinepos1[0].tex; 
+												Coordinate tex2 = drawlinepos2[0].tex; 
 												if ((tex1!=null)&&(tex2!=null)) {
-													Position[] lineuvpoint1 = {new Position(tex1.u,1.0f-tex1.v,0.0f)};
-													Position[] lineuvpoint2 = {new Position(tex2.u,1.0f-tex2.v,0.0f)};
-													Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
-													Position[] lineuvpos = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
-													lineuv = new Coordinate(lineuvpos[0].x, lineuvpos[0].y);
-													renderview.cbuffer[n][j] = lineuv;
+													Position[] drawlinepostex1 = {new Position(tex1.u,tex1.v,0.0f)};
+													Position[] drawlinepostex2 = {new Position(tex2.u,tex2.v,0.0f)};
+													Direction[] drawlinetexdir12 = MathLib.vectorFromPoints(drawlinepostex1, drawlinepostex2);
+													Position[] drawlinepostex3 = MathLib.translate(drawlinepostex1, drawlinetexdir12[0], drawlinedir12dist[0][0]);
+													drawlinepos3[0].tex = new Coordinate(drawlinepostex3[0].x, drawlinepostex3[0].y);
 												}
-												Position[] linepoint = MathLib.translate(vpixelpoint1, vpixelpointdir12[0], vpixelpointlenfrac);
-												Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, linepoint);
-												double[] linepointdirlen = MathLib.vectorLength(linepointdir);
-												Direction[] camray = linepointdir;
-												double drawdistance = linepointdirlen[0];
-												double[][] linepointdist = MathLib.planePointDistance(linepoint, camfwdplane);
-												if ((linepointdist[0][0]>1.0f)&&(drawdistance<renderview.zbuffer[n][j])) {
-													renderview.zbuffer[n][j] = drawdistance;
-													renderview.tbuffer[n][j] = copytriangle[0];
-													if ((mouselocationx==j)&&(mouselocationy==n)) {
-														mouseoverhittriangle.add(copytriangle[0]);
+												if (fwdintpointsdist[0][0]>=1.0f) {
+													Position[] newdrawlinepoints = {drawlinepos1[0], drawlinepos3[0]};
+													drawlinepoints = newdrawlinepoints;
+												} else {
+													Position[] newdrawlinepoints = {drawlinepos2[0], drawlinepos3[0]};
+													drawlinepoints = newdrawlinepoints;
+												}
+												fwdintpointsdist = MathLib.planePointDistance(drawlinepoints, camfwdplane);
+												upintpointsdist = MathLib.planePointDistance(drawlinepoints, camupplane);
+											}
+											double vpixelyang1 = MathLib.atand(upintpointsdist[0][0]/fwdintpointsdist[0][0]);
+											double vpixelyang2 = MathLib.atand(upintpointsdist[1][0]/fwdintpointsdist[1][0]);
+											double vpixely1 = halfvfovmult*halfvres*(upintpointsdist[0][0]/fwdintpointsdist[0][0])+origindeltay;
+											double vpixely2 = halfvfovmult*halfvres*(upintpointsdist[1][0]/fwdintpointsdist[1][0])+origindeltay;
+											double[] vpixelys = {vpixely1, vpixely2};
+											double[] vpixelyangs = {vpixelyang1, vpixelyang2};
+											int[] vpixelyinds = UtilLib.indexSort(vpixelys);
+											double[] vpixelysort = UtilLib.indexValues(vpixelys, vpixelyinds);
+											Position[] vpixelpoints = {drawlinepoints[vpixelyinds[0]], drawlinepoints[vpixelyinds[1]]};
+											Position[] vpixelpoint1 = {vpixelpoints[0]};
+											Position[] vpixelpoint2 = {vpixelpoints[1]};
+											Position[] vcamposd = {new Position(0.0f,0.0f,0.0f)};
+											Position[] vpixelpoint1d = {new Position(fwdintpointsdist[vpixelyinds[0]][0],upintpointsdist[vpixelyinds[0]][0],0.0f)};
+											Position[] vpixelpoint2d = {new Position(fwdintpointsdist[vpixelyinds[1]][0],upintpointsdist[vpixelyinds[1]][0],0.0f)};
+											Line[] vpixelline = {new Line(vpixelpoint1d[0], vpixelpoint2d[0])};
+											double vpixelyangsort1 = vpixelyangs[vpixelyinds[0]]; 
+											int vpixelyind1 = (int)Math.ceil(vpixelysort[0]); 
+											int vpixelyind2 = (int)Math.floor(vpixelysort[1]);
+											int vpixelystart = vpixelyind1;
+											int vpixelyend = vpixelyind2;
+											Direction[] vpixelpointdir12 = MathLib.vectorFromPoints(vpixelpoint1, vpixelpoint2);
+											if ((vpixelyend>=0)&&(vpixelystart<=renderheight)) {
+												if (vpixelystart<0) {vpixelystart=0;}
+												if (vpixelyend>=renderheight) {vpixelyend=renderheight-1;}
+												for (int n=vpixelystart;n<=vpixelyend;n++) {
+													double[] vpixelcampointangle = {verticalangles[n]-vpixelyangsort1};
+													double[][] vpixelpointlenfraca = MathLib.linearAngleLengthInterpolation(vcamposd[0], vpixelline, vpixelcampointangle);
+													double vpixelpointlenfrac = vpixelpointlenfraca[0][0];
+													Coordinate tex1 = vpixelpoints[0].tex;
+													Coordinate tex2 = vpixelpoints[1].tex;
+													Coordinate lineuv = null;
+													if ((tex1!=null)&&(tex2!=null)) {
+														Position[] lineuvpoint1 = {new Position(tex1.u,1.0f-tex1.v,0.0f)};
+														Position[] lineuvpoint2 = {new Position(tex2.u,1.0f-tex2.v,0.0f)};
+														Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
+														Position[] lineuvpos = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
+														lineuv = new Coordinate(lineuvpos[0].x, lineuvpos[0].y);
+														renderview.cbuffer[n][j] = lineuv;
 													}
-													Color trianglecolor = trianglePixelShader(copytriangle[0], copytrianglenormal, lineuv, camray[0], unlit);
-													if (trianglecolor!=null) {
-														g2.setColor(trianglecolor);
-														g2.drawLine(j, n, j, n);
+													Position[] linepoint = MathLib.translate(vpixelpoint1, vpixelpointdir12[0], vpixelpointlenfrac);
+													Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, linepoint);
+													double[] linepointdirlen = MathLib.vectorLength(linepointdir);
+													Direction[] camray = linepointdir;
+													double drawdistance = linepointdirlen[0];
+													double[][] linepointdist = MathLib.planePointDistance(linepoint, camfwdplane);
+													if ((linepointdist[0][0]>1.0f)&&(drawdistance<renderview.zbuffer[n][j])) {
+														renderview.zbuffer[n][j] = drawdistance;
+														renderview.tbuffer[n][j] = copytriangle[0];
+														if ((mouselocationx==j)&&(mouselocationy==n)) {
+															mouseoverhittriangle.add(copytriangle[0]);
+														}
+														Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal, lineuv, camray[0], unlit);
+														if (trianglecolor!=null) {
+															g2.setColor(trianglecolor);
+															g2.drawLine(j, n, j, n);
+														}
 													}
 												}
 											}
@@ -450,137 +456,140 @@ public class RenderLib {
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
 			Sphere[] sortedentityspherelist = Arrays.copyOf(entityspherelist, entityspherelist.length);
 			Arrays.sort(sortedentityspherelist, distcomp);
+			Rectangle[] sortedentityspherelistint = MathLib.spheremapSphereIntersection(renderview.pos, sortedentityspherelist, renderwidth, renderheight, viewrot);
 			for (int k=sortedentityspherelist.length-1;k>=0;k--) {
-				Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
-				if (copytrianglelist.length>0) {
-					Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
-					Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
-					for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
-					Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
-					Arrays.sort(sortedtrianglespherelist, distcomp);
-					Rectangle[] copytrianglelistint = MathLib.spheremapTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, viewrot);
-					for (int i=sortedtrianglespherelist.length-1;i>=0;i--) {
-						int it = sortedtrianglespherelist[i].ind;
-						if (copytrianglelistint[it]!=null) {
-							Triangle[] copytriangle = {copytrianglelist[it]};
-							Direction copytrianglenormal = copytrianglenormallist[it];
-							int jstart = copytrianglelistint[it].x;
-							int jend = copytrianglelistint[it].x+copytrianglelistint[it].width-1;
-							int[] planeindex = null;
-							Plane[] renderviewplanes = null;
-							if (copytrianglelistint[it].width>0) {
-								planeindex = new int[copytrianglelistint[it].width];
-								renderviewplanes = new Plane[copytrianglelistint[it].width];
-								for (int n=jstart;n<=jend;n++) {
-									planeindex[n-jstart] = n;
-									renderviewplanes[n-jstart] = renderview.planes[n];
+				if (sortedentityspherelistint[k]!=null) {
+					Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
+					if (copytrianglelist.length>0) {
+						Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
+						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
+						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
+						Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
+						Arrays.sort(sortedtrianglespherelist, distcomp);
+						Rectangle[] copytrianglelistint = MathLib.spheremapTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, viewrot);
+						for (int i=sortedtrianglespherelist.length-1;i>=0;i--) {
+							int it = sortedtrianglespherelist[i].ind;
+							if (copytrianglelistint[it]!=null) {
+								Triangle[] copytriangle = {copytrianglelist[it]};
+								Direction copytrianglenormal = copytrianglenormallist[it];
+								int jstart = copytrianglelistint[it].x;
+								int jend = copytrianglelistint[it].x+copytrianglelistint[it].width-1;
+								int[] planeindex = null;
+								Plane[] renderviewplanes = null;
+								if (copytrianglelistint[it].width>0) {
+									planeindex = new int[copytrianglelistint[it].width];
+									renderviewplanes = new Plane[copytrianglelistint[it].width];
+									for (int n=jstart;n<=jend;n++) {
+										planeindex[n-jstart] = n;
+										renderviewplanes[n-jstart] = renderview.planes[n];
+									}
+								} else {
+									int planeindexwidth = renderwidth-jstart+jend+1;
+									planeindex = new int[planeindexwidth];
+									renderviewplanes = new Plane[planeindexwidth];
+									for (int n=0;n<=jend;n++) {
+										planeindex[n] = n;
+										renderviewplanes[n] = renderview.planes[n];
+									}
+									int n2 = jend+1;
+									for (int n=jstart;n<renderwidth;n++) {
+										planeindex[n2] = n;
+										renderviewplanes[n2] = renderview.planes[n];
+										n2++;
+									}
 								}
-							} else {
-								int planeindexwidth = renderwidth-jstart+jend+1;
-								planeindex = new int[planeindexwidth];
-								renderviewplanes = new Plane[planeindexwidth];
-								for (int n=0;n<=jend;n++) {
-									planeindex[n] = n;
-									renderviewplanes[n] = renderview.planes[n];
-								}
-								int n2 = jend+1;
-								for (int n=jstart;n<renderwidth;n++) {
-									planeindex[n2] = n;
-									renderviewplanes[n2] = renderview.planes[n];
-									n2++;
-								}
-							}
-							Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(renderviewplanes, copytriangle);
-							for (int l=0;l<planeindex.length;l++) {
-								int j = planeindex[l];
-								Line drawline = vertplanetriangleint[l][0];
-								if (drawline!=null) {
-									Position[] drawlinepoints = {drawline.pos1, drawline.pos2};
-									Plane[] camfwdplane = {camfwdplanes[j]};
-									Plane[] rendercutplane = {rendercutplanes[j]};
-									double[][] fwdintpointsdist = MathLib.planePointDistance(drawlinepoints, camfwdplane);
-									double[][] upintpointsdist = MathLib.planePointDistance(drawlinepoints, camupplane);
-									if ((fwdintpointsdist[0][0]>=1.0f)||(fwdintpointsdist[1][0]>=1.0f)) {
-										if (!((fwdintpointsdist[0][0]>=1.0f)&&(fwdintpointsdist[1][0]>=1.0f))) {
-											Position[] drawlinepos1 = {drawline.pos1};
-											Position[] drawlinepos2 = {drawline.pos2};
-											Direction[] drawlinedir12 = MathLib.vectorFromPoints(drawlinepos1, drawlinepos2);
-											double[][] drawlinedir12dist = MathLib.rayPlaneDistance(drawlinepos1[0], drawlinedir12, rendercutplane);
-											Position[] drawlinepos3 = MathLib.translate(drawlinepos1, drawlinedir12[0], drawlinedir12dist[0][0]);
-											Coordinate tex1 = drawlinepos1[0].tex; 
-											Coordinate tex2 = drawlinepos2[0].tex; 
-											if ((tex1!=null)&&(tex2!=null)) {
-												Position[] drawlinepostex1 = {new Position(tex1.u,tex1.v,0.0f)};
-												Position[] drawlinepostex2 = {new Position(tex2.u,tex2.v,0.0f)};
-												Direction[] drawlinetexdir12 = MathLib.vectorFromPoints(drawlinepostex1, drawlinepostex2);
-												Position[] drawlinepostex3 = MathLib.translate(drawlinepostex1, drawlinetexdir12[0], drawlinedir12dist[0][0]);
-												drawlinepos3[0].tex = new Coordinate(drawlinepostex3[0].x, drawlinepostex3[0].y);
-											}
-											if (fwdintpointsdist[0][0]>=1.0f) {
-												Position[] newdrawlinepoints = {drawlinepos1[0], drawlinepos3[0]};
-												drawlinepoints = newdrawlinepoints;
-											} else {
-												Position[] newdrawlinepoints = {drawlinepos2[0], drawlinepos3[0]};
-												drawlinepoints = newdrawlinepoints;
-											}
-											fwdintpointsdist = MathLib.planePointDistance(drawlinepoints, camfwdplane);
-											upintpointsdist = MathLib.planePointDistance(drawlinepoints, camupplane);
-										}
-										double vpixelyang1 = MathLib.atand(upintpointsdist[0][0]/fwdintpointsdist[0][0]);
-										double vpixelyang2 = MathLib.atand(upintpointsdist[1][0]/fwdintpointsdist[1][0]);
-										double vpixely1 = halfvres*halfvfovmult*vpixelyang1+origindeltay;
-										double vpixely2 = halfvres*halfvfovmult*vpixelyang2+origindeltay;
-										double[] vpixelys = {vpixely1, vpixely2};
-										double[] vpixelyangs = {vpixelyang1, vpixelyang2};
-										int[] vpixelyinds = UtilLib.indexSort(vpixelys);
-										double[] vpixelysort = UtilLib.indexValues(vpixelys, vpixelyinds);
-										Position[] vpixelpoints = {drawlinepoints[vpixelyinds[0]], drawlinepoints[vpixelyinds[1]]};
-										Position[] vpixelpoint1 = {vpixelpoints[0]};
-										Position[] vpixelpoint2 = {vpixelpoints[1]};
-										Position[] vcamposd = {new Position(0.0f,0.0f,0.0f)};
-										Position[] vpixelpoint1d = {new Position(fwdintpointsdist[vpixelyinds[0]][0],upintpointsdist[vpixelyinds[0]][0],0.0f)};
-										Position[] vpixelpoint2d = {new Position(fwdintpointsdist[vpixelyinds[1]][0],upintpointsdist[vpixelyinds[1]][0],0.0f)};
-										Line[] vpixelline = {new Line(vpixelpoint1d[0], vpixelpoint2d[0])};
-										double vpixelyangsort1 = vpixelyangs[vpixelyinds[0]]; 
-										int vpixelyind1 = (int)Math.ceil(vpixelysort[0]); 
-										int vpixelyind2 = (int)Math.floor(vpixelysort[1]); 
-										int vpixelystart = vpixelyind1;
-										int vpixelyend = vpixelyind2;
-										Direction[] vpixelpointdir12 = MathLib.vectorFromPoints(vpixelpoint1, vpixelpoint2);
-										if ((vpixelyend>=0)&&(vpixelystart<=renderheight)) {
-											if (vpixelystart<0) {vpixelystart=0;}
-											if (vpixelyend>=renderheight) {vpixelyend=renderheight-1;}
-											for (int n=vpixelystart;n<=vpixelyend;n++) {
-												double[] vpixelcampointangle = {verticalangles[n]-vpixelyangsort1};
-												double[][] vpixelpointlenfraca = MathLib.linearAngleLengthInterpolation(vcamposd[0], vpixelline, vpixelcampointangle);
-												double vpixelpointlenfrac = vpixelpointlenfraca[0][0];
-												Coordinate tex1 = vpixelpoints[0].tex;
-												Coordinate tex2 = vpixelpoints[1].tex;
-												Coordinate lineuv = null;
+								Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(renderviewplanes, copytriangle);
+								for (int l=0;l<planeindex.length;l++) {
+									int j = planeindex[l];
+									Line drawline = vertplanetriangleint[l][0];
+									if (drawline!=null) {
+										Position[] drawlinepoints = {drawline.pos1, drawline.pos2};
+										Plane[] camfwdplane = {camfwdplanes[j]};
+										Plane[] rendercutplane = {rendercutplanes[j]};
+										double[][] fwdintpointsdist = MathLib.planePointDistance(drawlinepoints, camfwdplane);
+										double[][] upintpointsdist = MathLib.planePointDistance(drawlinepoints, camupplane);
+										if ((fwdintpointsdist[0][0]>=1.0f)||(fwdintpointsdist[1][0]>=1.0f)) {
+											if (!((fwdintpointsdist[0][0]>=1.0f)&&(fwdintpointsdist[1][0]>=1.0f))) {
+												Position[] drawlinepos1 = {drawline.pos1};
+												Position[] drawlinepos2 = {drawline.pos2};
+												Direction[] drawlinedir12 = MathLib.vectorFromPoints(drawlinepos1, drawlinepos2);
+												double[][] drawlinedir12dist = MathLib.rayPlaneDistance(drawlinepos1[0], drawlinedir12, rendercutplane);
+												Position[] drawlinepos3 = MathLib.translate(drawlinepos1, drawlinedir12[0], drawlinedir12dist[0][0]);
+												Coordinate tex1 = drawlinepos1[0].tex; 
+												Coordinate tex2 = drawlinepos2[0].tex; 
 												if ((tex1!=null)&&(tex2!=null)) {
-													Position[] lineuvpoint1 = {new Position(tex1.u,1.0f-tex1.v,0.0f)};
-													Position[] lineuvpoint2 = {new Position(tex2.u,1.0f-tex2.v,0.0f)};
-													Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
-													Position[] lineuvpos = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
-													lineuv = new Coordinate(lineuvpos[0].x, lineuvpos[0].y);
-													renderview.cbuffer[n][j] = lineuv;
+													Position[] drawlinepostex1 = {new Position(tex1.u,tex1.v,0.0f)};
+													Position[] drawlinepostex2 = {new Position(tex2.u,tex2.v,0.0f)};
+													Direction[] drawlinetexdir12 = MathLib.vectorFromPoints(drawlinepostex1, drawlinepostex2);
+													Position[] drawlinepostex3 = MathLib.translate(drawlinepostex1, drawlinetexdir12[0], drawlinedir12dist[0][0]);
+													drawlinepos3[0].tex = new Coordinate(drawlinepostex3[0].x, drawlinepostex3[0].y);
 												}
-												Position[] linepoint = MathLib.translate(vpixelpoint1, vpixelpointdir12[0], vpixelpointlenfrac);
-												Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, linepoint);
-												double[] linepointdirlen = MathLib.vectorLength(linepointdir);
-												Direction[] camray = linepointdir;
-												double drawdistance = linepointdirlen[0];
-												double[][] linepointdist = MathLib.planePointDistance(linepoint, camfwdplane);
-												if ((linepointdist[0][0]>1.0f)&&(drawdistance<renderview.zbuffer[n][j])) {
-													renderview.zbuffer[n][j] = drawdistance;
-													renderview.tbuffer[n][j] = copytriangle[0];
-													if ((mouselocationx==j)&&(mouselocationy==n)) {
-														mouseoverhittriangle.add(copytriangle[0]);
+												if (fwdintpointsdist[0][0]>=1.0f) {
+													Position[] newdrawlinepoints = {drawlinepos1[0], drawlinepos3[0]};
+													drawlinepoints = newdrawlinepoints;
+												} else {
+													Position[] newdrawlinepoints = {drawlinepos2[0], drawlinepos3[0]};
+													drawlinepoints = newdrawlinepoints;
+												}
+												fwdintpointsdist = MathLib.planePointDistance(drawlinepoints, camfwdplane);
+												upintpointsdist = MathLib.planePointDistance(drawlinepoints, camupplane);
+											}
+											double vpixelyang1 = MathLib.atand(upintpointsdist[0][0]/fwdintpointsdist[0][0]);
+											double vpixelyang2 = MathLib.atand(upintpointsdist[1][0]/fwdintpointsdist[1][0]);
+											double vpixely1 = halfvres*halfvfovmult*vpixelyang1+origindeltay;
+											double vpixely2 = halfvres*halfvfovmult*vpixelyang2+origindeltay;
+											double[] vpixelys = {vpixely1, vpixely2};
+											double[] vpixelyangs = {vpixelyang1, vpixelyang2};
+											int[] vpixelyinds = UtilLib.indexSort(vpixelys);
+											double[] vpixelysort = UtilLib.indexValues(vpixelys, vpixelyinds);
+											Position[] vpixelpoints = {drawlinepoints[vpixelyinds[0]], drawlinepoints[vpixelyinds[1]]};
+											Position[] vpixelpoint1 = {vpixelpoints[0]};
+											Position[] vpixelpoint2 = {vpixelpoints[1]};
+											Position[] vcamposd = {new Position(0.0f,0.0f,0.0f)};
+											Position[] vpixelpoint1d = {new Position(fwdintpointsdist[vpixelyinds[0]][0],upintpointsdist[vpixelyinds[0]][0],0.0f)};
+											Position[] vpixelpoint2d = {new Position(fwdintpointsdist[vpixelyinds[1]][0],upintpointsdist[vpixelyinds[1]][0],0.0f)};
+											Line[] vpixelline = {new Line(vpixelpoint1d[0], vpixelpoint2d[0])};
+											double vpixelyangsort1 = vpixelyangs[vpixelyinds[0]]; 
+											int vpixelyind1 = (int)Math.ceil(vpixelysort[0]); 
+											int vpixelyind2 = (int)Math.floor(vpixelysort[1]); 
+											int vpixelystart = vpixelyind1;
+											int vpixelyend = vpixelyind2;
+											Direction[] vpixelpointdir12 = MathLib.vectorFromPoints(vpixelpoint1, vpixelpoint2);
+											if ((vpixelyend>=0)&&(vpixelystart<=renderheight)) {
+												if (vpixelystart<0) {vpixelystart=0;}
+												if (vpixelyend>=renderheight) {vpixelyend=renderheight-1;}
+												for (int n=vpixelystart;n<=vpixelyend;n++) {
+													double[] vpixelcampointangle = {verticalangles[n]-vpixelyangsort1};
+													double[][] vpixelpointlenfraca = MathLib.linearAngleLengthInterpolation(vcamposd[0], vpixelline, vpixelcampointangle);
+													double vpixelpointlenfrac = vpixelpointlenfraca[0][0];
+													Coordinate tex1 = vpixelpoints[0].tex;
+													Coordinate tex2 = vpixelpoints[1].tex;
+													Coordinate lineuv = null;
+													if ((tex1!=null)&&(tex2!=null)) {
+														Position[] lineuvpoint1 = {new Position(tex1.u,1.0f-tex1.v,0.0f)};
+														Position[] lineuvpoint2 = {new Position(tex2.u,1.0f-tex2.v,0.0f)};
+														Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
+														Position[] lineuvpos = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
+														lineuv = new Coordinate(lineuvpos[0].x, lineuvpos[0].y);
+														renderview.cbuffer[n][j] = lineuv;
 													}
-													Color trianglecolor = trianglePixelShader(copytriangle[0], copytrianglenormal, lineuv, camray[0], unlit);
-													if (trianglecolor!=null) {
-														g2.setColor(trianglecolor);
-														g2.drawLine(j, n, j, n);
+													Position[] linepoint = MathLib.translate(vpixelpoint1, vpixelpointdir12[0], vpixelpointlenfrac);
+													Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, linepoint);
+													double[] linepointdirlen = MathLib.vectorLength(linepointdir);
+													Direction[] camray = linepointdir;
+													double drawdistance = linepointdirlen[0];
+													double[][] linepointdist = MathLib.planePointDistance(linepoint, camfwdplane);
+													if ((linepointdist[0][0]>1.0f)&&(drawdistance<renderview.zbuffer[n][j])) {
+														renderview.zbuffer[n][j] = drawdistance;
+														renderview.tbuffer[n][j] = copytriangle[0];
+														if ((mouselocationx==j)&&(mouselocationy==n)) {
+															mouseoverhittriangle.add(copytriangle[0]);
+														}
+														Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal, lineuv, camray[0], unlit);
+														if (trianglecolor!=null) {
+															g2.setColor(trianglecolor);
+															g2.drawLine(j, n, j, n);
+														}
 													}
 												}
 											}
@@ -637,51 +646,54 @@ public class RenderLib {
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
 			Sphere[] sortedentityspherelist = Arrays.copyOf(entityspherelist, entityspherelist.length);
 			Arrays.sort(sortedentityspherelist, distcomp);
+			Rectangle[] sortedentityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, sortedentityspherelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot);
 			for (int k=sortedentityspherelist.length-1;k>=0;k--) {
-				Entity sortedentity = entitylist[sortedentityspherelist[k].ind];
-				Triangle[] copytrianglelist = sortedentity.trianglelist;
-				if (copytrianglelist.length>0) {
-					Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
-					Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
-					for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
-					Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
-					Arrays.sort(sortedtrianglespherelist, distcomp);
-					Rectangle[] copytrianglelistint = MathLib.projectedTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot);
-					for (int n=sortedtrianglespherelist.length-1;n>=0;n--) {
-						int it = sortedtrianglespherelist[n].ind;
-						if (copytrianglelistint[it]!=null) {
-							Triangle[] copytriangle = {copytrianglelist[it]};
-							Direction copytrianglenormal = copytrianglenormallist[it];
-							int jstart = copytrianglelistint[it].y;
-							int jend = copytrianglelistint[it].y+copytrianglelistint[it].height-1;
-							int istart = copytrianglelistint[it].x;
-							int iend = copytrianglelistint[it].x+copytrianglelistint[it].width-1;
-							for (int j=jstart;j<=jend;j++) {
-								for (int i=istart;i<=iend;i++) {
-									Direction[] camray = {renderview.rays[j][i]};
-									Position[][] camrayint = MathLib.rayTriangleIntersection(renderview.pos, camray, copytriangle);
-									Position[] camrayintpos = {camrayint[0][0]};
-									if (camrayintpos[0]!=null) {
-										Coordinate tex = camrayint[0][0].tex;
-										Coordinate pointuv = null;
-										if (tex!=null) {
-											pointuv = new Coordinate(tex.u,1.0f-tex.v);
-											renderview.cbuffer[j][i] = pointuv;
-										}
-										Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, camrayintpos);
-										double[] linepointdirlen = MathLib.vectorLength(linepointdir);
-										double drawdistance = linepointdirlen[0];
-										double[][] camrayintposdist = MathLib.planePointDistance(camrayintpos, camfwdplane);
-										if ((camrayintposdist[0][0]>1.0f)&&(drawdistance<renderview.zbuffer[j][i])) {
-											renderview.zbuffer[j][i] = drawdistance;
-											renderview.tbuffer[j][i] = copytriangle[0];
-											if ((mouselocationx==i)&&(mouselocationy==j)) {
-												mouseoverhittriangle.add(copytriangle[0]);
+				if (sortedentityspherelistint[k]!=null) {
+					Entity sortedentity = entitylist[sortedentityspherelist[k].ind];
+					Triangle[] copytrianglelist = sortedentity.trianglelist;
+					if (copytrianglelist.length>0) {
+						Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
+						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
+						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
+						Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
+						Arrays.sort(sortedtrianglespherelist, distcomp);
+						Rectangle[] copytrianglelistint = MathLib.projectedTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot);
+						for (int n=sortedtrianglespherelist.length-1;n>=0;n--) {
+							int it = sortedtrianglespherelist[n].ind;
+							if (copytrianglelistint[it]!=null) {
+								Triangle[] copytriangle = {copytrianglelist[it]};
+								Direction copytrianglenormal = copytrianglenormallist[it];
+								int jstart = copytrianglelistint[it].y;
+								int jend = copytrianglelistint[it].y+copytrianglelistint[it].height-1;
+								int istart = copytrianglelistint[it].x;
+								int iend = copytrianglelistint[it].x+copytrianglelistint[it].width-1;
+								for (int j=jstart;j<=jend;j++) {
+									for (int i=istart;i<=iend;i++) {
+										Direction[] camray = {renderview.rays[j][i]};
+										Position[][] camrayint = MathLib.rayTriangleIntersection(renderview.pos, camray, copytriangle);
+										Position[] camrayintpos = {camrayint[0][0]};
+										if (camrayintpos[0]!=null) {
+											Coordinate tex = camrayint[0][0].tex;
+											Coordinate pointuv = null;
+											if (tex!=null) {
+												pointuv = new Coordinate(tex.u,1.0f-tex.v);
+												renderview.cbuffer[j][i] = pointuv;
 											}
-											Color trianglecolor = trianglePixelShader(copytriangle[0], copytrianglenormal, pointuv, camray[0], unlit);
-											if (trianglecolor!=null) {
-												g2.setColor(trianglecolor);
-												g2.drawLine(i, j, i, j);
+											Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, camrayintpos);
+											double[] linepointdirlen = MathLib.vectorLength(linepointdir);
+											double drawdistance = linepointdirlen[0];
+											double[][] camrayintposdist = MathLib.planePointDistance(camrayintpos, camfwdplane);
+											if ((camrayintposdist[0][0]>1.0f)&&(drawdistance<renderview.zbuffer[j][i])) {
+												renderview.zbuffer[j][i] = drawdistance;
+												renderview.tbuffer[j][i] = copytriangle[0];
+												if ((mouselocationx==i)&&(mouselocationy==j)) {
+													mouseoverhittriangle.add(copytriangle[0]);
+												}
+												Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal, pointuv, camray[0], unlit);
+												if (trianglecolor!=null) {
+													g2.setColor(trianglecolor);
+													g2.drawLine(i, j, i, j);
+												}
 											}
 										}
 									}
@@ -734,70 +746,73 @@ public class RenderLib {
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
 			Sphere[] sortedentityspherelist = Arrays.copyOf(entityspherelist, entityspherelist.length);
 			Arrays.sort(sortedentityspherelist, distcomp);
+			Rectangle[] sortedentityspherelistint = MathLib.spheremapSphereIntersection(renderview.pos, sortedentityspherelist, renderwidth, renderheight, viewrot);
 			for (int k=sortedentityspherelist.length-1;k>=0;k--) {
-				Entity sortedentity = entitylist[sortedentityspherelist[k].ind];
-				Triangle[] copytrianglelist = sortedentity.trianglelist;
-				if (copytrianglelist.length>0) {
-					Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
-					Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
-					for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
-					Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
-					Arrays.sort(sortedtrianglespherelist, distcomp);
-					Rectangle[] copytrianglelistint = MathLib.spheremapTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, viewrot);
-					for (int n=sortedtrianglespherelist.length-1;n>=0;n--) {
-						int it = sortedtrianglespherelist[n].ind;
-						if (copytrianglelistint[it]!=null) {
-							Triangle[] copytriangle = {copytrianglelist[it]};
-							Direction copytrianglenormal = copytrianglenormallist[it];
-							int jstart = copytrianglelistint[it].y;
-							int jend = copytrianglelistint[it].y+copytrianglelistint[it].height-1;
-							int istart = copytrianglelistint[it].x;
-							int iend = copytrianglelistint[it].x+copytrianglelistint[it].width-1;
-							int[] rayindex = null;
-							if (copytrianglelistint[it].width>0) {
-								rayindex = new int[copytrianglelistint[it].width];
-								for (int i=istart;i<=iend;i++) {
-									rayindex[i-istart] = i;
+				if (sortedentityspherelistint[k]!=null) {
+					Entity sortedentity = entitylist[sortedentityspherelist[k].ind];
+					Triangle[] copytrianglelist = sortedentity.trianglelist;
+					if (copytrianglelist.length>0) {
+						Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
+						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
+						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
+						Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
+						Arrays.sort(sortedtrianglespherelist, distcomp);
+						Rectangle[] copytrianglelistint = MathLib.spheremapTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, viewrot);
+						for (int n=sortedtrianglespherelist.length-1;n>=0;n--) {
+							int it = sortedtrianglespherelist[n].ind;
+							if (copytrianglelistint[it]!=null) {
+								Triangle[] copytriangle = {copytrianglelist[it]};
+								Direction copytrianglenormal = copytrianglenormallist[it];
+								int jstart = copytrianglelistint[it].y;
+								int jend = copytrianglelistint[it].y+copytrianglelistint[it].height-1;
+								int istart = copytrianglelistint[it].x;
+								int iend = copytrianglelistint[it].x+copytrianglelistint[it].width-1;
+								int[] rayindex = null;
+								if (copytrianglelistint[it].width>0) {
+									rayindex = new int[copytrianglelistint[it].width];
+									for (int i=istart;i<=iend;i++) {
+										rayindex[i-istart] = i;
+									}
+								} else {
+									rayindex = new int[renderwidth-istart+iend+1];
+									for (int i=0;i<=iend;i++) {
+										rayindex[i] = i;
+									}
+									int i2 = iend+1;
+									for (int i=istart;i<renderwidth;i++) {
+										rayindex[i2] = i;
+										i2++;
+									}
 								}
-							} else {
-								rayindex = new int[renderwidth-istart+iend+1];
-								for (int i=0;i<=iend;i++) {
-									rayindex[i] = i;
-								}
-								int i2 = iend+1;
-								for (int i=istart;i<renderwidth;i++) {
-									rayindex[i2] = i;
-									i2++;
-								}
-							}
-							for (int j=jstart;j<=jend;j++) {
-								for (int l=0;l<rayindex.length;l++) {
-									int i = rayindex[l];
-									Direction[] camray = {renderview.rays[i][j]};
-									Plane[] camfwdplane = {camfwdplanes[i]};
-									Position[][] camrayint = MathLib.rayTriangleIntersection(renderview.pos, camray, copytriangle);
-									Position[] camrayintpos = {camrayint[0][0]};
-									if (camrayintpos[0]!=null) {
-										Coordinate tex = camrayint[0][0].tex;
-										Coordinate pointuv = null;
-										if (tex!=null) {
-											pointuv = new Coordinate(tex.u,1.0f-tex.v);
-											renderview.cbuffer[j][i] = pointuv;
-										}
-										Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, camrayintpos);
-										double[] linepointdirlen = MathLib.vectorLength(linepointdir);
-										double drawdistance = linepointdirlen[0];
-										double[][] camrayintposdist = MathLib.planePointDistance(camrayintpos, camfwdplane);
-										if ((camrayintposdist[0][0]>1.0f)&&(drawdistance<renderview.zbuffer[j][i])) {
-											renderview.zbuffer[j][i] = drawdistance;
-											renderview.tbuffer[j][i] = copytriangle[0];
-											if ((mouselocationx==i)&&(mouselocationy==j)) {
-												mouseoverhittriangle.add(copytriangle[0]);
+								for (int j=jstart;j<=jend;j++) {
+									for (int l=0;l<rayindex.length;l++) {
+										int i = rayindex[l];
+										Direction[] camray = {renderview.rays[i][j]};
+										Plane[] camfwdplane = {camfwdplanes[i]};
+										Position[][] camrayint = MathLib.rayTriangleIntersection(renderview.pos, camray, copytriangle);
+										Position[] camrayintpos = {camrayint[0][0]};
+										if (camrayintpos[0]!=null) {
+											Coordinate tex = camrayint[0][0].tex;
+											Coordinate pointuv = null;
+											if (tex!=null) {
+												pointuv = new Coordinate(tex.u,1.0f-tex.v);
+												renderview.cbuffer[j][i] = pointuv;
 											}
-											Color trianglecolor = trianglePixelShader(copytriangle[0], copytrianglenormal, pointuv, camray[0], unlit);
-											if (trianglecolor!=null) {
-												g2.setColor(trianglecolor);
-												g2.drawLine(i, j, i, j);
+											Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, camrayintpos);
+											double[] linepointdirlen = MathLib.vectorLength(linepointdir);
+											double drawdistance = linepointdirlen[0];
+											double[][] camrayintposdist = MathLib.planePointDistance(camrayintpos, camfwdplane);
+											if ((camrayintposdist[0][0]>1.0f)&&(drawdistance<renderview.zbuffer[j][i])) {
+												renderview.zbuffer[j][i] = drawdistance;
+												renderview.tbuffer[j][i] = copytriangle[0];
+												if ((mouselocationx==i)&&(mouselocationy==j)) {
+													mouseoverhittriangle.add(copytriangle[0]);
+												}
+												Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal, pointuv, camray[0], unlit);
+												if (trianglecolor!=null) {
+													g2.setColor(trianglecolor);
+													g2.drawLine(i, j, i, j);
+												}
 											}
 										}
 									}
@@ -889,7 +904,7 @@ public class RenderLib {
 		return renderview;
 	}
 
-	public static Color trianglePixelShader(Triangle triangle, Direction trianglenormal, Coordinate texuv, Direction camray, boolean unlit) {
+	public static Color trianglePixelShader(Position campos, Triangle triangle, Direction trianglenormal, Coordinate texuv, Direction camray, boolean unlit) {
 		Triangle[] copytriangle = {triangle};
 		Direction[] copytrianglenormal = {trianglenormal};
 		Material copymaterial = copytriangle[0].mat;
