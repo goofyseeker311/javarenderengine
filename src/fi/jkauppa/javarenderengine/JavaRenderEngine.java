@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.13");
+		this.setTitle("Java Render Engine v2.3.14");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -193,7 +193,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		for (int i=0;i<prjvectors.length;i++) {System.out.println("JavaRenderEngine: main: prjvectors["+i+"]: "+prjvectors[i].dx+" "+prjvectors[i].dy+" "+prjvectors[i].dz);}
 		for (int i=0;i<prjplane.length;i++) {System.out.println("JavaRenderEngine: main: prjplane["+i+"]: "+prjplane[i].a+" "+prjplane[i].b+" "+prjplane[i].c+" "+prjplane[i].d);}
 		for (int i=0;i<prjplane2.length;i++) {System.out.println("JavaRenderEngine: main: prjplane2["+i+"]: "+prjplane2[i].a+" "+prjplane2[i].b+" "+prjplane2[i].c+" "+prjplane2[i].d);}
-		Direction[][] prjrays = MathLib.projectedRays(4, 3, 70, 39, matrot1);
+		Direction[][] prjrays = MathLib.projectedRays(4, 3, 70, 39, matrot1, true);
 		for (int j=0;j<prjrays.length;j++) {System.out.print("JavaRenderEngine: main: prjrays["+j+"]=");for (int i=0;i<prjrays[j].length;i++) {System.out.print(" ["+prjrays[j][i].dx+","+prjrays[j][i].dy+","+prjrays[j][i].dz+"]");}System.out.println();}
 		double[] sang = MathLib.spheremapAngles(8, 360.0f);
 		Position spos = new Position(0.0f,0.0f,0.0f);
