@@ -933,7 +933,7 @@ public class RenderLib {
 		triangleviewangle[0] -= 90.0f;
 		boolean frontsidevisible = true;
 		if (triangleviewangle[0]<0.0f) {triangleviewangle[0]=0.0f;frontsidevisible=false;}
-		float shadingmultiplier = ((((float)triangleviewangle[0])/1.5f)+30.0f)/90.0f;
+		float shadingmultiplier = ((float)triangleviewangle[0])/90.0f;
 		if (texuv!=null) {
 			if (lightmaptexture!=null) {
 				lightmapcolor = null;
@@ -968,23 +968,20 @@ public class RenderLib {
 			}
 		}
 		if (trianglecolor!=null) {
-			float texr = trianglecolorcomp[0];
-			float texg = trianglecolorcomp[1];
-			float texb = trianglecolorcomp[2];
+			float texr = trianglecolorcomp[0]*shadingmultiplier;
+			float texg = trianglecolorcomp[1]*shadingmultiplier;
+			float texb = trianglecolorcomp[2]*shadingmultiplier;
 			float multiplier = 10.0f;
-			if (!unlit) {
-				texr *= shadingmultiplier;
-				texg *= shadingmultiplier;
-				texb *= shadingmultiplier;
-			}
-			if ((frontsidevisible)&&(lightmapcolor!=null)) {
-				texr *= lightmapcolorcomp[0]*multiplier;
-				texg *= lightmapcolorcomp[1]*multiplier;
-				texb *= lightmapcolorcomp[2]*multiplier;
-			} else if (unlit) {
-				texr = 0.0f;
-				texg = 0.0f;
-				texb = 0.0f;
+			if (unlit) {
+				if ((frontsidevisible)&&(lightmapcolor!=null)) {
+					texr *= lightmapcolorcomp[0]*multiplier;
+					texg *= lightmapcolorcomp[1]*multiplier;
+					texb *= lightmapcolorcomp[2]*multiplier;
+				} else {
+					texr = 0.0f;
+					texg = 0.0f;
+					texb = 0.0f;
+				}
 			}
 			if ((frontsidevisible)&&(emissivecolor!=null)) {
 				texr += emissivecolorcomp[0]*multiplier;
