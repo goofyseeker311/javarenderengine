@@ -19,6 +19,7 @@ import fi.jkauppa.javarenderengine.ModelLib.Plane;
 import fi.jkauppa.javarenderengine.ModelLib.Position;
 import fi.jkauppa.javarenderengine.ModelLib.Quad;
 import fi.jkauppa.javarenderengine.ModelLib.RenderView;
+import fi.jkauppa.javarenderengine.ModelLib.Rotation;
 import fi.jkauppa.javarenderengine.ModelLib.Sphere;
 import fi.jkauppa.javarenderengine.ModelLib.Tetrahedron;
 import fi.jkauppa.javarenderengine.ModelLib.Triangle;
@@ -1041,6 +1042,13 @@ public class MathLib {
 		double camrotx = -camrotxa[0];
 		if (!Double.isFinite(camroty)) {camroty=0.0f;}
 		if (!Double.isFinite(camrotx)) {camrotx=90.0f;}
+		Rotation camrot = new Rotation(camrotx,camroty,camrotz);
+		return rotationMatrixLookHorizontalRoll(camrot);
+	}
+	public static Matrix rotationMatrixLookHorizontalRoll(Rotation rotation) {
+		double camrotz = rotation.z;
+		double camroty = rotation.y;
+		double camrotx = rotation.x;
 		Matrix camrotmatz = MathLib.rotationMatrix(0.0f, 0.0f, camrotz);
 		Matrix camrotmaty = MathLib.rotationMatrix(0.0f, camroty, 0.0f);
 		Matrix camrotmatx = MathLib.rotationMatrix(camrotx, 0.0f, 0.0f);
