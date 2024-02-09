@@ -84,13 +84,7 @@ public class ModelApp extends AppHandlerPanel {
 	}
 
 	private void updateCameraDirections() {
-		Matrix camrotmatz = MathLib.rotationMatrix(0.0f, 0.0f, this.camrot.z);
-		Matrix camrotmaty = MathLib.rotationMatrix(0.0f, this.camrot.y, 0.0f);
-		Matrix camrotmatx = MathLib.rotationMatrix(this.camrot.x, 0.0f, 0.0f);
-		Matrix eyeonemat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
-		Matrix camrotmat = MathLib.matrixMultiply(eyeonemat, camrotmatz);
-		camrotmat = MathLib.matrixMultiply(camrotmat, camrotmaty);
-		camrotmat = MathLib.matrixMultiply(camrotmat, camrotmatx);
+		Matrix camrotmat = MathLib.rotationMatrixLookHorizontalRoll(this.camrot);
 		Direction[] camlookdirs = MathLib.matrixMultiply(this.lookdirs, camrotmat);
 		this.cameramat = camrotmat;
 		this.camdirs = camlookdirs;
