@@ -18,6 +18,7 @@ import fi.jkauppa.javarenderengine.ModelLib.Matrix;
 import fi.jkauppa.javarenderengine.ModelLib.Plane;
 import fi.jkauppa.javarenderengine.ModelLib.Position;
 import fi.jkauppa.javarenderengine.ModelLib.Quad;
+import fi.jkauppa.javarenderengine.ModelLib.RenderView;
 import fi.jkauppa.javarenderengine.ModelLib.Sphere;
 import fi.jkauppa.javarenderengine.ModelLib.Tetrahedron;
 import fi.jkauppa.javarenderengine.ModelLib.Triangle;
@@ -1546,38 +1547,104 @@ public class MathLib {
 		}
 		return k;
 	}
-	public static Coordinate[][] projectedQuads(Position vpos, Quad[] vquad, int hres, double hfov, int vres, double vfov, Matrix vmat) {
+	public static Coordinate[][] projectedQuad(Position vpos, Quad[] vquad, int hres, double hfov, int vres, double vfov, Matrix vmat) {
 		Coordinate[][] k = null;
 		if ((vpos!=null)&&(vquad!=null)&&(vmat!=null)) {
-			//Direction[] dirs = projectedCameraDirections(vmat);
-			//Direction[] camdir = {dirs[0]};
-			//Position[] camposa = {vpos};
-			//Position[] rendercutpos = translate(camposa, dirs[0], 1.1d);
-			//Plane[] rendercutplane = planeFromNormalAtPoint(rendercutpos, camdir);
-			//Plane[] camdirrightupplanes = planeFromNormalAtPoint(vpos, dirs);
-			//Plane[] camfwdplane = {camdirrightupplanes[0]};
-			k = new Coordinate[vquad.length][4];
-			Position[] vquadpos1 = new Position[vquad.length];
-			Position[] vquadpos2 = new Position[vquad.length];
-			Position[] vquadpos3 = new Position[vquad.length];
-			Position[] vquadpos4 = new Position[vquad.length];
+			k = new Coordinate[vquad.length][8];
+			Direction[] dirs = projectedCameraDirections(vmat);
+			Direction[] camdir = {dirs[0]};
+			Position[] camposa = {vpos};
+			Position[] rendercutpos = translate(camposa, dirs[0], 1.1d);
+			Plane[] rendercutplane = planeFromNormalAtPoint(rendercutpos, camdir);
+			Plane[] camdirrightupplanes = planeFromNormalAtPoint(vpos, dirs);
+			Plane[] camfwdplane = {camdirrightupplanes[0]};
+			Position[][] vquadpos = new Position[8][vquad.length];
 			for (int i=0;i<vquad.length;i++) {
-				vquadpos1[i] = vquad[i].pos1;
-				vquadpos2[i] = vquad[i].pos2;
-				vquadpos3[i] = vquad[i].pos3;
-				vquadpos4[i] = vquad[i].pos4;
-				/*
-				*/
+				vquadpos[0][i] = vquad[i].pos1;
+				vquadpos[1][i] = vquad[i].pos2;
+				vquadpos[2][i] = vquad[i].pos3;
+				vquadpos[3][i] = vquad[i].pos4;
+				vquadpos[4][i] = vquad[i].pos1;
+				vquadpos[5][i] = vquad[i].pos1;
+				Position[] vquadpoints = {vquad[i].pos1, vquad[i].pos2, vquad[i].pos3, vquad[i].pos4};
+				double[][] fwdintpointsdist = planePointDistance(vquadpoints, camfwdplane);
+				boolean vquadpos1visible = fwdintpointsdist[0][0]>=1.0f;
+				boolean vquadpos2visible = fwdintpointsdist[1][0]>=1.0f;
+				boolean vquadpos3visible = fwdintpointsdist[2][0]>=1.0f;
+				boolean vquadpos4visible = fwdintpointsdist[3][0]>=1.0f;
+				if (vquadpos1visible||vquadpos2visible||vquadpos3visible||vquadpos4visible) {
+					if (!(vquadpos1visible&&vquadpos2visible&&vquadpos3visible)) {
+						Position[] vquadpos1 = {vquad[i].pos1};
+						Position[] vquadpos2 = {vquad[i].pos2};
+						Position[] vquadpos3 = {vquad[i].pos3};
+						Position[] vquadpos4 = {vquad[i].pos4};
+						Direction[] vquaddir12 = vectorFromPoints(vquadpos1, vquadpos2);
+						Direction[] vquaddir23 = vectorFromPoints(vquadpos2, vquadpos3);
+						Direction[] vquaddir34 = vectorFromPoints(vquadpos3, vquadpos4);
+						Direction[] vquaddir14 = vectorFromPoints(vquadpos1, vquadpos4);
+						double[][] vquaddir12dist = rayPlaneDistance(vquadpos1[0], vquaddir12, rendercutplane);
+						double[][] vquaddir23dist = rayPlaneDistance(vquadpos2[0], vquaddir23, rendercutplane);
+						double[][] vquaddir34dist = rayPlaneDistance(vquadpos3[0], vquaddir34, rendercutplane);
+						double[][] vquaddir14dist = rayPlaneDistance(vquadpos1[0], vquaddir14, rendercutplane);
+						Position[] vquadpos12 = translate(vquadpos1, vquaddir12[0], vquaddir12dist[0][0]);
+						Position[] vquadpos23 = translate(vquadpos2, vquaddir23[0], vquaddir23dist[0][0]);
+						Position[] vquadpos34 = translate(vquadpos3, vquaddir34[0], vquaddir34dist[0][0]);
+						Position[] vquadpos14 = translate(vquadpos1, vquaddir14[0], vquaddir14dist[0][0]);
+						if (vquadpos1visible&&vquadpos2visible&&vquadpos3visible) {
+							vquadpos[4][i] = vquadpos34[0];
+							vquadpos[5][i] = vquadpos14[0];
+						} else if (vquadpos1visible&&vquadpos2visible&&vquadpos4visible) {
+							vquadpos[4][i] = vquadpos23[0];
+							vquadpos[5][i] = vquadpos34[0];
+						} else if (vquadpos1visible&&vquadpos3visible&&vquadpos4visible) {
+							vquadpos[4][i] = vquadpos12[0];
+							vquadpos[5][i] = vquadpos23[0];
+						} else if (vquadpos2visible&&vquadpos3visible&&vquadpos4visible) {
+							vquadpos[4][i] = vquadpos12[0];
+							vquadpos[5][i] = vquadpos14[0];
+						} else if (vquadpos1visible&&vquadpos2visible) {
+							vquadpos[4][i] = vquadpos23[0];
+							vquadpos[5][i] = vquadpos14[0];
+						} else if (vquadpos1visible&&vquadpos3visible) {
+							vquadpos[4][i] = vquadpos12[0];
+							vquadpos[5][i] = vquadpos23[0];
+							vquadpos[6][i] = vquadpos34[0];
+							vquadpos[7][i] = vquadpos14[0];
+						} else if (vquadpos1visible&&vquadpos4visible) {
+							vquadpos[4][i] = vquadpos12[0];
+							vquadpos[5][i] = vquadpos34[0];
+						} else if (vquadpos2visible&&vquadpos3visible) {
+							vquadpos[4][i] = vquadpos12[0];
+							vquadpos[5][i] = vquadpos34[0];
+						} else if (vquadpos2visible&&vquadpos4visible) {
+							vquadpos[4][i] = vquadpos12[0];
+							vquadpos[5][i] = vquadpos23[0];
+							vquadpos[6][i] = vquadpos34[0];
+							vquadpos[7][i] = vquadpos14[0];
+						} else if (vquadpos3visible&&vquadpos4visible) {
+							vquadpos[4][i] = vquadpos23[0];
+							vquadpos[5][i] = vquadpos14[0];
+						} else if (vquadpos1visible) {
+							vquadpos[4][i] = vquadpos12[0];
+							vquadpos[5][i] = vquadpos14[0];
+						} else if (vquadpos2visible) {
+							vquadpos[4][i] = vquadpos12[0];
+							vquadpos[5][i] = vquadpos23[0];
+						} else if (vquadpos3visible) {
+							vquadpos[4][i] = vquadpos23[0];
+							vquadpos[5][i] = vquadpos34[0];
+						} else if (vquadpos4visible) {
+							vquadpos[4][i] = vquadpos34[0];
+							vquadpos[5][i] = vquadpos14[0];
+						}
+					}
+				}
 			}
-			Coordinate[] vquadpos1pixel = projectedPoint(vpos, vquadpos1, hres, hfov, vres, vfov, vmat);
-			Coordinate[] vquadpos2pixel = projectedPoint(vpos, vquadpos2, hres, hfov, vres, vfov, vmat);
-			Coordinate[] vquadpos3pixel = projectedPoint(vpos, vquadpos3, hres, hfov, vres, vfov, vmat);
-			Coordinate[] vquadpos4pixel = projectedPoint(vpos, vquadpos4, hres, hfov, vres, vfov, vmat);
-			for (int j=0;j<vquad.length;j++) {
-				k[j][0] = vquadpos1pixel[j];
-				k[j][1] = vquadpos2pixel[j];
-				k[j][2] = vquadpos3pixel[j];
-				k[j][3] = vquadpos4pixel[j];
+			for (int j=0;j<vquadpos.length;j++) {
+				Coordinate[] vquadpospixel = projectedPoint(vpos, vquadpos[j], hres, hfov, vres, vfov, vmat);
+				for (int i=0;i<vquadpos[j].length;i++) {
+					k[i][j] = vquadpospixel[i];
+				}
 			}
 		}
 		return k;
@@ -1990,6 +2057,15 @@ public class MathLib {
 	}
 	public static Plane[] surfaceRefractionPlanes(Plane[] vsurf, Plane[] vplane, double refraction) {
 		Plane[]  k = null;
+		return k;
+	}
+
+	public static RenderView surfaceMirrorProjectedCamera(Plane[] vsurf, Position campos, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, double refraction) {
+		RenderView k = null;
+		return k;
+	}
+	public static RenderView surfaceRefractionProjectedCamera(Plane[] vsurf, Position campos, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, double refraction) {
+		RenderView k = null;
 		return k;
 	}
 	
