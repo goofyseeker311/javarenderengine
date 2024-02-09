@@ -1655,32 +1655,30 @@ public class MathLib {
 			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
 			double[][] fwdintpointsdist = planePointDistance(vpoint, dirrightupplanes);
 			for (int i=0;i<vpoint.length;i++) {
-				if (fwdintpointsdist[i][0]>=1.0f) {
-					double prjspherehalfang = asind(vsphere[i].r/lvecl[i]);
-					if (!Double.isFinite(prjspherehalfang)) {prjspherehalfang = 180.0f;}
-					double hangle = atand(fwdintpointsdist[i][1]/fwdintpointsdist[i][0]);
-					double vangle = atand(fwdintpointsdist[i][2]/fwdintpointsdist[i][0]);
-					double hangle1 = hangle-prjspherehalfang;
-					double hangle2 = hangle+prjspherehalfang;
-					double vangle1 = vangle-prjspherehalfang;
-					double vangle2 = vangle+prjspherehalfang;
-					if (hangle1<-halfhfov) {hangle1=-halfhfov;}
-					if (hangle2>halfhfov) {hangle2=halfhfov;}
-					if (vangle1<-halfvfov) {vangle1=-halfvfov;}
-					if (vangle2>halfvfov) {vangle2=halfvfov;}
-					int hcenterind1 = (int)Math.ceil(halfhfovmult*halfhres*(tand(hangle1))+origindeltax);
-					int hcenterind2 = (int)Math.floor(halfhfovmult*halfhres*(tand(hangle2))+origindeltax);
-					int vcenterind1 = (int)Math.ceil(halfvfovmult*halfvres*(tand(vangle1))+origindeltay);
-					int vcenterind2 = (int)Math.floor(halfvfovmult*halfvres*(tand(vangle2))+origindeltay);
-					if (hcenterind1<0) {hcenterind1=0;}
-					if (hcenterind2>=hres) {hcenterind2=hres-1;}
-					if (vcenterind1<0) {vcenterind1=0;}
-					if (vcenterind2>=vres) {vcenterind2=vres-1;}
-					int spherewidth = hcenterind2-hcenterind1+1;
-					int sphereheight = vcenterind2-vcenterind1+1;
-					if ((hcenterind1<hres)&&(hcenterind2>=0)&&(vcenterind1<vres)&&(vcenterind2>=0)&&(spherewidth>0)&&(sphereheight>0)) {
-						k[i] = new Rectangle(hcenterind1,vcenterind1,spherewidth,sphereheight);
-					}
+				double prjspherehalfang = asind(vsphere[i].r/lvecl[i]);
+				if (!Double.isFinite(prjspherehalfang)) {prjspherehalfang = 180.0f;}
+				double hangle = atand(fwdintpointsdist[i][1]/fwdintpointsdist[i][0]);
+				double vangle = atand(fwdintpointsdist[i][2]/fwdintpointsdist[i][0]);
+				double hangle1 = hangle-prjspherehalfang;
+				double hangle2 = hangle+prjspherehalfang;
+				double vangle1 = vangle-prjspherehalfang;
+				double vangle2 = vangle+prjspherehalfang;
+				if (hangle1<-halfhfov) {hangle1=-halfhfov;}
+				if (hangle2>halfhfov) {hangle2=halfhfov;}
+				if (vangle1<-halfvfov) {vangle1=-halfvfov;}
+				if (vangle2>halfvfov) {vangle2=halfvfov;}
+				int hcenterind1 = (int)Math.ceil(halfhfovmult*halfhres*(tand(hangle1))+origindeltax);
+				int hcenterind2 = (int)Math.floor(halfhfovmult*halfhres*(tand(hangle2))+origindeltax);
+				int vcenterind1 = (int)Math.ceil(halfvfovmult*halfvres*(tand(vangle1))+origindeltay);
+				int vcenterind2 = (int)Math.floor(halfvfovmult*halfvres*(tand(vangle2))+origindeltay);
+				if (hcenterind1<0) {hcenterind1=0;}
+				if (hcenterind2>=hres) {hcenterind2=hres-1;}
+				if (vcenterind1<0) {vcenterind1=0;}
+				if (vcenterind2>=vres) {vcenterind2=vres-1;}
+				int spherewidth = hcenterind2-hcenterind1+1;
+				int sphereheight = vcenterind2-vcenterind1+1;
+				if ((hcenterind1<hres)&&(hcenterind2>=0)&&(vcenterind1<vres)&&(vcenterind2>=0)&&(spherewidth>0)&&(sphereheight>0)) {
+					k[i] = new Rectangle(hcenterind1,vcenterind1,spherewidth,sphereheight);
 				}
 			}
 		}
@@ -1855,7 +1853,7 @@ public class MathLib {
 				if (vcenterind2>=vres) {vcenterind2=vres-1;}
 				int spherewidth = hcenterind2-hcenterind1+1;
 				int sphereheight = vcenterind2-vcenterind1+1;
-				if ((hcenterind1<hres)&&(hcenterind2>=0)&&(vcenterind1<vres)&&(vcenterind2>=0)&&(spherewidth>0)&&(sphereheight>0)) {
+				if ((spherewidth>0)&&(sphereheight>0)) {
 					k[i] = new Rectangle(hcenterind1,vcenterind1,spherewidth,sphereheight);
 				}
 			}
