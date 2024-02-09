@@ -61,7 +61,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.17");
+		this.setTitle("Java Render Engine v2.3.18");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -342,6 +342,17 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		double[] projangles = MathLib.projectedAngles(8, 90);
 		double[][] lenfrac = MathLib.linearAngleLengthInterpolation(vpos, vlines, projangles);
 		for (int j=0;j<lenfrac.length;j++) {for (int i=0;i<lenfrac[j].length;i++) {System.out.println("JavaRenderEngine: main: lenfrac["+j+"]["+i+"]="+lenfrac[j][i]);}}
+		Position[] rotpos = {new Position(-1,0,0), new Position(1,0,0)};
+		Direction axisaround = new Direction(0.0f,-1.0f,0.0f);
+		Direction lookatdir = new Direction(1.0f,0.0f,0.0f);
+		Matrix zerorot = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
+		Direction[] camdirs = MathLib.projectedCameraDirections(zerorot);
+		Matrix rotposmat1 = MathLib.rotationMatrixAroundAxis(axisaround, -90.0f);
+		Matrix rotposmat2 = MathLib.rotationMatrixLookDir(lookatdir, 0.0f);
+		Position[] rotpos1 = MathLib.matrixMultiply(rotpos, rotposmat1);
+		Direction[] rotdir2 = MathLib.matrixMultiply(camdirs, rotposmat2);
+		for (int i=0;i<rotpos1.length;i++) {System.out.println("JavaRenderEngine: main: rotpos1="+rotpos1[i].x+" "+rotpos1[i].y+" "+rotpos1[i].z);}
+		for (int i=0;i<rotdir2.length;i++) {System.out.println("JavaRenderEngine: main: rotdir2="+rotdir2[i].dx+" "+rotdir2[i].dy+" "+rotdir2[i].dz);}
 		
 		new JavaRenderEngine();
 	}

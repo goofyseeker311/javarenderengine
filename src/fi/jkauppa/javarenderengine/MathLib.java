@@ -1019,6 +1019,37 @@ public class MathLib {
 		Matrix zrot = new Matrix(cosd(zaxisr),-sind(zaxisr),0,sind(zaxisr),cosd(zaxisr),0,0,0,1);
 		return matrixMultiply(zrot,matrixMultiply(yrot, xrot));
 	}
+	public static Matrix rotationMatrixAroundAxis(Direction axis, double axisr) {
+		Direction[] axisa = {axis};
+		Direction[] axisan = normalizeVector(axisa);
+		Direction axisn = axisan[0];
+		double cosdval = cosd(axisr);
+		double sindval = sind(axisr);
+		return new Matrix(cosdval+axisn.dx*axisn.dx*(1-cosdval),axisn.dx*axisn.dy*(1-cosdval)-axisn.dz*sindval,axisn.dx*axisn.dz*(1-cosdval)+axisn.dy*sindval,
+				axisn.dy*axisn.dx*(1-cosdval)+axisn.dz*sindval,cosdval+axisn.dy*axisn.dy*(1-cosdval),axisn.dy*axisn.dz*(1-cosdval)-axisn.dx*sindval,
+				axisn.dz*axisn.dx*(1-cosdval)-axisn.dy*sindval,axisn.dz*axisn.dy*(1-cosdval)+axisn.dx*sindval,cosdval+axisn.dz*axisn.dz*(1-cosdval));
+	}
+	public static Matrix rotationMatrixLookDir(Direction lookat, double rollaxis) {
+		Direction[] defaultlookatdir = {new Direction(0,0,-1)};
+		Direction[] defaultforwarddir = {new Direction(0,-1,0)};
+		Direction[] lookata = {lookat};
+		Direction[] lookatn = normalizeVector(lookata);
+		double[] camrotxa = vectorAngle(defaultlookatdir, lookatn);
+		double[] camrotya = vectorAngle(defaultforwarddir, lookatn);
+		double camrotz = (lookatn[0].dx)*camrotya[0];
+		double camroty = rollaxis;
+		double camrotx = -camrotxa[0];
+		if (!Double.isFinite(camroty)) {camroty=0.0f;}
+		if (!Double.isFinite(camrotx)) {camrotx=90.0f;}
+		Matrix camrotmatz = MathLib.rotationMatrix(0.0f, 0.0f, camrotz);
+		Matrix camrotmaty = MathLib.rotationMatrix(0.0f, camroty, 0.0f);
+		Matrix camrotmatx = MathLib.rotationMatrix(camrotx, 0.0f, 0.0f);
+		Matrix eyeonemat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
+		Matrix camrotmat = MathLib.matrixMultiply(eyeonemat, camrotmatz);
+		camrotmat = MathLib.matrixMultiply(camrotmat, camrotmaty);
+		camrotmat = MathLib.matrixMultiply(camrotmat, camrotmatx);
+		return camrotmat;
+	}
 
 	public static Position[] sphereVertexList(Sphere[] spherelist) {
 		Position[] k = null;
