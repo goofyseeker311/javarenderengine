@@ -39,6 +39,7 @@ import fi.jkauppa.javarenderengine.ModelLib.Matrix;
 import fi.jkauppa.javarenderengine.ModelLib.Plane;
 import fi.jkauppa.javarenderengine.ModelLib.Position;
 import fi.jkauppa.javarenderengine.ModelLib.Quad;
+import fi.jkauppa.javarenderengine.ModelLib.RenderView;
 import fi.jkauppa.javarenderengine.ModelLib.Sphere;
 import fi.jkauppa.javarenderengine.ModelLib.Triangle;
 
@@ -61,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.19");
+		this.setTitle("Java Render Engine v2.3.20");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -353,6 +354,14 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Direction[] rotdir2 = MathLib.matrixMultiply(camdirs, rotposmat2);
 		for (int i=0;i<rotpos1.length;i++) {System.out.println("JavaRenderEngine: main: rotpos1="+rotpos1[i].x+" "+rotpos1[i].y+" "+rotpos1[i].z);}
 		for (int i=0;i<rotdir2.length;i++) {System.out.println("JavaRenderEngine: main: rotdir2="+rotdir2[i].dx+" "+rotdir2[i].dy+" "+rotdir2[i].dz);}
+		Position[] smpcpos = {new Position(0.0f,0.0f,0.5f), new Position(0.0f,-1.0f,0.0f), new Position(1.0f,-1.0f,0.0f), new Position(0.0f,-1.0f,1.0f), new Position(1.0f,0.0f,0.0f), new Position(1.0f,1.0f,0.0f), new Position(1.0f,0.0f,1.0f)};
+		Matrix smpcrot = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
+		Triangle smpctri1 = new Triangle(smpcpos[1],smpcpos[2],smpcpos[3]);
+		Triangle smpctri2 = new Triangle(smpcpos[4],smpcpos[5],smpcpos[6]);
+		Triangle[] smpctris = {smpctri1, smpctri2};
+		Plane[] smpcplanes = MathLib.planeFromPoints(smpctris);
+		RenderView[] smpc = MathLib.surfaceMirrorProjectedCamera(smpcpos[0], smpcplanes, smpcrot);
+		for (int i=0;i<smpc.length;i++) {if (smpc[i]!=null) {System.out.println("JavaRenderEngine: main: smpc["+i+"] pos="+smpc[i].pos.x+" "+smpc[i].pos.y+" "+smpc[i].pos.z);System.out.println("JavaRenderEngine: main: smpc["+i+"] a1="+smpc[i].rot.a11+" "+smpc[i].rot.a12+" "+smpc[i].rot.a13);System.out.println("JavaRenderEngine: main: smpc["+i+"] a2="+smpc[i].rot.a21+" "+smpc[i].rot.a22+" "+smpc[i].rot.a23);System.out.println("JavaRenderEngine: main: smpc["+i+"] a3="+smpc[i].rot.a31+" "+smpc[i].rot.a32+" "+smpc[i].rot.a33);} else {System.out.println("JavaRenderEngine: main: smpc["+i+"]=not visible.");}}
 		
 		new JavaRenderEngine();
 	}

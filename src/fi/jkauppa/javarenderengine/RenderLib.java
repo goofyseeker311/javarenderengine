@@ -904,6 +904,42 @@ public class RenderLib {
 		return renderview;
 	}
 
+	public static RenderView renderProjectedPolygonMirrorViewHardware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, int mouselocationx, int mouselocationy) {
+		RenderView renderview = new RenderView();
+		Direction[] camdirs = MathLib.projectedCameraDirections(viewrot);
+		Position[] camposa = {campos};
+		Position[] mirrorpos = MathLib.translate(camposa, camdirs[0], 100.0d);
+		Plane[] mirrorplanes = MathLib.planeFromNormalAtPoint(mirrorpos[0], camdirs);
+		Plane[] cammirrorplane = {mirrorplanes[0]};
+		Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
+		Position[] entityspherepointlist = MathLib.sphereVertexList(entityspherelist);
+		double[][] entityspherepointlistdist = MathLib.planePointDistance(entityspherepointlist, cammirrorplane);
+		ArrayList<Entity> mirrorentitylistarray = new ArrayList<Entity>();
+		for (int i=0;i<entitylist.length;i++) {
+			if (entityspherepointlistdist[i][0]<0.0f) {
+				mirrorentitylistarray.add(entitylist[i]);
+			}
+		}
+		Entity[] mirrorentitylist = mirrorentitylistarray.toArray(new Entity[mirrorentitylistarray.size()]);
+		RenderView[] mirror = MathLib.surfaceMirrorProjectedCamera(campos, cammirrorplane, viewrot);
+		Position mirrorcampos = mirror[0].pos;
+		Matrix mirrorrot = mirror[0].rot;
+		RenderView normalview = RenderLib.renderProjectedPolygonViewHardware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, mouselocationx, mouselocationy);
+		RenderView mirrorview = RenderLib.renderProjectedPolygonViewHardware(mirrorcampos, mirrorentitylist, renderwidth, hfov, renderheight, vfov, mirrorrot, unlit, mouselocationx, mouselocationy);
+		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
+		Graphics2D rigfx = renderview.renderimage.createGraphics();
+		rigfx.setComposite(AlphaComposite.Src);
+		rigfx.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
+		rigfx.setPaint(null);
+		rigfx.setClip(null);
+		rigfx.fillRect(0, 0, renderwidth, renderheight);
+		rigfx.drawImage(normalview.renderimage, 0, 0, renderwidth/2, renderheight/2, 0, 0, renderwidth, renderheight, null);
+		rigfx.drawImage(mirrorview.renderimage, 0, renderheight/2+1, renderwidth/2, renderheight, 0, 0, renderwidth, renderheight, null);
+		rigfx.dispose();
+		renderview.snapimage = renderview.renderimage.getSnapshot();
+		return renderview;
+	}
+	
 	public static Color trianglePixelShader(Position campos, Triangle triangle, Direction trianglenormal, Coordinate texuv, Direction camray, boolean unlit) {
 		Triangle[] copytriangle = {triangle};
 		Direction[] copytrianglenormal = {trianglenormal};

@@ -1049,16 +1049,24 @@ public class MathLib {
 		double camrotz = rotation.z;
 		double camroty = rotation.y;
 		double camrotx = rotation.x;
-		Matrix camrotmatz = MathLib.rotationMatrix(0.0f, 0.0f, camrotz);
-		Matrix camrotmaty = MathLib.rotationMatrix(0.0f, camroty, 0.0f);
-		Matrix camrotmatx = MathLib.rotationMatrix(camrotx, 0.0f, 0.0f);
-		Matrix eyeonemat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
-		Matrix camrotmat = MathLib.matrixMultiply(eyeonemat, camrotmatz);
-		camrotmat = MathLib.matrixMultiply(camrotmat, camrotmaty);
-		camrotmat = MathLib.matrixMultiply(camrotmat, camrotmatx);
+		Matrix camrotmatz = rotationMatrix(0.0f, 0.0f, camrotz);
+		Matrix camrotmaty = rotationMatrix(0.0f, camroty, 0.0f);
+		Matrix camrotmatx = rotationMatrix(camrotx, 0.0f, 0.0f);
+		Matrix eyeonemat = rotationMatrix(0.0f, 0.0f, 0.0f);
+		Matrix camrotmat = matrixMultiply(eyeonemat, camrotmatz);
+		camrotmat = matrixMultiply(camrotmat, camrotmaty);
+		camrotmat = matrixMultiply(camrotmat, camrotmatx);
 		return camrotmat;
 	}
 
+	public static Sphere[] entitySphereList(Entity[] entitylist) {
+		Sphere[] entityspherelist = new Sphere[entitylist.length]; 
+		for (int k=0;k<entitylist.length;k++) {
+			entityspherelist[k] = entitylist[k].sphereboundaryvolume;
+		}
+		return entityspherelist;
+	}
+	
 	public static Position[] sphereVertexList(Sphere[] spherelist) {
 		Position[] k = null;
 		if (spherelist!=null) {
@@ -2082,29 +2090,59 @@ public class MathLib {
 		return k;
 	}
 	
-	public static Direction[] surfaceMirrorRays(Plane[] vsurf, Direction[] vdir, double refraction) {
+	public static Direction[] surfaceMirrorRays(Direction[] vdir, Plane[] vsurf, double refraction) {
 		Direction[]  k = null;
 		return k;
 	}
-	public static Direction[] surfaceRefractionRays(Plane[] vsurf, Direction[] vdir, double refraction) {
+	public static Direction[] surfaceRefractionRays(Direction[] vdir, Plane[] vsurf, double refraction) {
 		Direction[]  k = null;
 		return k;
 	}
-	public static Plane[] surfaceMirrorPlanes(Plane[] vsurf, Plane[] vplane, double refraction) {
+	public static Plane[] surfaceMirrorPlanes(Plane[] vplane, Plane[] vsurf, double refraction) {
 		Plane[]  k = null;
 		return k;
 	}
-	public static Plane[] surfaceRefractionPlanes(Plane[] vsurf, Plane[] vplane, double refraction) {
+	public static Plane[] surfaceRefractionPlanes(Plane[] vplane, Plane[] vsurf, double refraction) {
 		Plane[]  k = null;
 		return k;
 	}
-
-	public static RenderView surfaceMirrorProjectedCamera(Plane[] vsurf, Position campos, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, double refraction) {
-		RenderView k = null;
+	public static RenderView[] surfaceMirrorProjectedCamera(Position campos, Plane[] vsurf, Matrix viewrot) {
+		RenderView[] k = null;
+		if ((vsurf!=null)&&(campos!=null)) {
+			k = new RenderView[vsurf.length];
+			Position[] camposa = {campos};
+			Direction[] camdirs = projectedCameraDirections(viewrot);
+			Direction[] camfwddir = {camdirs[0]};
+			Direction[] camupdir = {camdirs[2]};
+			double[][] camfwddist = rayPlaneDistance(campos, camfwddir, vsurf);
+			double[][] camupdist = rayPlaneDistance(campos, camupdir, vsurf);
+			for (int i=0;i<vsurf.length;i++) {
+				if (Double.isFinite(camfwddist[0][i])) {
+					Position[] camfwdvsurfpos = translate(camposa, camfwddir[0], camfwddist[0][i]);
+					Position[] camupvsurfpos = null;
+					if (Double.isFinite(camupdist[0][i])) {
+						camupvsurfpos = translate(camposa, camupdir[0], camupdist[0][i]);
+					} else {
+						camupvsurfpos = translate(camfwdvsurfpos, camupdir[0], 1.0f);
+					}
+					Direction[] vsurfvertdir = vectorFromPoints(camfwdvsurfpos, camupvsurfpos);
+					Direction[] vsurfvertdirn = normalizeVector(vsurfvertdir);
+					Direction[] camfwdvsurfdir = vectorFromPoints(camposa, camfwdvsurfpos);
+					Matrix mirrormat = rotationMatrixAroundAxis(vsurfvertdirn[0], 180.0f);
+					Matrix viewrotmirror = matrixMultiply(mirrormat, viewrot);
+					Position[] camposmirror = MathLib.translate(camposa, camfwdvsurfdir[0], -1.0f);
+					camposmirror = matrixMultiply(camposmirror, mirrormat);
+					camposmirror = MathLib.translate(camposmirror, camfwdvsurfdir[0], 1.0f);
+					k[i] = new RenderView();
+					k[i].rot = viewrotmirror;
+					k[i].pos = camposmirror[0];
+				}
+			}
+		}
 		return k;
 	}
-	public static RenderView surfaceRefractionProjectedCamera(Plane[] vsurf, Position campos, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, double refraction) {
-		RenderView k = null;
+	public static RenderView[] surfaceRefractionProjectedCamera(Position campos, Plane[] vsurf, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, double refraction) {
+		RenderView[] k = null;
 		return k;
 	}
 	
