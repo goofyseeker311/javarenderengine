@@ -1,6 +1,7 @@
 package fi.jkauppa.javarenderengine;
 
 import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -80,6 +81,29 @@ public class UtilLib {
 				imagefilestream.close();
 			} catch (Exception ex) {ex.printStackTrace();}
 		}
+		return k;
+	}
+	
+	public static VolatileImage flipImage(VolatileImage image, boolean horizontal, boolean vertical) {
+		VolatileImage k = gc.createCompatibleVolatileImage(image.getWidth(), image.getHeight(), Transparency.TRANSLUCENT);
+		Graphics2D rigfx = k.createGraphics();
+		rigfx.setComposite(AlphaComposite.Src);
+		rigfx.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
+		rigfx.setPaint(null);
+		rigfx.setClip(null);
+		rigfx.fillRect(0, 0, image.getWidth(), image.getHeight());
+		rigfx.drawImage(image, 0, 0, null);
+		if (horizontal&&vertical) {
+			rigfx.scale(-1, -1);
+			rigfx.translate(-image.getWidth(), -image.getHeight());
+		} else if (horizontal) {
+			rigfx.scale(-1, 1);
+			rigfx.translate(-image.getWidth(), 0);
+		} else if (vertical) {
+			rigfx.scale(1, -1);
+			rigfx.translate(0, -image.getHeight());
+		}
+		rigfx.dispose();
 		return k;
 	}
 
