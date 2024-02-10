@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.24");
+		this.setTitle("Java Render Engine v2.3.25");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -239,12 +239,12 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Matrix pmsrotx = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
 		Matrix pmsrotz = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 		Matrix pmsrot = MathLib.matrixMultiply(pmsrotz, pmsrotx);
-		Rectangle[] pmtint = MathLib.projectedTriangleIntersection(pmsvpos, pmsvtri, 64, 64, 90, 90, pmsrot, 0);
-		Rectangle[] pmsint = MathLib.projectedSphereIntersection(pmsvpos, pmsvsph, 64, 64, 90, 90, pmsrot);
-		Rectangle[][] cmsint = MathLib.cubemapSphereIntersection(pmsvpos, pmsvsph, 64);
-		Rectangle[] smsint = MathLib.spheremapSphereIntersection(pmsvpos, pmsvsph, 64, 64, pmsrot);
-		Coordinate[] smpint = MathLib.spheremapPoint(pmsvpos, pmstripos, 64, 64, pmsrot);
-		Rectangle[] smtint = MathLib.spheremapTriangleIntersection(pmsvpos, pmsvtri, 64, 64, pmsrot);
+		Rectangle[] pmtint = MathLib.projectedTriangleIntersection(pmsvpos, pmsvtri, 64, 64, 90, 90, pmsrot, null);
+		Rectangle[] pmsint = MathLib.projectedSphereIntersection(pmsvpos, pmsvsph, 64, 64, 90, 90, pmsrot, null);
+		Rectangle[][] cmsint = MathLib.cubemapSphereIntersection(pmsvpos, pmsvsph, 64, null);
+		Rectangle[] smsint = MathLib.spheremapSphereIntersection(pmsvpos, pmsvsph, 64, 64, pmsrot, null);
+		Coordinate[] smpint = MathLib.spheremapPoint(pmsvpos, pmstripos, 64, 64, pmsrot, null);
+		Rectangle[] smtint = MathLib.spheremapTriangleIntersection(pmsvpos, pmsvtri, 64, 64, pmsrot, null);
 		for (int i=0;i<pmtint.length;i++){if(pmtint[i]==null){pmtint[i]=new Rectangle(-1,-1,1,1);}}
 		for (int i=0;i<pmtint.length;i++) {System.out.println("JavaRenderEngine: main: pmtint["+i+"]= "+pmtint[i].x+","+pmtint[i].y+","+(pmtint[i].x+pmtint[i].width-1)+","+(pmtint[i].y+pmtint[i].height-1));}
 		for (int j=0;j<cmsint.length;j++) {for (int i=0;i<cmsint[0].length;i++){if(cmsint[j][i]==null){cmsint[j][i]=new Rectangle(-1,-1,1,1);}}}
@@ -279,8 +279,8 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Position prjpoint = new Position(0.0f,0.0f,0.0f);
 		Position[] prjpoints = {new Position(5.0f,0.0f,0.0f),new Position(5.0f,0.0f,-5.0f),new Position(0.0f,0.0f,-5.0f)};
 		Matrix prjmat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
-		Coordinate[] prjcoords = MathLib.projectedPoint(prjpoint, prjpoints, 64, 90.0f, 64, 90.0f, prjmat, 0);
-		for (int i=0;i<prjcoords.length;i++) { if(prjcoords[i]!=null){System.out.println("JavaRenderEngine: main: prjcoords[i]="+prjcoords[i].u+" "+prjcoords[i].v);}else{System.out.println("JavaRenderEngine: main: prjcoords[i]=not visible.");}}
+		Coordinate[] prjcoords = MathLib.projectedPoint(prjpoint, prjpoints, 64, 90.0f, 64, 90.0f, prjmat, null);
+		for (int i=0;i<prjcoords.length;i++) { if(prjcoords[i]!=null){System.out.println("JavaRenderEngine: main: prjcoords["+i+"]="+prjcoords[i].u+" "+prjcoords[i].v);}else{System.out.println("JavaRenderEngine: main: prjcoords["+i+"]=not visible.");}}
 		Position rpdpos = new Position(0.0f,0.0f,0.0f); 
 		Position rpdpos2 = new Position(0.0f,0.0f,1.0f); 
 		Direction[] rpddir = {new Direction(1.0f,0.0f,0.0f),new Direction(1.0f,0.0f,1.0f)};
@@ -326,11 +326,23 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		double vatandp1 = MathLib.atand(1.0f); System.out.println("JavaRenderEngine: main: vatandp1="+vatandp1);
 		double vatandpis2 = MathLib.atand(1.0f/Math.sqrt(2.0f)); System.out.println("JavaRenderEngine: main: vatandpis2="+vatandpis2);
 		Position vrqipos = new Position(0.0f,0.0f,0.0f);
-		Direction[] vrqidir = {new Direction(1.0f,0.0f,0.0f),new Direction(1.0f,0.0f,1.0f)};
-		Quad vrqiquad = new Quad(new Position(1.0f,0.0f,0.0f),new Position(1.0f,0.0f,1.0f),new Position(1.0f,1.0f,1.0f),new Position(1.0f,1.0f,0.0f));
+		Direction[] vrqidir = {new Direction(0.0f,-3.0f,0.0f),new Direction(0.0f,-3.0f,1.0f)};
+		Position[] vrqipoints = {new Position(0.0f,-3.0f,0.0f),new Position(0.0f,-3.0f,1.0f),new Position(1.0f,-3.0f,1.0f),new Position(1.0f,-3.0f,0.0f)};
+		Line vrqiline = new Line(vrqipoints[0],vrqipoints[1]);
+		Triangle vrqitri = new Triangle(vrqipoints[0],vrqipoints[1],vrqipoints[2]);
+		Quad vrqiquad = new Quad(vrqipoints[0],vrqipoints[1],vrqipoints[2],vrqipoints[3]);
+		Line[] vrqilines = {vrqiline, vrqiline, vrqiline};
+		Triangle[] vrqitris = {vrqitri, vrqitri, vrqitri};
 		Quad[] vrqiquads = {vrqiquad, vrqiquad, vrqiquad};
+		Matrix vrqimat = MathLib.rotationMatrix(-90, 0, 0);
 		Position[][] rqint = MathLib.rayQuadIntersection(vrqipos, vrqidir, vrqiquads);
+		Coordinate[][] prjlcoords = MathLib.projectedLine(vrqipos, vrqilines, 64, 90, 64, 90, vrqimat, null);
+		Coordinate[][] prjtcoords = MathLib.projectedTriangle(vrqipos, vrqitris, 64, 90, 64, 90, vrqimat, null);
+		Coordinate[][] prjqcoords = MathLib.projectedQuad(vrqipos, vrqiquads, 64, 90, 64, 90, vrqimat, null);
 		for (int j=0;j<rqint.length;j++) {for (int i=0;i<rqint[0].length;i++) {if(rqint[j][i]!=null){System.out.println("JavaRenderEngine: main: rqint["+i+"]["+j+"]="+rqint[j][i].x+" "+rqint[j][i].y+" "+rqint[j][i].z);}else{System.out.println("JavaRenderEngine: main: rqint["+i+"]["+j+"]=no hit.");}}}
+		for (int j=0;j<prjlcoords.length;j++) { for (int i=0;i<prjlcoords[j].length;i++) { if(prjlcoords[j][i]!=null){System.out.println("JavaRenderEngine: main: prjlcoords["+j+"]["+i+"]="+prjlcoords[j][i].u+","+prjlcoords[j][i].v);}else{System.out.println("JavaRenderEngine: main: prjlcoords["+j+"]["+i+"]=not visible.");}}}
+		for (int j=0;j<prjtcoords.length;j++) { for (int i=0;i<prjtcoords[j].length;i++) { if(prjtcoords[j][i]!=null){System.out.println("JavaRenderEngine: main: prjtcoords["+j+"]["+i+"]="+prjtcoords[j][i].u+","+prjtcoords[j][i].v);}else{System.out.println("JavaRenderEngine: main: prjtcoords["+j+"]["+i+"]=not visible.");}}}
+		for (int j=0;j<prjqcoords.length;j++) { for (int i=0;i<prjqcoords[j].length;i++) { if(prjqcoords[j][i]!=null){System.out.println("JavaRenderEngine: main: prjqcoords["+j+"]["+i+"]="+prjqcoords[j][i].u+","+prjqcoords[j][i].v);}else{System.out.println("JavaRenderEngine: main: prjqcoords["+j+"]["+i+"]=not visible.");}}}
 		String[] stringstosplit = {"0//0", "0/0/0", "0//"};
 		for (int j=0;j<stringstosplit.length;j++) {String[] stringsplit = stringstosplit[j].split("/");System.out.print("JavaRenderEngine: main: stringstosplit["+j+"]=\""+stringsplit.length+"\","+stringstosplit[j]+":");for (int i=0;i<stringsplit.length;i++) { if(!stringsplit[i].isBlank()) {System.out.print(" "+Integer.parseInt(stringsplit[i]));}}System.out.println();}
 		Rectangle[] negrect = {new Rectangle(0,0,-5,-5),new Rectangle(0,0,0,0),new Rectangle(0,0,-1,-1),new Rectangle(0,0,1,1)};

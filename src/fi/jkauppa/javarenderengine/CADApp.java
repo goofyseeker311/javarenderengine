@@ -89,8 +89,7 @@ public class CADApp extends AppHandlerPanel {
 	private boolean pitchdownkeydown = false;
 	private boolean yawleftkeydown = false;
 	private boolean yawrightkeydown = false;
-	private RenderView hardwarerenderview = null;
-	private RenderView softwarerenderview = null;
+	private RenderView renderview = null;
 	private JFileChooser imagechooser = new JFileChooser();
 	private PNGFileFilter pngfilefilter = new PNGFileFilter();
 	private JPGFileFilter jpgfilefilter = new JPGFileFilter();
@@ -124,11 +123,8 @@ public class CADApp extends AppHandlerPanel {
 		this.origindeltay = (int)Math.floor(((double)(this.getHeight()-1))/2.0f);
 		this.vfov = 2.0f*MathLib.atand((((double)this.getHeight())/((double)this.getWidth()))*MathLib.tand(this.hfov/2.0f));
 		this.editplanedistance = (((double)this.getWidth())/2.0f)/MathLib.tand(hfov/2.0f);
-		if ((this.polygonfillmode==3)&&(this.softwarerenderview!=null)) {
-			g2.drawImage(this.softwarerenderview.renderimage, 0, 0, null);
-		} else if (this.hardwarerenderview!=null) {
-			CADApp.this.softwarerenderview = null;
-			g2.drawImage(this.hardwarerenderview.renderimage, 0, 0, null);
+		if (this.renderview!=null) {
+			g2.drawImage(this.renderview.renderimage, 0, 0, null);
 		}
 	}
 
@@ -213,8 +209,7 @@ public class CADApp extends AppHandlerPanel {
 			System.out.println("CADApp: keyPressed: key ARROW-UP: camera yaw rotation up="+this.camrot.x+","+this.camrot.y+","+this.camrot.z);
 		}
 		updateCameraDirections();
-		(new HardwareRenderViewUpdater()).start();
-		(new SoftwareRenderViewUpdater()).start();
+		(new RenderViewUpdater()).start();
 	}
 	
 	@Override public void keyTyped(KeyEvent e) {}
@@ -419,9 +414,9 @@ public class CADApp extends AppHandlerPanel {
 			System.out.println("CADApp: keyPressed: key NUMPAD2: draw material metallic negative="+this.drawmat.metallic);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD1) {
 	    	Triangle mousetriangle = null;
-    		if (this.softwarerenderview!=null) {
+    		if (this.renderview!=null) {
     			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
     			}
     		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
     			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
@@ -852,9 +847,9 @@ public class CADApp extends AppHandlerPanel {
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1down | offmask1down)) == onmask1down);
     	if (mouse1down) {
 	    	Triangle mousetriangle = null;
-    		if (this.softwarerenderview!=null) {
+    		if (this.renderview!=null) {
     			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
     			}
     		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
     			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
@@ -870,9 +865,9 @@ public class CADApp extends AppHandlerPanel {
 	    boolean mouse1shiftdown = ((e.getModifiersEx() & (onmask1shiftdown | offmask1shiftdown)) == onmask1shiftdown);
 	    if (mouse1shiftdown) {
 	    	Triangle mousetriangle = null;
-    		if (this.softwarerenderview!=null) {
+    		if (this.renderview!=null) {
     			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
     			}
     		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
     			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
@@ -930,9 +925,9 @@ public class CADApp extends AppHandlerPanel {
 	    boolean mouse2down = ((e.getModifiersEx() & (onmask2down | offmask2down)) == onmask2down);
     	if (mouse2down) {
 	    	Triangle mousetriangle = null;
-    		if (this.softwarerenderview!=null) {
+    		if (this.renderview!=null) {
     			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
     			}
     		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
     			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
@@ -1024,9 +1019,9 @@ public class CADApp extends AppHandlerPanel {
 	    boolean mousewheeldown = ((e.getModifiersEx() & (onmask | offmask)) == onmask);
 	    if (mousewheeldown) {
 	    	Triangle mousetriangle = null;
-    		if (this.softwarerenderview!=null) {
+    		if (this.renderview!=null) {
     			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
     			}
     		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
     			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
@@ -1049,9 +1044,9 @@ public class CADApp extends AppHandlerPanel {
 	    boolean mousewheelshiftdown = ((e.getModifiersEx() & (onmaskshiftdown | offmaskshiftdown)) == onmaskshiftdown);
 	    if (mousewheelshiftdown) {
 	    	Triangle mousetriangle = null;
-    		if (this.softwarerenderview!=null) {
+    		if (this.renderview!=null) {
     			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
     			}
     		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
     			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
@@ -1076,9 +1071,9 @@ public class CADApp extends AppHandlerPanel {
 	    boolean mousewheelaltdown = ((e.getModifiersEx() & (onmaskaltdown | offmaskaltdown)) == onmaskaltdown);
 	    if (mousewheelaltdown) {
 	    	Triangle mousetriangle = null;
-    		if (this.softwarerenderview!=null) {
+    		if (this.renderview!=null) {
     			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
     			}
     		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
     			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
@@ -1103,9 +1098,9 @@ public class CADApp extends AppHandlerPanel {
 	    boolean mousewheelaltshiftdown = ((e.getModifiersEx() & (onmaskaltshiftdown | offmaskaltshiftdown)) == onmaskaltshiftdown);
 	    if (mousewheelaltshiftdown) {
 	    	Triangle mousetriangle = null;
-    		if (this.softwarerenderview!=null) {
+    		if (this.renderview!=null) {
     			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			mousetriangle = this.softwarerenderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
     			}
     		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
     			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
@@ -1180,35 +1175,24 @@ public class CADApp extends AppHandlerPanel {
 		}
 	}
 
-	private class HardwareRenderViewUpdater extends Thread {
+	private class RenderViewUpdater extends Thread {
 		private static boolean renderupdaterrunning = false;
 		public void run() {
-			if (!HardwareRenderViewUpdater.renderupdaterrunning) {
-				HardwareRenderViewUpdater.renderupdaterrunning = true;
+			if (!RenderViewUpdater.renderupdaterrunning) {
+				RenderViewUpdater.renderupdaterrunning = true;
 				if (CADApp.this.polygonfillmode==1) {
 					Line[] linelist = CADApp.this.linelisttree.toArray(new Line[CADApp.this.linelisttree.size()]);
-					CADApp.this.hardwarerenderview = RenderLib.renderProjectedLineViewHardware(CADApp.this.campos, linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
-					CADApp.this.mouseoverline = CADApp.this.hardwarerenderview.mouseoverline;
-					CADApp.this.mouseoververtex = CADApp.this.hardwarerenderview.mouseoververtex;
+					CADApp.this.renderview = RenderLib.renderProjectedLineViewHardware(CADApp.this.campos, linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.mouseoverline = CADApp.this.renderview.mouseoverline;
+					CADApp.this.mouseoververtex = CADApp.this.renderview.mouseoververtex;
 				} else if (CADApp.this.polygonfillmode==2) { 
-					CADApp.this.hardwarerenderview = RenderLib.renderProjectedPolygonViewHardware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 0, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
-					CADApp.this.mouseovertriangle = CADApp.this.hardwarerenderview.mouseovertriangle;
+					CADApp.this.renderview = RenderLib.renderProjectedView(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.mouseovertriangle = CADApp.this.renderview.mouseovertriangle;
+				} else if (CADApp.this.polygonfillmode==3) {
+					CADApp.this.renderview = RenderLib.renderProjectedView(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 2, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.mouseovertriangle = CADApp.this.renderview.mouseovertriangle;
 				}
-				HardwareRenderViewUpdater.renderupdaterrunning = false;
-			}
-		}
-	}
-
-	private class SoftwareRenderViewUpdater extends Thread {
-		private static boolean renderupdaterrunning = false;
-		public void run() {
-			if (!SoftwareRenderViewUpdater.renderupdaterrunning) {
-				SoftwareRenderViewUpdater.renderupdaterrunning = true;
-				if (CADApp.this.polygonfillmode==3) {
-					CADApp.this.softwarerenderview = RenderLib.renderProjectedPlaneViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 0, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
-					CADApp.this.mouseovertriangle = CADApp.this.softwarerenderview.mouseovertriangle;
-				}
-				SoftwareRenderViewUpdater.renderupdaterrunning = false;
+				RenderViewUpdater.renderupdaterrunning = false;
 			}
 		}
 	}
