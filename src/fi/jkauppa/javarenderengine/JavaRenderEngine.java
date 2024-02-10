@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.23");
+		this.setTitle("Java Render Engine v2.3.24");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -239,7 +239,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Matrix pmsrotx = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
 		Matrix pmsrotz = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 		Matrix pmsrot = MathLib.matrixMultiply(pmsrotz, pmsrotx);
-		Rectangle[] pmtint = MathLib.projectedTriangleIntersection(pmsvpos, pmsvtri, 64, 64, 90, 90, pmsrot);
+		Rectangle[] pmtint = MathLib.projectedTriangleIntersection(pmsvpos, pmsvtri, 64, 64, 90, 90, pmsrot, 0);
 		Rectangle[] pmsint = MathLib.projectedSphereIntersection(pmsvpos, pmsvsph, 64, 64, 90, 90, pmsrot);
 		Rectangle[][] cmsint = MathLib.cubemapSphereIntersection(pmsvpos, pmsvsph, 64);
 		Rectangle[] smsint = MathLib.spheremapSphereIntersection(pmsvpos, pmsvsph, 64, 64, pmsrot);
@@ -279,7 +279,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Position prjpoint = new Position(0.0f,0.0f,0.0f);
 		Position[] prjpoints = {new Position(5.0f,0.0f,0.0f),new Position(5.0f,0.0f,-5.0f),new Position(0.0f,0.0f,-5.0f)};
 		Matrix prjmat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
-		Coordinate[] prjcoords = MathLib.projectedPoint(prjpoint, prjpoints, 64, 90.0f, 64, 90.0f, prjmat);
+		Coordinate[] prjcoords = MathLib.projectedPoint(prjpoint, prjpoints, 64, 90.0f, 64, 90.0f, prjmat, 0);
 		for (int i=0;i<prjcoords.length;i++) { if(prjcoords[i]!=null){System.out.println("JavaRenderEngine: main: prjcoords[i]="+prjcoords[i].u+" "+prjcoords[i].v);}else{System.out.println("JavaRenderEngine: main: prjcoords[i]=not visible.");}}
 		Position rpdpos = new Position(0.0f,0.0f,0.0f); 
 		Position rpdpos2 = new Position(0.0f,0.0f,1.0f); 
