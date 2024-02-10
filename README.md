@@ -67,7 +67,7 @@ CTRL-DRAG-RMB     -- move object (minmax)
 SHIFT             -- toggle snap to grid/vertex, drag multiple vertex, and speed movement
 DRAG-CMB          -- camera location view position sideways pan (minmax)
 CTRL-DRAG-CMB     -- change forward looking movement direction (minmax)
-CTRL-MWHEEL       -- draw forward position change (minmax)
+MWHEEL            -- draw forward position change (minmax)
 ARROW-KEYS        -- change forward looking movement direction (minmax)
 TAB-DRAG-CMB      -- triangle texture coordinates pan (minmax)
 TAB-MWHEEL        -- triangle texture coordinates zoom
