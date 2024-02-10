@@ -51,6 +51,8 @@ public class CADApp extends AppHandlerPanel {
 	private static final long serialVersionUID = 1L;
 	private boolean draglinemode = false;
 	private boolean snaplinemode = false;
+	private boolean texturemode = false;
+	private boolean erasemode = false;
 	private Material drawmat = new Material(Color.getHSBColor(0.0f, 0.0f, 1.0f),1.0f,null);
 	private int polygonfillmode = 1;
 	private boolean unlitrender = false;
@@ -224,6 +226,10 @@ public class CADApp extends AppHandlerPanel {
 			this.yawrightkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
 			this.snaplinemode = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_TAB) {
+			this.texturemode = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_PERIOD) {
+			this.erasemode = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_W) {
 			this.upwardkeydown = false;
 		} else if (e.getKeyCode()==KeyEvent.VK_S) {
@@ -414,7 +420,7 @@ public class CADApp extends AppHandlerPanel {
 			System.out.println("CADApp: keyPressed: key NUMPAD2: draw material metallic negative="+this.drawmat.metallic);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD1) {
 	    	Triangle mousetriangle = null;
-    		if (this.renderview!=null) {
+    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
     			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
 	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
     			}
@@ -458,8 +464,6 @@ public class CADApp extends AppHandlerPanel {
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD0) {
 			(new EntityListUpdater()).start();
-		} else if (e.getKeyCode()==KeyEvent.VK_TAB) {
-			//TODO <tbd>
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
 			if (e.isShiftDown()) {
 				this.unlitrender = !this.unlitrender;
@@ -481,8 +485,12 @@ public class CADApp extends AppHandlerPanel {
 			this.yawleftkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_RIGHT) {
 			this.yawrightkeydown = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_TAB) {
+			this.texturemode = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
 			this.snaplinemode = true;
+		} else if (e.getKeyCode()==KeyEvent.VK_PERIOD) {
+			this.erasemode = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_W) {
 			this.upwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_S) {
@@ -774,6 +782,8 @@ public class CADApp extends AppHandlerPanel {
 					}
 				}
 		    }
+		} else {
+			//System.out.println("CADApp: keyPressed: key "+KeyEvent.getKeyText(e.getKeyCode()));
 		}
 	}
 	
@@ -799,7 +809,7 @@ public class CADApp extends AppHandlerPanel {
 	    	}
     	}
 	    int onmask1alt = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    int offmask1alt = MouseEvent.CTRL_DOWN_MASK;
+	    int offmask1alt = 0;
 	    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1alt | offmask1alt)) == onmask1alt);
     	if ((mouse1altdown)&&(this.polygonfillmode==1)) {
     		this.drawstartpos = null;
@@ -846,26 +856,36 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask1down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mouse1down = ((e.getModifiersEx() & (onmask1down | offmask1down)) == onmask1down);
     	if (mouse1down) {
-	    	Triangle mousetriangle = null;
-    		if (this.renderview!=null) {
-    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
+    		if (this.erasemode) {
+        		if ((this.mouseoverline!=null)&&(this.mouseoverline.length>0)) {
+        			for (int i=0;i<this.mouseoverline.length;i++) {
+        				System.out.println("CADApp: mouseDragged: key PERIOD-LMB: erase line="+this.mouseoverline[i].pos1.x+" "+this.mouseoverline[i].pos1.y+" "+this.mouseoverline[i].pos1.z+" "+this.mouseoverline[i].pos2.x+" "+this.mouseoverline[i].pos2.y+" "+this.mouseoverline[i].pos2.z);
+        			}
+    				this.linelisttree.removeAll(Arrays.asList(this.mouseoverline));
+    				(new EntityListUpdater()).start();
     			}
-    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+    		} else {
+		    	Triangle mousetriangle = null;
+	    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
+	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+		    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			}
+	    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+	    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+	    		}
+				if (mousetriangle!=null) {
+					mousetriangle.mat = this.drawmat;
+					float[] facecolorcomp = mousetriangle.mat.facecolor.getRGBComponents(new float[4]);
+					System.out.println("CADApp: mouseDragged: key DRAG-LMB: painted material color="+facecolorcomp[0]+" "+facecolorcomp[1]+" "+facecolorcomp[2]+" "+facecolorcomp[3]);
+				}
     		}
-			if (mousetriangle!=null) {
-				mousetriangle.mat = this.drawmat;
-				float[] facecolorcomp = mousetriangle.mat.facecolor.getRGBComponents(new float[4]);
-				System.out.println("CADApp: mouseDragged: key DRAG-LMB: painted material color="+facecolorcomp[0]+" "+facecolorcomp[1]+" "+facecolorcomp[2]+" "+facecolorcomp[3]);
-			}
     	}
 	    int onmask1shiftdown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    int offmask1shiftdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse1shiftdown = ((e.getModifiersEx() & (onmask1shiftdown | offmask1shiftdown)) == onmask1shiftdown);
 	    if (mouse1shiftdown) {
 	    	Triangle mousetriangle = null;
-    		if (this.renderview!=null) {
+    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
     			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
 	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
     			}
@@ -879,10 +899,10 @@ public class CADApp extends AppHandlerPanel {
 			}
 	    }
 	    int onmask1ctrldown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
-	    int offmask1ctrldown = MouseEvent.ALT_DOWN_MASK;
+	    int offmask1ctrldown = 0;
 	    boolean mouse1ctrldown = ((e.getModifiersEx() & (onmask1ctrldown | offmask1ctrldown)) == onmask1ctrldown);
 	    int onmask1altdown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    int offmask1altdown = MouseEvent.CTRL_DOWN_MASK;
+	    int offmask1altdown = 0;
 	    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1altdown | offmask1altdown)) == onmask1altdown);
     	if (mouse1ctrldown||mouse1altdown) {
     		if (this.draglinemode) {
@@ -911,82 +931,79 @@ public class CADApp extends AppHandlerPanel {
 				System.out.println("CADApp: mouseDragged: key CTRL/ALT-DRAG-LMB: drag vertex position="+drawlocation.x+","+drawlocation.y+","+drawlocation.z);
     		}
 		}
-	    int onmask1ctrlaltdown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    int offmask1ctrlaltdown = 0;
-	    boolean mouse1ctrlaltdown = ((e.getModifiersEx() & (onmask1ctrlaltdown | offmask1ctrlaltdown)) == onmask1ctrlaltdown);
-	    if (mouse1ctrlaltdown) {
-    		if ((this.mouseoverline!=null)&&(this.mouseoverline.length>0)) {
-				this.linelisttree.removeAll(Arrays.asList(this.mouseoverline));
-				(new EntityListUpdater()).start();
-			}
-	    }
 	    int onmask2down = MouseEvent.BUTTON2_DOWN_MASK;
 	    int offmask2down = MouseEvent.ALT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    boolean mouse2down = ((e.getModifiersEx() & (onmask2down | offmask2down)) == onmask2down);
     	if (mouse2down) {
-	    	Triangle mousetriangle = null;
-    		if (this.renderview!=null) {
-    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
-    			}
-    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+    		if (this.texturemode) {
+		    	Triangle mousetriangle = null;
+	    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
+	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+		    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			}
+	    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+	    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+	    		}
+				if (mousetriangle!=null) {
+		        	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
+		        	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+		    		double movementstep = 1.0f;
+		    		if (this.snaplinemode) {
+		    			movementstep = this.gridstep;
+		    		}
+		        	double texdeltau = movementstep*mousedeltax*0.001f;
+		        	double texdeltav = movementstep*mousedeltay*0.001f;
+		        	mousetriangle.pos1.tex = mousetriangle.pos1.tex.copy();
+		        	mousetriangle.pos2.tex = mousetriangle.pos2.tex.copy();
+		        	mousetriangle.pos3.tex = mousetriangle.pos3.tex.copy();
+		    		mousetriangle.pos1.tex.u -= texdeltau;
+		    		mousetriangle.pos1.tex.v += texdeltav;
+		    		mousetriangle.pos2.tex.u -= texdeltau;
+		    		mousetriangle.pos2.tex.v += texdeltav;
+		    		mousetriangle.pos3.tex.u -= texdeltau;
+		    		mousetriangle.pos3.tex.v += texdeltav;
+					System.out.println("CADApp: mouseDragged: key TAB-DRAG-CMB: drag texture coordinate="+mousetriangle.pos1.tex.u+","+mousetriangle.pos1.tex.v+" "+mousetriangle.pos2.tex.u+","+mousetriangle.pos2.tex.v+" "+mousetriangle.pos3.tex.u+","+mousetriangle.pos3.tex.v);
+				}
     		}
-			if (mousetriangle!=null) {
-	        	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
-	        	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+    	}
+	    int onmask2ctrldown = MouseEvent.BUTTON2_DOWN_MASK;
+	    int offmask2ctrldown = MouseEvent.CTRL_DOWN_MASK;
+	    boolean mouse2ctrldown = ((e.getModifiersEx() & (onmask2ctrldown | offmask2ctrldown)) == onmask2ctrldown);
+    	if (mouse2ctrldown) {
+    		if (!this.texturemode) {
 	    		double movementstep = 1.0f;
 	    		if (this.snaplinemode) {
 	    			movementstep = this.gridstep;
 	    		}
-	        	double texdeltau = movementstep*mousedeltax*0.001f;
-	        	double texdeltav = movementstep*mousedeltay*0.001f;
-	        	mousetriangle.pos1.tex = mousetriangle.pos1.tex.copy();
-	        	mousetriangle.pos2.tex = mousetriangle.pos2.tex.copy();
-	        	mousetriangle.pos3.tex = mousetriangle.pos3.tex.copy();
-	    		mousetriangle.pos1.tex.u -= texdeltau;
-	    		mousetriangle.pos1.tex.v += texdeltav;
-	    		mousetriangle.pos2.tex.u -= texdeltau;
-	    		mousetriangle.pos2.tex.v += texdeltav;
-	    		mousetriangle.pos3.tex.u -= texdeltau;
-	    		mousetriangle.pos3.tex.v += texdeltav;
-				System.out.println("CADApp: mouseDragged: key DRAG-CMB: drag texture coordinate="+mousetriangle.pos1.tex.u+","+mousetriangle.pos1.tex.v+" "+mousetriangle.pos2.tex.u+","+mousetriangle.pos2.tex.v+" "+mousetriangle.pos3.tex.u+","+mousetriangle.pos3.tex.v);
-			}
-    	}
-	    int onmask2ctrldown = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
-	    int offmask2ctrldown = MouseEvent.ALT_DOWN_MASK;
-	    boolean mouse2ctrldown = ((e.getModifiersEx() & (onmask2ctrldown | offmask2ctrldown)) == onmask2ctrldown);
-    	if (mouse2ctrldown) {
-    		double movementstep = 1.0f;
-    		if (this.snaplinemode) {
-    			movementstep = this.gridstep;
+	        	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
+	        	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+	        	this.editpos = this.editpos.copy();
+	    		this.editpos.x -= mousedeltax*movementstep*this.camdirs[1].dx;
+	    		this.editpos.y -= mousedeltax*movementstep*this.camdirs[1].dy;
+	    		this.editpos.z -= mousedeltax*movementstep*this.camdirs[1].dz;
+	    		this.editpos.x -= mousedeltay*movementstep*this.camdirs[2].dx;
+	    		this.editpos.y -= mousedeltay*movementstep*this.camdirs[2].dy;
+	    		this.editpos.z -= mousedeltay*movementstep*this.camdirs[2].dz;
+				System.out.println("CADApp: mouseDragged: key DRAG-CMB: edit plane position="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
     		}
-        	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
-        	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-        	this.editpos = this.editpos.copy();
-    		this.editpos.x -= mousedeltax*movementstep*this.camdirs[1].dx;
-    		this.editpos.y -= mousedeltax*movementstep*this.camdirs[1].dy;
-    		this.editpos.z -= mousedeltax*movementstep*this.camdirs[1].dz;
-    		this.editpos.x -= mousedeltay*movementstep*this.camdirs[2].dx;
-    		this.editpos.y -= mousedeltay*movementstep*this.camdirs[2].dy;
-    		this.editpos.z -= mousedeltay*movementstep*this.camdirs[2].dz;
-			System.out.println("CADApp: mouseDragged: edit plane position="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
     	}
-	    int onmask2ctrlaltdown = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
+	    int onmask2ctrlaltdown = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    int offmask2ctrlaltdown = 0;
 	    boolean mouse2ctrlaltdown = ((e.getModifiersEx() & (onmask2ctrlaltdown | offmask2ctrlaltdown)) == onmask2ctrlaltdown);
     	if (mouse2ctrlaltdown) {
-    		double movementstep = 1.0f;
-    		if (this.snaplinemode) {
-    			movementstep = this.gridstep;
+    		if (!this.texturemode) {
+	    		double movementstep = 1.0f;
+	    		if (this.snaplinemode) {
+	    			movementstep = this.gridstep;
+	    		}
+	        	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
+	        	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+	        	this.camrot = this.camrot.copy();
+	        	this.camrot.z -= mousedeltax*(movementstep/((double)this.gridstep))*0.1f;
+	        	this.camrot.x -= mousedeltay*(movementstep/((double)this.gridstep))*0.1f;
+	        	updateCameraDirections();
+				System.out.println("CADApp: mouseDragged: key CTRL-DRAG-CMB: camera rotation angles="+this.camrot.x+","+this.camrot.y+","+this.camrot.z);
     		}
-        	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
-        	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-        	this.camrot = this.camrot.copy();
-        	this.camrot.z -= mousedeltax*(movementstep/((double)this.gridstep))*0.1f;
-        	this.camrot.x -= mousedeltay*(movementstep/((double)this.gridstep))*0.1f;
-        	updateCameraDirections();
-			System.out.println("CADApp: mouseDragged: key CTRL-ALT-DRAG-CMB: camera rotation angles="+this.camrot.x+","+this.camrot.y+","+this.camrot.z);
     	}
 	    int onmask3down = MouseEvent.BUTTON3_DOWN_MASK;
 	    int offmask3down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
@@ -1018,121 +1035,131 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mousewheeldown = ((e.getModifiersEx() & (onmask | offmask)) == onmask);
 	    if (mousewheeldown) {
-	    	Triangle mousetriangle = null;
-    		if (this.renderview!=null) {
-    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
-    			}
-    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
-    		}
-			if (mousetriangle!=null) {
-	        	mousetriangle.pos1.tex = mousetriangle.pos1.tex.copy();
-	        	mousetriangle.pos2.tex = mousetriangle.pos2.tex.copy();
-	        	mousetriangle.pos3.tex = mousetriangle.pos3.tex.copy();
-	    		mousetriangle.pos1.tex.u *= 1-(0.01f*e.getWheelRotation());
-	    		mousetriangle.pos1.tex.v *= 1-(0.01f*e.getWheelRotation());
-	    		mousetriangle.pos2.tex.u *= 1-(0.01f*e.getWheelRotation());
-	    		mousetriangle.pos2.tex.v *= 1-(0.01f*e.getWheelRotation());
-	    		mousetriangle.pos3.tex.u *= 1-(0.01f*e.getWheelRotation());
-	    		mousetriangle.pos3.tex.v *= 1-(0.01f*e.getWheelRotation());
-				System.out.println("CADApp: mouseWheelMoved: key MWHEEL: zoom texture coordinate="+mousetriangle.pos1.tex.u+","+mousetriangle.pos1.tex.v+" "+mousetriangle.pos2.tex.u+","+mousetriangle.pos2.tex.v+" "+mousetriangle.pos3.tex.u+","+mousetriangle.pos3.tex.v);
-			}
+	    	if (this.texturemode) {
+		    	Triangle mousetriangle = null;
+	    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
+	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+		    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			}
+	    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+	    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+	    		}
+				if (mousetriangle!=null) {
+		        	mousetriangle.pos1.tex = mousetriangle.pos1.tex.copy();
+		        	mousetriangle.pos2.tex = mousetriangle.pos2.tex.copy();
+		        	mousetriangle.pos3.tex = mousetriangle.pos3.tex.copy();
+		    		mousetriangle.pos1.tex.u *= 1-(0.01f*e.getWheelRotation());
+		    		mousetriangle.pos1.tex.v *= 1-(0.01f*e.getWheelRotation());
+		    		mousetriangle.pos2.tex.u *= 1-(0.01f*e.getWheelRotation());
+		    		mousetriangle.pos2.tex.v *= 1-(0.01f*e.getWheelRotation());
+		    		mousetriangle.pos3.tex.u *= 1-(0.01f*e.getWheelRotation());
+		    		mousetriangle.pos3.tex.v *= 1-(0.01f*e.getWheelRotation());
+					System.out.println("CADApp: mouseWheelMoved: key TAB-MWHEEL: zoom texture coordinate="+mousetriangle.pos1.tex.u+","+mousetriangle.pos1.tex.v+" "+mousetriangle.pos2.tex.u+","+mousetriangle.pos2.tex.v+" "+mousetriangle.pos3.tex.u+","+mousetriangle.pos3.tex.v);
+				}
+	    	}
 	    }
 	    int onmaskshiftdown = MouseEvent.SHIFT_DOWN_MASK;
 	    int offmaskshiftdown = MouseEvent.ALT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
 	    boolean mousewheelshiftdown = ((e.getModifiersEx() & (onmaskshiftdown | offmaskshiftdown)) == onmaskshiftdown);
 	    if (mousewheelshiftdown) {
-	    	Triangle mousetriangle = null;
-    		if (this.renderview!=null) {
-    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
-    			}
-    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
-    		}
-			if (mousetriangle!=null) {
-	        	AffineTransform textr = new AffineTransform();
-	        	textr.rotate(0.01f*e.getWheelRotation());
-	        	Point2D pos1tex = new Point2D.Double(mousetriangle.pos1.tex.u,mousetriangle.pos1.tex.v); 
-	        	Point2D pos2tex = new Point2D.Double(mousetriangle.pos2.tex.u,mousetriangle.pos2.tex.v); 
-	        	Point2D pos3tex = new Point2D.Double(mousetriangle.pos3.tex.u,mousetriangle.pos3.tex.v); 
-	        	textr.transform(pos1tex, pos1tex);
-	        	textr.transform(pos2tex, pos2tex);
-	        	textr.transform(pos3tex, pos3tex);
-	        	mousetriangle.pos1.tex = new Coordinate(pos1tex.getX(),pos1tex.getY());
-	        	mousetriangle.pos2.tex = new Coordinate(pos2tex.getX(),pos2tex.getY());
-	        	mousetriangle.pos3.tex = new Coordinate(pos3tex.getX(),pos3tex.getY());
-				System.out.println("CADApp: mouseWheelMoved: key SHIFT-MWHEEL: rotate texture coordinate="+mousetriangle.pos1.tex.u+","+mousetriangle.pos1.tex.v+" "+mousetriangle.pos2.tex.u+","+mousetriangle.pos2.tex.v+" "+mousetriangle.pos3.tex.u+","+mousetriangle.pos3.tex.v);
-			}
+	    	if (this.texturemode) {
+		    	Triangle mousetriangle = null;
+	    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
+	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+		    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			}
+	    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+	    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+	    		}
+				if (mousetriangle!=null) {
+		        	AffineTransform textr = new AffineTransform();
+		        	textr.rotate(0.01f*e.getWheelRotation());
+		        	Point2D pos1tex = new Point2D.Double(mousetriangle.pos1.tex.u,mousetriangle.pos1.tex.v); 
+		        	Point2D pos2tex = new Point2D.Double(mousetriangle.pos2.tex.u,mousetriangle.pos2.tex.v); 
+		        	Point2D pos3tex = new Point2D.Double(mousetriangle.pos3.tex.u,mousetriangle.pos3.tex.v); 
+		        	textr.transform(pos1tex, pos1tex);
+		        	textr.transform(pos2tex, pos2tex);
+		        	textr.transform(pos3tex, pos3tex);
+		        	mousetriangle.pos1.tex = new Coordinate(pos1tex.getX(),pos1tex.getY());
+		        	mousetriangle.pos2.tex = new Coordinate(pos2tex.getX(),pos2tex.getY());
+		        	mousetriangle.pos3.tex = new Coordinate(pos3tex.getX(),pos3tex.getY());
+					System.out.println("CADApp: mouseWheelMoved: key TAB-SHIFT-MWHEEL: rotate texture coordinate="+mousetriangle.pos1.tex.u+","+mousetriangle.pos1.tex.v+" "+mousetriangle.pos2.tex.u+","+mousetriangle.pos2.tex.v+" "+mousetriangle.pos3.tex.u+","+mousetriangle.pos3.tex.v);
+				}
+	    	}
 	    }
 	    int onmaskaltdown = MouseEvent.ALT_DOWN_MASK;
-	    int offmaskaltdown = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
+	    int offmaskaltdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mousewheelaltdown = ((e.getModifiersEx() & (onmaskaltdown | offmaskaltdown)) == onmaskaltdown);
 	    if (mousewheelaltdown) {
-	    	Triangle mousetriangle = null;
-    		if (this.renderview!=null) {
-    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
-    			}
-    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
-    		}
-			if (mousetriangle!=null) {
-	        	AffineTransform textr = new AffineTransform();
-	        	textr.scale(1+0.01f*e.getWheelRotation(),1.0f);
-	        	Point2D pos1tex = new Point2D.Double(mousetriangle.pos1.tex.u,mousetriangle.pos1.tex.v); 
-	        	Point2D pos2tex = new Point2D.Double(mousetriangle.pos2.tex.u,mousetriangle.pos2.tex.v); 
-	        	Point2D pos3tex = new Point2D.Double(mousetriangle.pos3.tex.u,mousetriangle.pos3.tex.v); 
-	        	textr.transform(pos1tex, pos1tex);
-	        	textr.transform(pos2tex, pos2tex);
-	        	textr.transform(pos3tex, pos3tex);
-	        	mousetriangle.pos1.tex = new Coordinate(pos1tex.getX(),pos1tex.getY());
-	        	mousetriangle.pos2.tex = new Coordinate(pos2tex.getX(),pos2tex.getY());
-	        	mousetriangle.pos3.tex = new Coordinate(pos3tex.getX(),pos3tex.getY());
-				System.out.println("CADApp: mouseWheelMoved: key ALT-MWHEEL: scale texture coordinate="+mousetriangle.pos1.tex.u+","+mousetriangle.pos1.tex.v+" "+mousetriangle.pos2.tex.u+","+mousetriangle.pos2.tex.v+" "+mousetriangle.pos3.tex.u+","+mousetriangle.pos3.tex.v);
-			}
+	    	if (this.texturemode) {
+		    	Triangle mousetriangle = null;
+	    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
+	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+		    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			}
+	    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+	    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+	    		}
+				if (mousetriangle!=null) {
+		        	AffineTransform textr = new AffineTransform();
+		        	textr.scale(1+0.01f*e.getWheelRotation(),1.0f);
+		        	Point2D pos1tex = new Point2D.Double(mousetriangle.pos1.tex.u,mousetriangle.pos1.tex.v); 
+		        	Point2D pos2tex = new Point2D.Double(mousetriangle.pos2.tex.u,mousetriangle.pos2.tex.v); 
+		        	Point2D pos3tex = new Point2D.Double(mousetriangle.pos3.tex.u,mousetriangle.pos3.tex.v); 
+		        	textr.transform(pos1tex, pos1tex);
+		        	textr.transform(pos2tex, pos2tex);
+		        	textr.transform(pos3tex, pos3tex);
+		        	mousetriangle.pos1.tex = new Coordinate(pos1tex.getX(),pos1tex.getY());
+		        	mousetriangle.pos2.tex = new Coordinate(pos2tex.getX(),pos2tex.getY());
+		        	mousetriangle.pos3.tex = new Coordinate(pos3tex.getX(),pos3tex.getY());
+					System.out.println("CADApp: mouseWheelMoved: key TAB-ALT-MWHEEL: scale texture coordinate="+mousetriangle.pos1.tex.u+","+mousetriangle.pos1.tex.v+" "+mousetriangle.pos2.tex.u+","+mousetriangle.pos2.tex.v+" "+mousetriangle.pos3.tex.u+","+mousetriangle.pos3.tex.v);
+				}
+	    	}
 	    }
-	    int onmaskaltshiftdown = MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
-	    int offmaskaltshiftdown = MouseEvent.CTRL_DOWN_MASK;
+	    int onmaskaltshiftdown = MouseEvent.CTRL_DOWN_MASK;
+	    int offmaskaltshiftdown = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
 	    boolean mousewheelaltshiftdown = ((e.getModifiersEx() & (onmaskaltshiftdown | offmaskaltshiftdown)) == onmaskaltshiftdown);
 	    if (mousewheelaltshiftdown) {
-	    	Triangle mousetriangle = null;
-    		if (this.renderview!=null) {
-    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
-    			}
-    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
-    		}
-			if (mousetriangle!=null) {
-	        	AffineTransform textr = new AffineTransform();
-	        	textr.shear(0.01f*e.getWheelRotation(),0.0f);
-	        	Point2D pos1tex = new Point2D.Double(mousetriangle.pos1.tex.u,mousetriangle.pos1.tex.v); 
-	        	Point2D pos2tex = new Point2D.Double(mousetriangle.pos2.tex.u,mousetriangle.pos2.tex.v); 
-	        	Point2D pos3tex = new Point2D.Double(mousetriangle.pos3.tex.u,mousetriangle.pos3.tex.v); 
-	        	textr.transform(pos1tex, pos1tex);
-	        	textr.transform(pos2tex, pos2tex);
-	        	textr.transform(pos3tex, pos3tex);
-	        	mousetriangle.pos1.tex = new Coordinate(pos1tex.getX(),pos1tex.getY());
-	        	mousetriangle.pos2.tex = new Coordinate(pos2tex.getX(),pos2tex.getY());
-	        	mousetriangle.pos3.tex = new Coordinate(pos3tex.getX(),pos3tex.getY());
-				System.out.println("CADApp: mouseWheelMoved: key ALT-SHIFT-MWHEEL: shear texture coordinate="+mousetriangle.pos1.tex.u+","+mousetriangle.pos1.tex.v+" "+mousetriangle.pos2.tex.u+","+mousetriangle.pos2.tex.v+" "+mousetriangle.pos3.tex.u+","+mousetriangle.pos3.tex.v);
-			}
+	    	if (this.texturemode) {
+		    	Triangle mousetriangle = null;
+	    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
+	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+		    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
+	    			}
+	    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+	    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+	    		}
+				if (mousetriangle!=null) {
+		        	AffineTransform textr = new AffineTransform();
+		        	textr.shear(0.01f*e.getWheelRotation(),0.0f);
+		        	Point2D pos1tex = new Point2D.Double(mousetriangle.pos1.tex.u,mousetriangle.pos1.tex.v); 
+		        	Point2D pos2tex = new Point2D.Double(mousetriangle.pos2.tex.u,mousetriangle.pos2.tex.v); 
+		        	Point2D pos3tex = new Point2D.Double(mousetriangle.pos3.tex.u,mousetriangle.pos3.tex.v); 
+		        	textr.transform(pos1tex, pos1tex);
+		        	textr.transform(pos2tex, pos2tex);
+		        	textr.transform(pos3tex, pos3tex);
+		        	mousetriangle.pos1.tex = new Coordinate(pos1tex.getX(),pos1tex.getY());
+		        	mousetriangle.pos2.tex = new Coordinate(pos2tex.getX(),pos2tex.getY());
+		        	mousetriangle.pos3.tex = new Coordinate(pos3tex.getX(),pos3tex.getY());
+					System.out.println("CADApp: mouseWheelMoved: key TAB-CTRL-MWHEEL: shear texture coordinate="+mousetriangle.pos1.tex.u+","+mousetriangle.pos1.tex.v+" "+mousetriangle.pos2.tex.u+","+mousetriangle.pos2.tex.v+" "+mousetriangle.pos3.tex.u+","+mousetriangle.pos3.tex.v);
+				}
+	    	}
 	    }
-	    int onmaskctrldown = MouseEvent.CTRL_DOWN_MASK;
+	    int onmaskctrldown = 0;
 	    int offmaskctrldown = 0;
 	    boolean mousewheelctrldown = ((e.getModifiersEx() & (onmaskctrldown | offmaskctrldown)) == onmaskctrldown);
 	    if (mousewheelctrldown) {
-			double movementstep = 200.0f*e.getWheelRotation();
-			if (this.snaplinemode) {
-				movementstep *= this.gridstep;
-			}
-			this.editpos = this.editpos.copy();
-			this.editpos.x -= movementstep*this.camdirs[0].dx;
-			this.editpos.y -= movementstep*this.camdirs[0].dy;
-			this.editpos.z -= movementstep*this.camdirs[0].dz;
-			System.out.println("CADApp: mouseWheelMoved: key CTRL-MWHEEL: edit plane position="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
+	    	if (!this.texturemode) {
+				double movementstep = 200.0f*e.getWheelRotation();
+				if (this.snaplinemode) {
+					movementstep *= this.gridstep;
+				}
+				this.editpos = this.editpos.copy();
+				this.editpos.x -= movementstep*this.camdirs[0].dx;
+				this.editpos.y -= movementstep*this.camdirs[0].dy;
+				this.editpos.z -= movementstep*this.camdirs[0].dz;
+				System.out.println("CADApp: mouseWheelMoved: key MWHEEL: edit plane position="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
+	    	}
 	    }
 	}
 	@Override public void mouseClicked(MouseEvent e) {}
@@ -1180,16 +1207,17 @@ public class CADApp extends AppHandlerPanel {
 		public void run() {
 			if (!RenderViewUpdater.renderupdaterrunning) {
 				RenderViewUpdater.renderupdaterrunning = true;
+				int bounces = 0;
 				if (CADApp.this.polygonfillmode==1) {
 					Line[] linelist = CADApp.this.linelisttree.toArray(new Line[CADApp.this.linelisttree.size()]);
 					CADApp.this.renderview = RenderLib.renderProjectedLineViewHardware(CADApp.this.campos, linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseoverline = CADApp.this.renderview.mouseoverline;
 					CADApp.this.mouseoververtex = CADApp.this.renderview.mouseoververtex;
 				} else if (CADApp.this.polygonfillmode==2) { 
-					CADApp.this.renderview = RenderLib.renderProjectedView(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.renderview = RenderLib.renderProjectedView(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseovertriangle = CADApp.this.renderview.mouseovertriangle;
 				} else if (CADApp.this.polygonfillmode==3) {
-					CADApp.this.renderview = RenderLib.renderProjectedView(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 2, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.renderview = RenderLib.renderProjectedView(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 2, bounces, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseovertriangle = CADApp.this.renderview.mouseovertriangle;
 				}
 				RenderViewUpdater.renderupdaterrunning = false;

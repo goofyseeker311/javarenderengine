@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.25");
+		this.setTitle("Java Render Engine v2.3.26");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -379,6 +379,17 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Plane[] paplane = MathLib.planeFromNormalAtPoint(papos, padir);
 		double[] paangles = MathLib.planeAngle(paplane[0], paplane);
 		for (int i=0;i<paangles.length;i++) {System.out.println("JavaRenderEngine: main: paangles[i]="+paangles[i]);}
+		Position[] ttplanepos = {new Position(0,0,0), new Position(1,0,0)};
+		Direction[] ttplanenorm = {new Direction(1.0f,0,0)};
+		Direction ttplanedir = new Direction(1.0f,0,0);
+		Plane[] ttplane = MathLib.planeFromNormalAtPoint(ttplanepos[0], ttplanenorm);
+		Plane[] ttplanes = {ttplane[0],ttplane[0],ttplane[0]};
+		Position[] poplane = MathLib.pointOnPlane(ttplanes);
+		Plane[] ttplanetr1 = MathLib.translate(ttplanes, ttplanedir, 0.1f);
+		Plane[] ttplanetr2 = MathLib.translate(ttplanes, ttplanepos[1]);
+		for (int i=0;i<poplane.length;i++) {System.out.println("JavaRenderEngine: main: poplane="+poplane[i].x+" "+poplane[i].y+" "+poplane[i].z);}
+		for (int i=0;i<ttplanetr1.length;i++) {System.out.println("JavaRenderEngine: main: ttplanetr1="+ttplanetr1[i].a+" "+ttplanetr1[i].b+" "+ttplanetr1[i].c+" "+ttplanetr1[i].d);}
+		for (int i=0;i<ttplanetr2.length;i++) {System.out.println("JavaRenderEngine: main: ttplanetr2="+ttplanetr2[i].a+" "+ttplanetr2[i].b+" "+ttplanetr2[i].c+" "+ttplanetr2[i].d);}
 		
 		new JavaRenderEngine();
 	}

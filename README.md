@@ -62,18 +62,18 @@ DRAG-LMB          -- material drag triangle paint
 SHIFT-LMB         -- material picker at cursor
 CTRL-DRAG-LMB     -- move line vertex
 ALT-DRAG-LMB      -- vector line drag draw (in vector line mode)
-CTRL-ALT-LMB      -- remove line vertex
-CTRL-DRAG-RMB     -- move object
+PERIOD-LMB        -- remove line vertex
+CTRL-DRAG-RMB     -- move object (minmax)
 SHIFT             -- toggle snap to grid/vertex, drag multiple vertex, and speed movement
-CTRL-DRAG-MWH     -- camera location view position sideways pan (minmax)
-CTRL-ALT-DRAG-MWH -- change forward looking movement direction (minmax)
+DRAG-CMB          -- camera location view position sideways pan (minmax)
+CTRL-DRAG-CMB     -- change forward looking movement direction (minmax)
 CTRL-MWHEEL       -- draw forward position change (minmax)
 ARROW-KEYS        -- change forward looking movement direction (minmax)
-DRAG-CMB          -- triangle texture coordinates pan (minmax)
-MWHEEL            -- triangle texture coordinates zoom
-SHIFT-MWHEEL      -- triangle texture coordinates rotate
-ALT-MWHEEL        -- triangle texture coordinates scale
-ALT-SHIFT-MWHEEL  -- triangle texture coordinates shear
+TAB-DRAG-CMB      -- triangle texture coordinates pan (minmax)
+TAB-MWHEEL        -- triangle texture coordinates zoom
+TAB-SHIFT-MWHEEL  -- triangle texture coordinates rotate
+TAB-ALT-MWHEEL    -- triangle texture coordinates scale
+TAB-CTRL-MWHEEL   -- triangle texture coordinates shear
 INSERT            -- hue positive change (looping)
 DELETE            -- hue negative change (looping)
 HOME              -- saturation positive change (minmax)
