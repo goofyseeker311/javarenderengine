@@ -1485,10 +1485,14 @@ public class MathLib {
 		}
 		return k;
 	}
-	public static Coordinate[] projectedPoint(Position vpos, Position[] vpoint, int hres, double hfov, int vres, double vfov, Matrix vmat) {
+	public static Coordinate[] projectedPoint(Position vpos, Position[] vpoint, int hres, double hfov, int vres, double vfov, Matrix vmat, double nclipdist) {
 		Coordinate[] k = null;
 		if ((vpos!=null)&&(vpoint!=null)&&(vmat!=null)) {
 			k = new Coordinate[vpoint.length];
+			double nearclipplanedist = 1.0f;
+			if (nclipdist>nearclipplanedist) {
+				nearclipplanedist = nclipdist;
+			}
 			double halfhfovmult = (1.0f/tand(hfov/2.0f));
 			double halfvfovmult = (1.0f/tand(vfov/2.0f));
 			double origindeltax = ((double)(hres-1))/2.0f;
@@ -1499,7 +1503,7 @@ public class MathLib {
 			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
 			double[][] fwdintpointsdist = planePointDistance(vpoint, dirrightupplanes);
 			for (int i=0;i<vpoint.length;i++) {
-				if (fwdintpointsdist[i][0]>=1.0f) {
+				if (fwdintpointsdist[i][0]>=nearclipplanedist) {
 					double hind = halfhfovmult*halfhres*(fwdintpointsdist[i][1]/fwdintpointsdist[i][0])+origindeltax;
 					double vind = halfvfovmult*halfvres*(fwdintpointsdist[i][2]/fwdintpointsdist[i][0])+origindeltay;
 					k[i] = new Coordinate(hind,vind);
@@ -1508,14 +1512,18 @@ public class MathLib {
 		}
 		return k;
 	}
-	public static Coordinate[][] projectedLine(Position vpos, Line[] vline, int hres, double hfov, int vres, double vfov, Matrix vmat) {
+	public static Coordinate[][] projectedLine(Position vpos, Line[] vline, int hres, double hfov, int vres, double vfov, Matrix vmat, double nclipdist) {
 		Coordinate[][] k = null;
 		if ((vpos!=null)&&(vline!=null)&&(vmat!=null)) {
 			k = new Coordinate[vline.length][3];
+			double nearclipplanedist = 1.0f;
+			if (nclipdist>nearclipplanedist) {
+				nearclipplanedist = nclipdist;
+			}
 			Direction[] dirs = projectedCameraDirections(vmat);
 			Direction[] camdir = {dirs[0]};
 			Position[] camposa = {vpos};
-			Position[] rendercutpos = translate(camposa, dirs[0], 1.1d);
+			Position[] rendercutpos = translate(camposa, dirs[0], nearclipplanedist+0.1f);
 			Plane[] rendercutplane = planeFromNormalAtPoint(rendercutpos, camdir);
 			Plane[] camdirrightupplanes = planeFromNormalAtPoint(vpos, dirs);
 			Plane[] camfwdplane = {camdirrightupplanes[0]};
@@ -1540,7 +1548,7 @@ public class MathLib {
 				}
 			}
 			for (int j=0;j<vlinepos.length;j++) {
-				Coordinate[] vlinepospixel = projectedPoint(vpos, vlinepos[j], hres, hfov, vres, vfov, vmat);
+				Coordinate[] vlinepospixel = projectedPoint(vpos, vlinepos[j], hres, hfov, vres, vfov, vmat, nearclipplanedist);
 				for (int i=0;i<vlinepos[j].length;i++) {
 					k[i][j] = vlinepospixel[i];
 				}
@@ -1548,14 +1556,18 @@ public class MathLib {
 		}
 		return k;
 	}
-	public static Coordinate[][] projectedTriangle(Position vpos, Triangle[] vtri, int hres, double hfov, int vres, double vfov, Matrix vmat) {
+	public static Coordinate[][] projectedTriangle(Position vpos, Triangle[] vtri, int hres, double hfov, int vres, double vfov, Matrix vmat, double nclipdist) {
 		Coordinate[][] k = null;
 		if ((vpos!=null)&&(vtri!=null)&&(vmat!=null)) {
 			k = new Coordinate[vtri.length][5];
+			double nearclipplanedist = 1.0f;
+			if (nclipdist>nearclipplanedist) {
+				nearclipplanedist = nclipdist;
+			}
 			Direction[] dirs = projectedCameraDirections(vmat);
 			Direction[] camdir = {dirs[0]};
 			Position[] camposa = {vpos};
-			Position[] rendercutpos = translate(camposa, dirs[0], 1.1d);
+			Position[] rendercutpos = translate(camposa, dirs[0], nearclipplanedist+0.1f);
 			Plane[] rendercutplane = planeFromNormalAtPoint(rendercutpos, camdir);
 			Plane[] camdirrightupplanes = planeFromNormalAtPoint(vpos, dirs);
 			Plane[] camfwdplane = {camdirrightupplanes[0]};
@@ -1608,7 +1620,7 @@ public class MathLib {
 				}
 			}
 			for (int j=0;j<vtripos.length;j++) {
-				Coordinate[] vtripospixel = projectedPoint(vpos, vtripos[j], hres, hfov, vres, vfov, vmat);
+				Coordinate[] vtripospixel = projectedPoint(vpos, vtripos[j], hres, hfov, vres, vfov, vmat, nearclipplanedist);
 				for (int i=0;i<vtripos[j].length;i++) {
 					k[i][j] = vtripospixel[i];
 				}
@@ -1616,14 +1628,18 @@ public class MathLib {
 		}
 		return k;
 	}
-	public static Coordinate[][] projectedQuad(Position vpos, Quad[] vquad, int hres, double hfov, int vres, double vfov, Matrix vmat) {
+	public static Coordinate[][] projectedQuad(Position vpos, Quad[] vquad, int hres, double hfov, int vres, double vfov, Matrix vmat, double nclipdist) {
 		Coordinate[][] k = null;
 		if ((vpos!=null)&&(vquad!=null)&&(vmat!=null)) {
 			k = new Coordinate[vquad.length][8];
+			double nearclipplanedist = 1.0f;
+			if (nclipdist>nearclipplanedist) {
+				nearclipplanedist = nclipdist;
+			}
 			Direction[] dirs = projectedCameraDirections(vmat);
 			Direction[] camdir = {dirs[0]};
 			Position[] camposa = {vpos};
-			Position[] rendercutpos = translate(camposa, dirs[0], 1.1d);
+			Position[] rendercutpos = translate(camposa, dirs[0], nearclipplanedist+0.1f);
 			Plane[] rendercutplane = planeFromNormalAtPoint(rendercutpos, camdir);
 			Plane[] camdirrightupplanes = planeFromNormalAtPoint(vpos, dirs);
 			Plane[] camfwdplane = {camdirrightupplanes[0]};
@@ -1710,7 +1726,7 @@ public class MathLib {
 				}
 			}
 			for (int j=0;j<vquadpos.length;j++) {
-				Coordinate[] vquadpospixel = projectedPoint(vpos, vquadpos[j], hres, hfov, vres, vfov, vmat);
+				Coordinate[] vquadpospixel = projectedPoint(vpos, vquadpos[j], hres, hfov, vres, vfov, vmat, nearclipplanedist);
 				for (int i=0;i<vquadpos[j].length;i++) {
 					k[i][j] = vquadpospixel[i];
 				}
@@ -1719,11 +1735,15 @@ public class MathLib {
 		return k;
 	}
 
-	public static Rectangle[] projectedTriangleIntersection(Position vpos, Triangle[] vtri, int hres, int vres, double hfov, double vfov, Matrix vmat) {
+	public static Rectangle[] projectedTriangleIntersection(Position vpos, Triangle[] vtri, int hres, int vres, double hfov, double vfov, Matrix vmat, double nclipdist) {
 		Rectangle[] k = null;
 		if ((vpos!=null)&&(vtri!=null)&&(vmat!=null)) {
 			k = new Rectangle[vtri.length];
-			Coordinate[][] projectedtriangles = projectedTriangle(vpos, vtri, hres, hfov, vres, vfov, vmat);
+			double nearclipplanedist = 1.0f;
+			if (nclipdist>nearclipplanedist) {
+				nearclipplanedist = nclipdist;
+			}
+			Coordinate[][] projectedtriangles = projectedTriangle(vpos, vtri, hres, hfov, vres, vfov, vmat, nearclipplanedist);
 			for (int j=0;j<projectedtriangles.length;j++) {
 				Coordinate coord1 = projectedtriangles[j][0];
 				Coordinate coord2 = projectedtriangles[j][1];
@@ -2139,7 +2159,7 @@ public class MathLib {
 			Direction[] camfwddir = {camdirs[0]};
 			Direction[] camupdir = {camdirs[2]};
 			Plane[] camrgtplane = {camplanes[1]};
-			double[] camvsuftangles = planeAngle(camrgtplane[0], vsurf);
+			double[] camvsurfangles = planeAngle(camrgtplane[0], vsurf);
 			double[][] camfwddist = rayPlaneDistance(campos, camfwddir, vsurf);
 			double[][] camupdist = rayPlaneDistance(campos, camupdir, vsurf);
 			for (int i=0;i<vsurf.length;i++) {
@@ -2154,7 +2174,11 @@ public class MathLib {
 					Direction[] vsurfvertdir = vectorFromPoints(camfwdvsurfpos, camupvsurfpos);
 					Direction[] vsurfvertdirn = normalizeVector(vsurfvertdir);
 					Direction[] camfwdvsurfdir = vectorFromPoints(zeroposa, camfwdvsurfpos);
-					Matrix mirrormat = rotationMatrixAroundAxis(vsurfvertdirn[0], 2*camvsuftangles[i]);
+					double camvsurfangle = camvsurfangles[i];
+					if (camvsurfangle>90.0f) {
+						camvsurfangle = 180.0f-camvsurfangle;
+					}
+					Matrix mirrormat = rotationMatrixAroundAxis(vsurfvertdirn[0], 2*camvsurfangle);
 					Matrix viewrotmirror = matrixMultiply(mirrormat, viewrot);
 					Position[] camposmirror = translate(camposa, camfwdvsurfdir[0], -1.0f);
 					camposmirror = matrixMultiply(camposmirror, mirrormat);
@@ -2162,6 +2186,7 @@ public class MathLib {
 					k[i] = new RenderView();
 					k[i].rot = viewrotmirror;
 					k[i].pos = camposmirror[0];
+					k[i].dist = camfwddist[0][i];
 				}
 			}
 		}

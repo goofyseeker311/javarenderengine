@@ -1191,7 +1191,7 @@ public class CADApp extends AppHandlerPanel {
 					CADApp.this.mouseoverline = CADApp.this.hardwarerenderview.mouseoverline;
 					CADApp.this.mouseoververtex = CADApp.this.hardwarerenderview.mouseoververtex;
 				} else if (CADApp.this.polygonfillmode==2) { 
-					CADApp.this.hardwarerenderview = RenderLib.renderProjectedPolygonViewHardware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.hardwarerenderview = RenderLib.renderProjectedPolygonViewHardware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 0, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseovertriangle = CADApp.this.hardwarerenderview.mouseovertriangle;
 				}
 				HardwareRenderViewUpdater.renderupdaterrunning = false;
@@ -1205,7 +1205,7 @@ public class CADApp extends AppHandlerPanel {
 			if (!SoftwareRenderViewUpdater.renderupdaterrunning) {
 				SoftwareRenderViewUpdater.renderupdaterrunning = true;
 				if (CADApp.this.polygonfillmode==3) {
-					CADApp.this.softwarerenderview = RenderLib.renderProjectedPlaneViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.softwarerenderview = RenderLib.renderProjectedPlaneViewSoftware(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 0, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseovertriangle = CADApp.this.softwarerenderview.mouseovertriangle;
 				}
 				SoftwareRenderViewUpdater.renderupdaterrunning = false;

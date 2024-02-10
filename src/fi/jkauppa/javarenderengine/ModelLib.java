@@ -157,6 +157,7 @@ public class ModelLib {
 		public int mouselocationx=0,mouselocationy=0; 
 		public Position pos;
 		public Matrix rot;
+		public double dist;
 		public int renderwidth=0, renderheight=0;
 		public int rendersize=0;
 		public double hfov=0.0f, vfov=43.0f;
