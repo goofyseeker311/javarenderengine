@@ -187,8 +187,8 @@ public class RenderLib {
 					Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
 					if (copytrianglelist.length>0) {
 						Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
-						Plane[] copytriangleplanelist = MathLib.planeFromPoints(copytrianglelist);
-						RenderView[] copytrianglecameralist = MathLib.surfaceMirrorProjectedCamera(campos, copytriangleplanelist, viewrot);
+						//Plane[] copytriangleplanelist = MathLib.planeFromPoints(copytrianglelist);
+						//RenderView[] copytrianglecameralist = MathLib.surfaceMirrorProjectedCamera(campos, copytriangleplanelist, viewrot);
 						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
 						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
 						Direction[] copyviewtrianglespheredir = MathLib.vectorFromPoints(campos, copytrianglespherelist);
@@ -200,7 +200,7 @@ public class RenderLib {
 							Triangle[] copytriangle = {copytrianglelist[it]};
 							Direction copytrianglenormal = copytrianglenormallist[it];
 							Direction copytriangledir = copyviewtrianglespheredir[it];
-							RenderView copytrianglecamera = copytrianglecameralist[it];
+							//RenderView copytrianglecamera = copytrianglecameralist[it];
 							Coordinate coord1 = copytrianglelistcoords[it][0];
 							Coordinate coord2 = copytrianglelistcoords[it][1];
 							Coordinate coord3 = copytrianglelistcoords[it][2];
@@ -225,6 +225,7 @@ public class RenderLib {
 								}
 								Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal, null, copytriangledir, unlit);
 								if (trianglecolor!=null) {
+									/*
 									if ((bounces>0)&&(copytrianglecamera!=null)) {
 										RenderView mirrorview = renderProjectedPolygonViewHardware(copytrianglecamera.pos, entitylist, renderwidth, hfov, renderheight, vfov, copytrianglecamera.rot, unlit, bounces-1, copytrianglecamera.surf, mouselocationx, mouselocationy);
 										VolatileImage mirrorimage = UtilLib.flipImage(mirrorview.renderimage, true, false);
@@ -237,9 +238,10 @@ public class RenderLib {
 										g2.setColor(newtrianglecolor);
 										g2.fill(trianglepolygon);
 									} else {
+									*/
 										g2.setColor(trianglecolor);
 										g2.fill(trianglepolygon);
-									}
+									//}
 								}
 							}
 						}
