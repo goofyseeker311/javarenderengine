@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.22");
+		this.setTitle("Java Render Engine v2.3.23");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -362,6 +362,11 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Plane[] smpcplanes = MathLib.planeFromPoints(smpctris);
 		RenderView[] smpc = MathLib.surfaceMirrorProjectedCamera(smpcpos[0], smpcplanes, smpcrot);
 		for (int i=0;i<smpc.length;i++) {if (smpc[i]!=null) {System.out.println("JavaRenderEngine: main: smpc["+i+"] pos="+smpc[i].pos.x+" "+smpc[i].pos.y+" "+smpc[i].pos.z);System.out.println("JavaRenderEngine: main: smpc["+i+"] a1="+smpc[i].rot.a11+" "+smpc[i].rot.a12+" "+smpc[i].rot.a13);System.out.println("JavaRenderEngine: main: smpc["+i+"] a2="+smpc[i].rot.a21+" "+smpc[i].rot.a22+" "+smpc[i].rot.a23);System.out.println("JavaRenderEngine: main: smpc["+i+"] a3="+smpc[i].rot.a31+" "+smpc[i].rot.a32+" "+smpc[i].rot.a33);} else {System.out.println("JavaRenderEngine: main: smpc["+i+"]=not visible.");}}
+		Position papos = new Position(0.0f,0.0f,0.0f);
+		Direction[] padir = {new Direction(1.0f,0.0f,0.0f),new Direction(0.0f,-1.0f,0.0f)};
+		Plane[] paplane = MathLib.planeFromNormalAtPoint(papos, padir);
+		double[] paangles = MathLib.planeAngle(paplane[0], paplane);
+		for (int i=0;i<paangles.length;i++) {System.out.println("JavaRenderEngine: main: paangles[i]="+paangles[i]);}
 		
 		new JavaRenderEngine();
 	}
