@@ -926,6 +926,8 @@ public class RenderLib {
 		Matrix mirrorrot = mirror[0].rot;
 		RenderView normalview = RenderLib.renderProjectedPolygonViewHardware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, mouselocationx, mouselocationy);
 		RenderView mirrorview = RenderLib.renderProjectedPolygonViewHardware(mirrorcampos, mirrorentitylist, renderwidth, hfov, renderheight, vfov, mirrorrot, unlit, mouselocationx, mouselocationy);
+		VolatileImage normalimage = normalview.renderimage;
+		VolatileImage mirrorimage = UtilLib.flipImage(mirrorview.renderimage, true, false);
 		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
 		Graphics2D rigfx = renderview.renderimage.createGraphics();
 		rigfx.setComposite(AlphaComposite.Src);
@@ -933,8 +935,8 @@ public class RenderLib {
 		rigfx.setPaint(null);
 		rigfx.setClip(null);
 		rigfx.fillRect(0, 0, renderwidth, renderheight);
-		rigfx.drawImage(normalview.renderimage, 0, 0, renderwidth/2, renderheight/2, 0, 0, renderwidth, renderheight, null);
-		rigfx.drawImage(mirrorview.renderimage, 0, renderheight/2+1, renderwidth/2, renderheight, 0, 0, renderwidth, renderheight, null);
+		rigfx.drawImage(normalimage, 0, 0, renderwidth/2, renderheight/2, 0, 0, renderwidth, renderheight, null);
+		rigfx.drawImage(mirrorimage, 0, renderheight/2+1, renderwidth/2, renderheight, 0, 0, renderwidth, renderheight, null);
 		rigfx.dispose();
 		renderview.snapimage = renderview.renderimage.getSnapshot();
 		return renderview;

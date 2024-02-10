@@ -129,6 +129,28 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static double[] planeAngle(Plane vplane1, Plane[] vplane2) {
+		double[] k = null;
+		if ((vplane1!=null)&&(vplane2!=null)) {
+			k = new double[vplane2.length];
+			Plane[] vplane = {vplane1};
+			Direction[] vdir1 = planeNormal(vplane);
+			Direction[] vdir2 = planeNormal(vplane2);
+			Direction vdir = vdir1[0];
+			k = vectorAngle(vdir,vdir2);
+		}
+		return k;
+	}
+	public static double[] planeAngle(Plane[] vplane1, Plane[] vplane2) {
+		double[] k = null;
+		if ((vplane1!=null)&&(vplane2!=null)&&(vplane1.length==vplane2.length)) {
+			k = new double[vplane1.length];
+			Direction[] vdir1 = planeNormal(vplane1);
+			Direction[] vdir2 = planeNormal(vplane2);
+			k = vectorAngle(vdir1,vdir2);
+		}
+		return k;
+	}
 	public static Direction[] normalizeVector(Direction[] vdir) {
 		Direction[] k = null;
 		if (vdir!=null) {
@@ -2111,9 +2133,13 @@ public class MathLib {
 		if ((vsurf!=null)&&(campos!=null)) {
 			k = new RenderView[vsurf.length];
 			Position[] camposa = {campos};
+			Position[] zeroposa = {new Position(0.0f,0.0f,0.0f)};
 			Direction[] camdirs = projectedCameraDirections(viewrot);
+			Plane[] camplanes = MathLib.planeFromNormalAtPoint(campos, camdirs);
 			Direction[] camfwddir = {camdirs[0]};
 			Direction[] camupdir = {camdirs[2]};
+			Plane[] camrgtplane = {camplanes[1]};
+			double[] camvsuftangles = planeAngle(camrgtplane[0], vsurf);
 			double[][] camfwddist = rayPlaneDistance(campos, camfwddir, vsurf);
 			double[][] camupdist = rayPlaneDistance(campos, camupdir, vsurf);
 			for (int i=0;i<vsurf.length;i++) {
@@ -2127,12 +2153,12 @@ public class MathLib {
 					}
 					Direction[] vsurfvertdir = vectorFromPoints(camfwdvsurfpos, camupvsurfpos);
 					Direction[] vsurfvertdirn = normalizeVector(vsurfvertdir);
-					Direction[] camfwdvsurfdir = vectorFromPoints(camposa, camfwdvsurfpos);
-					Matrix mirrormat = rotationMatrixAroundAxis(vsurfvertdirn[0], 180.0f);
+					Direction[] camfwdvsurfdir = vectorFromPoints(zeroposa, camfwdvsurfpos);
+					Matrix mirrormat = rotationMatrixAroundAxis(vsurfvertdirn[0], 2*camvsuftangles[i]);
 					Matrix viewrotmirror = matrixMultiply(mirrormat, viewrot);
-					Position[] camposmirror = MathLib.translate(camposa, camfwdvsurfdir[0], -1.0f);
+					Position[] camposmirror = translate(camposa, camfwdvsurfdir[0], -1.0f);
 					camposmirror = matrixMultiply(camposmirror, mirrormat);
-					camposmirror = MathLib.translate(camposmirror, camfwdvsurfdir[0], 1.0f);
+					camposmirror = translate(camposmirror, camfwdvsurfdir[0], 1.0f);
 					k[i] = new RenderView();
 					k[i].rot = viewrotmirror;
 					k[i].pos = camposmirror[0];

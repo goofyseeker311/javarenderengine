@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.20");
+		this.setTitle("Java Render Engine v2.3.21");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -354,7 +354,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Direction[] rotdir2 = MathLib.matrixMultiply(camdirs, rotposmat2);
 		for (int i=0;i<rotpos1.length;i++) {System.out.println("JavaRenderEngine: main: rotpos1="+rotpos1[i].x+" "+rotpos1[i].y+" "+rotpos1[i].z);}
 		for (int i=0;i<rotdir2.length;i++) {System.out.println("JavaRenderEngine: main: rotdir2="+rotdir2[i].dx+" "+rotdir2[i].dy+" "+rotdir2[i].dz);}
-		Position[] smpcpos = {new Position(0.0f,0.0f,0.5f), new Position(0.0f,-1.0f,0.0f), new Position(1.0f,-1.0f,0.0f), new Position(0.0f,-1.0f,1.0f), new Position(1.0f,0.0f,0.0f), new Position(1.0f,1.0f,0.0f), new Position(1.0f,0.0f,1.0f)};
+		Position[] smpcpos = {new Position(0.0f,-2.0f,0.5f), new Position(0.0f,-3.0f,0.0f), new Position(1.0f,-3.0f,0.0f), new Position(0.0f,-3.0f,1.0f), new Position(1.0f,0.0f,0.0f), new Position(1.0f,1.0f,0.0f), new Position(1.0f,0.0f,1.0f)};
 		Matrix smpcrot = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
 		Triangle smpctri1 = new Triangle(smpcpos[1],smpcpos[2],smpcpos[3]);
 		Triangle smpctri2 = new Triangle(smpcpos[4],smpcpos[5],smpcpos[6]);
