@@ -908,7 +908,7 @@ public class RenderLib {
 		RenderView renderview = new RenderView();
 		Direction[] camdirs = MathLib.projectedCameraDirections(viewrot);
 		Position[] camposa = {campos};
-		Position[] mirrorpos = MathLib.translate(camposa, camdirs[0], 100.0d);
+		Position[] mirrorpos = MathLib.translate(camposa, camdirs[0], 1.0d);
 		Plane[] mirrorplanes = MathLib.planeFromNormalAtPoint(mirrorpos[0], camdirs);
 		Plane[] cammirrorplane = {mirrorplanes[0]};
 		Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);

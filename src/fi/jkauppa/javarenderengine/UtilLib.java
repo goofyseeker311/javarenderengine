@@ -92,7 +92,6 @@ public class UtilLib {
 		rigfx.setPaint(null);
 		rigfx.setClip(null);
 		rigfx.fillRect(0, 0, image.getWidth(), image.getHeight());
-		rigfx.drawImage(image, 0, 0, null);
 		if (horizontal&&vertical) {
 			rigfx.scale(-1, -1);
 			rigfx.translate(-image.getWidth(), -image.getHeight());
@@ -103,6 +102,7 @@ public class UtilLib {
 			rigfx.scale(1, -1);
 			rigfx.translate(0, -image.getHeight());
 		}
+		rigfx.drawImage(image, 0, 0, null);
 		rigfx.dispose();
 		return k;
 	}
