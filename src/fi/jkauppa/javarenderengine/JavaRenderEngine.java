@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.30");
+		this.setTitle("Java Render Engine v2.3.31");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -104,7 +104,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		double[] camdir2len = MathLib.vectorLength(camdir2);
 		for (int i=0;i<camdir2len.length;i++) {System.out.println("JavaRenderEngine: main: camdir2len: "+camdir2len[i]);}
 		Triangle[] ptri = {new Triangle(campos4[0],campos4[1],campos4[2]), new Triangle(campos4[0],campos4[1],campos4[2]), new Triangle(campos4[0],campos4[1],campos4[2])};
-		Plane[] tpplane = MathLib.planeFromPoints(ptri);
+		Plane[] tpplane = MathLib.trianglePlane(ptri);
 		System.out.println("JavaRenderEngine: main: tpplane: "+tpplane[0].a+" "+tpplane[0].b+" "+tpplane[0].c+" "+tpplane[0].d);
 		double[] camdot = MathLib.vectorDot(camdir2, campos2);
 		for (int i=0;i<camdot.length;i++) {System.out.println("JavaRenderEngine: main: camdot: "+camdot[i]+" "+camdot[i]+" "+camdot[i]);}
@@ -373,7 +373,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Triangle smpctri1 = new Triangle(smpcpos[1],smpcpos[2],smpcpos[3]);
 		Triangle smpctri2 = new Triangle(smpcpos[4],smpcpos[5],smpcpos[6]);
 		Triangle[] smpctris = {smpctri1, smpctri2};
-		Plane[] smpcplanes = MathLib.planeFromPoints(smpctris);
+		Plane[] smpcplanes = MathLib.trianglePlane(smpctris);
 		RenderView[] smpc = MathLib.surfaceMirrorProjectedCamera(smpcpos[0], smpcplanes, smpcrot);
 		for (int i=0;i<smpc.length;i++) {if (smpc[i]!=null) {System.out.println("JavaRenderEngine: main: smpc["+i+"] pos="+smpc[i].pos.x+" "+smpc[i].pos.y+" "+smpc[i].pos.z);System.out.println("JavaRenderEngine: main: smpc["+i+"] a1="+smpc[i].rot.a11+" "+smpc[i].rot.a12+" "+smpc[i].rot.a13);System.out.println("JavaRenderEngine: main: smpc["+i+"] a2="+smpc[i].rot.a21+" "+smpc[i].rot.a22+" "+smpc[i].rot.a23);System.out.println("JavaRenderEngine: main: smpc["+i+"] a3="+smpc[i].rot.a31+" "+smpc[i].rot.a32+" "+smpc[i].rot.a33);} else {System.out.println("JavaRenderEngine: main: smpc["+i+"]=not visible.");}}
 		Position papos = new Position(0.0f,0.0f,0.0f);

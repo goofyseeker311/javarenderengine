@@ -384,7 +384,7 @@ public class CADApp extends AppHandlerPanel {
 			if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
 				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
 				if ((stri[0].norm==null)||(stri[0].norm.isZero())) {
-					Plane[] striplane = MathLib.planeFromPoints(stri);
+					Plane[] striplane = MathLib.trianglePlane(stri);
 					Direction[] strinorm = MathLib.planeNormal(striplane);
 					stri[0].norm = strinorm[0];
 				} else {
