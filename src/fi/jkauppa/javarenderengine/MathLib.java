@@ -603,13 +603,10 @@ public class MathLib {
 						}
 						if (ptlhit12&&ptlhit13) {
 							k[n][m] = new Line(ptlint12,ptlint13);
-							k[n][m].ind = 0;
 						} else if (ptlhit12&&ptlhit23) {
 							k[n][m] = new Line(ptlint12,ptlint23);
-							k[n][m].ind = 1;
 						} else if (ptlhit13&&ptlhit23) {
 							k[n][m] = new Line(ptlint13,ptlint23);
-							k[n][m].ind = 2;
 						}
 					}
 				}
@@ -1469,8 +1466,6 @@ public class MathLib {
 					newtriangle1 = new Triangle(newtrianglepoint,vtri[i].pos2,vtri[i].pos1);
 					newtriangle2 = new Triangle(newtrianglepoint,vtri[i].pos3,vtri[i].pos1);
 				}
-				newtriangle1.ind = vtri[i].ind;
-				newtriangle2.ind = vtri[i].ind;
 				newtriangle1.mat = vtri[i].mat;
 				newtriangle2.mat = vtri[i].mat;
 				newtriangle1.norm = vtri[i].norm;
@@ -2250,6 +2245,11 @@ public class MathLib {
 		}
 		return k;
 	}
+	
+	public static int snapToGrid(int coordinate, int gridstep) {
+		return gridstep*(int)Math.round(((double)coordinate)/((double)gridstep));
+	}
+	
 	public static double zeroMod(double val) {
 		return val-Math.floor(val);
 	}
@@ -2281,6 +2281,7 @@ public class MathLib {
 		return k;
 	}
 	public static RenderView[] surfaceMirrorProjectedCamera(Position campos, Plane[] vsurf, Matrix viewrot) {
+		//TODO fix rotationMatrixAroundAxis angle parameter sign
 		RenderView[] k = null;
 		if ((vsurf!=null)&&(campos!=null)) {
 			k = new RenderView[vsurf.length];
@@ -2294,7 +2295,7 @@ public class MathLib {
 			Line[][] ppint = planePlaneIntersection(camrgtplane, vsurf);
 			double[] camrgtvsurfangles = planeAngle(camrgtplane[0], vsurf);
 			for (int i=0;i<vsurf.length;i++) {
-				if ((camfwdvsufrint[0][i]!=null)&&(ppint[0][i]!=null)) {
+				if ((camfwdvsufrint[0][i]!=null)&&(ppint[0][i]!=null)&&(camfwdvsufrint[0][i].isFinite())&&(ppint[0][i].isFinite())) {
 					Line[] ppintline = {ppint[0][i]};
 					Direction[] ppintlinedir = vectorFromPoints(ppintline);
 					double camrgtvsurfangle = camrgtvsurfangles[i];

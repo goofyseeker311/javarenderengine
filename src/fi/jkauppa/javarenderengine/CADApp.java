@@ -816,8 +816,8 @@ public class CADApp extends AppHandlerPanel {
     		double mouserelativelocationx = this.mouselocationx-this.origindeltax;
     		double mouserelativelocationy = this.mouselocationy-this.origindeltay;
 			if (this.snaplinemode) {
-	    		mouserelativelocationx = UtilLib.snapToGrid(this.mouselocationx-this.origindeltax,this.gridstep);
-	    		mouserelativelocationy = UtilLib.snapToGrid(this.mouselocationy-this.origindeltay,this.gridstep);
+	    		mouserelativelocationx = MathLib.snapToGrid(this.mouselocationx-this.origindeltax,this.gridstep);
+	    		mouserelativelocationy = MathLib.snapToGrid(this.mouselocationy-this.origindeltay,this.gridstep);
 				if ((this.mouseoververtex!=null)&&(this.mouseoververtex.length>0)) {
 					this.drawstartpos = this.mouseoververtex[this.mouseoververtex.length-1].copy(); 
 				}
@@ -910,8 +910,8 @@ public class CADApp extends AppHandlerPanel {
 	    		double mouserelativelocationx = this.mouselocationx-this.origindeltax;
 	    		double mouserelativelocationy = this.mouselocationy-this.origindeltay;
 				if (this.snaplinemode) {
-		    		mouserelativelocationx = UtilLib.snapToGrid(this.mouselocationx-this.origindeltax,this.gridstep);
-		    		mouserelativelocationy = UtilLib.snapToGrid(this.mouselocationy-this.origindeltay,this.gridstep);
+		    		mouserelativelocationx = MathLib.snapToGrid(this.mouselocationx-this.origindeltax,this.gridstep);
+		    		mouserelativelocationy = MathLib.snapToGrid(this.mouselocationy-this.origindeltay,this.gridstep);
 					if ((this.mouseoververtex!=null)&&(this.mouseoververtex.length>0)) {
 						drawlocation = this.mouseoververtex[this.mouseoververtex.length-1].copy(); 
 					}
@@ -1230,12 +1230,13 @@ public class CADApp extends AppHandlerPanel {
 		public void run() {
 			if (!EntityLightMapUpdater.entitylightmapupdaterrunning) {
 				EntityLightMapUpdater.entitylightmapupdaterrunning = true;
+				int bounces = 2;
 				if (CADApp.this.polygonfillmode==1) {
-					RenderLib.renderSurfaceFaceLightmapCubemapView(CADApp.this.entitylist, 32, 2, 3);
+					RenderLib.renderSurfaceFaceLightmapCubemapView(CADApp.this.entitylist, 32, bounces, 3);
 				} else if (CADApp.this.polygonfillmode==2) {
-					RenderLib.renderSurfaceFaceLightmapCubemapView(CADApp.this.entitylist, 32, 2, 1);
+					RenderLib.renderSurfaceFaceLightmapCubemapView(CADApp.this.entitylist, 32, bounces, 1);
 				} else if (CADApp.this.polygonfillmode==3) {
-					RenderLib.renderSurfaceFaceLightmapCubemapView(CADApp.this.entitylist, 32, 2, 2);
+					RenderLib.renderSurfaceFaceLightmapCubemapView(CADApp.this.entitylist, 32, bounces, 2);
 				}
 				EntityLightMapUpdater.entitylightmapupdaterrunning = false;
 			}
