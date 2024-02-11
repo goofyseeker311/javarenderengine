@@ -331,7 +331,34 @@ public class MathLib {
 		Position[][] k = null;
 		if ((vpos1!=null)&&(vdir1!=null)&&(vpos2!=null)&&(vdir2!=null)&&(vpos1.length==vdir1.length)&&(vpos2.length==vdir2.length)) {
 			k = new Position[vdir1.length][vdir2.length];
-			//TODO ray-ray intersection 
+			for (int m=0;m<vdir1.length;m++) {
+				for (int n=0;n<vdir2.length;n++) {
+					Position[] pos1 = {vpos1[m]};
+					Position[] pos2 = {vpos2[m]};
+					Direction[] posdir13 = {vdir1[m]};
+					Direction[] posdir23 = {vdir2[n]};
+					Position[] pos13d = translate(pos1, posdir13[0], 1.0f);
+					Position[] pos23d = translate(pos2, posdir23[0], 1.0f);
+					Triangle[] raytriangles = {new Triangle(pos1[0], pos13d[0], pos2[0]), new Triangle(pos2[0], pos23d[0], pos1[0])};
+					Plane[] rayplanes = planeFromPoints(raytriangles);
+					Direction[] rayplanenormals = planeNormal(rayplanes);
+					Direction[] raynorm1 = {rayplanenormals[0]};
+					Direction[] raynorm2 = {rayplanenormals[1]};
+					double[] rrintangle = vectorAngle(raynorm1, raynorm2);
+					if ((rrintangle[0]==0.0f)||(rrintangle[0]==180.0f)) {
+						Direction[] posdir13inv = {vdir1[m].invert()};
+						Direction[] posdir23inv = {vdir2[n].invert()};
+						Direction[] posdir12 = vectorFromPoints(pos1, pos2);
+						double[] posdir12len = vectorLength(posdir12);
+						double[] pos1angle = vectorAngle(posdir13, posdir12);
+						double[] pos3angle = vectorAngle(posdir13inv, posdir23inv);
+						double posdir23len = posdir12len[0]*sind(pos1angle[0])/sind(pos3angle[0]);
+						Direction[] posdir23n = normalizeVector(posdir23);
+						Position[] pos3 = translate(pos2,posdir23n[0],posdir23len);;
+						k[m][n] = pos3[0];
+					}
+				}
+			}
 		}
 		return k;
 	}
@@ -2239,6 +2266,19 @@ public class MathLib {
 				k[i] = new Position(0.0f,-vplane[i].d/vplane[i].b,0.0f);
 			} else if (vplane[i].c!=0) {
 				k[i] = new Position(0.0f,0.0f,-vplane[i].d/vplane[i].c);
+			}
+		}
+		return k;
+	}
+	public static double zeroMod(double val) {
+		return val-Math.floor(val);
+	}
+	public static Coordinate[] zeroMod(Coordinate[] tex) {
+		Coordinate[] k = null;
+		if (tex!=null) {
+			k = new Coordinate[tex.length];
+			for (int i=0;i<tex.length;i++) {
+				k[i] = new Coordinate(zeroMod(tex[i].u), zeroMod(tex[i].v));
 			}
 		}
 		return k;
