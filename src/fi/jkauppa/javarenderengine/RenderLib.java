@@ -226,8 +226,8 @@ public class RenderLib {
 										double[][] entityspherepointlistdist = MathLib.planePointDistance(entityspherepointlist, cammirrorplane);
 										ArrayList<Entity> mirrorentitylistarray = new ArrayList<Entity>();
 										for (int m=0;m<entitylist.length;m++) {
-											if (entityspherepointlistdist[m][0]>=0.0f) {
-												mirrorentitylistarray.add(entitylist[m].copy());
+											if (entityspherepointlistdist[m][0]>=1.0f) {
+												mirrorentitylistarray.add(entitylist[m]);
 											}
 										}
 										Entity[] mirrorentitylist = mirrorentitylistarray.toArray(new Entity[mirrorentitylistarray.size()]);
@@ -860,8 +860,8 @@ public class RenderLib {
 		double[][] entityspherepointlistdist = MathLib.planePointDistance(entityspherepointlist, cammirrorplane);
 		ArrayList<Entity> mirrorentitylistarray = new ArrayList<Entity>();
 		for (int i=0;i<entitylist.length;i++) {
-			if (entityspherepointlistdist[i][0]>=0.0f) {
-				mirrorentitylistarray.add(entitylist[i].copy());
+			if (entityspherepointlistdist[i][0]>=1.0f) {
+				mirrorentitylistarray.add(entitylist[i]);
 			}
 		}
 		Entity[] mirrorentitylist = mirrorentitylistarray.toArray(new Entity[mirrorentitylistarray.size()]);
@@ -996,24 +996,18 @@ public class RenderLib {
 			Coordinate[] texuvzero = MathLib.zeroMod(texuva);
 			Coordinate texuvz = texuvzero[0];
 			if (lightmaptexture!=null) {
-				lightmapcolor = null;
-				lightmapcolorcomp = null;
 				int lineuvx = (int)Math.round(texuvz.u*(lightmaptexture.getWidth()-1));
 				int lineuvy = (int)Math.round(texuvz.v*(lightmaptexture.getHeight()-1));
 				lightmapcolor = new Color(lightmaptextureimage.getRGB(lineuvx, lineuvy));
 				lightmapcolorcomp = lightmapcolor.getRGBComponents(new float[4]);
 			}
 			if (emissivetexture!=null) {
-				emissivecolor = null;
-				emissivecolorcomp = null;
 				int lineuvx = (int)Math.round(texuvz.u*(emissivetexture.getWidth()-1));
 				int lineuvy = (int)Math.round(texuvz.v*(emissivetexture.getHeight()-1));
 				emissivecolor = new Color(emissivetextureimage.getRGB(lineuvx, lineuvy));
 				emissivecolorcomp = emissivecolor.getRGBComponents(new float[4]);
 			}
 			if (triangletexture!=null) {
-				trianglecolor = null;
-				trianglecolorcomp = null;
 				int lineuvx = (int)Math.round(texuvz.u*(triangletexture.getWidth()-1));
 				int lineuvy = (int)Math.round(texuvz.v*(triangletexture.getHeight()-1));
 				Color triangletexturecolor = new Color(triangletextureimage.getRGB(lineuvx, lineuvy));
