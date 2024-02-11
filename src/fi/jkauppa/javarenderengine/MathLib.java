@@ -2303,7 +2303,7 @@ public class MathLib {
 						camrgtvsurfangle = 180.0f-camrgtvsurfangle;
 					}
 					Position[] camfwdvsurfpos = {camfwdvsufrint[0][i]};
-					Matrix mirrormat = rotationMatrixAroundAxis(ppintlinedir[0], 2.0f*camrgtvsurfangle);
+					Matrix mirrormat = rotationMatrixAroundAxis(ppintlinedir[0], -2.0f*camrgtvsurfangle);
 					Matrix viewrotmirror = matrixMultiply(mirrormat, viewrot);
 					Direction[] camfwdvsurfdir = vectorFromPoints(zeroposa, camfwdvsurfpos);
 					Position[] camposmirror = translate(camposa, camfwdvsurfdir[0], -1.0f);
