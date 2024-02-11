@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.28");
+		this.setTitle("Java Render Engine v2.3.29");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -125,10 +125,12 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		double[][] cpdist2 = MathLib.rayPlaneDistance(campos, camdir2norm, tplane2);
 		double[][] cpdist3 = MathLib.rayPlaneDistance(campos, camdirnorm, tpplane);
 		double[][] cpdist4 = MathLib.rayPlaneDistance(campos, tdir, tplane3);
+		Position[][] cpdistint4 = MathLib.rayPlaneIntersection(campos, tdir, tplane3);
 		System.out.println("JavaRenderEngine: main: cpdist[0][0]: "+cpdist[0][0]);
 		for (int i=0;i<cpdist2.length;i++) {for (int j=0;j<cpdist2[i].length;j++) {System.out.println("JavaRenderEngine: main: cpdist2["+i+"]["+j+"]: "+cpdist2[i][j]);}}
 		for (int i=0;i<cpdist3.length;i++) {for (int j=0;j<cpdist3[i].length;j++) {System.out.println("JavaRenderEngine: main: cpdist3["+i+"]["+j+"]: "+cpdist3[i][j]);}}
 		for (int i=0;i<cpdist4.length;i++) {for (int j=0;j<cpdist4[i].length;j++) {System.out.println("JavaRenderEngine: main: cpdist4["+i+"]["+j+"]: "+cpdist4[i][j]);}}
+		for (int i=0;i<cpdistint4.length;i++) {for (int j=0;j<cpdistint4[i].length;j++) {if (cpdistint4[i][j]!=null) { System.out.println("JavaRenderEngine: main: cpdistint4["+i+"]["+j+"]: "+cpdistint4[i][j].x+" "+cpdistint4[i][j].y+" "+cpdistint4[i][j].z);} else {System.out.println("JavaRenderEngine: main: cpdistint4["+i+"]["+j+"]: no hit.");}}}
 		Plane[] pplane = MathLib.planeFromNormalAtPoint(campos2, camdir2norm);
 		Plane[] camplane = MathLib.planeFromNormalAtPoint(camposa, camdir4norm);
 		for (int i=0;i<pplane.length;i++) {System.out.println("JavaRenderEngine: main: pplane: "+pplane[i].a+" "+pplane[i].b+" "+pplane[i].c+" "+pplane[i].d);}
