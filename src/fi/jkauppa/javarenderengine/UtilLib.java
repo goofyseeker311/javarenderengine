@@ -17,6 +17,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Arrays;
+import java.util.Comparator;
 
 import javax.imageio.ImageIO;
 import javax.swing.filechooser.FileFilter;
@@ -142,11 +143,36 @@ public class UtilLib {
 		return k;
 	}
 
-	public static int snapToGrid(int coordinate, int gridstep) {
-		return gridstep*(int)Math.round(((double)coordinate)/((double)gridstep));
+	public static class ObjectSort<T> implements Comparator<Integer> {
+		private Comparable<T>[] data;
+		private Comparator<T> comp;
+		public ObjectSort(Comparable<T>[] datai, Comparator<T> compi) {this.data=datai;this.comp=compi;}
+		@SuppressWarnings("unchecked")
+		@Override public int compare(Integer o1, Integer o2) {
+			int compval = -1;
+			if (this.comp!=null) {
+				compval = this.comp.compare((T)data[o1],(T)data[o2]);
+			} else {
+				compval = data[o1].compareTo((T)data[o2]);
+			}
+	        return compval;
+		}
+	}
+	public static <T> Integer[] objectIndexSort(Comparable<T>[] data, Comparator<T> comp) {
+		Integer[] k = null;
+		if ((data!=null)&&(data.length>0)) {
+			Integer[] indices = new Integer[data.length];
+			for (int i = 0; i < indices.length; i++) {
+			    indices[i] = i;
+			}
+			ObjectSort<T> comparator = new ObjectSort<T>(data, comp);
+			Arrays.sort(indices, comparator);
+			k = indices;
+		}
+		return k;
 	}
 
-    static class ImageTransferable implements Transferable {
+	static class ImageTransferable implements Transferable {
         private Image image;
         public ImageTransferable (Image imagei) {this.image=imagei;}
         public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException {if (isDataFlavorSupported(flavor)) {return image;}else{throw new UnsupportedFlavorException(flavor);}}

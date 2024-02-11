@@ -47,7 +47,6 @@ public class RenderLib {
 		double pointdist = 1.0f;
 		int gridstep = 20;
 		RenderView renderview = new RenderView();
-		renderview.mode = 0;
 		renderview.mouselocationx = mouselocationx;
 		renderview.mouselocationy = mouselocationy;
 		renderview.pos = campos.copy();
@@ -150,7 +149,6 @@ public class RenderLib {
 
 	public static RenderView renderProjectedPolygonViewHardware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, int bounces, Plane nclipplane, int mouselocationx, int mouselocationy) {
 		RenderView renderview = new RenderView();
-		renderview.mode = 1;
 		renderview.pos = campos.copy();
 		renderview.rot = viewrot.copy();
 		renderview.renderwidth = renderwidth;
@@ -172,31 +170,28 @@ public class RenderLib {
 		g2.fillRect(0, 0, renderwidth, renderheight);
 		g2.setComposite(AlphaComposite.SrcOver);
 		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
-		if (entitylist!=null) {
+		if ((entitylist!=null)&&(entitylist.length>0)) {
 			Sphere[] entityspherelist = new Sphere[entitylist.length]; 
 			for (int k=0;k<entitylist.length;k++) {
 				entityspherelist[k] = entitylist[k].sphereboundaryvolume;
-				entityspherelist[k].ind = k;
 			}
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
-			Sphere[] sortedentityspherelist = Arrays.copyOf(entityspherelist, entityspherelist.length);
-			Arrays.sort(sortedentityspherelist, distcomp);
-			Rectangle[] sortedentityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, sortedentityspherelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot, nclipplane);
-			for (int k=sortedentityspherelist.length-1;k>=0;k--) {
-				if (sortedentityspherelistint[k]!=null) {
-					Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
+			Integer[] sortedentityspherelistind = UtilLib.objectIndexSort(entityspherelist, distcomp);
+			Rectangle[] entityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, entityspherelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot, nclipplane);
+			for (int k=sortedentityspherelistind.length-1;k>=0;k--) {
+				int et = sortedentityspherelistind[k];
+				if (entityspherelistint[et]!=null) {
+					Triangle[] copytrianglelist = entitylist[et].trianglelist;
 					if (copytrianglelist.length>0) {
 						Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
 						Plane[] copytriangleplanelist = MathLib.trianglePlane(copytrianglelist);
 						RenderView[] copytrianglecameralist = MathLib.surfaceMirrorProjectedCamera(campos, copytriangleplanelist, viewrot);
 						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
-						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
+						Integer[] sortedtrianglespherelistind = UtilLib.objectIndexSort(copytrianglespherelist, distcomp);
 						Direction[] copyviewtrianglespheredir = MathLib.vectorFromPoints(campos, copytrianglespherelist);
-						Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
-						Arrays.sort(sortedtrianglespherelist, distcomp);
 						Coordinate[][] copytrianglelistcoords = MathLib.projectedTriangle(renderview.pos, copytrianglelist, renderwidth, renderview.hfov, renderheight, renderview.vfov, viewrot, nclipplane);
-						for (int i=sortedtrianglespherelist.length-1;i>=0;i--) {
-							int it = sortedtrianglespherelist[i].ind;
+						for (int i=sortedtrianglespherelistind.length-1;i>=0;i--) {
+							int it = sortedtrianglespherelistind[i];
 							Triangle[] copytriangle = {copytrianglelist[it]};
 							Direction copytrianglenormal = copytrianglenormallist[it];
 							Direction copytriangledir = copyviewtrianglespheredir[it];
@@ -232,7 +227,7 @@ public class RenderLib {
 										ArrayList<Entity> mirrorentitylistarray = new ArrayList<Entity>();
 										for (int m=0;m<entitylist.length;m++) {
 											if (entityspherepointlistdist[m][0]>=0.0f) {
-												mirrorentitylistarray.add(entitylist[m]);
+												mirrorentitylistarray.add(entitylist[m].copy());
 											}
 										}
 										Entity[] mirrorentitylist = mirrorentitylistarray.toArray(new Entity[mirrorentitylistarray.size()]);
@@ -264,7 +259,6 @@ public class RenderLib {
 	
 	public static RenderView renderProjectedPlaneViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, Plane nclipplane, int mouselocationx, int mouselocationy) {
 		RenderView renderview = new RenderView();
-		renderview.mode = 2;
 		renderview.pos = campos.copy();
 		renderview.rot = viewrot.copy();
 		renderview.renderwidth = renderwidth;
@@ -289,7 +283,7 @@ public class RenderLib {
 		g2.fillRect(0, 0, renderwidth, renderheight);
 		g2.setComposite(AlphaComposite.SrcOver);
 		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
-		if (entitylist!=null) {
+		if ((entitylist!=null)&&(entitylist.length>0)) {
 			Direction[] camdir = {renderview.dirs[0]};
 			Position[] camposa = {renderview.pos};
 			Position[] rendercutpos = MathLib.translate(camposa, renderview.dirs[0], 1.1d);
@@ -304,24 +298,21 @@ public class RenderLib {
 			Sphere[] entityspherelist = new Sphere[entitylist.length]; 
 			for (int k=0;k<entitylist.length;k++) {
 				entityspherelist[k] = entitylist[k].sphereboundaryvolume;
-				entityspherelist[k].ind = k;
 			}
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
-			Sphere[] sortedentityspherelist = Arrays.copyOf(entityspherelist, entityspherelist.length);
-			Arrays.sort(sortedentityspherelist, distcomp);
-			Rectangle[] sortedentityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, sortedentityspherelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot, nclipplane);
-			for (int k=sortedentityspherelist.length-1;k>=0;k--) {
-				if (sortedentityspherelistint[k]!=null) {
-					Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
+			Integer[] sortedentityspherelistind = UtilLib.objectIndexSort(entityspherelist, distcomp);
+			Rectangle[] sortedentityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, entityspherelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot, nclipplane);
+			for (int k=sortedentityspherelistind.length-1;k>=0;k--) {
+				int et = sortedentityspherelistind[k];
+				if (sortedentityspherelistint[et]!=null) {
+					Triangle[] copytrianglelist = entitylist[et].trianglelist;
 					if (copytrianglelist.length>0) {
 						Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
 						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
-						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
-						Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
-						Arrays.sort(sortedtrianglespherelist, distcomp);
+						Integer[] sortedtrianglespherelistind = UtilLib.objectIndexSort(copytrianglespherelist, distcomp);
 						Rectangle[] copytrianglelistint = MathLib.projectedTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot, nclipplane);
-						for (int i=sortedtrianglespherelist.length-1;i>=0;i--) {
-							int it = sortedtrianglespherelist[i].ind;
+						for (int i=sortedtrianglespherelistind.length-1;i>=0;i--) {
+							int it = sortedtrianglespherelistind[i];
 							if (copytrianglelistint[it]!=null) {
 								Triangle[] copytriangle = {copytrianglelist[it]};
 								Direction copytrianglenormal = copytrianglenormallist[it];
@@ -436,7 +427,6 @@ public class RenderLib {
 	
 	public static RenderView renderSpheremapPlaneViewSoftware(Position campos, Entity[] entitylist, int renderwidth, int renderheight, Matrix viewrot, boolean unlit, Plane nclipplane, int mouselocationx, int mouselocationy) {
 		RenderView renderview = new RenderView();
-		renderview.mode = 3;
 		renderview.pos = campos.copy();
 		renderview.rot = viewrot.copy();
 		renderview.renderwidth = renderwidth;
@@ -462,7 +452,7 @@ public class RenderLib {
 		g2.fillRect(0, 0, renderwidth, renderheight);
 		g2.setComposite(AlphaComposite.SrcOver);
 		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
-		if (entitylist!=null) {
+		if ((entitylist!=null)&&(entitylist.length>0)) {
 			double[] verticalangles = MathLib.spheremapAngles(renderheight, 180.0f);
 			double halfvfovmult = (1.0f/(renderview.vfov/2.0f));
 			double origindeltay = ((double)(renderheight-1))/2.0f;
@@ -481,24 +471,21 @@ public class RenderLib {
 			Sphere[] entityspherelist = new Sphere[entitylist.length]; 
 			for (int k=0;k<entitylist.length;k++) {
 				entityspherelist[k] = entitylist[k].sphereboundaryvolume;
-				entityspherelist[k].ind = k;
 			}
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
-			Sphere[] sortedentityspherelist = Arrays.copyOf(entityspherelist, entityspherelist.length);
-			Arrays.sort(sortedentityspherelist, distcomp);
-			Rectangle[] sortedentityspherelistint = MathLib.spheremapSphereIntersection(renderview.pos, sortedentityspherelist, renderwidth, renderheight, viewrot, nclipplane);
-			for (int k=sortedentityspherelist.length-1;k>=0;k--) {
-				if (sortedentityspherelistint[k]!=null) {
-					Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
+			Integer[] sortedentityspherelistind = UtilLib.objectIndexSort(entityspherelist, distcomp);
+			Rectangle[] sortedentityspherelistint = MathLib.spheremapSphereIntersection(renderview.pos, entityspherelist, renderwidth, renderheight, viewrot, nclipplane);
+			for (int k=sortedentityspherelistind.length-1;k>=0;k--) {
+				int et = sortedentityspherelistind[k];
+				if (sortedentityspherelistint[et]!=null) {
+					Triangle[] copytrianglelist = entitylist[et].trianglelist;
 					if (copytrianglelist.length>0) {
 						Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
 						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
-						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
-						Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
-						Arrays.sort(sortedtrianglespherelist, distcomp);
+						Integer[] sortedtrianglespherelistind = UtilLib.objectIndexSort(copytrianglespherelist, distcomp);
 						Rectangle[] copytrianglelistint = MathLib.spheremapTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, viewrot, nclipplane);
-						for (int i=sortedtrianglespherelist.length-1;i>=0;i--) {
-							int it = sortedtrianglespherelist[i].ind;
+						for (int i=sortedtrianglespherelistind.length-1;i>=0;i--) {
+							int it = sortedtrianglespherelistind[i];
 							if (copytrianglelistint[it]!=null) {
 								Triangle[] copytriangle = {copytrianglelist[it]};
 								Direction copytrianglenormal = copytrianglenormallist[it];
@@ -641,7 +628,6 @@ public class RenderLib {
 
 	public static RenderView renderProjectedRayViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, Plane nclipplane, int mouselocationx, int mouselocationy) {
 		RenderView renderview = new RenderView();
-		renderview.mode = 4;
 		renderview.pos = campos.copy();
 		renderview.rot = viewrot.copy();
 		renderview.renderwidth = renderwidth;
@@ -666,31 +652,27 @@ public class RenderLib {
 		g2.fillRect(0, 0, renderwidth, renderheight);
 		g2.setComposite(AlphaComposite.SrcOver);
 		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
-		if (entitylist!=null) {
+		if ((entitylist!=null)&&(entitylist.length>0)) {
 			Plane[] camdirrightupplanes = MathLib.planeFromNormalAtPoint(renderview.pos, renderview.dirs);
 			Plane[] camfwdplane = {camdirrightupplanes[0]};
 			Sphere[] entityspherelist = new Sphere[entitylist.length]; 
 			for (int k=0;k<entitylist.length;k++) {
 				entityspherelist[k] = entitylist[k].sphereboundaryvolume;
-				entityspherelist[k].ind = k;
 			}
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
-			Sphere[] sortedentityspherelist = Arrays.copyOf(entityspherelist, entityspherelist.length);
-			Arrays.sort(sortedentityspherelist, distcomp);
-			Rectangle[] sortedentityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, sortedentityspherelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot, nclipplane);
-			for (int k=sortedentityspherelist.length-1;k>=0;k--) {
-				if (sortedentityspherelistint[k]!=null) {
-					Entity sortedentity = entitylist[sortedentityspherelist[k].ind];
-					Triangle[] copytrianglelist = sortedentity.trianglelist;
+			Integer[] sortedentityspherelistind = UtilLib.objectIndexSort(entityspherelist, distcomp);
+			Rectangle[] sortedentityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, entityspherelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot, nclipplane);
+			for (int k=sortedentityspherelistind.length-1;k>=0;k--) {
+				int et = sortedentityspherelistind[k];
+				if (sortedentityspherelistint[et]!=null) {
+					Triangle[] copytrianglelist = entitylist[et].trianglelist;
 					if (copytrianglelist.length>0) {
 						Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
 						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
-						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
-						Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
-						Arrays.sort(sortedtrianglespherelist, distcomp);
+						Integer[] sortedtrianglespherelistind = UtilLib.objectIndexSort(copytrianglespherelist, distcomp);
 						Rectangle[] copytrianglelistint = MathLib.projectedTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot, nclipplane);
-						for (int n=sortedtrianglespherelist.length-1;n>=0;n--) {
-							int it = sortedtrianglespherelist[n].ind;
+						for (int n=sortedtrianglespherelistind.length-1;n>=0;n--) {
+							int it = sortedtrianglespherelistind[n];
 							if (copytrianglelistint[it]!=null) {
 								Triangle[] copytriangle = {copytrianglelist[it]};
 								Direction copytrianglenormal = copytrianglenormallist[it];
@@ -742,7 +724,6 @@ public class RenderLib {
 
 	public static RenderView renderSpheremapRayViewSoftware(Position campos, Entity[] entitylist, int renderwidth, int renderheight, Matrix viewrot, boolean unlit, Plane nclipplane, int mouselocationx, int mouselocationy) {
 		RenderView renderview = new RenderView();
-		renderview.mode = 5;
 		renderview.pos = campos.copy();
 		renderview.rot = viewrot.copy();
 		renderview.renderwidth = renderwidth;
@@ -768,30 +749,26 @@ public class RenderLib {
 		g2.fillRect(0, 0, renderwidth, renderheight);
 		g2.setComposite(AlphaComposite.SrcOver);
 		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
-		if (entitylist!=null) {
+		if ((entitylist!=null)&&(entitylist.length>0)) {
 			Plane[] camfwdplanes = MathLib.planeFromNormalAtPoint(renderview.pos, renderview.fwddirs);
 			Sphere[] entityspherelist = new Sphere[entitylist.length]; 
 			for (int k=0;k<entitylist.length;k++) {
 				entityspherelist[k] = entitylist[k].sphereboundaryvolume;
-				entityspherelist[k].ind = k;
 			}
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
-			Sphere[] sortedentityspherelist = Arrays.copyOf(entityspherelist, entityspherelist.length);
-			Arrays.sort(sortedentityspherelist, distcomp);
-			Rectangle[] sortedentityspherelistint = MathLib.spheremapSphereIntersection(renderview.pos, sortedentityspherelist, renderwidth, renderheight, viewrot, nclipplane);
-			for (int k=sortedentityspherelist.length-1;k>=0;k--) {
-				if (sortedentityspherelistint[k]!=null) {
-					Entity sortedentity = entitylist[sortedentityspherelist[k].ind];
-					Triangle[] copytrianglelist = sortedentity.trianglelist;
+			Integer[] sortedentityspherelistind = UtilLib.objectIndexSort(entityspherelist, distcomp);
+			Rectangle[] sortedentityspherelistint = MathLib.spheremapSphereIntersection(renderview.pos, entityspherelist, renderwidth, renderheight, viewrot, nclipplane);
+			for (int k=sortedentityspherelistind.length-1;k>=0;k--) {
+				int et = sortedentityspherelistind[k];
+				if (sortedentityspherelistint[et]!=null) {
+					Triangle[] copytrianglelist = entitylist[et].trianglelist;
 					if (copytrianglelist.length>0) {
 						Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
 						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
-						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
-						Sphere[] sortedtrianglespherelist = Arrays.copyOf(copytrianglespherelist, copytrianglespherelist.length);
-						Arrays.sort(sortedtrianglespherelist, distcomp);
+						Integer[] sortedtrianglespherelistind = UtilLib.objectIndexSort(copytrianglespherelist, distcomp);
 						Rectangle[] copytrianglelistint = MathLib.spheremapTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, viewrot, nclipplane);
-						for (int n=sortedtrianglespherelist.length-1;n>=0;n--) {
-							int it = sortedtrianglespherelist[n].ind;
+						for (int n=sortedtrianglespherelistind.length-1;n>=0;n--) {
+							int it = sortedtrianglespherelistind[n];
 							if (copytrianglelistint[it]!=null) {
 								Triangle[] copytriangle = {copytrianglelist[it]};
 								Direction copytrianglenormal = copytrianglenormallist[it];
@@ -884,7 +861,7 @@ public class RenderLib {
 		ArrayList<Entity> mirrorentitylistarray = new ArrayList<Entity>();
 		for (int i=0;i<entitylist.length;i++) {
 			if (entityspherepointlistdist[i][0]>=0.0f) {
-				mirrorentitylistarray.add(entitylist[i]);
+				mirrorentitylistarray.add(entitylist[i].copy());
 			}
 		}
 		Entity[] mirrorentitylist = mirrorentitylistarray.toArray(new Entity[mirrorentitylistarray.size()]);
@@ -911,7 +888,6 @@ public class RenderLib {
 	}
 	public static RenderView renderCubemapView(Position campos, Entity[] entitylist, int renderwidth, int renderheight, int rendersize, Matrix viewrot, boolean unlit, int mode, int bounces, int mouselocationx, int mouselocationy) {
 		RenderView renderview = new RenderView();
-		renderview.mode = (mode>0)?mode:1;
 		renderview.pos = campos.copy();
 		renderview.rot = viewrot.copy();
 		renderview.renderwidth = renderwidth;
@@ -922,6 +898,7 @@ public class RenderLib {
 		renderview.unlit = unlit;
 		renderview.mouselocationx = mouselocationx;
 		renderview.mouselocationy = mouselocationy;
+		int rendermode = (mode>0)?mode:1;
 		int renderposx1start = 0;
 		int renderposx1end = rendersize-1;
 		int renderposx2start = rendersize;
@@ -945,12 +922,12 @@ public class RenderLib {
 		backwardmatrix = MathLib.matrixMultiply(renderview.rot, backwardmatrix);
 		leftmatrix = MathLib.matrixMultiply(renderview.rot, leftmatrix);
 		renderview.cubemap = new Cubemap();
-		renderview.cubemap.topview = renderProjectedView(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, topmatrix, renderview.unlit, renderview.mode, bounces, mouselocationx, mouselocationy);
-		renderview.cubemap.bottomview = renderProjectedView(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, bottommatrix, renderview.unlit, renderview.mode, bounces, mouselocationx, mouselocationy); 
-		renderview.cubemap.forwardview = renderProjectedView(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, forwardmatrix, renderview.unlit, renderview.mode, bounces, mouselocationx, mouselocationy);
-		renderview.cubemap.rightview = renderProjectedView(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, rightmatrix, renderview.unlit, renderview.mode, bounces, mouselocationx, mouselocationy);
-		renderview.cubemap.backwardview = renderProjectedView(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, backwardmatrix, renderview.unlit, renderview.mode, bounces, mouselocationx, mouselocationy);
-		renderview.cubemap.leftview = renderProjectedView(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, leftmatrix, renderview.unlit, renderview.mode, bounces, mouselocationx, mouselocationy);
+		renderview.cubemap.topview = renderProjectedView(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, topmatrix, renderview.unlit, rendermode, bounces, mouselocationx, mouselocationy);
+		renderview.cubemap.bottomview = renderProjectedView(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, bottommatrix, renderview.unlit, rendermode, bounces, mouselocationx, mouselocationy); 
+		renderview.cubemap.forwardview = renderProjectedView(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, forwardmatrix, renderview.unlit, rendermode, bounces, mouselocationx, mouselocationy);
+		renderview.cubemap.rightview = renderProjectedView(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, rightmatrix, renderview.unlit, rendermode, bounces, mouselocationx, mouselocationy);
+		renderview.cubemap.backwardview = renderProjectedView(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, backwardmatrix, renderview.unlit, rendermode, bounces, mouselocationx, mouselocationy);
+		renderview.cubemap.leftview = renderProjectedView(renderview.pos, entitylist, renderview.rendersize, renderview.vfov, renderview.rendersize, renderview.vfov, leftmatrix, renderview.unlit, rendermode, bounces, mouselocationx, mouselocationy);
 		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
 		Graphics2D rigfx = renderview.renderimage.createGraphics();
 		rigfx.setComposite(AlphaComposite.Src);

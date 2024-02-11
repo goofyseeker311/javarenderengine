@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.31");
+		this.setTitle("Java Render Engine v2.3.32");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -420,6 +420,10 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Direction[] rrintvdir2 = {new Direction(0,1,0), new Direction(0,1,1)};
 		Position[][] rrint = MathLib.rayRayIntersection(rrintvpos1, rrintvdir1, rrintvpos2, rrintvdir2);
 		for (int j=0;j<rrint.length;j++) {for (int i=0;i<rrint[j].length;i++) { if (rrint[j][i]!=null) {System.out.println("JavaRenderEngine: main: rrint["+j+"]["+i+"]="+rrint[j][i].x+" "+rrint[j][i].y+" "+rrint[j][i].z);} else {System.out.println("JavaRenderEngine: main: rrint["+j+"]["+i+"]=no hit.");}}}
+		Double[] snum = {1.0d, -5.0d, 2.0d, 0.0d, 7.0d};
+		Integer[] snumind = UtilLib.objectIndexSort(snum,null);
+		System.out.print("JavaRenderEngine: main: snumind="); for (int i=0;i<snumind.length;i++) {System.out.print(" "+snumind[i]);}System.out.println();
+		System.out.print("JavaRenderEngine: main: snumval="); for (int i=0;i<snumind.length;i++) {System.out.print(" "+snum[snumind[i]]);}System.out.println();
 		
 		new JavaRenderEngine();
 	}

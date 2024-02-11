@@ -163,7 +163,6 @@ public class ModelLib {
 		public double hfov=0.0f, vfov=43.0f;
 		public boolean rendered = false;
 		public boolean unlit = false;
-		public int mode = 1;
 		public Direction[] dirs;
 		public Direction[][] rays;
 		public Plane[] planes;
@@ -177,7 +176,7 @@ public class ModelLib {
 		public RenderView sphereview=null;
 	}
 	
-	public static class Position implements Comparable<Position> {public double x,y,z; public Coordinate tex; public Material mat; public int ind=-1; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
+	public static class Position implements Comparable<Position> {public double x,y,z; public Coordinate tex; public Material mat; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
 		@Override public int compareTo(Position o){
 			int k = -1;
 			if (this.z>o.z) {
@@ -208,6 +207,7 @@ public class ModelLib {
 		public Position copy(){Position k=new Position(this.x,this.y,this.z); k.tex=this.tex; return k;}
 		public Position invert(){Position k=this.copy(); k.x=-k.x;k.y=-k.y;k.z=-k.z; return k;}
 		public boolean isZero(){return (this.x==0.0f)&&(this.y==0.0f)&&(this.z==0.0f);}
+		public boolean isFinite(){return (Double.isFinite(this.x))&&(Double.isFinite(this.y))&&(Double.isFinite(this.z));}
 	}
 	public static class Direction implements Comparable<Direction> {public double dx,dy,dz; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;}
 		@Override public int compareTo(Direction o){
@@ -240,6 +240,7 @@ public class ModelLib {
 		public Direction copy(){return new Direction(this.dx,this.dy,this.dz);}
 		public Direction invert(){return new Direction(-this.dx,-this.dy,-this.dz);}
 		public boolean isZero(){return (this.dx==0.0f)&&(this.dy==0.0f)&&(this.dz==0.0f);}
+		public boolean isFinite(){return (Double.isFinite(this.dx))&&(Double.isFinite(this.dy))&&(Double.isFinite(this.dz));}
 	}
 	public static class Coordinate implements Comparable<Coordinate> {public double u,v; public Coordinate(double ui,double vi){this.u=ui;this.v=vi;}
 	@Override public int compareTo(Coordinate o){
@@ -268,6 +269,7 @@ public class ModelLib {
 		public Coordinate copy(){return new Coordinate(this.u,this.v);}
 		public Coordinate invert(){return new Coordinate(-this.u,-this.v);}
 		public boolean isZero(){return (this.u==0.0f)&&(this.v==0.0f);}
+		public boolean isFinite(){return (Double.isFinite(this.u))&&(Double.isFinite(this.v));}
 	}
 	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
 		@Override public boolean equals(Object o) {
@@ -282,7 +284,7 @@ public class ModelLib {
 		}
 		public Rotation copy(){return new Rotation(this.x,this.y,this.z);}
 	}
-	public static class Sphere implements Comparable<Sphere> {public double x,y,z,r; public int ind=-1; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}
+	public static class Sphere implements Comparable<Sphere> {public double x,y,z,r; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}
 		@Override public int compareTo(Sphere o) {
 			int k = -1;
 			if (this.z>o.z) {
@@ -314,7 +316,7 @@ public class ModelLib {
 			}
 			return k;
 		}
-		public Sphere copy(){Sphere k = new Sphere(this.x,this.y,this.z,this.r); k.ind=this.ind; return k;}
+		public Sphere copy(){Sphere k = new Sphere(this.x,this.y,this.z,this.r); return k;}
 		public static class SphereDistanceComparator implements Comparator<Sphere> {
 			public Position origin;
 			public SphereDistanceComparator(Position origini) {this.origin = origini;}
@@ -341,8 +343,9 @@ public class ModelLib {
 	public static class Ray {public Position pos; public Direction dir; public Ray(Position posi, Direction diri){this.pos=posi;this.dir=diri;}}
 	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}
 		public Plane invert(){return new Plane(-this.a,-this.b,-this.c,-this.d);}
+		public boolean isFinite(){return (Double.isFinite(this.a))&&(Double.isFinite(this.b))&&(Double.isFinite(this.c))&&(Double.isFinite(this.d));}
 	}
-	public static class Line implements Comparable<Line> {public Position pos1,pos2; public Material mat; public int ind=-1; public Line(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}
+	public static class Line implements Comparable<Line> {public Position pos1,pos2; public Material mat; public Line(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}
 		@Override public int compareTo(Line o){
 			int k=-1;
 			Line ts=this.sort();
@@ -380,9 +383,10 @@ public class ModelLib {
 			}
 			return k;
 		}
-		public Line copy(){Line k = new Line(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z)); k.ind=this.ind; return k;}
+		public Line copy(){Line k = new Line(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z)); return k;}
 		public Line swap(){return new Line(this.pos2,this.pos1);}
 		public Line sort(){Line k=this;if (this.pos1.compareTo(this.pos2)==1) {k=this.swap();}return k;}
+		public boolean isFinite(){return (this.pos1!=null)&&(this.pos2!=null)&&(this.pos1.isFinite())&&(this.pos2.isFinite());}
 	}
 	public static class Tetrahedron implements Comparable<Tetrahedron> {public Position pos1,pos2,pos3,pos4; public Tetrahedron(Position pos1i,Position pos2i, Position pos3i,Position pos4i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;this.pos4=pos4i;}
 		@Override public int compareTo(Tetrahedron o) {
@@ -450,7 +454,7 @@ public class ModelLib {
 			return k;
 		}
 	}
-	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public Direction norm; public Material mat = null; public Material[] lmatl = null; public int ind=-1; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;}
+	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public Direction norm; public Material mat = null; public Material[] lmatl = null; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;}
 		@Override public int compareTo(Triangle o) {
 			int k = -1;
 			Position[] tposarray = {this.pos1,this.pos2,this.pos3};
@@ -502,7 +506,7 @@ public class ModelLib {
 			}
 			return k;
 		}
-		public Triangle copy(){Triangle k=new Triangle(this.pos1.copy(),this.pos2.copy(),this.pos3.copy());k.norm=this.norm;k.mat=this.mat;k.lmatl=this.lmatl;k.ind=this.ind;return k;}
+		public Triangle copy(){Triangle k=new Triangle(this.pos1.copy(),this.pos2.copy(),this.pos3.copy());k.norm=this.norm;k.mat=this.mat;k.lmatl=this.lmatl;return k;}
 	}
 	public static class Entity implements Comparable<Entity> {
 		public Entity[] childlist = null;
@@ -514,6 +518,7 @@ public class ModelLib {
 		public Matrix transform = null;
 		public Position translation = null;
 		@Override public int compareTo(Entity o) {return this.sphereboundaryvolume.compareTo(o.sphereboundaryvolume);}
+		public Entity copy(){Entity k=new Entity();k.childlist=this.childlist;k.trianglelist=this.trianglelist;k.linelist=this.linelist;k.vertexlist=this.vertexlist;k.sphereboundaryvolume=this.sphereboundaryvolume;k.aabbboundaryvolume=this.aabbboundaryvolume;k.transform=this.transform;k.translation=this.translation;return k;}
 	}
 	public static class Matrix {public double a11,a12,a13,a21,a22,a23,a31,a32,a33; public Matrix(double a11i,double a12i,double a13i,double a21i,double a22i,double a23i,double a31i,double a32i,double a33i){this.a11=a11i;this.a12=a12i;this.a13=a13i;this.a21=a21i;this.a22=a22i;this.a23=a23i;this.a31=a31i;this.a32=a32i;this.a33=a33i;}
 		@Override public boolean equals(Object o) {
