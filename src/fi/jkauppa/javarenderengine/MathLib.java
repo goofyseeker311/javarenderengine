@@ -2329,6 +2329,7 @@ public class MathLib {
 		if ((vsurf!=null)&&(campos!=null)) {
 			k = new RenderView[vsurf.length];
 			Position[] camposa = {campos};
+			Position[] zeroposa = {new Position(0.0f,0.0f,0.0f)};
 			Direction[] camdirs = projectedCameraDirections(viewrot);
 			Plane[] camplanes = planeFromNormalAtPoint(campos, camdirs);
 			Direction[] camfwddir = {camdirs[0]};
@@ -2342,7 +2343,7 @@ public class MathLib {
 					Direction[] ppintlinedir = vectorFromPoints(ppintline);
 					double camrgtvsurfangle = camrgtvsurfangles[i];
 					Position[] camfwdvsurfpos = {camfwdvsufrint[0][i]};
-					Direction[] camfwdvsurfdir = vectorFromPoints(camposa, camfwdvsurfpos);
+					Direction[] camfwdvsurfdir = vectorFromPoints(zeroposa, camfwdvsurfpos);
 					Matrix mirrormat = rotationMatrixAroundAxis(ppintlinedir[0], 2.0f*camrgtvsurfangle);
 					Matrix viewrotmirror = matrixMultiply(mirrormat, viewrot);
 					Position[] camposmirror = translate(camposa, camfwdvsurfdir[0], -1.0f);
