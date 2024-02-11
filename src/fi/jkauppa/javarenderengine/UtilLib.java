@@ -22,9 +22,9 @@ import javax.imageio.ImageIO;
 import javax.swing.filechooser.FileFilter;
 
 public class UtilLib {
-	private static GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
-	private static GraphicsDevice gd = ge.getDefaultScreenDevice ();
-	private static GraphicsConfiguration gc = gd.getDefaultConfiguration ();
+	private static GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+	private static GraphicsDevice gd = ge.getDefaultScreenDevice();
+	private static GraphicsConfiguration gc = gd.getDefaultConfiguration();
 	
 	public static class ImageFileFilters  {
 		public static class PNGFileFilter extends FileFilter {

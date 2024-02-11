@@ -33,9 +33,9 @@ import fi.jkauppa.javarenderengine.ModelLib.Triangle;
 import fi.jkauppa.javarenderengine.ModelLib.Sphere.SphereDistanceComparator;
 
 public class RenderLib {
-	private static GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
-	private static GraphicsDevice gd = ge.getDefaultScreenDevice ();
-	private static GraphicsConfiguration gc = gd.getDefaultConfiguration ();
+	private static GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+	private static GraphicsDevice gd = ge.getDefaultScreenDevice();
+	private static GraphicsConfiguration gc = gd.getDefaultConfiguration();
 
 	public static RenderView renderProjectedLineViewHardware(Position campos, Line[] linelist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, int mouselocationx, int mouselocationy) {
 		int originlinelength = 100;
@@ -187,8 +187,10 @@ public class RenderLib {
 					Triangle[] copytrianglelist = entitylist[sortedentityspherelist[k].ind].trianglelist;
 					if (copytrianglelist.length>0) {
 						Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
-						//Plane[] copytriangleplanelist = MathLib.planeFromPoints(copytrianglelist);
-						//RenderView[] copytrianglecameralist = MathLib.surfaceMirrorProjectedCamera(campos, copytriangleplanelist, viewrot);
+						/*
+						Plane[] copytriangleplanelist = MathLib.planeFromPoints(copytrianglelist);
+						RenderView[] copytrianglecameralist = MathLib.surfaceMirrorProjectedCamera(campos, copytriangleplanelist, viewrot);
+						*/
 						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
 						for (int i=0;i<copytrianglespherelist.length;i++) {copytrianglespherelist[i].ind = i;}
 						Direction[] copyviewtrianglespheredir = MathLib.vectorFromPoints(campos, copytrianglespherelist);
@@ -200,7 +202,9 @@ public class RenderLib {
 							Triangle[] copytriangle = {copytrianglelist[it]};
 							Direction copytrianglenormal = copytrianglenormallist[it];
 							Direction copytriangledir = copyviewtrianglespheredir[it];
-							//RenderView copytrianglecamera = copytrianglecameralist[it];
+							/*
+							RenderView copytrianglecamera = copytrianglecameralist[it];
+							*/
 							Coordinate coord1 = copytrianglelistcoords[it][0];
 							Coordinate coord2 = copytrianglelistcoords[it][1];
 							Coordinate coord3 = copytrianglelistcoords[it][2];
@@ -241,7 +245,9 @@ public class RenderLib {
 									*/
 										g2.setColor(trianglecolor);
 										g2.fill(trianglepolygon);
-									//}
+									/*
+									}
+									*/
 								}
 							}
 						}
