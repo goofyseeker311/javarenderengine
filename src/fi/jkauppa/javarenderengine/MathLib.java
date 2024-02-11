@@ -1665,6 +1665,7 @@ public class MathLib {
 			Position[] camposa = {vpos};
 			Position[] rendercutpos = translate(camposa, dirs[0], 1.1d);
 			Plane[] rendercutplane = planeFromNormalAtPoint(rendercutpos, camdir);
+			Plane[] nearclipplane = {nclipplane};
 			Position[][] vtripos = new Position[5][vtri.length];
 			Coordinate[][] vtripospixels = new Coordinate[3][vtri.length];
 			for (int i=0;i<vtri.length;i++) {
@@ -1674,8 +1675,14 @@ public class MathLib {
 			}
 			for (int j=0;j<3;j++) {
 				vtripospixels[j] = projectedPoint(vpos, vtripos[j], hres, hfov, vres, vfov, vmat, nclipplane);
+				double[][] vtripospixeldist = null;
+				if (nclipplane!=null) {
+					vtripospixeldist = planePointDistance(vtripos[j], nearclipplane);
+				}
 				for (int i=0;i<vtripos[j].length;i++) {
-					k[i][j] = vtripospixels[j][i];
+					if ((nclipplane==null)||(vtripospixeldist[i][0]>=0.1f)) {
+						k[i][j] = vtripospixels[j][i];
+					}
 				}
 			}
 			for (int i=0;i<vtri.length;i++) {
@@ -2281,7 +2288,6 @@ public class MathLib {
 		return k;
 	}
 	public static RenderView[] surfaceMirrorProjectedCamera(Position campos, Plane[] vsurf, Matrix viewrot) {
-		//TODO fix rotationMatrixAroundAxis angle parameter sign
 		RenderView[] k = null;
 		if ((vsurf!=null)&&(campos!=null)) {
 			k = new RenderView[vsurf.length];
@@ -2299,11 +2305,13 @@ public class MathLib {
 					Line[] ppintline = {ppint[0][i]};
 					Direction[] ppintlinedir = vectorFromPoints(ppintline);
 					double camrgtvsurfangle = camrgtvsurfangles[i];
+					double anglemult = 1.0f;
 					if (camrgtvsurfangle>90.0f) {
 						camrgtvsurfangle = 180.0f-camrgtvsurfangle;
+						anglemult = -1.0f;
 					}
 					Position[] camfwdvsurfpos = {camfwdvsufrint[0][i]};
-					Matrix mirrormat = rotationMatrixAroundAxis(ppintlinedir[0], -2.0f*camrgtvsurfangle);
+					Matrix mirrormat = rotationMatrixAroundAxis(ppintlinedir[0], anglemult*2.0f*camrgtvsurfangle);
 					Matrix viewrotmirror = matrixMultiply(mirrormat, viewrot);
 					Direction[] camfwdvsurfdir = vectorFromPoints(zeroposa, camfwdvsurfpos);
 					Position[] camposmirror = translate(camposa, camfwdvsurfdir[0], -1.0f);
