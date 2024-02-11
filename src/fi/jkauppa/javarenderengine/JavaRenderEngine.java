@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.27");
+		this.setTitle("Java Render Engine v2.3.28");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -390,6 +390,25 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		for (int i=0;i<poplane.length;i++) {System.out.println("JavaRenderEngine: main: poplane="+poplane[i].x+" "+poplane[i].y+" "+poplane[i].z);}
 		for (int i=0;i<ttplanetr1.length;i++) {System.out.println("JavaRenderEngine: main: ttplanetr1="+ttplanetr1[i].a+" "+ttplanetr1[i].b+" "+ttplanetr1[i].c+" "+ttplanetr1[i].d);}
 		for (int i=0;i<ttplanetr2.length;i++) {System.out.println("JavaRenderEngine: main: ttplanetr2="+ttplanetr2[i].a+" "+ttplanetr2[i].b+" "+ttplanetr2[i].c+" "+ttplanetr2[i].d);}
+		Position vplanepos = new Position(0.0f,0.0f,0.0f);
+		Direction[] vplanedir1 = {new Direction(1.0f,0.0f,0.0f), new Direction(0.0f,-1.0f,0.0f), new Direction(1.0f,1.0f,0.0f), new Direction(1.0f,-1.0f,0.0f)};
+		Direction[] vplanedir2 = {new Direction(0.0f,1.0f,0.0f), new Direction(-1.0f,0.0f,0.0f), new Direction(1.0f,1.0f,0.0f), new Direction(1.0f,-1.0f,0.0f)};
+		Direction[] vplanedir3 = {new Direction(0.0f,0.0f,1.0f), new Direction(0.0f,-1.0f,0.0f), new Direction(0.0f,1.0f,1.0f), new Direction(0.0f,-1.0f,1.0f)};
+		Plane[] vppintplane1 = MathLib.planeFromNormalAtPoint(vplanepos, vplanedir1);
+		Plane[] vppintplane2 = MathLib.planeFromNormalAtPoint(vplanepos, vplanedir2);
+		Plane[] vppintplane3 = MathLib.planeFromNormalAtPoint(vplanepos, vplanedir3);
+		Plane[] vppintplane11 = {vppintplane1[0]};
+		Plane[] vppintplane12 = {vppintplane1[0], vppintplane1[1], vppintplane1[2], vppintplane1[3]};
+		Plane[] vppintplane21 = {vppintplane2[0]};
+		Plane[] vppintplane22 = {vppintplane2[0], vppintplane2[1], vppintplane2[2], vppintplane2[3]};
+		Plane[] vppintplane31 = {vppintplane3[0]};
+		Plane[] vppintplane32 = {vppintplane3[0], vppintplane3[1], vppintplane3[2], vppintplane3[3]};
+		Line[][] vppint1 = MathLib.planePlaneIntersection(vppintplane11, vppintplane12);
+		Line[][] vppint2 = MathLib.planePlaneIntersection(vppintplane21, vppintplane22);
+		Line[][] vppint3 = MathLib.planePlaneIntersection(vppintplane31, vppintplane32);
+		for (int j=0;j<vppint1.length;j++) {for (int i=0;i<vppint1[j].length;i++) {if (vppint1[j][i]!=null) {System.out.println("JavaRenderEngine: main: vppint1["+j+"]["+i+"]="+vppint1[j][i].pos1.x+" "+vppint1[j][i].pos1.y+" "+vppint1[j][i].pos1.z+" "+vppint1[j][i].pos2.x+" "+vppint1[j][i].pos2.y+" "+vppint1[j][i].pos2.z);} else {System.out.println("JavaRenderEngine: main: vppint1["+j+"]["+i+"]=equal plane.");}}}
+		for (int j=0;j<vppint2.length;j++) {for (int i=0;i<vppint2[j].length;i++) {if (vppint2[j][i]!=null) {System.out.println("JavaRenderEngine: main: vppint2["+j+"]["+i+"]="+vppint2[j][i].pos1.x+" "+vppint2[j][i].pos1.y+" "+vppint2[j][i].pos1.z+" "+vppint2[j][i].pos2.x+" "+vppint2[j][i].pos2.y+" "+vppint2[j][i].pos2.z);} else {System.out.println("JavaRenderEngine: main: vppint2["+j+"]["+i+"]=equal plane.");}}}
+		for (int j=0;j<vppint3.length;j++) {for (int i=0;i<vppint3[j].length;i++) {if (vppint3[j][i]!=null) {System.out.println("JavaRenderEngine: main: vppint3["+j+"]["+i+"]="+vppint3[j][i].pos1.x+" "+vppint3[j][i].pos1.y+" "+vppint3[j][i].pos1.z+" "+vppint3[j][i].pos2.x+" "+vppint3[j][i].pos2.y+" "+vppint3[j][i].pos2.z);} else {System.out.println("JavaRenderEngine: main: vppint3["+j+"]["+i+"]=equal plane.");}}}
 		
 		new JavaRenderEngine();
 	}
@@ -402,9 +421,9 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		public long ticktime = 0;
 		public double ticktimesec = 0.0f;
 		public double ticktimefps = 0.0f;
-		public GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment ();
-		public GraphicsDevice gd = ge.getDefaultScreenDevice ();
-		public GraphicsConfiguration gc = gd.getDefaultConfiguration ();
+		public GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		public GraphicsDevice gd = ge.getDefaultScreenDevice();
+		public GraphicsConfiguration gc = gd.getDefaultConfiguration();
 		public Toolkit tk = Toolkit.getDefaultToolkit();
 		public Clipboard cb = tk.getSystemClipboard();
 		
