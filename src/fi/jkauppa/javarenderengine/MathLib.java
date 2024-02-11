@@ -162,23 +162,6 @@ public class MathLib {
 		}
 		return k;
 	}
-	public static Direction[] triangleNormal(Triangle[] vtri) {
-		Direction[] k = null;
-		if (vtri!=null) {
-			k = new Direction[vtri.length];
-			for (int i=0;i<vtri.length;i++) {
-				Direction trianglenorm = vtri[i].norm;
-				if ((trianglenorm==null)||(trianglenorm.isZero())) {
-					Triangle[] vtriangle = {vtri[i]};
-					Plane[] vtriangleplane = planeFromPoints(vtriangle);
-					Direction[] trianglenormal = planeNormal(vtriangleplane);
-					trianglenorm = trianglenormal[0];
-				}
-				k[i] = trianglenorm;
-			}
-		}
-		return k;
-	}
 	public static Direction[] planeNormal(Plane[] vplane) {
 		Direction[] k = null;
 		if (vplane!=null) {
@@ -210,6 +193,47 @@ public class MathLib {
 			double[] dv = vectorDot(nm,vpoint);
 			for (int n=0;n<vpoint.length;n++) {
 				k[n] = new Plane(nm[n].dx,nm[n].dy,nm[n].dz,-dv[n]);
+			}
+		}
+		return k;
+	}
+	public static Direction[] triangleNormal(Triangle[] vtri) {
+		Direction[] k = null;
+		if (vtri!=null) {
+			k = new Direction[vtri.length];
+			for (int i=0;i<vtri.length;i++) {
+				Direction trianglenorm = vtri[i].norm;
+				if ((trianglenorm==null)||(trianglenorm.isZero())) {
+					Triangle[] vtriangle = {vtri[i]};
+					Plane[] vtriangleplane = trianglePlane(vtriangle);
+					Direction[] trianglenormal = planeNormal(vtriangleplane);
+					trianglenorm = trianglenormal[0];
+				}
+				k[i] = trianglenorm;
+			}
+		}
+		return k;
+	}
+	public static Plane[] trianglePlane(Triangle[] vtri) {
+		Plane[] k = null;
+		if (vtri!=null) {
+			k = new Plane[vtri.length];
+			for (int n=0;n<vtri.length;n++) {
+				Plane[] pplane = null;
+				Position[] p1 = {vtri[n].pos1};
+				Direction[] nm = null;
+				if ((vtri[n].norm!=null)&&(!vtri[n].norm.isZero())) {
+					Direction[] norm = {vtri[n].norm};
+					nm = norm;
+				} else {
+					Position[] p2 = {vtri[n].pos2};
+					Position[] p3 = {vtri[n].pos3};
+					Direction[] v1 = vectorFromPoints(p1, p2);
+					Direction[] v2 = vectorFromPoints(p1, p3);
+					nm = normalizeVector(vectorCross(v1, v2));
+				}
+				pplane = planeFromNormalAtPoint(p1, nm);
+				k[n] = pplane[0];
 			}
 		}
 		return k;
@@ -258,23 +282,6 @@ public class MathLib {
 				if (vline[n]!=null) {
 					k[n] = new Direction(vline[n].pos2.x-vline[n].pos1.x, vline[n].pos2.y-vline[n].pos1.y, vline[n].pos2.z-vline[n].pos1.z);
 				}
-			}
-		}
-		return k;
-	}
-	public static Plane[] planeFromPoints(Triangle[] vtri) {
-		Plane[] k = null;
-		if (vtri!=null) {
-			k = new Plane[vtri.length];
-			for (int n=0;n<vtri.length;n++) {
-				Position[] p1 = new Position[1]; p1[0] = vtri[n].pos1;
-				Position[] p2 = new Position[1]; p2[0] = vtri[n].pos2;
-				Position[] p3 = new Position[1]; p3[0] = vtri[n].pos3;
-				Direction[] v1 = vectorFromPoints(p1, p2);
-				Direction[] v2 = vectorFromPoints(p1, p3);
-				Direction[] nm = normalizeVector(vectorCross(v1, v2));
-				Plane[] pplane = planeFromNormalAtPoint(p1, nm);
-				k[n] = pplane[0];
 			}
 		}
 		return k;
@@ -357,7 +364,7 @@ public class MathLib {
 					Position[] pos13d = translate(pos1, posdir13[0], 1.0f);
 					Position[] pos23d = translate(pos2, posdir23[0], 1.0f);
 					Triangle[] raytriangles = {new Triangle(pos1[0], pos13d[0], pos2[0]), new Triangle(pos2[0], pos23d[0], pos1[0])};
-					Plane[] rayplanes = planeFromPoints(raytriangles);
+					Plane[] rayplanes = trianglePlane(raytriangles);
 					Direction[] rayplanenormals = planeNormal(rayplanes);
 					Direction[] raynorm1 = {rayplanenormals[0]};
 					Direction[] raynorm2 = {rayplanenormals[1]};
@@ -384,7 +391,7 @@ public class MathLib {
 		Position[][] k = null;
 		if ((vpos!=null)&&(vdir!=null)&&(vtri!=null)) {
 			k = new Position[vdir.length][vtri.length];
-			Plane[] tplanes = planeFromPoints(vtri);
+			Plane[] tplanes = trianglePlane(vtri);
 			double[][] tpdist = rayPlaneDistance(vpos, vdir, tplanes);
 			for (int n=0;n<vdir.length;n++) {
 				for (int m=0;m<vtri.length;m++) {
@@ -1289,7 +1296,7 @@ public class MathLib {
 							Triangle triangle1 = new Triangle(uniquetrianglevertexkji[0],uniquetrianglevertexkji[1],uniquetrianglevertexkji[2]);
 							Triangle triangle2 = new Triangle(uniquetrianglevertexkji[1],uniquetrianglevertexkji[2],uniquetrianglevertexkji[3]);
 							Triangle[] triangles12 = {triangle1,triangle2};
-							Plane[] triangle1plane = planeFromPoints(triangles12);
+							Plane[] triangle1plane = trianglePlane(triangles12);
 							if ((!((triangle1plane[0].a==triangle1plane[1].a)&&(triangle1plane[0].b==triangle1plane[1].b)&&(triangle1plane[0].c==triangle1plane[1].c)))&&(!((triangle1plane[0].a==-triangle1plane[1].a)&&(triangle1plane[0].b==-triangle1plane[1].b)&&(triangle1plane[0].c==-triangle1plane[1].c)))) {
 								tetrahedronlist.add(new Tetrahedron(uniquetrianglevertexkji[0],uniquetrianglevertexkji[1],uniquetrianglevertexkji[2],uniquetrianglevertexkji[3]));
 							}
@@ -1315,7 +1322,7 @@ public class MathLib {
 			Triangle tetrahedronside3 = new Triangle(newtetrahedronlist[j].pos1, newtetrahedronlist[j].pos3, newtetrahedronlist[j].pos4); 
 			Triangle tetrahedronside4 = new Triangle(newtetrahedronlist[j].pos2, newtetrahedronlist[j].pos3, newtetrahedronlist[j].pos4);
 			Triangle[] tetrahedronsides = {tetrahedronside1,tetrahedronside2,tetrahedronside3,tetrahedronside4};
-			Plane[] tetrahedronsideplanes = planeFromPoints(tetrahedronsides);
+			Plane[] tetrahedronsideplanes = trianglePlane(tetrahedronsides);
 			Position[] tetrahedronsidepoints = {newtetrahedronlist[j].pos4,newtetrahedronlist[j].pos3,newtetrahedronlist[j].pos2,newtetrahedronlist[j].pos1};
 			for (int i=0;i<tetrahedronsides.length;i++) {
 				Direction tetrahedronsideplanenormal = new Direction(tetrahedronsideplanes[i].a,tetrahedronsideplanes[i].b,tetrahedronsideplanes[i].c);
@@ -1598,16 +1605,8 @@ public class MathLib {
 			double halfvres = ((double)vres)/2.0f;
 			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
 			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
-			/*
-			double[][] nclipplanepointsdist = null;
-			if (nclipplane!=null) {
-				Plane[] nearclipplane = {nclipplane};
-				nclipplanepointsdist = planePointDistance(vpoint, nearclipplane);
-			}
-			*/
 			double[][] fwdintpointsdist = planePointDistance(vpoint, dirrightupplanes);
 			for (int i=0;i<vpoint.length;i++) {
-				//if ((fwdintpointsdist[i][0]>=1.0f)&&((nclipplanepointsdist==null)||(nclipplanepointsdist[i][0]>=0.0f))) {
 				if (fwdintpointsdist[i][0]>=1.0f) {
 					double hind = halfhfovmult*halfhres*(fwdintpointsdist[i][1]/fwdintpointsdist[i][0])+origindeltax;
 					double vind = halfvfovmult*halfvres*(fwdintpointsdist[i][2]/fwdintpointsdist[i][0])+origindeltay;
@@ -1671,14 +1670,6 @@ public class MathLib {
 			Position[] camposa = {vpos};
 			Position[] rendercutpos = translate(camposa, dirs[0], 1.1d);
 			Plane[] rendercutplane = planeFromNormalAtPoint(rendercutpos, camdir);
-			/*
-			Plane[] nearclipplane = {nclipplane};
-			Plane[] nearclipcutplane = null;
-			if (nclipplane!=null) {
-				Direction[] nearclipplanenormal = planeNormal(nearclipplane);
-				nearclipcutplane = translate(nearclipplane,nearclipplanenormal[0],0.1d);
-			}
-			*/
 			Position[][] vtripos = new Position[5][vtri.length];
 			Coordinate[][] vtripospixels = new Coordinate[3][vtri.length];
 			for (int i=0;i<vtri.length;i++) {
@@ -1712,41 +1703,6 @@ public class MathLib {
 						Position[] vtripos12 = translate(vtripos1, vtridir12[0], vtridir12dist[0][0]);
 						Position[] vtripos13 = translate(vtripos1, vtridir13[0], vtridir13dist[0][0]);
 						Position[] vtripos23 = translate(vtripos2, vtridir23[0], vtridir23dist[0][0]);
-						/*
-						if (nclipplane!=null) {
-							//TODO fix near clip plane triangle clipping
-							double[][] vtridirccp12dist = rayPlaneDistance(vtripos1[0], vtridir12, nearclipcutplane);
-							double[][] vtridirccp13dist = rayPlaneDistance(vtripos1[0], vtridir13, nearclipcutplane);
-							double[][] vtridirccp23dist = rayPlaneDistance(vtripos2[0], vtridir23, nearclipcutplane);
-							Position[] vtriposccp12 = translate(vtripos1, vtridir12[0], vtridirccp12dist[0][0]);
-							Position[] vtriposccp13 = translate(vtripos1, vtridir13[0], vtridirccp13dist[0][0]);
-							Position[] vtriposccp23 = translate(vtripos2, vtridir23[0], vtridirccp23dist[0][0]);
-							if (vtripos1visible) {
-								if (vtridirccp12dist[0][0]<vtridir12dist[0][0]) {
-									vtripos12 = vtriposccp12;
-								}
-								if (vtridirccp13dist[0][0]<vtridir13dist[0][0]) {
-									vtripos13 = vtriposccp13;
-								}
-							}
-							if (vtripos2visible) {
-								if (vtridirccp12dist[0][0]>vtridir12dist[0][0]) {
-									vtripos12 = vtriposccp12;
-								}
-								if (vtridirccp23dist[0][0]<vtridir23dist[0][0]) {
-									vtripos23 = vtriposccp23;
-								}
-							}
-							if (vtripos3visible) {
-								if (vtridirccp13dist[0][0]>vtridir13dist[0][0]) {
-									vtripos13 = vtriposccp13;
-								}
-								if (vtridirccp23dist[0][0]>vtridir23dist[0][0]) {
-									vtripos23 = vtriposccp23;
-								}
-							}
-						}
-						*/
 						if (vtripos1visible&&vtripos2visible) {
 							vtripos[3][i] = vtripos13[0];
 							vtripos[4][i] = vtripos23[0];
@@ -2338,14 +2294,17 @@ public class MathLib {
 			Line[][] ppint = planePlaneIntersection(camrgtplane, vsurf);
 			double[] camrgtvsurfangles = planeAngle(camrgtplane[0], vsurf);
 			for (int i=0;i<vsurf.length;i++) {
-				if (ppint[0][i]!=null) {
+				if ((camfwdvsufrint[0][i]!=null)&&(ppint[0][i]!=null)) {
 					Line[] ppintline = {ppint[0][i]};
 					Direction[] ppintlinedir = vectorFromPoints(ppintline);
 					double camrgtvsurfangle = camrgtvsurfangles[i];
+					if (camrgtvsurfangle>90.0f) {
+						camrgtvsurfangle = 180.0f-camrgtvsurfangle;
+					}
 					Position[] camfwdvsurfpos = {camfwdvsufrint[0][i]};
-					Direction[] camfwdvsurfdir = vectorFromPoints(zeroposa, camfwdvsurfpos);
 					Matrix mirrormat = rotationMatrixAroundAxis(ppintlinedir[0], 2.0f*camrgtvsurfangle);
 					Matrix viewrotmirror = matrixMultiply(mirrormat, viewrot);
+					Direction[] camfwdvsurfdir = vectorFromPoints(zeroposa, camfwdvsurfpos);
 					Position[] camposmirror = translate(camposa, camfwdvsurfdir[0], -1.0f);
 					camposmirror = matrixMultiply(camposmirror, mirrormat);
 					camposmirror = translate(camposmirror, camfwdvsurfdir[0], 1.0f);
