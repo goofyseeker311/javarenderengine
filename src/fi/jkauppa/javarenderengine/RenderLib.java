@@ -1003,36 +1003,33 @@ public class RenderLib {
 		if (triangleviewangle[0]<0.0f) {triangleviewangle[0]=0.0f;frontsidevisible=false;}
 		float shadingmultiplier = ((float)triangleviewangle[0])/90.0f;
 		if (texuv!=null) {
+			Coordinate[] texuva = {texuv};
+			Coordinate[] texuvzero = MathLib.zeroMod(texuva);
+			Coordinate texuvz = texuvzero[0];
 			if (lightmaptexture!=null) {
 				lightmapcolor = null;
 				lightmapcolorcomp = null;
-				if ((texuv.u>=0.0f)&&(texuv.u<=1.0f)&&(texuv.v>=0.0f)&&(texuv.v<=1.0f)) {
-					int lineuvx = (int)Math.round(texuv.u*(lightmaptexture.getWidth()-1));
-					int lineuvy = (int)Math.round(texuv.v*(lightmaptexture.getHeight()-1));
-					lightmapcolor = new Color(lightmaptextureimage.getRGB(lineuvx, lineuvy));
-					lightmapcolorcomp = lightmapcolor.getRGBComponents(new float[4]);
-				}
+				int lineuvx = (int)Math.round(texuvz.u*(lightmaptexture.getWidth()-1));
+				int lineuvy = (int)Math.round(texuvz.v*(lightmaptexture.getHeight()-1));
+				lightmapcolor = new Color(lightmaptextureimage.getRGB(lineuvx, lineuvy));
+				lightmapcolorcomp = lightmapcolor.getRGBComponents(new float[4]);
 			}
 			if (emissivetexture!=null) {
 				emissivecolor = null;
 				emissivecolorcomp = null;
-				if ((texuv.u>=0.0f)&&(texuv.u<=1.0f)&&(texuv.v>=0.0f)&&(texuv.v<=1.0f)) {
-					int lineuvx = (int)Math.round(texuv.u*(emissivetexture.getWidth()-1));
-					int lineuvy = (int)Math.round(texuv.v*(emissivetexture.getHeight()-1));
-					emissivecolor = new Color(emissivetextureimage.getRGB(lineuvx, lineuvy));
-					emissivecolorcomp = emissivecolor.getRGBComponents(new float[4]);
-				}
+				int lineuvx = (int)Math.round(texuvz.u*(emissivetexture.getWidth()-1));
+				int lineuvy = (int)Math.round(texuvz.v*(emissivetexture.getHeight()-1));
+				emissivecolor = new Color(emissivetextureimage.getRGB(lineuvx, lineuvy));
+				emissivecolorcomp = emissivecolor.getRGBComponents(new float[4]);
 			}
 			if (triangletexture!=null) {
 				trianglecolor = null;
 				trianglecolorcomp = null;
-				if ((texuv.u>=0.0f)&&(texuv.u<=1.0f)&&(texuv.v>=0.0f)&&(texuv.v<=1.0f)) {
-					int lineuvx = (int)Math.round(texuv.u*(triangletexture.getWidth()-1));
-					int lineuvy = (int)Math.round(texuv.v*(triangletexture.getHeight()-1));
-					Color triangletexturecolor = new Color(triangletextureimage.getRGB(lineuvx, lineuvy));
-					trianglecolorcomp = triangletexturecolor.getRGBComponents(new float[4]);
-					trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
-				}
+				int lineuvx = (int)Math.round(texuvz.u*(triangletexture.getWidth()-1));
+				int lineuvy = (int)Math.round(texuvz.v*(triangletexture.getHeight()-1));
+				Color triangletexturecolor = new Color(triangletextureimage.getRGB(lineuvx, lineuvy));
+				trianglecolorcomp = triangletexturecolor.getRGBComponents(new float[4]);
+				trianglecolor = new Color(trianglecolorcomp[0], trianglecolorcomp[1], trianglecolorcomp[2], alphacolor);
 			}
 		}
 		if (trianglecolor!=null) {

@@ -409,6 +409,15 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		for (int j=0;j<vppint1.length;j++) {for (int i=0;i<vppint1[j].length;i++) {if (vppint1[j][i]!=null) {System.out.println("JavaRenderEngine: main: vppint1["+j+"]["+i+"]="+vppint1[j][i].pos1.x+" "+vppint1[j][i].pos1.y+" "+vppint1[j][i].pos1.z+" "+vppint1[j][i].pos2.x+" "+vppint1[j][i].pos2.y+" "+vppint1[j][i].pos2.z);} else {System.out.println("JavaRenderEngine: main: vppint1["+j+"]["+i+"]=equal plane.");}}}
 		for (int j=0;j<vppint2.length;j++) {for (int i=0;i<vppint2[j].length;i++) {if (vppint2[j][i]!=null) {System.out.println("JavaRenderEngine: main: vppint2["+j+"]["+i+"]="+vppint2[j][i].pos1.x+" "+vppint2[j][i].pos1.y+" "+vppint2[j][i].pos1.z+" "+vppint2[j][i].pos2.x+" "+vppint2[j][i].pos2.y+" "+vppint2[j][i].pos2.z);} else {System.out.println("JavaRenderEngine: main: vppint2["+j+"]["+i+"]=equal plane.");}}}
 		for (int j=0;j<vppint3.length;j++) {for (int i=0;i<vppint3[j].length;i++) {if (vppint3[j][i]!=null) {System.out.println("JavaRenderEngine: main: vppint3["+j+"]["+i+"]="+vppint3[j][i].pos1.x+" "+vppint3[j][i].pos1.y+" "+vppint3[j][i].pos1.z+" "+vppint3[j][i].pos2.x+" "+vppint3[j][i].pos2.y+" "+vppint3[j][i].pos2.z);} else {System.out.println("JavaRenderEngine: main: vppint3["+j+"]["+i+"]=equal plane.");}}}
+		Coordinate[] texreps = {new Coordinate(0.5f, -0.4f), new Coordinate(1.5f, -1.4f)};
+		Coordinate[] texrepzero = MathLib.zeroMod(texreps);
+		for (int i=0;i<texrepzero.length;i++) {System.out.println("JavaRenderEngine: main: texrepzero[i]="+texrepzero[i].u+" "+texrepzero[i].v);}
+		Position[] rrintvpos1 = {new Position(0,0,0)};
+		Direction[] rrintvdir1 = {new Direction(1,1,0)};
+		Position[] rrintvpos2 = {new Position(1,0,0), new Position(1,0,0)};
+		Direction[] rrintvdir2 = {new Direction(0,1,0), new Direction(0,1,1)};
+		Position[][] rrint = MathLib.rayRayIntersection(rrintvpos1, rrintvdir1, rrintvpos2, rrintvdir2);
+		for (int j=0;j<rrint.length;j++) {for (int i=0;i<rrint[j].length;i++) { if (rrint[j][i]!=null) {System.out.println("JavaRenderEngine: main: rrint["+j+"]["+i+"]="+rrint[j][i].x+" "+rrint[j][i].y+" "+rrint[j][i].z);} else {System.out.println("JavaRenderEngine: main: rrint["+j+"]["+i+"]=no hit.");}}}
 		
 		new JavaRenderEngine();
 	}
