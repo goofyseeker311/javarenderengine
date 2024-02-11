@@ -220,30 +220,17 @@ public class RenderLib {
 								}
 								Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal, null, copytriangledir, unlit);
 								if (trianglecolor!=null) {
+									g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));										
+									g2.setColor(trianglecolor);
+									g2.fill(trianglepolygon);
 									if ((bounces>0)&&(copytrianglecamera!=null)) {
-										Position[] entityspherepointlist = MathLib.sphereVertexList(entityspherelist);
-										Plane[] cammirrorplane = {copytrianglecamera.surf};
-										double[][] entityspherepointlistdist = MathLib.planePointDistance(entityspherepointlist, cammirrorplane);
-										ArrayList<Entity> mirrorentitylistarray = new ArrayList<Entity>();
-										for (int m=0;m<entitylist.length;m++) {
-											if (entityspherepointlistdist[m][0]>=1.0f) {
-												mirrorentitylistarray.add(entitylist[m]);
-											}
-										}
-										Entity[] mirrorentitylist = mirrorentitylistarray.toArray(new Entity[mirrorentitylistarray.size()]);
-										RenderView mirrorview = renderProjectedPolygonViewHardware(copytrianglecamera.pos, mirrorentitylist, renderwidth, hfov, renderheight, vfov, copytrianglecamera.rot, unlit, bounces-1, copytrianglecamera.surf, mouselocationx, mouselocationy);
+										RenderView mirrorview = renderProjectedPolygonViewHardware(copytrianglecamera.pos, entitylist, renderwidth, hfov, renderheight, vfov, copytrianglecamera.rot, unlit, bounces-1, copytrianglecamera.surf, mouselocationx, mouselocationy);
 										VolatileImage mirrorimage = UtilLib.flipImage(mirrorview.renderimage, true, false);
 										g2.setClip(null);
+										g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));										
 										g2.clip(trianglepolygon);
 										g2.drawImage(mirrorimage, 0, 0, null);
 										g2.setClip(null);
-										float[] trianglecolorcomp = trianglecolor.getRGBComponents(new float[4]);
-										Color newtrianglecolor = new Color(trianglecolorcomp[0],trianglecolorcomp[1],trianglecolorcomp[2],0.2f);
-										g2.setColor(newtrianglecolor);
-										g2.fill(trianglepolygon);
-									} else {
-										g2.setColor(trianglecolor);
-										g2.fill(trianglepolygon);
 									}
 								}
 							}
