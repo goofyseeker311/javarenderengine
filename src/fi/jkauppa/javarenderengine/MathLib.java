@@ -659,22 +659,43 @@ public class MathLib {
 						double x = 0.0f;
 						if (vplane1[m].a!=0) {
 							double kw = vpplane2.d*vpplane1.a-vpplane1.d*vpplane2.a;
-							double kb = vpplane1.b*vpplane2.a-vpplane2.b*vpplane1.a;
-							z = 0.0f;
-							y = kw/kb;
-							x = (-vpplane1.d-vpplane1.b)/vpplane1.a;
+							if (vplane2[m].b!=0) {
+								double kb = vpplane1.b*vpplane2.a-vpplane2.b*vpplane1.a;
+								z = 0.0f;
+								y = kw/kb;
+								x = (-vpplane1.d-vpplane1.b)/vpplane1.a;
+							}else if (vplane2[m].c!=0) {
+								double kb = vpplane1.c*vpplane2.a-vpplane2.c*vpplane1.a;
+								z = kw/kb;
+								y = 0.0f;
+								x = (-vpplane1.d-vpplane1.c)/vpplane1.a;
+							}
 						} else if (vpplane1.b!=0) {
 							double kw = vpplane2.d*vpplane1.b-vpplane1.d*vpplane2.b;
-							double ka = vpplane1.a*vpplane2.b-vpplane2.a*vpplane1.b;
-							z = 0.0f;
-							y = (-vpplane1.d-vpplane1.a)/vpplane1.b;
-							x = kw/ka;
+							if (vplane2[m].a!=0) {
+								double kb = vpplane1.a*vpplane2.b-vpplane2.a*vpplane1.b;
+								z = 0.0f;
+								y = (-vpplane1.d-vpplane1.a)/vpplane1.b;
+								x = kw/kb;
+							}else if (vplane2[m].c!=0) {
+								double kb = vpplane1.c*vpplane2.b-vpplane2.c*vpplane1.b;
+								z = kw/kb;
+								y = (-vpplane1.d-vpplane1.c)/vpplane1.b;
+								x = 0.0f;
+							}
 						} else if (vpplane1.c!=0) {
 							double kw = vpplane2.d*vpplane1.c-vpplane1.d*vpplane2.c;
-							double kb = vpplane1.b*vpplane2.c-vpplane2.b*vpplane1.c;
-							z = kw/kb;
-							y = 0.0f;
-							x = (-vpplane1.d-vpplane1.b)/vpplane1.c;
+							if (vplane2[m].a!=0) {
+								double kb = vpplane1.a*vpplane2.c-vpplane2.a*vpplane1.c;
+								z = (-vpplane1.d-vpplane1.a)/vpplane1.c;
+								y = 0.0f;
+								x = kw/kb;
+							}else if (vplane2[m].b!=0) {
+								double kb = vpplane1.b*vpplane2.c-vpplane2.b*vpplane1.c;
+								z = (-vpplane1.d-vpplane1.b)/vpplane1.c;
+								y = kw/kb;
+								x = 0.0f;
+							}
 						}
 						Position[] ppintpos = {new Position(x,y,z)};
 						Position[] ppintpos2 = translate(ppintpos, ppintdirn[0], 1.0f);
