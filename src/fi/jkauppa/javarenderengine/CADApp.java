@@ -63,10 +63,10 @@ public class CADApp extends AppHandlerPanel {
 	private int mouselocationx = 0, mouselocationy = 0;
 	private int mouselastlocationx = -1, mouselastlocationy = -1; 
 	private int origindeltax = 0, origindeltay = 0;
-	private double editplanedistance = 1371.023f;
+	private final double defaultcamzpos = 1371.023f;
 	private Position drawstartpos = new Position(0,0,0);
 	private Position editpos = new Position(0.0f,0.0f,0.0f);
-	private Position campos = new Position(0.0f,0.0f,this.editplanedistance);
+	private Position campos = new Position(0.0f,0.0f,defaultcamzpos);
 	private Rotation camrot = new Rotation(0.0f, 0.0f, 0.0f);
 	private Matrix cameramat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 	private final Direction[] lookdirs = MathLib.projectedCameraDirections(cameramat);
@@ -124,7 +124,6 @@ public class CADApp extends AppHandlerPanel {
 		this.origindeltax = (int)Math.floor(((double)(this.getWidth()-1))/2.0f);
 		this.origindeltay = (int)Math.floor(((double)(this.getHeight()-1))/2.0f);
 		this.vfov = 2.0f*MathLib.atand((((double)this.getHeight())/((double)this.getWidth()))*MathLib.tand(this.hfov/2.0f));
-		this.editplanedistance = (((double)this.getWidth())/2.0f)/MathLib.tand(hfov/2.0f);
 		if (this.renderview!=null) {
 			g2.drawImage(this.renderview.renderimage, 0, 0, null);
 		}
@@ -133,9 +132,9 @@ public class CADApp extends AppHandlerPanel {
 	private void updateCameraDirections() {
 		Matrix camrotmat = MathLib.rotationMatrixLookHorizontalRoll(this.camrot);
 		Direction[] camlookdirs = MathLib.matrixMultiply(this.lookdirs, camrotmat);
-		Position[] editposarray = {this.editpos};
-		Position[] camposarray = MathLib.translate(editposarray, camlookdirs[0], -this.editplanedistance);
-		this.campos = camposarray[0];
+		Position[] camposa = {this.campos};
+		Position[] editposa = MathLib.translate(camposa, this.lookdirs[0], this.defaultcamzpos);
+		this.editpos = editposa[0];
 		this.cameramat = camrotmat;
 		this.camdirs = camlookdirs;
 	}
@@ -146,42 +145,42 @@ public class CADApp extends AppHandlerPanel {
 			movementstep = this.gridstep;
 		}
 		if (this.leftkeydown) {
-			this.editpos = this.editpos.copy();
-			this.editpos.x -= movementstep*this.camdirs[1].dx;
-			this.editpos.y -= movementstep*this.camdirs[1].dy;
-			this.editpos.z -= movementstep*this.camdirs[1].dz;			System.out.println("CADApp: keyPressed: key A: edit plane position to left="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
+			this.campos = this.campos.copy();
+			this.campos.x -= movementstep*this.camdirs[1].dx;
+			this.campos.y -= movementstep*this.camdirs[1].dy;
+			this.campos.z -= movementstep*this.camdirs[1].dz;			System.out.println("CADApp: keyPressed: key A: camera position to left="+this.campos.x+","+this.campos.y+","+this.campos.z);
 		} else if (this.rightkeydown) {
-			this.editpos = this.editpos.copy();
-			this.editpos.x += movementstep*this.camdirs[1].dx;
-			this.editpos.y += movementstep*this.camdirs[1].dy;
-			this.editpos.z += movementstep*this.camdirs[1].dz;
-			System.out.println("CADApp: keyPressed: key D: edit plane position to right="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
+			this.campos = this.campos.copy();
+			this.campos.x += movementstep*this.camdirs[1].dx;
+			this.campos.y += movementstep*this.camdirs[1].dy;
+			this.campos.z += movementstep*this.camdirs[1].dz;
+			System.out.println("CADApp: keyPressed: key D: camera position to right="+this.campos.x+","+this.campos.y+","+this.campos.z);
 		}
 		if (this.forwardkeydown) {
-			this.editpos = this.editpos.copy();
-			this.editpos.x += movementstep*this.camdirs[0].dx;
-			this.editpos.y += movementstep*this.camdirs[0].dy;
-			this.editpos.z += movementstep*this.camdirs[0].dz;
-			System.out.println("CADApp: keyPressed: key +/SPACE: edit plane position to forward="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
+			this.campos = this.campos.copy();
+			this.campos.x += movementstep*this.camdirs[0].dx;
+			this.campos.y += movementstep*this.camdirs[0].dy;
+			this.campos.z += movementstep*this.camdirs[0].dz;
+			System.out.println("CADApp: keyPressed: key +/SPACE: camera position to forward="+this.campos.x+","+this.campos.y+","+this.campos.z);
 		} else if (this.backwardkeydown) {
-			this.editpos = this.editpos.copy();
-			this.editpos.x -= movementstep*this.camdirs[0].dx;
-			this.editpos.y -= movementstep*this.camdirs[0].dy;
-			this.editpos.z -= movementstep*this.camdirs[0].dz;
-			System.out.println("CADApp: keyPressed: key -/C: edit plane position to backward="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
+			this.campos = this.campos.copy();
+			this.campos.x -= movementstep*this.camdirs[0].dx;
+			this.campos.y -= movementstep*this.camdirs[0].dy;
+			this.campos.z -= movementstep*this.camdirs[0].dz;
+			System.out.println("CADApp: keyPressed: key -/C: camera position to backward="+this.campos.x+","+this.campos.y+","+this.campos.z);
 		}
 		if (this.upwardkeydown) {
-			this.editpos = this.editpos.copy();
-			this.editpos.x -= movementstep*this.camdirs[2].dx;
-			this.editpos.y -= movementstep*this.camdirs[2].dy;
-			this.editpos.z -= movementstep*this.camdirs[2].dz;
-			System.out.println("CADApp: keyPressed: key W: edit plane position to upward="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
+			this.campos = this.campos.copy();
+			this.campos.x -= movementstep*this.camdirs[2].dx;
+			this.campos.y -= movementstep*this.camdirs[2].dy;
+			this.campos.z -= movementstep*this.camdirs[2].dz;
+			System.out.println("CADApp: keyPressed: key W: camera position to upward="+this.campos.x+","+this.campos.y+","+this.campos.z);
 		} else if (this.downwardkeydown) {
-			this.editpos = this.editpos.copy();
-			this.editpos.x += movementstep*this.camdirs[2].dx;
-			this.editpos.y += movementstep*this.camdirs[2].dy;
-			this.editpos.z += movementstep*this.camdirs[2].dz;
-			System.out.println("CADApp: keyPressed: key S: edit plane position to downward="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
+			this.campos = this.campos.copy();
+			this.campos.x += movementstep*this.camdirs[2].dx;
+			this.campos.y += movementstep*this.camdirs[2].dy;
+			this.campos.z += movementstep*this.camdirs[2].dz;
+			System.out.println("CADApp: keyPressed: key S: camera position to downward="+this.campos.x+","+this.campos.y+","+this.campos.z);
 		}
 		if (this.rollleftkeydown) {
 			this.camrot = this.camrot.copy();
@@ -274,11 +273,10 @@ public class CADApp extends AppHandlerPanel {
 					this.linelisttree.clear();
 					this.entitylist = null;
 				}
-				this.editpos = new Position(0.0f, 0.0f, 0.0f);
-				this.campos = new Position(0.0f,0.0f,this.editplanedistance);
+				this.campos = new Position(0.0f, 0.0f, defaultcamzpos);
 				this.camrot = new Rotation(0.0f, 0.0f, 0.0f);
 				updateCameraDirections();
-				System.out.println("CADApp: keyPressed: key BACKSPACE: reset edit plane position="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
+				System.out.println("CADApp: keyPressed: key BACKSPACE: reset camera position="+this.campos.x+","+this.campos.y+","+this.campos.z);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_INSERT) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
@@ -782,8 +780,6 @@ public class CADApp extends AppHandlerPanel {
 					}
 				}
 		    }
-		} else {
-			//System.out.println("CADApp: keyPressed: key "+KeyEvent.getKeyText(e.getKeyCode()));
 		}
 	}
 	
@@ -860,8 +856,8 @@ public class CADApp extends AppHandlerPanel {
         		if ((this.mouseoverline!=null)&&(this.mouseoverline.length>0)) {
         			for (int i=0;i<this.mouseoverline.length;i++) {
         				System.out.println("CADApp: mouseDragged: key PERIOD-LMB: erase line="+this.mouseoverline[i].pos1.x+" "+this.mouseoverline[i].pos1.y+" "+this.mouseoverline[i].pos1.z+" "+this.mouseoverline[i].pos2.x+" "+this.mouseoverline[i].pos2.y+" "+this.mouseoverline[i].pos2.z);
+        				this.linelisttree.remove(this.mouseoverline[i]);
         			}
-    				this.linelisttree.removeAll(Arrays.asList(this.mouseoverline));
     				(new EntityListUpdater()).start();
     			}
     		} else {
@@ -977,14 +973,14 @@ public class CADApp extends AppHandlerPanel {
 	    		}
 	        	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
 	        	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-	        	this.editpos = this.editpos.copy();
-	    		this.editpos.x -= mousedeltax*movementstep*this.camdirs[1].dx;
-	    		this.editpos.y -= mousedeltax*movementstep*this.camdirs[1].dy;
-	    		this.editpos.z -= mousedeltax*movementstep*this.camdirs[1].dz;
-	    		this.editpos.x -= mousedeltay*movementstep*this.camdirs[2].dx;
-	    		this.editpos.y -= mousedeltay*movementstep*this.camdirs[2].dy;
-	    		this.editpos.z -= mousedeltay*movementstep*this.camdirs[2].dz;
-				System.out.println("CADApp: mouseDragged: key DRAG-CMB: edit plane position="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
+	        	this.campos = this.campos.copy();
+	    		this.campos.x -= mousedeltax*movementstep*this.camdirs[1].dx;
+	    		this.campos.y -= mousedeltax*movementstep*this.camdirs[1].dy;
+	    		this.campos.z -= mousedeltax*movementstep*this.camdirs[1].dz;
+	    		this.campos.x -= mousedeltay*movementstep*this.camdirs[2].dx;
+	    		this.campos.y -= mousedeltay*movementstep*this.camdirs[2].dy;
+	    		this.campos.z -= mousedeltay*movementstep*this.camdirs[2].dz;
+				System.out.println("CADApp: mouseDragged: key DRAG-CMB: camera position="+this.campos.x+","+this.campos.y+","+this.campos.z);
     		}
     	}
 	    int onmask2ctrlaltdown = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
@@ -1154,11 +1150,11 @@ public class CADApp extends AppHandlerPanel {
 				if (this.snaplinemode) {
 					movementstep *= this.gridstep;
 				}
-				this.editpos = this.editpos.copy();
-				this.editpos.x -= movementstep*this.camdirs[0].dx;
-				this.editpos.y -= movementstep*this.camdirs[0].dy;
-				this.editpos.z -= movementstep*this.camdirs[0].dz;
-				System.out.println("CADApp: mouseWheelMoved: key MWHEEL: edit plane position="+this.editpos.x+","+this.editpos.y+","+this.editpos.z);
+				this.campos = this.campos.copy();
+				this.campos.x -= movementstep*this.camdirs[0].dx;
+				this.campos.y -= movementstep*this.camdirs[0].dy;
+				this.campos.z -= movementstep*this.camdirs[0].dz;
+				System.out.println("CADApp: mouseWheelMoved: key MWHEEL: camera position="+this.campos.x+","+this.campos.y+","+this.campos.z);
 	    	}
 	    }
 	}

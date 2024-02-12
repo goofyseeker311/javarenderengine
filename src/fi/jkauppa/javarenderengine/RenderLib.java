@@ -171,10 +171,7 @@ public class RenderLib {
 		g2.setComposite(AlphaComposite.SrcOver);
 		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
 		if ((entitylist!=null)&&(entitylist.length>0)) {
-			Sphere[] entityspherelist = new Sphere[entitylist.length]; 
-			for (int k=0;k<entitylist.length;k++) {
-				entityspherelist[k] = entitylist[k].sphereboundaryvolume;
-			}
+			Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
 			Integer[] sortedentityspherelistind = UtilLib.objectIndexSort(entityspherelist, distcomp);
 			Rectangle[] entityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, entityspherelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot, nclipplane);
@@ -286,10 +283,7 @@ public class RenderLib {
 			Plane[] camdirrightupplanes = MathLib.planeFromNormalAtPoint(renderview.pos, renderview.dirs);
 			Plane[] camfwdplane = {camdirrightupplanes[0]};
 			Plane[] camupplane = {camdirrightupplanes[2]};
-			Sphere[] entityspherelist = new Sphere[entitylist.length]; 
-			for (int k=0;k<entitylist.length;k++) {
-				entityspherelist[k] = entitylist[k].sphereboundaryvolume;
-			}
+			Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
 			Integer[] sortedentityspherelistind = UtilLib.objectIndexSort(entityspherelist, distcomp);
 			Rectangle[] sortedentityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, entityspherelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot, nclipplane);
@@ -459,10 +453,7 @@ public class RenderLib {
 				Plane[] renderfwdcutplane = MathLib.planeFromNormalAtPoint(rendercutpos[0], renderfwddir);
 				rendercutplanes[i] = renderfwdcutplane[0]; 
 			}
-			Sphere[] entityspherelist = new Sphere[entitylist.length]; 
-			for (int k=0;k<entitylist.length;k++) {
-				entityspherelist[k] = entitylist[k].sphereboundaryvolume;
-			}
+			Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
 			Integer[] sortedentityspherelistind = UtilLib.objectIndexSort(entityspherelist, distcomp);
 			Rectangle[] sortedentityspherelistint = MathLib.spheremapSphereIntersection(renderview.pos, entityspherelist, renderwidth, renderheight, viewrot, nclipplane);
@@ -646,10 +637,7 @@ public class RenderLib {
 		if ((entitylist!=null)&&(entitylist.length>0)) {
 			Plane[] camdirrightupplanes = MathLib.planeFromNormalAtPoint(renderview.pos, renderview.dirs);
 			Plane[] camfwdplane = {camdirrightupplanes[0]};
-			Sphere[] entityspherelist = new Sphere[entitylist.length]; 
-			for (int k=0;k<entitylist.length;k++) {
-				entityspherelist[k] = entitylist[k].sphereboundaryvolume;
-			}
+			Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
 			Integer[] sortedentityspherelistind = UtilLib.objectIndexSort(entityspherelist, distcomp);
 			Rectangle[] sortedentityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, entityspherelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot, nclipplane);
@@ -742,10 +730,7 @@ public class RenderLib {
 		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
 		if ((entitylist!=null)&&(entitylist.length>0)) {
 			Plane[] camfwdplanes = MathLib.planeFromNormalAtPoint(renderview.pos, renderview.fwddirs);
-			Sphere[] entityspherelist = new Sphere[entitylist.length]; 
-			for (int k=0;k<entitylist.length;k++) {
-				entityspherelist[k] = entitylist[k].sphereboundaryvolume;
-			}
+			Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
 			Integer[] sortedentityspherelistind = UtilLib.objectIndexSort(entityspherelist, distcomp);
 			Rectangle[] sortedentityspherelistint = MathLib.spheremapSphereIntersection(renderview.pos, entityspherelist, renderwidth, renderheight, viewrot, nclipplane);
@@ -915,13 +900,15 @@ public class RenderLib {
 		Plane[] mirrorplanes = MathLib.planeFromNormalAtPoint(mirrorpos[0], camdirs);
 		Plane[] cammirrorplane = {mirrorplanes[0].invert()};
 		RenderView[] mirrorcamera = MathLib.surfaceMirrorProjectedCamera(campos, cammirrorplane, viewrot);
-		Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
-		Position[] entityspherepointlist = MathLib.sphereVertexList(entityspherelist);
-		double[][] entityspherepointlistdist = MathLib.planePointDistance(entityspherepointlist, cammirrorplane);
 		ArrayList<Entity> mirrorentitylistarray = new ArrayList<Entity>();
-		for (int i=0;i<entitylist.length;i++) {
-			if (entityspherepointlistdist[i][0]>=1.0f) {
-				mirrorentitylistarray.add(entitylist[i]);
+		if ((entitylist!=null)&&(entitylist.length>0)) {
+			Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
+			Position[] entityspherepointlist = MathLib.sphereVertexList(entityspherelist);
+			double[][] entityspherepointlistdist = MathLib.planePointDistance(entityspherepointlist, cammirrorplane);
+			for (int i=0;i<entitylist.length;i++) {
+				if (entityspherepointlistdist[i][0]>=1.0f) {
+					mirrorentitylistarray.add(entitylist[i]);
+				}
 			}
 		}
 		Entity[] mirrorentitylist = mirrorentitylistarray.toArray(new Entity[mirrorentitylistarray.size()]);

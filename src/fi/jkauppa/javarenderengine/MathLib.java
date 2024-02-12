@@ -1208,11 +1208,14 @@ public class MathLib {
 	}
 
 	public static Sphere[] entitySphereList(Entity[] entitylist) {
-		Sphere[] entityspherelist = new Sphere[entitylist.length]; 
-		for (int k=0;k<entitylist.length;k++) {
-			entityspherelist[k] = entitylist[k].sphereboundaryvolume;
+		Sphere[] k = null;
+		if ((entitylist!=null)&&(entitylist.length>0)) {
+			k = new Sphere[entitylist.length]; 
+			for (int i=0;i<entitylist.length;i++) {
+				k[i] = entitylist[i].sphereboundaryvolume;
+			}
 		}
-		return entityspherelist;
+		return k;
 	}
 	
 	public static Position[] sphereVertexList(Sphere[] spherelist) {
