@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.35");
+		this.setTitle("Java Render Engine v2.3.36");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -408,9 +408,12 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Line[][] vppint1 = MathLib.planePlaneIntersection(vppintplane11, vppintplane12);
 		Line[][] vppint2 = MathLib.planePlaneIntersection(vppintplane21, vppintplane22);
 		Line[][] vppint3 = MathLib.planePlaneIntersection(vppintplane31, vppintplane32);
-		for (int j=0;j<vppint1.length;j++) {for (int i=0;i<vppint1[j].length;i++) {if (vppint1[j][i]!=null) {System.out.println("JavaRenderEngine: main: vppint1["+j+"]["+i+"]="+vppint1[j][i].pos1.x+" "+vppint1[j][i].pos1.y+" "+vppint1[j][i].pos1.z+" "+vppint1[j][i].pos2.x+" "+vppint1[j][i].pos2.y+" "+vppint1[j][i].pos2.z);} else {System.out.println("JavaRenderEngine: main: vppint1["+j+"]["+i+"]=equal plane.");}}}
-		for (int j=0;j<vppint2.length;j++) {for (int i=0;i<vppint2[j].length;i++) {if (vppint2[j][i]!=null) {System.out.println("JavaRenderEngine: main: vppint2["+j+"]["+i+"]="+vppint2[j][i].pos1.x+" "+vppint2[j][i].pos1.y+" "+vppint2[j][i].pos1.z+" "+vppint2[j][i].pos2.x+" "+vppint2[j][i].pos2.y+" "+vppint2[j][i].pos2.z);} else {System.out.println("JavaRenderEngine: main: vppint2["+j+"]["+i+"]=equal plane.");}}}
-		for (int j=0;j<vppint3.length;j++) {for (int i=0;i<vppint3[j].length;i++) {if (vppint3[j][i]!=null) {System.out.println("JavaRenderEngine: main: vppint3["+j+"]["+i+"]="+vppint3[j][i].pos1.x+" "+vppint3[j][i].pos1.y+" "+vppint3[j][i].pos1.z+" "+vppint3[j][i].pos2.x+" "+vppint3[j][i].pos2.y+" "+vppint3[j][i].pos2.z);} else {System.out.println("JavaRenderEngine: main: vppint3["+j+"]["+i+"]=equal plane.");}}}
+		Line[][] vppint1okvals = {{null, new Line(new Position(0.0f, 0.0f, 0.0f), new Position(0.0f, 0.0f, -1.0f)), new Line(new Position(0.0f, 0.0f, 0.0f), new Position(0.0f, 0.0f, 1.0f)), new Line(new Position(0.0f, 0.0f, 0.0f), new Position(0.0f, 0.0f, -1.0f))}};
+		Line[][] vppint2okvals = {{null, new Line(new Position(0.0f, 0.0f, 0.0f), new Position(0.0f, 0.0f, 1.0f)), new Line(new Position(0.0f, 0.0f, 0.0f), new Position(0.0f, 0.0f, -1.0f)), new Line(new Position(0.0f, 0.0f, 0.0f), new Position(0.0f, 0.0f, -1.0f))}};
+		Line[][] vppint3okvals = {{null, new Line(new Position(0.0f, 0.0f, 0.0f), new Position(1.0f, 0.0f, 0.0f)), new Line(new Position(0.0f, 0.0f, 0.0f), new Position(-1.0f, 0.0f, 0.0f)), new Line(new Position(0.0f, 0.0f, 0.0f), new Position(1.0f, 0.0f, 0.0f))}};
+		for (int j=0;j<vppint1.length;j++) {for (int i=0;i<vppint1[j].length;i++) {System.out.print("JavaRenderEngine: main: vppint1["+j+"]["+i+"]="); if (vppint1[j][i]!=null) {System.out.print(vppint1[j][i].pos1.x+" "+vppint1[j][i].pos1.y+" "+vppint1[j][i].pos1.z+" "+vppint1[j][i].pos2.x+" "+vppint1[j][i].pos2.y+" "+vppint1[j][i].pos2.z);} else {System.out.print("equal plane."); } if (((vppint1[j][i]==vppint1okvals[j][i]))||(vppint1[j][i].equals(vppint1okvals[j][i]))) {System.out.println(" [match]");} else {System.out.println(" **no match**");} }}
+		for (int j=0;j<vppint2.length;j++) {for (int i=0;i<vppint2[j].length;i++) {System.out.print("JavaRenderEngine: main: vppint2["+j+"]["+i+"]="); if (vppint2[j][i]!=null) {System.out.print(vppint2[j][i].pos1.x+" "+vppint2[j][i].pos1.y+" "+vppint2[j][i].pos1.z+" "+vppint2[j][i].pos2.x+" "+vppint2[j][i].pos2.y+" "+vppint2[j][i].pos2.z);} else {System.out.print("equal plane."); } if (((vppint2[j][i]==vppint2okvals[j][i]))||(vppint2[j][i].equals(vppint2okvals[j][i]))) {System.out.println(" [match]");} else {System.out.println(" **no match**");} }}
+		for (int j=0;j<vppint3.length;j++) {for (int i=0;i<vppint3[j].length;i++) {System.out.print("JavaRenderEngine: main: vppint3["+j+"]["+i+"]="); if (vppint3[j][i]!=null) {System.out.print(vppint3[j][i].pos1.x+" "+vppint3[j][i].pos1.y+" "+vppint3[j][i].pos1.z+" "+vppint3[j][i].pos2.x+" "+vppint3[j][i].pos2.y+" "+vppint3[j][i].pos2.z);} else {System.out.print("equal plane."); } if (((vppint3[j][i]==vppint3okvals[j][i]))||(vppint3[j][i].equals(vppint3okvals[j][i]))) {System.out.println(" [match]");} else {System.out.println(" **no match**");} }}
 		Coordinate[] texreps = {new Coordinate(0.5f, -0.4f), new Coordinate(1.5f, -1.4f)};
 		Coordinate[] texrepzero = MathLib.zeroMod(texreps);
 		for (int i=0;i<texrepzero.length;i++) {System.out.println("JavaRenderEngine: main: texrepzero[i]="+texrepzero[i].u+" "+texrepzero[i].v);}
