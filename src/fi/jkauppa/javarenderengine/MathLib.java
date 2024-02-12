@@ -1665,7 +1665,7 @@ public class MathLib {
 			Position[] camposa = {vpos};
 			Position[] rendercutpos = translate(camposa, dirs[0], 1.1d);
 			Plane[] rendercutplane = planeFromNormalAtPoint(rendercutpos, camdir);
-			Plane[] nearclipplane = {nclipplane};
+			Plane[] neartriclipplane = {nclipplane};
 			Position[][] vtripos = new Position[5][vtri.length];
 			Coordinate[][] vtripospixels = new Coordinate[3][vtri.length];
 			for (int i=0;i<vtri.length;i++) {
@@ -1677,7 +1677,7 @@ public class MathLib {
 				vtripospixels[j] = projectedPoint(vpos, vtripos[j], hres, hfov, vres, vfov, vmat, nclipplane);
 				double[][] vtripospixeldist = null;
 				if (nclipplane!=null) {
-					vtripospixeldist = planePointDistance(vtripos[j], nearclipplane);
+					vtripospixeldist = planePointDistance(vtripos[j], neartriclipplane);
 				}
 				for (int i=0;i<vtripos[j].length;i++) {
 					if ((nclipplane==null)||(vtripospixeldist[i][0]>=0.1f)) {
@@ -1958,12 +1958,12 @@ public class MathLib {
 		Matrix rotxp90zn90 = matrixMultiply(rotzn90, rotxp90);
 		Matrix rotxp90zp90 = matrixMultiply(rotzp90, rotxp90);
 		Matrix rotxp90zp180 = matrixMultiply(rotzp180, rotxp90);
-		k[0] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp90zn90, null);
-		k[1] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp90, null);
-		k[2] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp90zp90, null);
-		k[3] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp90zp180, null);
-		k[4] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp180, null);
-		k[5] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp0, null);
+		k[0] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp90zn90, nclipplane);
+		k[1] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp90, nclipplane);
+		k[2] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp90zp90, nclipplane);
+		k[3] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp90zp180, nclipplane);
+		k[4] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp180, nclipplane);
+		k[5] = projectedSphereIntersection(vpos, vsphere, vres, vres, 90, 90, rotxp0, nclipplane);
 		return k;
 	}
 
