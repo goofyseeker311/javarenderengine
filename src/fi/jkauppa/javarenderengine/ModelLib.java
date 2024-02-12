@@ -85,7 +85,7 @@ public class ModelLib {
 			return k;}
 		@Override public boolean equals(Object o) {
 			boolean k=false;
-			if (o.getClass().equals(this.getClass())){
+			if ((o!=null)&&(o.getClass().equals(this.getClass()))){
 				Material co=(Material)o;
 				if(this.compareTo(co)==0){
 					k=true;
@@ -196,7 +196,7 @@ public class ModelLib {
 		}
 		@Override public boolean equals(Object o) {
 			boolean k = false;
-			if (o.getClass().equals(this.getClass())) {
+			if ((o!=null)&&(o.getClass().equals(this.getClass()))) {
 				Position os = (Position)o;
 				if ((this.x==os.x)&&(this.y==os.y)&&(this.z==os.z)) {
 					k = true;
@@ -229,7 +229,7 @@ public class ModelLib {
 		}
 		@Override public boolean equals(Object o) {
 			boolean k = false;
-			if (o.getClass().equals(this.getClass())) {
+			if ((o!=null)&&(o.getClass().equals(this.getClass()))) {
 				Direction os = (Direction)o;
 				if ((this.dx==os.dx)&&(this.dy==os.dy)&&(this.dz==os.dz)) {
 					k = true;
@@ -258,7 +258,7 @@ public class ModelLib {
 	}
 	@Override public boolean equals(Object o) {
 		boolean k = false;
-		if (o.getClass().equals(this.getClass())) {
+		if ((o!=null)&&(o.getClass().equals(this.getClass()))) {
 			Coordinate os = (Coordinate)o;
 			if ((this.u==os.u)&&(this.v==os.v)) {
 				k = true;
@@ -274,7 +274,7 @@ public class ModelLib {
 	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
 		@Override public boolean equals(Object o) {
 			boolean k = false;
-			if (o.getClass().equals(this.getClass())) {
+			if ((o!=null)&&(o.getClass().equals(this.getClass()))) {
 				Rotation os = (Rotation)o;
 				if ((this.x==os.x)&&(this.y==os.y)&&(this.z==os.z)) {
 					k = true;
@@ -308,7 +308,7 @@ public class ModelLib {
 		}
 		@Override public boolean equals(Object o) {
 			boolean k = false;
-			if (o.getClass().equals(this.getClass())) {
+			if ((o!=null)&&(o.getClass().equals(this.getClass()))) {
 				Sphere os = (Sphere)o;
 				if ((this.x==os.x)&&(this.y==os.y)&&(this.z==os.z)&&(this.r==os.r)) {
 					k = true;
@@ -374,7 +374,7 @@ public class ModelLib {
 		}
 		@Override public boolean equals(Object o) {
 			boolean k = false;
-			if (o.getClass().equals(this.getClass())) {
+			if ((o!=null)&&(o.getClass().equals(this.getClass()))) {
 				Line os = ((Line)o).sort();
 				Line ts=this.sort();
 				if ((ts.pos1.x==os.pos1.x)&&(ts.pos1.y==os.pos1.y)&&(ts.pos1.z==os.pos1.z)&&(ts.pos2.x==os.pos2.x)&&(ts.pos2.y==os.pos2.y)&&(ts.pos2.z==os.pos2.z)) {
@@ -437,7 +437,7 @@ public class ModelLib {
 		}
 		@Override public boolean equals(Object o) {
 			boolean k = false;
-			if (o.getClass().equals(this.getClass())) {
+			if ((o!=null)&&(o.getClass().equals(this.getClass()))) {
 				Tetrahedron co = (Tetrahedron)o;
 				Position[] tp = {this.pos1,this.pos2,this.pos3,this.pos4};
 				Position[] op = {co.pos1,co.pos2,co.pos3,this.pos4};
@@ -454,7 +454,8 @@ public class ModelLib {
 			return k;
 		}
 	}
-	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public Direction norm; public Material mat = null; public Material[] lmatl = null; public Triangle(Position pos1i,Position pos2i,Position pos3i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;}
+	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public Direction norm; public Material mat = null; public Material[] lmatl = null;
+		public Triangle(Position pos1i,Position pos2i,Position pos3i) {this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;}
 		@Override public int compareTo(Triangle o) {
 			int k = -1;
 			Position[] tposarray = {this.pos1,this.pos2,this.pos3};
@@ -494,7 +495,7 @@ public class ModelLib {
 		}
 		@Override public boolean equals(Object o) {
 			boolean k = false;
-			if (o.getClass().equals(this.getClass())) {
+			if ((o!=null)&&(o.getClass().equals(this.getClass()))) {
 				Triangle co = (Triangle)o;
 				Position[] tposarray = {this.pos1,this.pos2,this.pos3};
 				Position[] oposarray = {co.pos1,co.pos2,co.pos3};
@@ -523,7 +524,7 @@ public class ModelLib {
 	public static class Matrix {public double a11,a12,a13,a21,a22,a23,a31,a32,a33; public Matrix(double a11i,double a12i,double a13i,double a21i,double a22i,double a23i,double a31i,double a32i,double a33i){this.a11=a11i;this.a12=a12i;this.a13=a13i;this.a21=a21i;this.a22=a22i;this.a23=a23i;this.a31=a31i;this.a32=a32i;this.a33=a33i;}
 		@Override public boolean equals(Object o) {
 			boolean k = false;
-			if (o.getClass().equals(this.getClass())) {
+			if ((o!=null)&&(o.getClass().equals(this.getClass()))) {
 				Matrix co = (Matrix)o;
 				if ((this.a11==co.a11)&&(this.a12==co.a12)&&(this.a13==co.a13)&&(this.a21==co.a21)&&(this.a22==co.a22)&&(this.a23==co.a23)&&(this.a31==co.a31)&&(this.a32==co.a32)&&(this.a33==co.a33)) {
 					k = true;

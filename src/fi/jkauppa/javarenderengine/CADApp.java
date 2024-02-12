@@ -1214,10 +1214,10 @@ public class CADApp extends AppHandlerPanel {
 					CADApp.this.mouseoverline = CADApp.this.renderview.mouseoverline;
 					CADApp.this.mouseoververtex = CADApp.this.renderview.mouseoververtex;
 				} else if (CADApp.this.polygonfillmode==2) { 
-					CADApp.this.renderview = RenderLib.renderProjectedView(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.renderview = RenderLib.renderProjectedView(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseovertriangle = CADApp.this.renderview.mouseovertriangle;
 				} else if (CADApp.this.polygonfillmode==3) {
-					CADApp.this.renderview = RenderLib.renderProjectedView(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 2, bounces, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.renderview = RenderLib.renderProjectedView(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 2, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseovertriangle = CADApp.this.renderview.mouseovertriangle;
 				}
 				RenderViewUpdater.renderupdaterrunning = false;
@@ -1230,7 +1230,7 @@ public class CADApp extends AppHandlerPanel {
 		public void run() {
 			if (!EntityLightMapUpdater.entitylightmapupdaterrunning) {
 				EntityLightMapUpdater.entitylightmapupdaterrunning = true;
-				int bounces = 2;
+				int bounces = 1;
 				if (CADApp.this.polygonfillmode==1) {
 					RenderLib.renderSurfaceFaceLightmapCubemapView(CADApp.this.entitylist, 32, bounces, 3);
 				} else if (CADApp.this.polygonfillmode==2) {
