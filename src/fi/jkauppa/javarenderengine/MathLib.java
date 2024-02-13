@@ -2281,15 +2281,15 @@ public class MathLib {
 		return gridstep*(int)Math.round(((double)coordinate)/((double)gridstep));
 	}
 	
-	public static double mod(double val) {
-		return val-Math.floor(val);
+	public static double mod(double val, double modulo) {
+		return val-Math.floor(val/modulo)*modulo;
 	}
-	public static Coordinate[] mod(Coordinate[] tex) {
+	public static Coordinate[] modTex(Coordinate[] tex) {
 		Coordinate[] k = null;
 		if (tex!=null) {
 			k = new Coordinate[tex.length];
 			for (int i=0;i<tex.length;i++) {
-				k[i] = new Coordinate(mod(tex[i].u), mod(tex[i].v));
+				k[i] = new Coordinate(mod(tex[i].u,1), mod(tex[i].v,1));
 			}
 		}
 		return k;

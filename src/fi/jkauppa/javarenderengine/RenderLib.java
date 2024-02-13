@@ -982,7 +982,7 @@ public class RenderLib {
 		float shadingmultiplier = ((float)triangleviewangle[0])/90.0f;
 		if (texuv!=null) {
 			Coordinate[] texuva = {texuv};
-			Coordinate[] texuvzero = MathLib.mod(texuva);
+			Coordinate[] texuvzero = MathLib.modTex(texuva);
 			Coordinate texuvz = texuvzero[0];
 			if (lightmaptexture!=null) {
 				int lineuvx = (int)Math.round(texuvz.u*(lightmaptexture.getWidth()-1));

@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.39");
+		this.setTitle("Java Render Engine v2.3.40");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -416,9 +416,14 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		for (int j=0;j<vppint1.length;j++) {for (int i=0;i<vppint1[j].length;i++) {System.out.print("JavaRenderEngine: main: vppint1["+j+"]["+i+"]="); if (vppint1[j][i]!=null) {System.out.print(vppint1[j][i].pos1.x+" "+vppint1[j][i].pos1.y+" "+vppint1[j][i].pos1.z+" "+vppint1[j][i].pos2.x+" "+vppint1[j][i].pos2.y+" "+vppint1[j][i].pos2.z);} else {System.out.print("equal plane."); } if (((vppint1[j][i]==vppint1okvals[j][i]))||(vppint1[j][i].equals(vppint1okvals[j][i]))) {System.out.println(" [match]");} else {System.out.println(" **no match**");} }}
 		for (int j=0;j<vppint2.length;j++) {for (int i=0;i<vppint2[j].length;i++) {System.out.print("JavaRenderEngine: main: vppint2["+j+"]["+i+"]="); if (vppint2[j][i]!=null) {System.out.print(vppint2[j][i].pos1.x+" "+vppint2[j][i].pos1.y+" "+vppint2[j][i].pos1.z+" "+vppint2[j][i].pos2.x+" "+vppint2[j][i].pos2.y+" "+vppint2[j][i].pos2.z);} else {System.out.print("equal plane."); } if (((vppint2[j][i]==vppint2okvals[j][i]))||(vppint2[j][i].equals(vppint2okvals[j][i]))) {System.out.println(" [match]");} else {System.out.println(" **no match**");} }}
 		for (int j=0;j<vppint3.length;j++) {for (int i=0;i<vppint3[j].length;i++) {System.out.print("JavaRenderEngine: main: vppint3["+j+"]["+i+"]="); if (vppint3[j][i]!=null) {System.out.print(vppint3[j][i].pos1.x+" "+vppint3[j][i].pos1.y+" "+vppint3[j][i].pos1.z+" "+vppint3[j][i].pos2.x+" "+vppint3[j][i].pos2.y+" "+vppint3[j][i].pos2.z);} else {System.out.print("equal plane."); } if (((vppint3[j][i]==vppint3okvals[j][i]))||(vppint3[j][i].equals(vppint3okvals[j][i]))) {System.out.println(" [match]");} else {System.out.println(" **no match**");} }}
+		double[] modnum = {-0.5f, 1.3f, 0.25f, 5.1f, 3.4f};
+		double[] modnumout1 = {MathLib.mod(modnum[0], 1.5f), MathLib.mod(modnum[1], 1.5f), MathLib.mod(modnum[2], 1.5f), MathLib.mod(modnum[3], 1.5f), MathLib.mod(modnum[4], 1.5f)};
+		double[] modnumout2 = {MathLib.mod(modnum[0], 2.0f), MathLib.mod(modnum[1], 2.0f), MathLib.mod(modnum[2], 2.0f), MathLib.mod(modnum[3], 2.0f), MathLib.mod(modnum[4], 2.0f)};
 		Coordinate[] texreps = {new Coordinate(0.5f, -0.4f), new Coordinate(1.5f, -1.4f)};
-		Coordinate[] texrepzero = MathLib.mod(texreps);
-		for (int i=0;i<texrepzero.length;i++) {System.out.println("JavaRenderEngine: main: texrepzero[i]="+texrepzero[i].u+" "+texrepzero[i].v);}
+		Coordinate[] texrepmodeone = MathLib.modTex(texreps);
+		for (int i=0;i<modnumout1.length;i++) {System.out.println("JavaRenderEngine: main: modnumout1[i]="+modnumout1[i]);}
+		for (int i=0;i<modnumout2.length;i++) {System.out.println("JavaRenderEngine: main: modnumout2[i]="+modnumout2[i]);}
+		for (int i=0;i<texrepmodeone.length;i++) {System.out.println("JavaRenderEngine: main: texrepmodeone[i]="+texrepmodeone[i].u+" "+texrepmodeone[i].v);}
 		Position[] rrintvpos1 = {new Position(0,0,0)};
 		Direction[] rrintvdir1 = {new Direction(1,1,0)};
 		Position[] rrintvpos2 = {new Position(1,0,0), new Position(1,0,0)};
