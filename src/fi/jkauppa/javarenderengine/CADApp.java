@@ -288,7 +288,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
-			System.out.println("CADApp: keyPressed: key INSERT: draw material color hue positive="+colorvalues[0]+" "+colorvalues[1]+" "+colorvalues[2]+" "+this.drawmat.transparency);
+			System.out.println("CADApp: keyPressed: key INSERT: draw material color hue positive: r="+colorvalues[0]+" g="+colorvalues[1]+" b="+colorvalues[2]+" tr="+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_DELETE) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[0] -= 0.01f; if (drawcolorhsb[0]<0.0f) {drawcolorhsb[0] = 1.0f;}
@@ -299,7 +299,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
-			System.out.println("CADApp: keyPressed: key DELETE: draw material color hue negative="+colorvalues[0]+" "+colorvalues[1]+" "+colorvalues[2]+" "+this.drawmat.transparency);
+			System.out.println("CADApp: keyPressed: key DELETE: draw material color hue negative: r="+colorvalues[0]+" g="+colorvalues[1]+" b="+colorvalues[2]+" tr="+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_HOME) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[1] += 0.01f; if (drawcolorhsb[1]>1.0f) {drawcolorhsb[1] = 1.0f;}
@@ -310,7 +310,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
-			System.out.println("CADApp: keyPressed: key HOME: draw material color saturation positive="+colorvalues[0]+" "+colorvalues[1]+" "+colorvalues[2]+" "+this.drawmat.transparency);
+			System.out.println("CADApp: keyPressed: key HOME: draw material color saturation positive: r="+colorvalues[0]+" g="+colorvalues[1]+" b="+colorvalues[2]+" tr="+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_END) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[1] -= 0.01f; if (drawcolorhsb[1]<0.0f) {drawcolorhsb[1] = 0.0f;}
@@ -321,7 +321,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
-			System.out.println("CADApp: keyPressed: key END: draw material color saturation negative="+colorvalues[0]+" "+colorvalues[1]+" "+colorvalues[2]+" "+this.drawmat.transparency);
+			System.out.println("CADApp: keyPressed: key END: draw material color saturation negative: r="+colorvalues[0]+" g="+colorvalues[1]+" b="+colorvalues[2]+" tr="+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_UP) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[2] += 0.01f; if (drawcolorhsb[2]>1.0f) {drawcolorhsb[2] = 1.0f;}
@@ -332,7 +332,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
-			System.out.println("CADApp: keyPressed: key PAGEUP: draw material color brightness positive="+colorvalues[0]+" "+colorvalues[1]+" "+colorvalues[2]+" "+this.drawmat.transparency);
+			System.out.println("CADApp: keyPressed: key PAGEUP: draw material color brightness positive: r="+colorvalues[0]+" g="+colorvalues[1]+" b="+colorvalues[2]+" tr="+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_DOWN) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
 			drawcolorhsb[2] -= 0.01f; if (drawcolorhsb[2]<0.0f) {drawcolorhsb[2] = 0.0f;}
@@ -343,7 +343,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
-			System.out.println("CADApp: keyPressed: key PAGEDOWN: draw material color brightness negative="+colorvalues[0]+" "+colorvalues[1]+" "+colorvalues[2]+" "+this.drawmat.transparency);
+			System.out.println("CADApp: keyPressed: key PAGEDOWN: draw material color brightness negative: r="+colorvalues[0]+" g="+colorvalues[1]+" b="+colorvalues[2]+" tr="+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_MULTIPLY) {
 			float newemissivity = this.drawmat.emissivity*1.1f; if (newemissivity<=0.0f) {newemissivity = 0.00001f;} if (newemissivity>1.0f) {newemissivity = 1.0f;}
 			float[] drawcolorcomp = this.drawmat.facecolor.getRGBComponents(new float[4]);
@@ -352,7 +352,7 @@ public class CADApp extends AppHandlerPanel {
 			float[] newemissivecolor = {drawcolorcomp[0]*newemissivity,drawcolorcomp[1]*newemissivity,drawcolorcomp[2]*newemissivity,1.0f};
 			this.drawmat.emissivecolor = new Color(newemissivecolor[0],newemissivecolor[1],newemissivecolor[2],newemissivecolor[3]);
 			(new DrawEmissiveMaterialUpdater()).start();
-			System.out.println("CADApp: keyPressed: key NUMPAD*: draw material emissivity positive="+newemissivecolor[0]+" "+newemissivecolor[1]+" "+newemissivecolor[2]+" "+this.drawmat.transparency);
+			System.out.println("CADApp: keyPressed: key NUMPAD*: draw material emissivity positive: r="+drawcolorcomp[0]+" g="+drawcolorcomp[1]+" b="+drawcolorcomp[2]+" em="+this.drawmat.emissivity);
 		} else if (e.getKeyCode()==KeyEvent.VK_DIVIDE) {
 			float newemissivity = this.drawmat.emissivity/1.1f;
 			float[] drawcolorcomp = this.drawmat.facecolor.getRGBComponents(new float[4]);
@@ -361,7 +361,7 @@ public class CADApp extends AppHandlerPanel {
 			float[] newemissivecolor = {drawcolorcomp[0]*newemissivity,drawcolorcomp[1]*newemissivity,drawcolorcomp[2]*newemissivity,1.0f};
 			this.drawmat.emissivecolor = new Color(newemissivecolor[0],newemissivecolor[1],newemissivecolor[2],newemissivecolor[3]);
 			(new DrawEmissiveMaterialUpdater()).start();
-			System.out.println("CADApp: keyPressed: key NUMPAD/: draw material emissivity negative="+newemissivecolor[0]+" "+newemissivecolor[1]+" "+newemissivecolor[2]+" "+this.drawmat.transparency);
+			System.out.println("CADApp: keyPressed: key NUMPAD/: draw material emissivity negative: r="+drawcolorcomp[0]+" g="+drawcolorcomp[1]+" b="+drawcolorcomp[2]+" em="+this.drawmat.emissivity);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD9) {
 			float newtransparency = this.drawmat.transparency+0.01f; if (newtransparency>1.0f) {newtransparency = 1.0f;}
 			float[] colorvalues = this.drawmat.facecolor.getRGBColorComponents(new float[3]);
@@ -369,7 +369,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat = this.drawmat.copy();
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.transparency = newtransparency;
-			System.out.println("CADApp: keyPressed: key NUMPAD9: draw material transparency positive="+colorvalues[0]+" "+colorvalues[1]+" "+colorvalues[2]+" "+this.drawmat.transparency);
+			System.out.println("CADApp: keyPressed: key NUMPAD9: draw material transparency positive: r="+colorvalues[0]+" g="+colorvalues[1]+" b="+colorvalues[2]+" tr="+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD8) {
 			float newtransparency = this.drawmat.transparency-0.01f; if (newtransparency<0.0f) {newtransparency = 0.0f;}
 			float[] colorvalues = this.drawmat.facecolor.getRGBColorComponents(new float[3]);
@@ -377,7 +377,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat = this.drawmat.copy();
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.transparency = newtransparency;
-			System.out.println("CADApp: keyPressed: key NUMPAD8: draw material transparency negative="+colorvalues[0]+" "+colorvalues[1]+" "+colorvalues[2]+" "+this.drawmat.transparency);
+			System.out.println("CADApp: keyPressed: key NUMPAD8: draw material transparency negative: r="+colorvalues[0]+" g="+colorvalues[1]+" b="+colorvalues[2]+" tr="+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD7) {
 			if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
 				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
@@ -392,14 +392,16 @@ public class CADApp extends AppHandlerPanel {
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD6) {
 			float newroughness = this.drawmat.roughness+0.01f; if (newroughness>1.0f) {newroughness = 1.0f;}
+			float[] drawcolorcomp = this.drawmat.facecolor.getRGBComponents(new float[4]);
 			this.drawmat = this.drawmat.copy();
 			this.drawmat.roughness = newroughness;
-			System.out.println("CADApp: keyPressed: key NUMPAD6: draw material roughness positive="+this.drawmat.roughness);
+			System.out.println("CADApp: keyPressed: key NUMPAD6: draw material roughness positive: r="+drawcolorcomp[0]+" g="+drawcolorcomp[1]+" b="+drawcolorcomp[2]+" rg="+this.drawmat.roughness);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD5) {
 			float newroughness = this.drawmat.roughness-0.01f; if (newroughness<0.0f) {newroughness = 0.0f;}
+			float[] drawcolorcomp = this.drawmat.facecolor.getRGBComponents(new float[4]);
 			this.drawmat = this.drawmat.copy();
 			this.drawmat.roughness = newroughness;
-			System.out.println("CADApp: keyPressed: key NUMPAD5: draw material roughness negative="+this.drawmat.roughness);
+			System.out.println("CADApp: keyPressed: key NUMPAD5: draw material roughness negative: r="+drawcolorcomp[0]+" g="+drawcolorcomp[1]+" b="+drawcolorcomp[2]+" rg="+this.drawmat.roughness);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD4) {
 			if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
 				Triangle[] stri = {this.mouseovertriangle[this.mouseovertriangle.length-1]};
@@ -408,14 +410,16 @@ public class CADApp extends AppHandlerPanel {
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD3) {
 			float newmetallic = this.drawmat.metallic+0.01f; if (newmetallic>1.0f) {newmetallic = 1.0f;}
+			float[] drawcolorcomp = this.drawmat.facecolor.getRGBComponents(new float[4]);
 			this.drawmat = this.drawmat.copy();
 			this.drawmat.metallic = newmetallic;
-			System.out.println("CADApp: keyPressed: key NUMPAD3: draw material metallic positive="+this.drawmat.metallic);
+			System.out.println("CADApp: keyPressed: key NUMPAD3: draw material metallic positive: r="+drawcolorcomp[0]+" g="+drawcolorcomp[1]+" b="+drawcolorcomp[2]+" mt="+this.drawmat.metallic);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD2) {
 			float newmetallic = this.drawmat.metallic-0.01f; if (newmetallic<0.0f) {newmetallic = 0.0f;}
+			float[] drawcolorcomp = this.drawmat.facecolor.getRGBComponents(new float[4]);
 			this.drawmat = this.drawmat.copy();
 			this.drawmat.metallic = newmetallic;
-			System.out.println("CADApp: keyPressed: key NUMPAD2: draw material metallic negative="+this.drawmat.metallic);
+			System.out.println("CADApp: keyPressed: key NUMPAD2: draw material metallic negative: r="+drawcolorcomp[0]+" g="+drawcolorcomp[1]+" b="+drawcolorcomp[2]+" mt="+this.drawmat.metallic);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD1) {
 	    	Triangle mousetriangle = null;
     		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
@@ -872,7 +876,7 @@ public class CADApp extends AppHandlerPanel {
 				if (mousetriangle!=null) {
 					mousetriangle.mat = this.drawmat;
 					float[] facecolorcomp = mousetriangle.mat.facecolor.getRGBComponents(new float[4]);
-					System.out.println("CADApp: mouseDragged: key DRAG-LMB: painted material color="+facecolorcomp[0]+" "+facecolorcomp[1]+" "+facecolorcomp[2]+" "+facecolorcomp[3]);
+					System.out.println("CADApp: mouseDragged: key DRAG-LMB: painted material color: r="+facecolorcomp[0]+" g="+facecolorcomp[1]+" b="+facecolorcomp[2]+" tr="+facecolorcomp[3]);
 				}
     		}
     	}
@@ -891,7 +895,7 @@ public class CADApp extends AppHandlerPanel {
 			if (mousetriangle!=null) {
 				this.drawmat = mousetriangle.mat;
 				float[] facecolorcomp = this.drawmat.facecolor.getRGBComponents(new float[4]);
-				System.out.println("CADApp: mouseDragged: key SHIFT-DRAG-LMB: selected material color="+facecolorcomp[0]+" "+facecolorcomp[1]+" "+facecolorcomp[2]+" "+facecolorcomp[3]);
+				System.out.println("CADApp: mouseDragged: key SHIFT-DRAG-LMB: selected material color: r="+facecolorcomp[0]+" g="+facecolorcomp[1]+" b="+facecolorcomp[2]+" tr="+facecolorcomp[3]);
 			}
 	    }
 	    int onmask1ctrldown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
