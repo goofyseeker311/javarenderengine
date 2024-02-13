@@ -182,7 +182,6 @@ public class RenderLib {
 					if (copytrianglelist.length>0) {
 						Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
 						Plane[] copytriangleplanelist = MathLib.trianglePlane(copytrianglelist);
-						RenderView[] copytrianglecameralist = MathLib.surfaceMirrorProjectedCamera(campos, copytriangleplanelist, viewrot);
 						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
 						Integer[] sortedtrianglespherelistind = UtilLib.objectIndexSort(copytrianglespherelist, distcomp);
 						Direction[] copyviewtrianglespheredir = MathLib.vectorFromPoints(campos, copytrianglespherelist);
@@ -191,9 +190,9 @@ public class RenderLib {
 							int it = sortedtrianglespherelistind[i];
 							Triangle[] copytriangle = {copytrianglelist[it]};
 							if (!copytriangle[0].equals(nodrawtriangle)) {
-								Direction copytrianglenormal = copytrianglenormallist[it];
+								Direction[] copytrianglenormal = {copytrianglenormallist[it]};
+								Plane[] copytriangleplane = {copytriangleplanelist[it]};
 								Direction copytriangledir = copyviewtrianglespheredir[it];
-								RenderView copytrianglecamera = copytrianglecameralist[it];
 								Coordinate coord1 = copytrianglelistcoords[it][0];
 								Coordinate coord2 = copytrianglelistcoords[it][1];
 								Coordinate coord3 = copytrianglelistcoords[it][2];
@@ -216,21 +215,32 @@ public class RenderLib {
 									if (mouseoverhit) {
 										mouseoverhittriangle.add(copytrianglelist[it]);
 									}
-									Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal, null, copytriangledir, unlit);
+									Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal[0], null, copytriangledir, unlit);
 									if (trianglecolor!=null) {
 										g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));										
 										g2.setColor(trianglecolor);
 										g2.fill(trianglepolygon);
-										if ((bounces>0)&&(copytrianglecamera!=null)&&(copytriangle[0].mat.metallic>0.0f)) {
-											Rectangle mirrordrawrange = trianglepolygon.getBounds();
-											mirrordrawrange.setLocation((renderwidth-1)-mirrordrawrange.x-mirrordrawrange.width, mirrordrawrange.y);
-											RenderView mirrorview = renderProjectedPolygonViewHardware(copytrianglecamera.pos, entitylist, renderwidth, hfov, renderheight, vfov, copytrianglecamera.rot, unlit, bounces-1, copytrianglecamera.surf, copytriangle[0], mirrordrawrange, mouselocationx, mouselocationy);
-											VolatileImage mirrorimage = UtilLib.flipImage(mirrorview.renderimage, true, false);
-											g2.setClip(null);
-											g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, copytriangle[0].mat.metallic));
-											g2.clip(trianglepolygon);
-											g2.drawImage(mirrorimage, 0, 0, null);
-											g2.setClip(null);
+										if ((bounces>0)&&(copytriangle[0].mat.metallic>0.0f)) {
+											double[] camfwddirposnormangle = MathLib.vectorAngle(renderview.dirs[0], copytrianglenormal);
+											if ((copytriangle[0].norm.isZero())||(camfwddirposnormangle[0]>=90.0f)) {
+												Plane[] vsurf = copytriangleplane;
+												if (camfwddirposnormangle[0]<90.0f) {
+													Plane[] newvsurf = {vsurf[0].invert()};
+													vsurf = newvsurf;
+												}
+												RenderView[] copytrianglecamera = MathLib.surfaceMirrorProjectedCamera(campos, vsurf, hfov, vfov, viewrot);
+												if (copytrianglecamera[0]!=null) {
+													Rectangle mirrordrawrange = trianglepolygon.getBounds();
+													mirrordrawrange.setLocation((renderwidth-1)-mirrordrawrange.x-mirrordrawrange.width, mirrordrawrange.y);
+													RenderView mirrorview = renderProjectedPolygonViewHardware(copytrianglecamera[0].pos, entitylist, renderwidth, copytrianglecamera[0].hfov, renderheight, copytrianglecamera[0].vfov, copytrianglecamera[0].rot, unlit, bounces-1, copytrianglecamera[0].surf, copytriangle[0], mirrordrawrange, mouselocationx, mouselocationy);
+													VolatileImage mirrorimage = UtilLib.flipImage(mirrorview.renderimage, true, false);
+													g2.setClip(null);
+													g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, copytriangle[0].mat.metallic));
+													g2.clip(trianglepolygon);
+													g2.drawImage(mirrorimage, 0, 0, null);
+													g2.setClip(null);
+												}
+											}
 										}
 									}
 								}
@@ -899,7 +909,7 @@ public class RenderLib {
 		Position[] mirrorpos = MathLib.translate(camposa, camdirs[0], 1.0d);
 		Plane[] mirrorplanes = MathLib.planeFromNormalAtPoint(mirrorpos[0], camdirs);
 		Plane[] cammirrorplane = {mirrorplanes[0].invert()};
-		RenderView[] mirrorcamera = MathLib.surfaceMirrorProjectedCamera(campos, cammirrorplane, viewrot);
+		RenderView[] mirrorcamera = MathLib.surfaceMirrorProjectedCamera(campos, cammirrorplane, hfov, vfov, viewrot);
 		ArrayList<Entity> mirrorentitylistarray = new ArrayList<Entity>();
 		if ((entitylist!=null)&&(entitylist.length>0)) {
 			Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
@@ -972,7 +982,7 @@ public class RenderLib {
 		float shadingmultiplier = ((float)triangleviewangle[0])/90.0f;
 		if (texuv!=null) {
 			Coordinate[] texuva = {texuv};
-			Coordinate[] texuvzero = MathLib.zeroMod(texuva);
+			Coordinate[] texuvzero = MathLib.mod(texuva);
 			Coordinate texuvz = texuvzero[0];
 			if (lightmaptexture!=null) {
 				int lineuvx = (int)Math.round(texuvz.u*(lightmaptexture.getWidth()-1));

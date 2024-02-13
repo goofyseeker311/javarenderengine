@@ -160,7 +160,7 @@ public class ModelLib {
 		public Plane surf;
 		public int renderwidth=0, renderheight=0;
 		public int rendersize=0;
-		public double hfov=0.0f, vfov=43.0f;
+		public double hfov=0.0f, vfov=0.0f;
 		public boolean rendered = false;
 		public boolean unlit = false;
 		public Direction[] dirs;
