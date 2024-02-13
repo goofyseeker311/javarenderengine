@@ -351,8 +351,8 @@ public class CADApp extends AppHandlerPanel {
 			float[] newemissivecolor = {drawcolorcomp[0]*newemissivity,drawcolorcomp[1]*newemissivity,drawcolorcomp[2]*newemissivity,1.0f};
 			this.drawmat.emissivecolor = new Color(newemissivecolor[0],newemissivecolor[1],newemissivecolor[2],newemissivecolor[3]);
 			if (this.drawmat.fileimage!=null) {
-				VolatileImage emissivefileimage = gc.createCompatibleVolatileImage(this.drawmat.fileimage.getWidth(), this.drawmat.fileimage.getHeight(), Transparency.TRANSLUCENT);
-				Graphics2D emgfx = emissivefileimage.createGraphics();
+				this.drawmat.emissivefileimage = gc.createCompatibleVolatileImage(this.drawmat.fileimage.getWidth(), this.drawmat.fileimage.getHeight(), Transparency.TRANSLUCENT);
+				Graphics2D emgfx = this.drawmat.emissivefileimage.createGraphics();
 				emgfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, newemissivity));
 				emgfx.drawImage(this.drawmat.fileimage, 0, 0, null);
 				emgfx.dispose();
@@ -366,8 +366,8 @@ public class CADApp extends AppHandlerPanel {
 			float[] newemissivecolor = {drawcolorcomp[0]*newemissivity,drawcolorcomp[1]*newemissivity,drawcolorcomp[2]*newemissivity,1.0f};
 			this.drawmat.emissivecolor = new Color(newemissivecolor[0],newemissivecolor[1],newemissivecolor[2],newemissivecolor[3]);
 			if (this.drawmat.fileimage!=null) {
-				VolatileImage emissivefileimage = gc.createCompatibleVolatileImage(this.drawmat.fileimage.getWidth(), this.drawmat.fileimage.getHeight(), Transparency.TRANSLUCENT);
-				Graphics2D emgfx = emissivefileimage.createGraphics();
+				this.drawmat.emissivefileimage = gc.createCompatibleVolatileImage(this.drawmat.fileimage.getWidth(), this.drawmat.fileimage.getHeight(), Transparency.TRANSLUCENT);
+				Graphics2D emgfx = this.drawmat.emissivefileimage.createGraphics();
 				emgfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, newemissivity));
 				emgfx.drawImage(this.drawmat.fileimage, 0, 0, null);
 				emgfx.dispose();
