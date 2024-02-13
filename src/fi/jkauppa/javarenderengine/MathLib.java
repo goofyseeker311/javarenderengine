@@ -2422,10 +2422,11 @@ public class MathLib {
 					double refmult = refcamposcamrgtplanedist[0][0]>=0.0f?1.0f:-1.0f;
 					Matrix refractionmat = rotationMatrixAroundAxis(camdirs[1], refmult*camrefcamvertangle[0]);
 					Matrix viewrotrefraction = matrixMultiply(refractionmat, viewrot);
+					double refcamhfov = 2.0f*MathLib.atand((((double)renderwidth)/((double)renderheight))*MathLib.tand(refcamvfov/2.0f));
 					k[i] = new RenderView();
 					k[i].rot = viewrotrefraction;
 					k[i].pos = camposrefraction[0];
-					k[i].hfov = hfov;
+					k[i].hfov = refcamhfov;
 					k[i].vfov = refcamvfov;
 					k[i].surf = vsurf[i];
 				}
