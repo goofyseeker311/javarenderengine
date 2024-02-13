@@ -217,47 +217,49 @@ public class RenderLib {
 									}
 									Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal[0], null, copytriangledir, unlit);
 									if (trianglecolor!=null) {
-										if (copytriangle[0].mat.transparency<1.0f) {
-											g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 1.0f));
+										if (copytriangle[0].norm.isZero()) {
+											g2.setComposite(AlphaComposite.SrcOver);
 										} else {
-											g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+											g2.setComposite(AlphaComposite.Src);
 										}
 										g2.setColor(trianglecolor);
 										g2.fill(trianglepolygon);
 										if (bounces>0) {
 											double[] camfwddirposnormangle = MathLib.vectorAngle(copytriangledir, copytrianglenormal);
-											if ((copytriangle[0].norm.isZero())||(camfwddirposnormangle[0]>=90.0f)) {
-												Plane[] vsurf = copytriangleplane;
-												if (camfwddirposnormangle[0]<90.0f) {
-													Plane[] newvsurf = {vsurf[0].invert()};
-													vsurf = newvsurf;
+											float refrindex1 = 1.0f;
+											float refrindex2 = copytriangle[0].mat.refraction;
+											Plane[] vsurf = copytriangleplane;
+											if (camfwddirposnormangle[0]<90.0f) {
+												Plane[] newvsurf = {vsurf[0].invert()};
+												vsurf = newvsurf;
+												refrindex1 = copytriangle[0].mat.refraction;
+												refrindex2 = 1.0f;
+											}
+											if ((copytriangle[0].mat.transparency<1.0f)&&(!copytriangle[0].norm.isZero())) {
+												RenderView[] refractioncamera = MathLib.surfaceRefractionProjectedCamera(campos, vsurf, renderwidth, hfov, renderheight, vfov, viewrot, refrindex1, refrindex2);
+												if ((refractioncamera[0]!=null)&&(refractioncamera[0].pos.isFinite())) {
+													Rectangle refractiondrawrange = trianglepolygon.getBounds();
+													RenderView refractionview = renderProjectedPolygonViewHardware(refractioncamera[0].pos, entitylist, renderwidth, refractioncamera[0].hfov, renderheight, refractioncamera[0].vfov, refractioncamera[0].rot, unlit, bounces-1, refractioncamera[0].surf.invert(), copytriangle[0], refractiondrawrange, mouselocationx, mouselocationy);
+													VolatileImage refractionimage = refractionview.renderimage;
+													g2.setClip(null);
+													g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, copytriangle[0].mat.transparency));
+													g2.clip(trianglepolygon);
+													g2.drawImage(refractionimage, 0, 0, null);
+													g2.setClip(null);
 												}
-												if (copytriangle[0].mat.transparency<1.0f) {
-													RenderView[] refractioncamera = MathLib.surfaceRefractionProjectedCamera(campos, vsurf, renderwidth, hfov, renderheight, vfov, viewrot, 1.0f, copytriangle[0].mat.refraction);
-													if (refractioncamera[0]!=null) {
-														Rectangle refractiondrawrange = trianglepolygon.getBounds();
-														RenderView refractionview = renderProjectedPolygonViewHardware(refractioncamera[0].pos, entitylist, renderwidth, refractioncamera[0].hfov, renderheight, refractioncamera[0].vfov, refractioncamera[0].rot, unlit, bounces-1, refractioncamera[0].surf.invert(), copytriangle[0], refractiondrawrange, mouselocationx, mouselocationy);
-														VolatileImage refractionimage = refractionview.renderimage;
-														g2.setClip(null);
-														g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, copytriangle[0].mat.transparency));
-														g2.clip(trianglepolygon);
-														g2.drawImage(refractionimage, 0, 0, null);
-														g2.setClip(null);
-													}
-												}
-												if (copytriangle[0].mat.metallic>0.0f) {
-													RenderView[] mirrorcamera = MathLib.surfaceMirrorProjectedCamera(campos, vsurf, hfov, vfov, viewrot);
-													if (mirrorcamera[0]!=null) {
-														Rectangle mirrordrawrange = trianglepolygon.getBounds();
-														mirrordrawrange.setLocation((renderwidth-1)-mirrordrawrange.x-mirrordrawrange.width, mirrordrawrange.y);
-														RenderView mirrorview = renderProjectedPolygonViewHardware(mirrorcamera[0].pos, entitylist, renderwidth, mirrorcamera[0].hfov, renderheight, mirrorcamera[0].vfov, mirrorcamera[0].rot, unlit, bounces-1, mirrorcamera[0].surf, copytriangle[0], mirrordrawrange, mouselocationx, mouselocationy);
-														VolatileImage mirrorimage = UtilLib.flipImage(mirrorview.renderimage, true, false);
-														g2.setClip(null);
-														g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, copytriangle[0].mat.metallic));
-														g2.clip(trianglepolygon);
-														g2.drawImage(mirrorimage, 0, 0, null);
-														g2.setClip(null);
-													}
+											}
+											if (copytriangle[0].mat.metallic>0.0f) {
+												RenderView[] mirrorcamera = MathLib.surfaceMirrorProjectedCamera(campos, vsurf, hfov, vfov, viewrot);
+												if ((mirrorcamera[0]!=null)&&(mirrorcamera[0].pos.isFinite())) {
+													Rectangle mirrordrawrange = trianglepolygon.getBounds();
+													mirrordrawrange.setLocation((renderwidth-1)-mirrordrawrange.x-mirrordrawrange.width, mirrordrawrange.y);
+													RenderView mirrorview = renderProjectedPolygonViewHardware(mirrorcamera[0].pos, entitylist, renderwidth, mirrorcamera[0].hfov, renderheight, mirrorcamera[0].vfov, mirrorcamera[0].rot, unlit, bounces-1, mirrorcamera[0].surf, copytriangle[0], mirrordrawrange, mouselocationx, mouselocationy);
+													VolatileImage mirrorimage = UtilLib.flipImage(mirrorview.renderimage, true, false);
+													g2.setClip(null);
+													g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, copytriangle[0].mat.metallic));
+													g2.clip(trianglepolygon);
+													g2.drawImage(mirrorimage, 0, 0, null);
+													g2.setClip(null);
 												}
 											}
 										}
