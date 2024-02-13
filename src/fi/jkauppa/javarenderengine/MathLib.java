@@ -2281,15 +2281,15 @@ public class MathLib {
 		return gridstep*(int)Math.round(((double)coordinate)/((double)gridstep));
 	}
 	
-	public static double zeroMod(double val) {
+	public static double mod(double val) {
 		return val-Math.floor(val);
 	}
-	public static Coordinate[] zeroMod(Coordinate[] tex) {
+	public static Coordinate[] mod(Coordinate[] tex) {
 		Coordinate[] k = null;
 		if (tex!=null) {
 			k = new Coordinate[tex.length];
 			for (int i=0;i<tex.length;i++) {
-				k[i] = new Coordinate(zeroMod(tex[i].u), zeroMod(tex[i].v));
+				k[i] = new Coordinate(mod(tex[i].u), mod(tex[i].v));
 			}
 		}
 		return k;
@@ -2311,7 +2311,7 @@ public class MathLib {
 		Plane[]  k = null;
 		return k;
 	}
-	public static RenderView[] surfaceMirrorProjectedCamera(Position campos, Plane[] vsurf, Matrix viewrot) {
+	public static RenderView[] surfaceMirrorProjectedCamera(Position campos, Plane[] vsurf, double hfov, double vfov, Matrix viewrot) {
 		RenderView[] k = null;
 		if ((vsurf!=null)&&(campos!=null)) {
 			k = new RenderView[vsurf.length];
@@ -2344,6 +2344,8 @@ public class MathLib {
 					k[i] = new RenderView();
 					k[i].rot = viewrotmirror;
 					k[i].pos = camposmirror[0];
+					k[i].hfov = hfov;
+					k[i].vfov = vfov;
 					k[i].surf = vsurf[i];
 				}
 			}
@@ -2351,10 +2353,10 @@ public class MathLib {
 		return k;
 	}
 	public static RenderView[] surfaceRefractionProjectedCamera(Position campos, Plane[] vsurf, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, double refraction1, double refraction2) {
+		//TODO correct output view rotation matrix and camera hfov
 		RenderView[] k = null;
 		if ((vsurf!=null)&&(campos!=null)) {
 			k = new RenderView[vsurf.length];
-			//double halfhfov = hfov/2.0f;
 			double halfvfov = vfov/2.0f;
 			Position[] camposa = {campos};
 			double[] cameraangles = {-halfvfov, halfvfov};
@@ -2369,31 +2371,52 @@ public class MathLib {
 				if ((camfwdvsufrint[0][i]!=null)&&(ppint[0][i]!=null)&&(camfwdvsufrint[0][i].isFinite())&&(ppint[0][i].isFinite())) {
 					Line[] ppintline = {ppint[0][i]};
 					Direction[] vsurfnormal = {vsurfnorm[i]};
+					vsurfnormal = normalizeVector(vsurfnormal);
+					double[] camfwddirposnormangle = vectorAngle(camfwddir, vsurfnormal);
+					if (camfwddirposnormangle[0]<90.0f) {
+						Direction[] newvsurfnormal = {vsurfnormal[0].invert()};
+						vsurfnormal = newvsurfnormal;
+					}
 					Direction[] ppintlinedir = vectorFromPoints(ppintline);
 					Position[] camfwdvsurfpos = {camfwdvsufrint[0][i]};
 					Position[] camfwdvsurfpos2 = translate(camfwdvsurfpos,ppintlinedir[0],1.0f);
 					Line[] centerheightline = {new Line(camfwdvsurfpos[0], camfwdvsurfpos2[0])};
 					double[][] linelen = linearAngleLengthInterpolation(campos, centerheightline, cameraangles);
-					Position[] camfwdvsurfend1 = translate(camfwdvsurfpos,ppintlinedir[0],linelen[0][0]);
-					Position[] camfwdvsurfend2 = translate(camfwdvsurfpos,ppintlinedir[0],linelen[0][1]);
-					Direction[] camposfwddir1 = vectorFromPoints(camposa, camfwdvsurfend1);
-					Direction[] camposfwddir2 = vectorFromPoints(camposa, camfwdvsurfend2);
-					//Direction[] camposfwddir1inv = {camposfwddir1[0].invert()};
-					//Direction[] camposfwddir2inv = {camposfwddir2[0].invert()};
-					//Direction[] camfwddir12 = vectorFromPoints(camfwdvsurfend1, camfwdvsurfend2);
-					//Direction[] camfwddir12inv = {camfwddir12[0].invert()};
-					double[] camfwddirangle12 = vectorAngle(camposfwddir1, camposfwddir2);
-					//double[] camfwddiranglepos1 = vectorAngle(camposfwddir1inv, camfwddir12);
-					//double[] camfwddiranglepos2 = vectorAngle(camposfwddir2inv, camfwddir12inv);
-					double[] camfwddiranglepos1 = vectorAngle(camposfwddir1, vsurfnormal);
-					double[] camfwddiranglepos2 = vectorAngle(camposfwddir2, vsurfnormal);
-					double fwdangle1 = camfwddiranglepos1[0]>90.0f?180.0f-camfwddiranglepos1[0]:camfwddiranglepos1[0];
-					double fwdangle2 = camfwddiranglepos2[0]>90.0f?180.0f-camfwddiranglepos2[0]:camfwddiranglepos2[0];
-					double fwdangleout1 = asind((refraction1/refraction2)*sind(fwdangle1));
-					double fwdangleout2 = asind((refraction1/refraction2)*sind(fwdangle2));
-					double reffwdangle1 = 90.0f - fwdangleout1;
-					double reffwdangle2 = 90.0f - fwdangleout2;
+					Position[] camfwdvsurfendpos1 = translate(camfwdvsurfpos,ppintlinedir[0],linelen[0][0]);
+					Position[] camfwdvsurfendpos2 = translate(camfwdvsurfpos,ppintlinedir[0],linelen[0][1]);
+					Direction[] camfwdvsurfendposdir1 = vectorFromPoints(camposa, camfwdvsurfendpos1);
+					Direction[] camfwdvsurfendposdir2 = vectorFromPoints(camposa, camfwdvsurfendpos2);
+					Direction[] camfwdenddir12 = vectorFromPoints(camfwdvsurfendpos1, camfwdvsurfendpos2);
+					Direction[] camfwdenddir12inv = {camfwdenddir12[0].invert()};
+					Direction[] camfwdenddir12invn = normalizeVector(camfwdenddir12inv);
+					double[] camfwdenddir12len = vectorLength(camfwdenddir12);
+					Plane[] camfwdvsurfendposplane1 = planeFromNormalAtPoint(camfwdvsurfendpos1, camfwdenddir12);
+					Plane[] camfwdvsurfendposplane2 = planeFromNormalAtPoint(camfwdvsurfendpos2, camfwdenddir12inv);
+					double[][] camplane1dist = planePointDistance(camposa, camfwdvsurfendposplane1);
+					double[][] camplane2dist = planePointDistance(camposa, camfwdvsurfendposplane2);
+					double[] camfwddirposnormangle1 = vectorAngle(camfwdvsurfendposdir1, vsurfnormal);
+					double[] camfwddirposnormangle2 = vectorAngle(camfwdvsurfendposdir2, vsurfnormal);
+					double fwdendangle1 = camfwddirposnormangle1[0]>90.0f?180.0f-camfwddirposnormangle1[0]:camfwddirposnormangle1[0];
+					double fwdendangle2 = camfwddirposnormangle2[0]>90.0f?180.0f-camfwddirposnormangle2[0]:camfwddirposnormangle2[0];
+					double fwdoutangle1 = asind((refraction1/refraction2)*sind(fwdendangle1));
+					double fwdoutangle2 = asind((refraction1/refraction2)*sind(fwdendangle2));
+					double reffwdanglemult1 = camplane1dist[0][0]>0.0f?1.0f:-1.0f;
+					double reffwdanglemult2 = camplane2dist[0][0]>0.0f?1.0f:-1.0f;
+					double reffwdangle1 = 90.0f - fwdoutangle1*reffwdanglemult1;
+					double reffwdangle2 = 90.0f - fwdoutangle2*reffwdanglemult2;
 					double refcamvfov = 180.0f - reffwdangle1 - reffwdangle2;
+					double reffwdend2len = sind(reffwdangle1)/sind(refcamvfov)*camfwdenddir12len[0];
+					double refdir12len = reffwdend2len*cosd(reffwdangle2);
+					double refnormlen = reffwdend2len*sind(reffwdangle2);
+					Position[] camposrefraction = camfwdvsurfendpos2;
+					camposrefraction = translate(camposrefraction,camfwdenddir12invn[0],refdir12len);
+					camposrefraction = translate(camposrefraction,vsurfnormal[0],refnormlen);
+					k[i] = new RenderView();
+					k[i].rot = rotationMatrix(0,0,0);
+					k[i].pos = camposrefraction[0];
+					k[i].hfov = 0.0f;
+					k[i].vfov = refcamvfov;
+					k[i].surf = vsurf[i];
 				}
 			}
 		}
