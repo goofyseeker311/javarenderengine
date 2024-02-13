@@ -1071,6 +1071,7 @@ public class RenderLib {
 							Sphere[] trianglespherelist = MathLib.triangleInSphere(entitylist[j].trianglelist);
 							for (int i=0;i<entitylist[j].trianglelist.length;i++) {
 								if (entitylist[j].trianglelist[i]!=null) {
+									float triangleroughnessmult = 1.0f-entitylist[j].trianglelist[i].mat.roughness;
 									Sphere[] trianglesphere = {trianglespherelist[i]};
 									Position[] trianglespherepoint = MathLib.sphereVertexList(trianglesphere);
 									RenderView p4pixelview = renderCubemapView(trianglespherepoint[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, rendermode, bounces, null, entitylist[j].trianglelist[i], null, 0, 0);
@@ -1102,9 +1103,9 @@ public class RenderLib {
 											}
 										}
 									}
-									float p4pixelrt = multiplier*p4pixelr/(float)Math.pow(pixelcount,l+1);
-									float p4pixelgt = multiplier*p4pixelg/(float)Math.pow(pixelcount,l+1);
-									float p4pixelbt = multiplier*p4pixelb/(float)Math.pow(pixelcount,l+1);
+									float p4pixelrt = multiplier*triangleroughnessmult*p4pixelr/(float)Math.pow(pixelcount,l+1);
+									float p4pixelgt = multiplier*triangleroughnessmult*p4pixelg/(float)Math.pow(pixelcount,l+1);
+									float p4pixelbt = multiplier*triangleroughnessmult*p4pixelb/(float)Math.pow(pixelcount,l+1);
 									if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
 									if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
 									if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
@@ -1168,6 +1169,7 @@ public class RenderLib {
 							Sphere[] trianglespherelist = MathLib.triangleInSphere(entitylist[j].trianglelist);
 							for (int i=0;i<entitylist[j].trianglelist.length;i++) {
 								if (entitylist[j].trianglelist[i]!=null) {
+									float triangleroughnessmult = 1.0f-entitylist[j].trianglelist[i].mat.roughness;
 									Sphere[] trianglesphere = {trianglespherelist[i]};
 									Position[] trianglespherepoint = MathLib.sphereVertexList(trianglesphere);
 									RenderView p4pixelview = renderCubemapView(trianglespherepoint[0], entitylist, rendersize*3, rendersize*2, rendersize, MathLib.rotationMatrix(0, 0, 0), true, rendermode, bounces, null, entitylist[j].trianglelist[i], null, 0, 0);
@@ -1199,9 +1201,9 @@ public class RenderLib {
 											}
 										}
 									}
-									float p4pixelrt = multiplier*p4pixelr/(float)Math.pow(pixelcount,l+1);
-									float p4pixelgt = multiplier*p4pixelg/(float)Math.pow(pixelcount,l+1);
-									float p4pixelbt = multiplier*p4pixelb/(float)Math.pow(pixelcount,l+1);
+									float p4pixelrt = multiplier*triangleroughnessmult*p4pixelr/(float)Math.pow(pixelcount,l+1);
+									float p4pixelgt = multiplier*triangleroughnessmult*p4pixelg/(float)Math.pow(pixelcount,l+1);
+									float p4pixelbt = multiplier*triangleroughnessmult*p4pixelb/(float)Math.pow(pixelcount,l+1);
 									if (p4pixelrt>1.0f) {p4pixelrt=1.0f;}
 									if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
 									if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
