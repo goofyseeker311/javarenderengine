@@ -50,7 +50,7 @@ public class ModelLib {
 		public float specularexp = 250.0f;
 		public float emissivity = 0.0f;
 		public float transparency = 1.0f;
-		public float roughness = 1.0f;
+		public float roughness = 0.0f;
 		public float metallic = 0.0f;
 		public float sheen = 0.0f;
 		public float coatthickness = 0.0f;
