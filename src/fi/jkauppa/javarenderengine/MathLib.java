@@ -2353,7 +2353,6 @@ public class MathLib {
 		return k;
 	}
 	public static RenderView[] surfaceRefractionProjectedCamera(Position campos, Plane[] vsurf, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, float refraction1, float refraction2) {
-		//TODO correct output view rotation matrix and camera hfov
 		RenderView[] k = null;
 		if ((vsurf!=null)&&(campos!=null)) {
 			k = new RenderView[vsurf.length];
