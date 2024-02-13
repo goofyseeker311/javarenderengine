@@ -12,7 +12,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -351,7 +350,13 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.emissivity = newemissivity;
 			float[] newemissivecolor = {drawcolorcomp[0]*newemissivity,drawcolorcomp[1]*newemissivity,drawcolorcomp[2]*newemissivity,1.0f};
 			this.drawmat.emissivecolor = new Color(newemissivecolor[0],newemissivecolor[1],newemissivecolor[2],newemissivecolor[3]);
-			(new DrawEmissiveMaterialUpdater()).start();
+			if (this.drawmat.fileimage!=null) {
+				VolatileImage emissivefileimage = gc.createCompatibleVolatileImage(this.drawmat.fileimage.getWidth(), this.drawmat.fileimage.getHeight(), Transparency.TRANSLUCENT);
+				Graphics2D emgfx = emissivefileimage.createGraphics();
+				emgfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, newemissivity));
+				emgfx.drawImage(this.drawmat.fileimage, 0, 0, null);
+				emgfx.dispose();
+			}
 			System.out.println("CADApp: keyPressed: key NUMPAD*: draw material emissivity positive: r="+drawcolorcomp[0]+" g="+drawcolorcomp[1]+" b="+drawcolorcomp[2]+" em="+this.drawmat.emissivity);
 		} else if (e.getKeyCode()==KeyEvent.VK_DIVIDE) {
 			float newemissivity = this.drawmat.emissivity/1.1f;
@@ -360,7 +365,13 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.emissivity = newemissivity;
 			float[] newemissivecolor = {drawcolorcomp[0]*newemissivity,drawcolorcomp[1]*newemissivity,drawcolorcomp[2]*newemissivity,1.0f};
 			this.drawmat.emissivecolor = new Color(newemissivecolor[0],newemissivecolor[1],newemissivecolor[2],newemissivecolor[3]);
-			(new DrawEmissiveMaterialUpdater()).start();
+			if (this.drawmat.fileimage!=null) {
+				VolatileImage emissivefileimage = gc.createCompatibleVolatileImage(this.drawmat.fileimage.getWidth(), this.drawmat.fileimage.getHeight(), Transparency.TRANSLUCENT);
+				Graphics2D emgfx = emissivefileimage.createGraphics();
+				emgfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, newemissivity));
+				emgfx.drawImage(this.drawmat.fileimage, 0, 0, null);
+				emgfx.dispose();
+			}
 			System.out.println("CADApp: keyPressed: key NUMPAD/: draw material emissivity negative: r="+drawcolorcomp[0]+" g="+drawcolorcomp[1]+" b="+drawcolorcomp[2]+" em="+this.drawmat.emissivity);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD9) {
 			float newtransparency = this.drawmat.transparency+0.01f; if (newtransparency>1.0f) {newtransparency = 1.0f;}
@@ -1239,38 +1250,6 @@ public class CADApp extends AppHandlerPanel {
 					RenderLib.renderSurfaceFaceLightmapCubemapView(CADApp.this.entitylist, 32, bounces, 2);
 				}
 				EntityLightMapUpdater.entitylightmapupdaterrunning = false;
-			}
-		}
-	}
-
-	private class DrawEmissiveMaterialUpdater extends Thread {
-		private static boolean drawemissivematerialupdaterrunning = false;
-		public void run() {
-			if (!DrawEmissiveMaterialUpdater.drawemissivematerialupdaterrunning) {
-				DrawEmissiveMaterialUpdater.drawemissivematerialupdaterrunning = true;
-				if (CADApp.this.drawmat.fileimage!=null) {
-					VolatileImage fileimage = CADApp.this.drawmat.fileimage;
-					BufferedImage snapimage = CADApp.this.drawmat.snapimage;
-					float newemissivity = CADApp.this.drawmat.emissivity;
-					VolatileImage emissivefileimage = gc.createCompatibleVolatileImage(fileimage.getWidth(), fileimage.getHeight(), Transparency.TRANSLUCENT);
-					Graphics2D emgfx = emissivefileimage.createGraphics();
-					emgfx.setComposite(AlphaComposite.Src);
-					emgfx.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
-					emgfx.fillRect(0, 0, emissivefileimage.getWidth(), emissivefileimage.getHeight());
-					for (int j=0;j<snapimage.getHeight();j++) {
-						for (int i=0;i<snapimage.getWidth();i++) {
-							Color pixelcolor = new Color(snapimage.getRGB(i, j));
-							float[] pixelcolorcomp = pixelcolor.getRGBComponents(new float[4]);
-							float[] emissivepixelcolorcomp = {pixelcolorcomp[0]*newemissivity,pixelcolorcomp[1]*newemissivity,pixelcolorcomp[2]*newemissivity,1.0f}; 
-							Color emissivepixelcolor = new Color(emissivepixelcolorcomp[0],emissivepixelcolorcomp[1],emissivepixelcolorcomp[2],1.0f);
-							emgfx.setColor(emissivepixelcolor);
-							emgfx.drawLine(i, j, i, j);
-						}
-					}
-					CADApp.this.drawmat.emissivefileimage = emissivefileimage;
-					CADApp.this.drawmat.emissivesnapimage = emissivefileimage.getSnapshot();
-				}
-				DrawEmissiveMaterialUpdater.drawemissivematerialupdaterrunning = false;
 			}
 		}
 	}

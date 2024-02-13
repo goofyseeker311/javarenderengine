@@ -62,7 +62,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.3.41");
+		this.setTitle("Java Render Engine v2.3.42");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -376,8 +376,10 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Plane[] smpcplanes = MathLib.trianglePlane(smpctris);
 		RenderView[] smpc = MathLib.surfaceMirrorProjectedCamera(smpcpos[0], smpcplanes, 90, 90, smpcrot);
 		RenderView[] srpc = MathLib.surfaceRefractionProjectedCamera(smpcpos[0], smpcplanes, 64, 90, 64, 90, smpcrot, 1.0f, 1.45f);
+		RenderView[] srpc2 = MathLib.surfaceRefractionProjectedCamera(smpcpos[0], smpcplanes, 64, 90, 64, 90, smpcrot, 1.45f, 1.0f);
 		for (int i=0;i<smpc.length;i++) {if (smpc[i]!=null) {System.out.println("JavaRenderEngine: main: smpc["+i+"] pos="+smpc[i].pos.x+" "+smpc[i].pos.y+" "+smpc[i].pos.z+" hfov="+smpc[i].hfov+" vfov="+smpc[i].vfov);System.out.println("JavaRenderEngine: main: smpc["+i+"] a1="+smpc[i].rot.a11+" "+smpc[i].rot.a12+" "+smpc[i].rot.a13);System.out.println("JavaRenderEngine: main: smpc["+i+"] a2="+smpc[i].rot.a21+" "+smpc[i].rot.a22+" "+smpc[i].rot.a23);System.out.println("JavaRenderEngine: main: smpc["+i+"] a3="+smpc[i].rot.a31+" "+smpc[i].rot.a32+" "+smpc[i].rot.a33);} else {System.out.println("JavaRenderEngine: main: smpc["+i+"]=not visible.");}}
 		for (int i=0;i<srpc.length;i++) {if (srpc[i]!=null) {System.out.println("JavaRenderEngine: main: srpc["+i+"] pos="+srpc[i].pos.x+" "+srpc[i].pos.y+" "+srpc[i].pos.z+" hfov="+srpc[i].hfov+" vfov="+srpc[i].vfov);System.out.println("JavaRenderEngine: main: srpc["+i+"] a1="+srpc[i].rot.a11+" "+srpc[i].rot.a12+" "+srpc[i].rot.a13);System.out.println("JavaRenderEngine: main: srpc["+i+"] a2="+srpc[i].rot.a21+" "+srpc[i].rot.a22+" "+srpc[i].rot.a23);System.out.println("JavaRenderEngine: main: srpc["+i+"] a3="+srpc[i].rot.a31+" "+srpc[i].rot.a32+" "+srpc[i].rot.a33);} else {System.out.println("JavaRenderEngine: main: srpc["+i+"]=not visible.");}}
+		for (int i=0;i<srpc2.length;i++) {if (srpc2[i]!=null) {System.out.println("JavaRenderEngine: main: srpc2["+i+"] pos="+srpc2[i].pos.x+" "+srpc2[i].pos.y+" "+srpc2[i].pos.z+" hfov="+srpc2[i].hfov+" vfov="+srpc2[i].vfov);System.out.println("JavaRenderEngine: main: srpc2["+i+"] a1="+srpc2[i].rot.a11+" "+srpc2[i].rot.a12+" "+srpc2[i].rot.a13);System.out.println("JavaRenderEngine: main: srpc2["+i+"] a2="+srpc2[i].rot.a21+" "+srpc2[i].rot.a22+" "+srpc2[i].rot.a23);System.out.println("JavaRenderEngine: main: srpc2["+i+"] a3="+srpc2[i].rot.a31+" "+srpc2[i].rot.a32+" "+srpc2[i].rot.a33);} else {System.out.println("JavaRenderEngine: main: srpc2["+i+"]=not visible.");}}
 		Position papos = new Position(0.0f,0.0f,0.0f);
 		Direction[] padir = {new Direction(1.0f,0.0f,0.0f),new Direction(0.0f,-1.0f,0.0f)};
 		Plane[] paplane = MathLib.planeFromNormalAtPoint(papos, padir);
