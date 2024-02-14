@@ -18,6 +18,7 @@ import fi.jkauppa.javarenderengine.ModelLib.Matrix;
 import fi.jkauppa.javarenderengine.ModelLib.Plane;
 import fi.jkauppa.javarenderengine.ModelLib.Position;
 import fi.jkauppa.javarenderengine.ModelLib.Quad;
+import fi.jkauppa.javarenderengine.ModelLib.Ray;
 import fi.jkauppa.javarenderengine.ModelLib.RenderView;
 import fi.jkauppa.javarenderengine.ModelLib.Rotation;
 import fi.jkauppa.javarenderengine.ModelLib.Sphere;
@@ -1612,6 +1613,16 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static Ray[][] projectedRays(Position campos, int vhres, int vvres, double vhfov, double vvfov, Matrix vmat, boolean norm) {
+		Ray[][] k = new Ray[vvres][vhres];
+		Direction[][] rays = projectedRays(vhres, vvres, vhfov, vvfov, vmat, norm);
+		for (int j=0;j<vvres;j++) {
+			for (int i=0;i<vhres;i++) {
+				k[j][i] = new Ray(campos, rays[j][i]);
+			}
+		}
+		return k;
+	}
 	public static Coordinate[] projectedPoint(Position vpos, Position[] vpoint, int hres, double hfov, int vres, double vfov, Matrix vmat, Plane nclipplane) {
 		Coordinate[] k = null;
 		if ((vpos!=null)&&(vpoint!=null)&&(vmat!=null)) {
@@ -2281,6 +2292,10 @@ public class MathLib {
 		return gridstep*(int)Math.round(((double)coordinate)/((double)gridstep));
 	}
 	
+	public static double calculateVfov(int renderwidth, int renderheight, double hfov) {
+		return 2.0f*atand((((double)renderheight)/((double)renderwidth))*tand(hfov/2.0f));
+	}
+	
 	public static double mod(double val, double modulo) {
 		return val-Math.floor(val/modulo)*modulo;
 	}
@@ -2295,20 +2310,37 @@ public class MathLib {
 		return k;
 	}
 	
-	public static Direction[] surfaceMirrorRays(Direction[] vdir, Plane[] vsurf, double refraction) {
-		Direction[]  k = null;
+	public static Ray[][] surfaceMirrorRay(Ray[] vray, Plane[] vsurf) {
+		Ray[][] k = null;
+		if ((vsurf!=null)&&(vray!=null)) {
+			k = new Ray[vray.length][vsurf.length];
+			Direction[] vsurfnorm = planeNormal(vsurf);
+			for(int j=0;j<vray.length;j++)  {
+				Position[] raypos = {vray[j].pos};
+				Direction[] raydir = {vray[j].dir};
+				double[][] rayintdist = rayPlaneDistance(raypos[0], raydir, vsurf);
+				for(int i=0;i<vsurf.length;i++)  {
+					if (rayintdist[0][i]>=1.0f) {
+						Position[] rayint = translate(raypos, raydir[0], rayintdist[0][i]);
+						Matrix rayvsurfrot = rotationMatrixAroundAxis(vsurfnorm[i], 180.0f);
+						Direction[] mirrorraydir = matrixMultiply(raydir, rayvsurfrot);
+						k[j][i] = new Ray(rayint[0], mirrorraydir[0]);
+					}
+				}
+			}
+		}
 		return k;
 	}
-	public static Direction[] surfaceRefractionRays(Direction[] vdir, Plane[] vsurf, double refraction) {
-		Direction[]  k = null;
+	public static Ray[] surfaceRefractionRay(Ray[] vray, Plane[] vsurf, float refraction1, float refraction2) {
+		Ray[] k = null;
 		return k;
 	}
-	public static Plane[] surfaceMirrorPlanes(Plane[] vplane, Plane[] vsurf, double refraction) {
-		Plane[]  k = null;
+	public static Plane[] surfaceMirrorPlane(Position campos, Plane[] vplane, Plane[] vsurf) {
+		Plane[] k = null;
 		return k;
 	}
-	public static Plane[] surfaceRefractionPlanes(Plane[] vplane, Plane[] vsurf, double refraction) {
-		Plane[]  k = null;
+	public static Plane[] surfaceRefractionPlane(Position campos, Plane[] vplane, Plane[] vsurf, float refraction1, float refraction2) {
+		Plane[] k = null;
 		return k;
 	}
 	public static RenderView[] surfaceMirrorProjectedCamera(Position campos, Plane[] vsurf, double hfov, double vfov, Matrix viewrot) {
@@ -2474,8 +2506,8 @@ public class MathLib {
 					double[] camrefcamhangle = vectorAngle(camzerofwddir, refcamposcamfwdrgtpos);
 					double refcamvangle = ((refcamposcamupplanedist[0][0]>0.0f)?-1.0f:1.0f)*camrefcamvangle[0];
 					double refcamhangle = ((refcamposcamrgtplanedist[0][0]>0.0f)?1.0f:-1.0f)*camrefcamhangle[0];
-					Matrix vrot = MathLib.rotationMatrixAroundAxis(camrgtdir[0], refcamvangle);
-					Matrix hrot = MathLib.rotationMatrixAroundAxis(camupdir[0], refcamhangle);
+					Matrix vrot = rotationMatrixAroundAxis(camrgtdir[0], refcamvangle);
+					Matrix hrot = rotationMatrixAroundAxis(camupdir[0], refcamhangle);
 					Matrix viewrotrefraction = viewrot;
 					viewrotrefraction = matrixMultiply(hrot, viewrotrefraction);
 					viewrotrefraction = matrixMultiply(vrot, viewrotrefraction);
