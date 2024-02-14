@@ -165,6 +165,7 @@ public class ModelLib {
 		public boolean unlit = false;
 		public Direction[] dirs;
 		public Direction[][] rays;
+		public Ray[][] vrays;
 		public Plane[] planes;
 		public Direction[] fwddirs;
 	}

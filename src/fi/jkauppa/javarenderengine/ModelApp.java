@@ -72,7 +72,7 @@ public class ModelApp extends AppHandlerPanel {
 	@Override public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D)g;
-		g2.setComposite(AlphaComposite.Src);
+        g2.setComposite(AlphaComposite.Src);
 		g2.setColor(Color.BLACK);
 		g2.setPaint(null);
 		g2.setClip(null);
@@ -184,7 +184,7 @@ public class ModelApp extends AppHandlerPanel {
 				System.out.println("ModelApp: keyPressed: key SHIFT-ENTER: unlitrender="+this.unlitrender);
 			} else {
 				this.polygonfillmode += 1;
-				if (this.polygonfillmode>9) {
+				if (this.polygonfillmode>10) {
 					this.polygonfillmode = 1;
 				}
 				System.out.println("ModelApp: keyPressed: key ENTER: polygonfillmode="+this.polygonfillmode);
@@ -315,6 +315,8 @@ public class ModelApp extends AppHandlerPanel {
 					ModelApp.this.renderview = RenderLib.renderSpheremapView(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), ModelApp.this.cameramat, ModelApp.this.unlitrender, 2, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				} else if (ModelApp.this.polygonfillmode==9) {
 					ModelApp.this.renderview = RenderLib.renderCubemapView(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), (int)Math.floor(((double)ModelApp.this.getHeight())/2.0f), ModelApp.this.cameramat, ModelApp.this.unlitrender, 3, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+				} else if (ModelApp.this.polygonfillmode==10) {
+					ModelApp.this.renderview = RenderLib.renderProjectedView(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, ModelApp.this.unlitrender, 4, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				}
 				RenderViewUpdater.renderupdaterrunning = false;
 			}

@@ -26,6 +26,7 @@ import fi.jkauppa.javarenderengine.ModelLib.Material;
 import fi.jkauppa.javarenderengine.ModelLib.Matrix;
 import fi.jkauppa.javarenderengine.ModelLib.Plane;
 import fi.jkauppa.javarenderengine.ModelLib.Position;
+import fi.jkauppa.javarenderengine.ModelLib.Ray;
 import fi.jkauppa.javarenderengine.ModelLib.RenderView;
 import fi.jkauppa.javarenderengine.ModelLib.Sphere;
 import fi.jkauppa.javarenderengine.ModelLib.Spheremap;
@@ -276,7 +277,7 @@ public class RenderLib {
 		return renderview;
 	}
 	
-	public static RenderView renderProjectedPlaneViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
+	public static RenderView renderProjectedPlaneViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
 		RenderView renderview = new RenderView();
 		renderview.pos = campos.copy();
 		renderview.rot = viewrot.copy();
@@ -396,17 +397,6 @@ public class RenderLib {
 													double[] vpixelcampointangle = {verticalangles[n]-vpixelyangsort1};
 													double[][] vpixelpointlenfraca = MathLib.linearAngleLengthInterpolation(vcamposd[0], vpixelline, vpixelcampointangle);
 													double vpixelpointlenfrac = vpixelpointlenfraca[0][0];
-													Coordinate tex1 = vpixelpoints[0].tex;
-													Coordinate tex2 = vpixelpoints[1].tex;
-													Coordinate lineuv = null;
-													if ((tex1!=null)&&(tex2!=null)) {
-														Position[] lineuvpoint1 = {new Position(tex1.u,1.0f-tex1.v,0.0f)};
-														Position[] lineuvpoint2 = {new Position(tex2.u,1.0f-tex2.v,0.0f)};
-														Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
-														Position[] lineuvpos = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
-														lineuv = new Coordinate(lineuvpos[0].x, lineuvpos[0].y);
-														renderview.cbuffer[n][j] = lineuv;
-													}
 													Position[] linepoint = MathLib.translate(vpixelpoint1, vpixelpointdir12[0], vpixelpointlenfrac);
 													Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, linepoint);
 													double[] linepointdirlen = MathLib.vectorLength(linepointdir);
@@ -414,6 +404,17 @@ public class RenderLib {
 													double drawdistance = linepointdirlen[0];
 													double[][] linepointdist = MathLib.planePointDistance(linepoint, camfwdplane);
 													if ((linepointdist[0][0]>1.0f)&&(drawdistance<renderview.zbuffer[n][j])) {
+														Coordinate tex1 = vpixelpoints[0].tex;
+														Coordinate tex2 = vpixelpoints[1].tex;
+														Coordinate lineuv = null;
+														if ((tex1!=null)&&(tex2!=null)) {
+															Position[] lineuvpoint1 = {new Position(tex1.u,1.0f-tex1.v,0.0f)};
+															Position[] lineuvpoint2 = {new Position(tex2.u,1.0f-tex2.v,0.0f)};
+															Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
+															Position[] lineuvpos = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
+															lineuv = new Coordinate(lineuvpos[0].x, lineuvpos[0].y);
+															renderview.cbuffer[n][j] = lineuv;
+														}
 														renderview.zbuffer[n][j] = drawdistance;
 														renderview.tbuffer[n][j] = copytriangle[0];
 														if ((mouselocationx==j)&&(mouselocationy==n)) {
@@ -441,7 +442,7 @@ public class RenderLib {
 		return renderview;
 	}
 	
-	public static RenderView renderSpheremapPlaneViewSoftware(Position campos, Entity[] entitylist, int renderwidth, int renderheight, Matrix viewrot, boolean unlit, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
+	public static RenderView renderSpheremapPlaneViewSoftware(Position campos, Entity[] entitylist, int renderwidth, int renderheight, Matrix viewrot, boolean unlit, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
 		RenderView renderview = new RenderView();
 		renderview.pos = campos.copy();
 		renderview.rot = viewrot.copy();
@@ -592,17 +593,6 @@ public class RenderLib {
 													double[] vpixelcampointangle = {verticalangles[n]-vpixelyangsort1};
 													double[][] vpixelpointlenfraca = MathLib.linearAngleLengthInterpolation(vcamposd[0], vpixelline, vpixelcampointangle);
 													double vpixelpointlenfrac = vpixelpointlenfraca[0][0];
-													Coordinate tex1 = vpixelpoints[0].tex;
-													Coordinate tex2 = vpixelpoints[1].tex;
-													Coordinate lineuv = null;
-													if ((tex1!=null)&&(tex2!=null)) {
-														Position[] lineuvpoint1 = {new Position(tex1.u,1.0f-tex1.v,0.0f)};
-														Position[] lineuvpoint2 = {new Position(tex2.u,1.0f-tex2.v,0.0f)};
-														Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
-														Position[] lineuvpos = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
-														lineuv = new Coordinate(lineuvpos[0].x, lineuvpos[0].y);
-														renderview.cbuffer[n][j] = lineuv;
-													}
 													Position[] linepoint = MathLib.translate(vpixelpoint1, vpixelpointdir12[0], vpixelpointlenfrac);
 													Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, linepoint);
 													double[] linepointdirlen = MathLib.vectorLength(linepointdir);
@@ -610,6 +600,17 @@ public class RenderLib {
 													double drawdistance = linepointdirlen[0];
 													double[][] linepointdist = MathLib.planePointDistance(linepoint, camfwdplane);
 													if ((linepointdist[0][0]>1.0f)&&(drawdistance<renderview.zbuffer[n][j])) {
+														Coordinate tex1 = vpixelpoints[0].tex;
+														Coordinate tex2 = vpixelpoints[1].tex;
+														Coordinate lineuv = null;
+														if ((tex1!=null)&&(tex2!=null)) {
+															Position[] lineuvpoint1 = {new Position(tex1.u,1.0f-tex1.v,0.0f)};
+															Position[] lineuvpoint2 = {new Position(tex2.u,1.0f-tex2.v,0.0f)};
+															Direction[] vpixelpointdir12uv = MathLib.vectorFromPoints(lineuvpoint1, lineuvpoint2);
+															Position[] lineuvpos = MathLib.translate(lineuvpoint1, vpixelpointdir12uv[0], vpixelpointlenfrac);
+															lineuv = new Coordinate(lineuvpos[0].x, lineuvpos[0].y);
+															renderview.cbuffer[n][j] = lineuv;
+														}
 														renderview.zbuffer[n][j] = drawdistance;
 														renderview.tbuffer[n][j] = copytriangle[0];
 														if ((mouselocationx==j)&&(mouselocationy==n)) {
@@ -639,7 +640,7 @@ public class RenderLib {
 		return renderview;
 	}
 
-	public static RenderView renderProjectedRayViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
+	public static RenderView renderProjectedRayViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
 		RenderView renderview = new RenderView();
 		renderview.pos = campos.copy();
 		renderview.rot = viewrot.copy();
@@ -696,17 +697,17 @@ public class RenderLib {
 										Position[][] camrayint = MathLib.rayTriangleIntersection(renderview.pos, camray, copytriangle);
 										Position[] camrayintpos = {camrayint[0][0]};
 										if (camrayintpos[0]!=null) {
-											Coordinate tex = camrayint[0][0].tex;
-											Coordinate pointuv = null;
-											if (tex!=null) {
-												pointuv = new Coordinate(tex.u,1.0f-tex.v);
-												renderview.cbuffer[j][i] = pointuv;
-											}
 											Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, camrayintpos);
 											double[] linepointdirlen = MathLib.vectorLength(linepointdir);
 											double drawdistance = linepointdirlen[0];
 											double[][] camrayintposdist = MathLib.planePointDistance(camrayintpos, camfwdplane);
 											if ((camrayintposdist[0][0]>1.0f)&&(drawdistance<renderview.zbuffer[j][i])) {
+												Coordinate tex = camrayint[0][0].tex;
+												Coordinate pointuv = null;
+												if (tex!=null) {
+													pointuv = new Coordinate(tex.u,1.0f-tex.v);
+													renderview.cbuffer[j][i] = pointuv;
+												}
 												renderview.zbuffer[j][i] = drawdistance;
 												renderview.tbuffer[j][i] = copytriangle[0];
 												if ((mouselocationx==i)&&(mouselocationy==j)) {
@@ -732,7 +733,7 @@ public class RenderLib {
 		return renderview;
 	}
 
-	public static RenderView renderSpheremapRayViewSoftware(Position campos, Entity[] entitylist, int renderwidth, int renderheight, Matrix viewrot, boolean unlit, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
+	public static RenderView renderSpheremapRayViewSoftware(Position campos, Entity[] entitylist, int renderwidth, int renderheight, Matrix viewrot, boolean unlit, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
 		RenderView renderview = new RenderView();
 		renderview.pos = campos.copy();
 		renderview.rot = viewrot.copy();
@@ -808,17 +809,17 @@ public class RenderLib {
 										Position[][] camrayint = MathLib.rayTriangleIntersection(renderview.pos, camray, copytriangle);
 										Position[] camrayintpos = {camrayint[0][0]};
 										if (camrayintpos[0]!=null) {
-											Coordinate tex = camrayint[0][0].tex;
-											Coordinate pointuv = null;
-											if (tex!=null) {
-												pointuv = new Coordinate(tex.u,1.0f-tex.v);
-												renderview.cbuffer[j][i] = pointuv;
-											}
 											Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, camrayintpos);
 											double[] linepointdirlen = MathLib.vectorLength(linepointdir);
 											double drawdistance = linepointdirlen[0];
 											double[][] camrayintposdist = MathLib.planePointDistance(camrayintpos, camfwdplane);
 											if ((camrayintposdist[0][0]>1.0f)&&(drawdistance<renderview.zbuffer[j][i])) {
+												Coordinate tex = camrayint[0][0].tex;
+												Coordinate pointuv = null;
+												if (tex!=null) {
+													pointuv = new Coordinate(tex.u,1.0f-tex.v);
+													renderview.cbuffer[j][i] = pointuv;
+												}
 												renderview.zbuffer[j][i] = drawdistance;
 												renderview.tbuffer[j][i] = copytriangle[0];
 												if ((mouselocationx==i)&&(mouselocationy==j)) {
@@ -847,9 +848,11 @@ public class RenderLib {
 	public static RenderView renderProjectedView(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, int mode, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
 		RenderView projectedview = null;
 		if (mode==2) {
-			projectedview = renderProjectedPlaneViewSoftware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
+			projectedview = renderProjectedPlaneViewSoftware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		} else if (mode==3) {
-			projectedview = renderProjectedRayViewSoftware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
+			projectedview = renderProjectedRayViewSoftware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
+		} else if (mode==4) {
+			projectedview = renderProjectedRayTracedViewSoftware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		} else {
 			projectedview = renderProjectedPolygonViewHardware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		}
@@ -858,9 +861,9 @@ public class RenderLib {
 	public static RenderView renderSpheremapView(Position campos, Entity[] entitylist, int renderwidth, int renderheight, Matrix viewrot, boolean unlit, int mode, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
 		RenderView spheremapview = null;
 		if (mode==2) {
-			spheremapview = renderSpheremapRayViewSoftware(campos, entitylist, renderwidth, renderheight, viewrot, unlit, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
+			spheremapview = renderSpheremapRayViewSoftware(campos, entitylist, renderwidth, renderheight, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		} else {
-			spheremapview = renderSpheremapPlaneViewSoftware(campos, entitylist, renderwidth, renderheight, viewrot, unlit, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
+			spheremapview = renderSpheremapPlaneViewSoftware(campos, entitylist, renderwidth, renderheight, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		}
 		return spheremapview;
 	}
@@ -945,15 +948,102 @@ public class RenderLib {
 		Entity[] mirrorentitylist = mirrorentitylistarray.toArray(new Entity[mirrorentitylistarray.size()]);
 		RenderView mirrorview = null;
 		if (mode==2) {
-			mirrorview = renderProjectedPlaneViewSoftware(mirrorcamera[0].pos, mirrorentitylist, renderwidth, hfov, renderheight, vfov, mirrorcamera[0].rot, unlit, mirrorcamera[0].surf, null, null, mouselocationx, mouselocationy);
+			mirrorview = renderProjectedPlaneViewSoftware(mirrorcamera[0].pos, mirrorentitylist, renderwidth, hfov, renderheight, vfov, mirrorcamera[0].rot, unlit, bounces, mirrorcamera[0].surf, null, null, mouselocationx, mouselocationy);
 		} else if (mode==3) {
-			mirrorview = renderProjectedRayViewSoftware(mirrorcamera[0].pos, mirrorentitylist, renderwidth, hfov, renderheight, vfov, mirrorcamera[0].rot, unlit, mirrorcamera[0].surf, null, null, mouselocationx, mouselocationy);
+			mirrorview = renderProjectedRayViewSoftware(mirrorcamera[0].pos, mirrorentitylist, renderwidth, hfov, renderheight, vfov, mirrorcamera[0].rot, unlit, bounces, mirrorcamera[0].surf, null, null, mouselocationx, mouselocationy);
 		} else {
 			mirrorview = renderProjectedPolygonViewHardware(mirrorcamera[0].pos, mirrorentitylist, renderwidth, hfov, renderheight, vfov, mirrorcamera[0].rot, unlit, bounces, mirrorcamera[0].surf, null, null, mouselocationx, mouselocationy);
 		}
 		mirrorview.renderimage = UtilLib.flipImage(mirrorview.renderimage, true, false);
 		mirrorview.snapimage = mirrorview.renderimage.getSnapshot();
 		return mirrorview;
+	}
+
+	public static RenderView renderProjectedRayTracedViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
+		RenderView renderview = new RenderView();
+		renderview.pos = campos.copy();
+		renderview.rot = viewrot.copy();
+		renderview.renderwidth = renderwidth;
+		renderview.renderheight = renderheight;
+		renderview.hfov = hfov;
+		renderview.vfov = MathLib.calculateVfov(renderview.renderwidth, renderview.renderheight, renderview.hfov);
+		renderview.unlit = unlit;
+		renderview.mouselocationx = mouselocationx; 
+		renderview.mouselocationy = mouselocationy; 
+		renderview.dirs = MathLib.projectedCameraDirections(renderview.rot);
+		renderview.vrays = MathLib.projectedRays(campos, renderwidth, renderheight, renderview.hfov, renderview.vfov, renderview.rot, true);
+		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
+		renderview.tbuffer = new Triangle[renderheight][renderwidth];
+		renderview.cbuffer = new Coordinate[renderheight][renderwidth];
+		Graphics2D g2 = renderview.renderimage.createGraphics();
+		g2.setComposite(AlphaComposite.Src);
+		g2.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
+		g2.setPaint(null);
+		g2.setClip(null);
+		g2.fillRect(0, 0, renderwidth, renderheight);
+		g2.setComposite(AlphaComposite.SrcOver);
+		for (int j=0;j<renderheight;j++) {
+			Color[] raycolors = renderRay(renderview.vrays[j], entitylist, unlit, bounces);
+			for (int i=0;i<renderwidth;i++) {
+				g2.setColor(raycolors[i]);
+				g2.drawLine(i, j, i, j);
+			}
+		}
+		renderview.snapimage = renderview.renderimage.getSnapshot();
+		return renderview;
+	}
+	
+	public static Color[] renderRay(Ray[] vray, Entity[] entitylist, boolean unlit, int bounces) {
+		Color[] rendercolor = null;
+		if ((vray!=null)&&(entitylist!=null)&&(entitylist.length>0)) {
+			rendercolor = new Color[vray.length];
+			double[] zbuffer = new double[vray.length];
+			Arrays.fill(zbuffer,Double.POSITIVE_INFINITY);
+			Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
+			Position[] entityspherepos = MathLib.sphereVertexList(entityspherelist);
+			for (int k=0;k<vray.length;k++) {
+				Position[] raypos = {vray[k].pos};
+				Direction[] raydir = {vray[k].dir};
+				double[][] rayentityspheredist = MathLib.rayPointDistance(raypos[0], raydir, entityspherepos);
+				for (int m=0;m<entitylist.length;m++) {
+					if (rayentityspheredist[0][m]<=entityspherelist[m].r) {
+						Triangle[] copytrianglelist = entitylist[m].trianglelist;
+						if (copytrianglelist.length>0) {
+							Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
+							Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
+							Plane[] copytrianglesplanelist = MathLib.trianglePlane(copytrianglelist);
+							Position[] copytrianglespherepos = MathLib.sphereVertexList(copytrianglespherelist);
+							double[][] raytrianglespheredist = MathLib.rayPointDistance(raypos[0], raydir, copytrianglespherepos);
+							double[][] raytriangleplanedist = MathLib.rayPlaneDistance(raypos[0], raydir, copytrianglesplanelist);
+							for (int n=0;n<copytrianglelist.length;n++) {
+								if (raytrianglespheredist[0][n]<=copytrianglespherelist[n].r) {
+									Triangle[] copytriangle = {copytrianglelist[n]};
+									Direction copytrianglenormal = copytrianglenormallist[n];
+									double drawdistance = raytriangleplanedist[0][n];
+									Position[][] raycopytriangleint = MathLib.rayTriangleIntersection(raypos[0], raydir, copytriangle);
+									Position[] camrayintpos = {raycopytriangleint[0][0]};
+									if (camrayintpos[0]!=null) {
+										if ((drawdistance>1.0f)&&(drawdistance<zbuffer[k])) {
+											zbuffer[k] = drawdistance;
+											Coordinate tex = camrayintpos[0].tex;
+											Coordinate pointuv = null;
+											if (tex!=null) {
+												pointuv = new Coordinate(tex.u,1.0f-tex.v);
+											}
+											Color trianglecolor = trianglePixelShader(raypos[0], copytriangle[0], copytrianglenormal, pointuv, raydir[0], unlit);
+											if (trianglecolor!=null) {
+												rendercolor[k] = trianglecolor;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return rendercolor;
 	}
 	
 	public static Color trianglePixelShader(Position campos, Triangle triangle, Direction trianglenormal, Coordinate texuv, Direction camray, boolean unlit) {
