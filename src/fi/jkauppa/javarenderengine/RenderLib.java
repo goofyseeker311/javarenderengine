@@ -985,8 +985,11 @@ public class RenderLib {
 		for (int j=0;j<renderheight;j++) {
 			Color[] raycolors = renderRay(renderview.vrays[j], entitylist, unlit, bounces);
 			for (int i=0;i<renderwidth;i++) {
-				g2.setColor(raycolors[i]);
-				g2.drawLine(i, j, i, j);
+				Color trianglecolor = raycolors[i];
+				if (trianglecolor!=null) {
+					g2.setColor(raycolors[i]);
+					g2.drawLine(i, j, i, j);
+				}
 			}
 		}
 		renderview.snapimage = renderview.renderimage.getSnapshot();
