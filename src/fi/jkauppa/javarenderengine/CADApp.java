@@ -1241,7 +1241,7 @@ public class CADApp extends AppHandlerPanel {
 		public void run() {
 			if (!EntityLightMapUpdater.entitylightmapupdaterrunning) {
 				EntityLightMapUpdater.entitylightmapupdaterrunning = true;
-				int bounces = 1;
+				int bounces = 2;
 				if (CADApp.this.polygonfillmode==1) {
 					RenderLib.renderSurfaceFaceLightmapCubemapView(CADApp.this.entitylist, 32, bounces, 3);
 				} else if (CADApp.this.polygonfillmode==2) {
