@@ -2320,11 +2320,12 @@ public class MathLib {
 				Direction[] raydir = {vray[j].dir};
 				double[][] rayintdist = rayPlaneDistance(raypos[0], raydir, vsurf);
 				for(int i=0;i<vsurf.length;i++)  {
-					if (rayintdist[0][i]>=1.0f) {
+					if ((Double.isFinite(rayintdist[0][i]))&&(rayintdist[0][i]>=1.0f)) {
 						Position[] rayint = translate(raypos, raydir[0], rayintdist[0][i]);
 						Matrix rayvsurfrot = rotationMatrixAroundAxis(vsurfnorm[i], 180.0f);
 						Direction[] mirrorraydir = matrixMultiply(raydir, rayvsurfrot);
-						k[j][i] = new Ray(rayint[0], mirrorraydir[0]);
+						Direction[] mirrorraydirn = normalizeVector(mirrorraydir);
+						k[j][i] = new Ray(rayint[0], mirrorraydirn[0].invert());
 					}
 				}
 			}

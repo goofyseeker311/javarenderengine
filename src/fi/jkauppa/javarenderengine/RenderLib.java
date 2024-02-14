@@ -55,7 +55,7 @@ public class RenderLib {
 		renderview.renderwidth = renderwidth;
 		renderview.renderheight = renderheight;
 		renderview.hfov = hfov;
-		renderview.vfov = vfov;
+		renderview.vfov = MathLib.calculateVfov(renderview.renderwidth, renderview.renderheight, renderview.hfov);
 		renderview.mouselocationx = mouselocationx; 
 		renderview.mouselocationy = mouselocationy; 
 		renderview.dirs = MathLib.projectedCameraDirections(viewrot);
@@ -155,7 +155,7 @@ public class RenderLib {
 		renderview.renderwidth = renderwidth;
 		renderview.renderheight = renderheight;
 		renderview.hfov = hfov;
-		renderview.vfov = 2.0f*MathLib.atand((((double)renderheight)/((double)renderwidth))*MathLib.tand(renderview.hfov/2.0f));
+		renderview.vfov = MathLib.calculateVfov(renderview.renderwidth, renderview.renderheight, renderview.hfov);
 		renderview.unlit = unlit;
 		renderview.mouselocationx = mouselocationx;
 		renderview.mouselocationy = mouselocationy;
@@ -284,7 +284,7 @@ public class RenderLib {
 		renderview.renderwidth = renderwidth;
 		renderview.renderheight = renderheight;
 		renderview.hfov = hfov;
-		renderview.vfov = 2.0f*MathLib.atand((((double)renderheight)/((double)renderwidth))*MathLib.tand(renderview.hfov/2.0f));
+		renderview.vfov = MathLib.calculateVfov(renderview.renderwidth, renderview.renderheight, renderview.hfov);
 		renderview.unlit = unlit;
 		renderview.mouselocationx = mouselocationx;
 		renderview.mouselocationy = mouselocationy;
@@ -647,7 +647,7 @@ public class RenderLib {
 		renderview.renderwidth = renderwidth;
 		renderview.renderheight = renderheight;
 		renderview.hfov = hfov;
-		renderview.vfov = 2.0f*MathLib.atand((((double)renderheight)/((double)renderwidth))*MathLib.tand(renderview.hfov/2.0f));
+		renderview.vfov = MathLib.calculateVfov(renderview.renderwidth, renderview.renderheight, renderview.hfov);
 		renderview.unlit = unlit;
 		renderview.mouselocationx = mouselocationx; 
 		renderview.mouselocationy = mouselocationy; 
@@ -852,7 +852,7 @@ public class RenderLib {
 		} else if (mode==3) {
 			projectedview = renderProjectedRayViewSoftware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		} else if (mode==4) {
-			projectedview = renderProjectedRayTracedViewSoftware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
+			projectedview = renderProjectedRaytracedViewSoftware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		} else {
 			projectedview = renderProjectedPolygonViewHardware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		}
@@ -959,7 +959,7 @@ public class RenderLib {
 		return mirrorview;
 	}
 
-	public static RenderView renderProjectedRayTracedViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
+	public static RenderView renderProjectedRaytracedViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
 		RenderView renderview = new RenderView();
 		renderview.pos = campos.copy();
 		renderview.rot = viewrot.copy();
@@ -982,13 +982,17 @@ public class RenderLib {
 		g2.setClip(null);
 		g2.fillRect(0, 0, renderwidth, renderheight);
 		g2.setComposite(AlphaComposite.SrcOver);
-		for (int j=0;j<renderheight;j++) {
-			Color[] raycolors = renderRay(renderview.vrays[j], entitylist, unlit, bounces);
-			for (int i=0;i<renderwidth;i++) {
-				Color trianglecolor = raycolors[i];
-				if (trianglecolor!=null) {
-					g2.setColor(raycolors[i]);
-					g2.drawLine(i, j, i, j);
+		if ((entitylist!=null)&&(entitylist.length>0)) {
+			for (int j=0;j<renderheight;j++) {
+				Color[] raycolors = renderRay(renderview.vrays[j], entitylist, unlit, bounces);
+				if (raycolors!=null) {
+					for (int i=0;i<renderwidth;i++) {
+						Color trianglecolor = raycolors[i];
+						if (trianglecolor!=null) {
+							g2.setColor(raycolors[i]);
+							g2.drawLine(i, j, i, j);
+						}
+					}
 				}
 			}
 		}
@@ -1005,6 +1009,7 @@ public class RenderLib {
 			Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
 			Position[] entityspherepos = MathLib.sphereVertexList(entityspherelist);
 			for (int k=0;k<vray.length;k++) {
+				Ray[] ray = {vray[k]};
 				Position[] raypos = {vray[k].pos};
 				Direction[] raydir = {vray[k].dir};
 				double[][] rayentityspheredist = MathLib.rayPointDistance(raypos[0], raydir, entityspherepos);
@@ -1014,14 +1019,15 @@ public class RenderLib {
 						if (copytrianglelist.length>0) {
 							Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
 							Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
-							Plane[] copytrianglesplanelist = MathLib.trianglePlane(copytrianglelist);
+							Plane[] copytriangleplanelist = MathLib.trianglePlane(copytrianglelist);
 							Position[] copytrianglespherepos = MathLib.sphereVertexList(copytrianglespherelist);
 							double[][] raytrianglespheredist = MathLib.rayPointDistance(raypos[0], raydir, copytrianglespherepos);
-							double[][] raytriangleplanedist = MathLib.rayPlaneDistance(raypos[0], raydir, copytrianglesplanelist);
+							double[][] raytriangleplanedist = MathLib.rayPlaneDistance(raypos[0], raydir, copytriangleplanelist);
 							for (int n=0;n<copytrianglelist.length;n++) {
 								if (raytrianglespheredist[0][n]<=copytrianglespherelist[n].r) {
 									Triangle[] copytriangle = {copytrianglelist[n]};
-									Direction copytrianglenormal = copytrianglenormallist[n];
+									Direction[] copytrianglenormal = {copytrianglenormallist[n]};
+									Plane[] copytriangleplane = {copytriangleplanelist[n]};
 									double drawdistance = raytriangleplanedist[0][n];
 									Position[][] raycopytriangleint = MathLib.rayTriangleIntersection(raypos[0], raydir, copytriangle);
 									Position[] camrayintpos = {raycopytriangleint[0][0]};
@@ -1033,9 +1039,27 @@ public class RenderLib {
 											if (tex!=null) {
 												pointuv = new Coordinate(tex.u,1.0f-tex.v);
 											}
-											Color trianglecolor = trianglePixelShader(raypos[0], copytriangle[0], copytrianglenormal, pointuv, raydir[0], unlit);
+											Color trianglecolor = trianglePixelShader(raypos[0], copytriangle[0], copytrianglenormal[0], pointuv, raydir[0], unlit);
 											if (trianglecolor!=null) {
 												rendercolor[k] = trianglecolor;
+												if (bounces>0) {
+													double[] camfwddirposnormangle = MathLib.vectorAngle(raydir[0], copytrianglenormal);
+													Plane[] vsurf = copytriangleplane;
+													if (camfwddirposnormangle[0]<90.0f) {
+														Plane[] newvsurf = {vsurf[0].invert()};
+														vsurf = newvsurf;
+													}
+													if (copytriangle[0].mat.metallic>0.0f) {
+														Ray[][] mirrorraya = MathLib.surfaceMirrorRay(ray, vsurf);
+														Ray[] mirrorray = {mirrorraya[0][0]};
+														if ((mirrorray!=null)&&(mirrorray[0]!=null)) {
+															Color[] mirrorraycolor = renderRay(mirrorray, entitylist, unlit, bounces-1);
+															if ((mirrorraycolor!=null)&&(mirrorraycolor[0]!=null)) {
+																rendercolor[k] = mirrorraycolor[0];
+															}
+														}
+													}
+												}
 											}
 										}
 									}
