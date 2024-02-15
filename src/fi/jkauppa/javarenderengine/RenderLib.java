@@ -680,13 +680,15 @@ public class RenderLib {
 					if (copytrianglelist.length>0) {
 						Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
 						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
+						Plane[] copytriangleplanelist = MathLib.trianglePlane(copytrianglelist);
 						Integer[] sortedtrianglespherelistind = UtilLib.objectIndexSort(copytrianglespherelist, distcomp);
 						Rectangle[] copytrianglelistint = MathLib.projectedTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot, nclipplane);
 						for (int n=sortedtrianglespherelistind.length-1;n>=0;n--) {
 							int it = sortedtrianglespherelistind[n];
 							if (copytrianglelistint[it]!=null) {
 								Triangle[] copytriangle = {copytrianglelist[it]};
-								Direction copytrianglenormal = copytrianglenormallist[it];
+								Direction[] copytrianglenormal = {copytrianglenormallist[it]};
+								Plane[] copytriangleplane = {copytriangleplanelist[n]};
 								int jstart = copytrianglelistint[it].y;
 								int jend = copytrianglelistint[it].y+copytrianglelistint[it].height-1;
 								int istart = copytrianglelistint[it].x;
@@ -694,6 +696,7 @@ public class RenderLib {
 								for (int j=jstart;j<=jend;j++) {
 									for (int i=istart;i<=iend;i++) {
 										Direction[] camray = {renderview.rays[j][i]};
+										Ray[] ray = {new Ray(campos, camray[0])};
 										Position[][] camrayint = MathLib.rayTriangleIntersection(renderview.pos, camray, copytriangle);
 										Position[] camrayintpos = {camrayint[0][0]};
 										if (camrayintpos[0]!=null) {
@@ -713,10 +716,55 @@ public class RenderLib {
 												if ((mouselocationx==i)&&(mouselocationy==j)) {
 													mouseoverhittriangle.add(copytriangle[0]);
 												}
-												Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal, pointuv, camray[0], unlit);
+												Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal[0], pointuv, camray[0], unlit);
 												if (trianglecolor!=null) {
+													if (copytriangle[0].norm.isZero()) {
+														g2.setComposite(AlphaComposite.SrcOver);
+													} else {
+														g2.setComposite(AlphaComposite.Src);
+													}
 													g2.setColor(trianglecolor);
 													g2.drawLine(i, j, i, j);
+													if (bounces>0) {
+														double[] camfwddirposnormangle = MathLib.vectorAngle(camray[0], copytrianglenormal);
+														float refrindex1 = 1.0f;
+														float refrindex2 = copytriangle[0].mat.refraction;
+														Plane[] vsurf = copytriangleplane;
+														if (camfwddirposnormangle[0]<90.0f) {
+															Plane[] newvsurf = {vsurf[0].invert()};
+															vsurf = newvsurf;
+															refrindex1 = copytriangle[0].mat.refraction;
+															refrindex2 = 1.0f;
+														}
+														if ((copytriangle[0].mat.transparency<1.0f)&&(!copytriangle[0].norm.isZero())) {
+															Ray[][] refractionraya = MathLib.surfaceRefractionRay(ray, vsurf, refrindex1, refrindex2);
+															if (refractionraya!=null) {
+																Ray[] refractionray = {refractionraya[0][0]};
+																if ((refractionray!=null)&&(refractionray[0]!=null)) {
+																	Color[] refractionraycolor = renderRay(refractionray, entitylist, unlit, bounces-1);
+																	if ((refractionraycolor!=null)&&(refractionraycolor[0]!=null)) {
+																		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, copytriangle[0].mat.transparency));
+																		g2.setColor(refractionraycolor[0]);
+																		g2.drawLine(i, j, i, j);
+																	}
+																}
+															}
+														}
+														if (copytriangle[0].mat.metallic>0.0f) {
+															Ray[][] mirrorraya = MathLib.surfaceMirrorRay(ray, vsurf);
+															if (mirrorraya!=null) {
+																Ray[] mirrorray = {mirrorraya[0][0]};
+																if ((mirrorray!=null)&&(mirrorray[0]!=null)) {
+																	Color[] mirrorraycolor = renderRay(mirrorray, entitylist, unlit, bounces-1);
+																	if ((mirrorraycolor!=null)&&(mirrorraycolor[0]!=null)) {
+																		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, copytriangle[0].mat.metallic));
+																		g2.setColor(mirrorraycolor[0]);
+																		g2.drawLine(i, j, i, j);
+																	}
+																}
+															}
+														}
+													}
 												}
 											}
 										}
@@ -773,13 +821,15 @@ public class RenderLib {
 					if (copytrianglelist.length>0) {
 						Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
 						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
+						Plane[] copytriangleplanelist = MathLib.trianglePlane(copytrianglelist);
 						Integer[] sortedtrianglespherelistind = UtilLib.objectIndexSort(copytrianglespherelist, distcomp);
 						Rectangle[] copytrianglelistint = MathLib.spheremapTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, viewrot, nclipplane);
 						for (int n=sortedtrianglespherelistind.length-1;n>=0;n--) {
 							int it = sortedtrianglespherelistind[n];
 							if (copytrianglelistint[it]!=null) {
 								Triangle[] copytriangle = {copytrianglelist[it]};
-								Direction copytrianglenormal = copytrianglenormallist[it];
+								Direction[] copytrianglenormal = {copytrianglenormallist[it]};
+								Plane[] copytriangleplane = {copytriangleplanelist[n]};
 								int jstart = copytrianglelistint[it].y;
 								int jend = copytrianglelistint[it].y+copytrianglelistint[it].height-1;
 								int istart = copytrianglelistint[it].x;
@@ -805,6 +855,7 @@ public class RenderLib {
 									for (int l=0;l<rayindex.length;l++) {
 										int i = rayindex[l];
 										Direction[] camray = {renderview.rays[i][j]};
+										Ray[] ray = {new Ray(campos, camray[0])};
 										Plane[] camfwdplane = {camfwdplanes[i]};
 										Position[][] camrayint = MathLib.rayTriangleIntersection(renderview.pos, camray, copytriangle);
 										Position[] camrayintpos = {camrayint[0][0]};
@@ -825,10 +876,55 @@ public class RenderLib {
 												if ((mouselocationx==i)&&(mouselocationy==j)) {
 													mouseoverhittriangle.add(copytriangle[0]);
 												}
-												Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal, pointuv, camray[0], unlit);
+												Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal[0], pointuv, camray[0], unlit);
 												if (trianglecolor!=null) {
+													if (copytriangle[0].norm.isZero()) {
+														g2.setComposite(AlphaComposite.SrcOver);
+													} else {
+														g2.setComposite(AlphaComposite.Src);
+													}
 													g2.setColor(trianglecolor);
 													g2.drawLine(i, j, i, j);
+													if (bounces>0) {
+														double[] camfwddirposnormangle = MathLib.vectorAngle(camray[0], copytrianglenormal);
+														float refrindex1 = 1.0f;
+														float refrindex2 = copytriangle[0].mat.refraction;
+														Plane[] vsurf = copytriangleplane;
+														if (camfwddirposnormangle[0]<90.0f) {
+															Plane[] newvsurf = {vsurf[0].invert()};
+															vsurf = newvsurf;
+															refrindex1 = copytriangle[0].mat.refraction;
+															refrindex2 = 1.0f;
+														}
+														if ((copytriangle[0].mat.transparency<1.0f)&&(!copytriangle[0].norm.isZero())) {
+															Ray[][] refractionraya = MathLib.surfaceRefractionRay(ray, vsurf, refrindex1, refrindex2);
+															if (refractionraya!=null) {
+																Ray[] refractionray = {refractionraya[0][0]};
+																if ((refractionray!=null)&&(refractionray[0]!=null)) {
+																	Color[] refractionraycolor = renderRay(refractionray, entitylist, unlit, bounces-1);
+																	if ((refractionraycolor!=null)&&(refractionraycolor[0]!=null)) {
+																		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, copytriangle[0].mat.transparency));
+																		g2.setColor(refractionraycolor[0]);
+																		g2.drawLine(i, j, i, j);
+																	}
+																}
+															}
+														}
+														if (copytriangle[0].mat.metallic>0.0f) {
+															Ray[][] mirrorraya = MathLib.surfaceMirrorRay(ray, vsurf);
+															if (mirrorraya!=null) {
+																Ray[] mirrorray = {mirrorraya[0][0]};
+																if ((mirrorray!=null)&&(mirrorray[0]!=null)) {
+																	Color[] mirrorraycolor = renderRay(mirrorray, entitylist, unlit, bounces-1);
+																	if ((mirrorraycolor!=null)&&(mirrorraycolor[0]!=null)) {
+																		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, copytriangle[0].mat.metallic));
+																		g2.setColor(mirrorraycolor[0]);
+																		g2.drawLine(i, j, i, j);
+																	}
+																}
+															}
+														}
+													}
 												}
 											}
 										}
@@ -851,8 +947,6 @@ public class RenderLib {
 			projectedview = renderProjectedPlaneViewSoftware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		} else if (mode==3) {
 			projectedview = renderProjectedRayViewSoftware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
-		} else if (mode==4) {
-			projectedview = renderProjectedRaytracedViewSoftware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		} else {
 			projectedview = renderProjectedPolygonViewHardware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		}
@@ -957,47 +1051,6 @@ public class RenderLib {
 		mirrorview.renderimage = UtilLib.flipImage(mirrorview.renderimage, true, false);
 		mirrorview.snapimage = mirrorview.renderimage.getSnapshot();
 		return mirrorview;
-	}
-
-	public static RenderView renderProjectedRaytracedViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
-		RenderView renderview = new RenderView();
-		renderview.pos = campos.copy();
-		renderview.rot = viewrot.copy();
-		renderview.renderwidth = renderwidth;
-		renderview.renderheight = renderheight;
-		renderview.hfov = hfov;
-		renderview.vfov = MathLib.calculateVfov(renderview.renderwidth, renderview.renderheight, renderview.hfov);
-		renderview.unlit = unlit;
-		renderview.mouselocationx = mouselocationx; 
-		renderview.mouselocationy = mouselocationy; 
-		renderview.dirs = MathLib.projectedCameraDirections(renderview.rot);
-		renderview.vrays = MathLib.projectedRays(campos, renderwidth, renderheight, renderview.hfov, renderview.vfov, renderview.rot, true);
-		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
-		renderview.tbuffer = new Triangle[renderheight][renderwidth];
-		renderview.cbuffer = new Coordinate[renderheight][renderwidth];
-		Graphics2D g2 = renderview.renderimage.createGraphics();
-		g2.setComposite(AlphaComposite.Src);
-		g2.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
-		g2.setPaint(null);
-		g2.setClip(null);
-		g2.fillRect(0, 0, renderwidth, renderheight);
-		g2.setComposite(AlphaComposite.SrcOver);
-		if ((entitylist!=null)&&(entitylist.length>0)) {
-			for (int j=0;j<renderheight;j++) {
-				Color[] raycolors = renderRay(renderview.vrays[j], entitylist, unlit, bounces);
-				if (raycolors!=null) {
-					for (int i=0;i<renderwidth;i++) {
-						Color trianglecolor = raycolors[i];
-						if (trianglecolor!=null) {
-							g2.setColor(raycolors[i]);
-							g2.drawLine(i, j, i, j);
-						}
-					}
-				}
-			}
-		}
-		renderview.snapimage = renderview.renderimage.getSnapshot();
-		return renderview;
 	}
 	
 	public static Color[] renderRay(Ray[] vray, Entity[] entitylist, boolean unlit, int bounces) {
