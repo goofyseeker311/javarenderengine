@@ -1044,18 +1044,36 @@ public class RenderLib {
 												rendercolor[k] = trianglecolor;
 												if (bounces>0) {
 													double[] camfwddirposnormangle = MathLib.vectorAngle(raydir[0], copytrianglenormal);
+													float refrindex1 = 1.0f;
+													float refrindex2 = copytriangle[0].mat.refraction;
 													Plane[] vsurf = copytriangleplane;
 													if (camfwddirposnormangle[0]<90.0f) {
 														Plane[] newvsurf = {vsurf[0].invert()};
 														vsurf = newvsurf;
+														refrindex1 = copytriangle[0].mat.refraction;
+														refrindex2 = 1.0f;
+													}
+													if ((copytriangle[0].mat.transparency<1.0f)&&(!copytriangle[0].norm.isZero())) {
+														Ray[][] refractionraya = MathLib.surfaceRefractionRay(ray, vsurf, refrindex1, refrindex2);
+														if (refractionraya!=null) {
+															Ray[] refractionray = {refractionraya[0][0]};
+															if ((refractionray!=null)&&(refractionray[0]!=null)) {
+																Color[] refractionraycolor = renderRay(refractionray, entitylist, unlit, bounces-1);
+																if ((refractionraycolor!=null)&&(refractionraycolor[0]!=null)) {
+																	rendercolor[k] = MathLib.sourceOverBlend(rendercolor[k], refractionraycolor[0], copytriangle[0].mat.transparency);
+																}
+															}
+														}
 													}
 													if (copytriangle[0].mat.metallic>0.0f) {
 														Ray[][] mirrorraya = MathLib.surfaceMirrorRay(ray, vsurf);
-														Ray[] mirrorray = {mirrorraya[0][0]};
-														if ((mirrorray!=null)&&(mirrorray[0]!=null)) {
-															Color[] mirrorraycolor = renderRay(mirrorray, entitylist, unlit, bounces-1);
-															if ((mirrorraycolor!=null)&&(mirrorraycolor[0]!=null)) {
-																rendercolor[k] = mirrorraycolor[0];
+														if (mirrorraya!=null) {
+															Ray[] mirrorray = {mirrorraya[0][0]};
+															if ((mirrorray!=null)&&(mirrorray[0]!=null)) {
+																Color[] mirrorraycolor = renderRay(mirrorray, entitylist, unlit, bounces-1);
+																if ((mirrorraycolor!=null)&&(mirrorraycolor[0]!=null)) {
+																	rendercolor[k] = MathLib.sourceOverBlend(rendercolor[k], mirrorraycolor[0], copytriangle[0].mat.metallic);
+																}
 															}
 														}
 													}
