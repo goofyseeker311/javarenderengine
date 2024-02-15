@@ -1012,6 +1012,7 @@ public class RenderLib {
 				Ray[] ray = {vray[k]};
 				Position[] raypos = {vray[k].pos};
 				Direction[] raydir = {vray[k].dir};
+				rendercolor[k] = new Color(0.0f, 0.0f, 0.0f, 0.0f);
 				double[][] rayentityspheredist = MathLib.rayPointDistance(raypos[0], raydir, entityspherepos);
 				for (int m=0;m<entitylist.length;m++) {
 					if (rayentityspheredist[0][m]<=entityspherelist[m].r) {
@@ -1041,7 +1042,11 @@ public class RenderLib {
 											}
 											Color trianglecolor = trianglePixelShader(raypos[0], copytriangle[0], copytrianglenormal[0], pointuv, raydir[0], unlit);
 											if (trianglecolor!=null) {
-												rendercolor[k] = trianglecolor;
+												if (copytriangle[0].norm.isZero()) {
+													rendercolor[k] = MathLib.sourceOverBlend(rendercolor[k], trianglecolor, 1.0f);
+												} else {
+													rendercolor[k] = trianglecolor;
+												}
 												if (bounces>0) {
 													double[] camfwddirposnormangle = MathLib.vectorAngle(raydir[0], copytrianglenormal);
 													float refrindex1 = 1.0f;

@@ -2297,6 +2297,18 @@ public class MathLib {
 		return 2.0f*atand((((double)renderheight)/((double)renderwidth))*tand(hfov/2.0f));
 	}
 	
+	public static Color sourceBlend(Color source, float alpha) {
+		Color k = source;
+		if (source!=null) {
+			float[] sourcecomp = source.getRGBComponents(new float[4]);
+			float[] sourcecomppa = new float[4];
+			for (int i=0;i<4;i++) {
+				sourcecomppa[i] = alpha*sourcecomp[i];
+			}
+			k = new Color(sourcecomppa[0],sourcecomppa[1],sourcecomppa[2],sourcecomppa[3]);
+		}
+		return k;
+	}
 	public static Color sourceOverBlend(Color dest, Color source, float alpha) {
 		Color k = dest;
 		if ((source!=null)&&(dest!=null)) {
@@ -2311,6 +2323,10 @@ public class MathLib {
 			k = new Color(colorcomp[0],colorcomp[1],colorcomp[2],colorcomp[3]);
 		}
 		return k;
+	}
+	
+	public static double refractionOutAngle(double anglein, float refraction1, float refraction2) {
+		return asind((refraction1/refraction2)*sind(anglein));
 	}
 	
 	public static double mod(double val, double modulo) {
@@ -2351,6 +2367,34 @@ public class MathLib {
 	}
 	public static Ray[][] surfaceRefractionRay(Ray[] vray, Plane[] vsurf, float refraction1, float refraction2) {
 		Ray[][] k = null;
+		if ((vsurf!=null)&&(vray!=null)) {
+			k = new Ray[vray.length][vsurf.length];
+			Direction[] vsurfnorm = planeNormal(vsurf);
+			for(int j=0;j<vray.length;j++)  {
+				Position[] raypos = {vray[j].pos};
+				Direction[] raydir = {vray[j].dir};
+				double[][] rayintdist = rayPlaneDistance(raypos[0], raydir, vsurf);
+				for(int i=0;i<vsurf.length;i++)  {
+					if ((Double.isFinite(rayintdist[0][i]))&&(rayintdist[0][i]>=1.0f)) {
+						Position[] rayint = translate(raypos, raydir[0], rayintdist[0][i]);
+						Direction[] refnormal = vectorCross(vsurfnorm[i], raydir);
+						if (refnormal[0].isFinite()) {
+							if (refnormal[0].isZero()) {
+								k[j][i] = new Ray(rayint[0], raydir[0]);
+							} else {
+								double[] rayvsurfangle = vectorAngle(vsurfnorm[i], raydir);
+								double rayvsurfangleout = refractionOutAngle(rayvsurfangle[0], refraction1, refraction2);
+								double refrayrotangle = rayvsurfangle[0]-rayvsurfangleout;
+								Matrix rayvsurfrefrot = rotationMatrixAroundAxis(refnormal[0], -refrayrotangle);
+								Direction[] refractionraydir = matrixMultiply(raydir, rayvsurfrefrot);
+								Direction[] refractionraydirn = normalizeVector(refractionraydir);
+								k[j][i] = new Ray(rayint[0], refractionraydirn[0]);
+							}
+						}
+					}
+				}
+			}
+		}
 		return k;
 	}
 	public static Plane[][] surfaceMirrorPlane(Position campos, Plane[] vplane, Plane[] vsurf) {
