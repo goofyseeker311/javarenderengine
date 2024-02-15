@@ -17,6 +17,7 @@ import fi.jkauppa.javarenderengine.ModelLib.Entity;
 import fi.jkauppa.javarenderengine.ModelLib.Line;
 import fi.jkauppa.javarenderengine.ModelLib.Matrix;
 import fi.jkauppa.javarenderengine.ModelLib.Plane;
+import fi.jkauppa.javarenderengine.ModelLib.PlaneRay;
 import fi.jkauppa.javarenderengine.ModelLib.Position;
 import fi.jkauppa.javarenderengine.ModelLib.Quad;
 import fi.jkauppa.javarenderengine.ModelLib.Ray;
@@ -2399,12 +2400,38 @@ public class MathLib {
 		}
 		return k;
 	}
-	public static Plane[][] surfaceMirrorPlane(Position campos, Plane[] vplane, Plane[] vsurf) {
-		Plane[][] k = null;
+	public static PlaneRay[][] surfaceMirrorPlane(PlaneRay[] vplaneray, Plane[] vsurf) {
+		PlaneRay[][] k = null;
+		if ((vplaneray!=null)&&(vsurf!=null)) {
+			k = new PlaneRay[vplaneray.length][vsurf.length];
+			for (int j=0;j<vplaneray.length;j++) {
+				Position campos = vplaneray[j].pos;
+				//Position[] camposa = {campos};
+				//Position[] zeroposa = {new Position(0.0f,0.0f,0.0f)};
+				Direction[] camfwddir = {vplaneray[j].dir};
+				Plane[] camplane = {vplaneray[j].plane};
+				double[][] camfwdvsufrintdist = rayPlaneDistance(campos, camfwddir, vsurf);
+				Position[][] camfwdvsufrint = rayPlaneIntersection(campos, camfwddir, vsurf);
+				Line[][] ppint = planePlaneIntersection(camplane, vsurf);
+				double[] camrgtvsurfangles = planeAngle(camplane[0], vsurf);
+				for (int i=0;i<vsurf.length;i++) {
+					if ((Double.isFinite(camfwdvsufrintdist[0][i]))&&(camfwdvsufrintdist[0][i]>=1.0f)&&(camfwdvsufrint[0][i]!=null)&&(camfwdvsufrint[0][i].isFinite())&&(ppint[0][i]!=null)&&(ppint[0][i].isFinite())) {
+						//Line[] ppintline = {ppint[0][i]};
+						//Direction[] ppintlinedir = vectorFromPoints(ppintline);
+						double camrgtvsurfangle = camrgtvsurfangles[i];
+						if (camrgtvsurfangle>90.0f) {
+							camrgtvsurfangle = 180.0f-camrgtvsurfangle;
+						}
+						//Position[] camfwdvsurfpos = {camfwdvsufrint[0][i]};
+						//k[j][i] = new PlaneRay();
+					}
+				}
+			}
+		}
 		return k;
 	}
-	public static Plane[][] surfaceRefractionPlane(Position campos, Plane[] vplane, Plane[] vsurf, float refraction1, float refraction2) {
-		Plane[][] k = null;
+	public static PlaneRay[][] surfaceRefractionPlane(Position campos, Plane[] vplane, Plane[] vsurf, double vfov, float refraction1, float refraction2) {
+		PlaneRay[][] k = null;
 		return k;
 	}
 	public static RenderView[] surfaceMirrorProjectedCamera(Position campos, Plane[] vsurf, double hfov, double vfov, Matrix viewrot) {
@@ -2417,11 +2444,12 @@ public class MathLib {
 			Plane[] camplanes = planeFromNormalAtPoint(campos, camdirs);
 			Direction[] camfwddir = {camdirs[0]};
 			Plane[] camrgtplane = {camplanes[1]};
+			double[][] camfwdvsufrintdist = rayPlaneDistance(campos, camfwddir, vsurf);
 			Position[][] camfwdvsufrint = rayPlaneIntersection(campos, camfwddir, vsurf);
 			Line[][] ppint = planePlaneIntersection(camrgtplane, vsurf);
 			double[] camrgtvsurfangles = planeAngle(camrgtplane[0], vsurf);
 			for (int i=0;i<vsurf.length;i++) {
-				if ((camfwdvsufrint[0][i]!=null)&&(ppint[0][i]!=null)&&(camfwdvsufrint[0][i].isFinite())&&(ppint[0][i].isFinite())) {
+				if ((Double.isFinite(camfwdvsufrintdist[0][i]))&&(camfwdvsufrintdist[0][i]>=1.0f)&&(camfwdvsufrint[0][i]!=null)&&(camfwdvsufrint[0][i].isFinite())&&(ppint[0][i]!=null)&&(ppint[0][i].isFinite())) {
 					Line[] ppintline = {ppint[0][i]};
 					Direction[] ppintlinedir = vectorFromPoints(ppintline);
 					double camrgtvsurfangle = camrgtvsurfangles[i];
@@ -2467,10 +2495,11 @@ public class MathLib {
 			Plane[] camrgtplane = {camplanes[1]};
 			Plane[] camupplane = {camplanes[2]};
 			Direction[] vsurfnorm = planeNormal(vsurf);
+			double[][] camfwdvsufrintdist = rayPlaneDistance(campos, camfwddir, vsurf);
 			Position[][] camfwdvsufrint = rayPlaneIntersection(campos, camfwddir, vsurf);
 			Line[][] ppint = planePlaneIntersection(camrgtplane, vsurf);
 			for (int i=0;i<vsurf.length;i++) {
-				if ((camfwdvsufrint[0][i]!=null)&&(ppint[0][i]!=null)&&(camfwdvsufrint[0][i].isFinite())&&(ppint[0][i].isFinite())) {
+				if ((Double.isFinite(camfwdvsufrintdist[0][i]))&&(camfwdvsufrintdist[0][i]>=1.0f)&&(camfwdvsufrint[0][i]!=null)&&(camfwdvsufrint[0][i].isFinite())&&(ppint[0][i]!=null)&&(ppint[0][i].isFinite())) {
 					Line[] ppintline = {ppint[0][i]};
 					Direction[] vsurfnormal = {vsurfnorm[i]};
 					vsurfnormal = normalizeVector(vsurfnormal);
