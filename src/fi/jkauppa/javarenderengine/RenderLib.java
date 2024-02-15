@@ -25,6 +25,7 @@ import fi.jkauppa.javarenderengine.ModelLib.Line;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
 import fi.jkauppa.javarenderengine.ModelLib.Matrix;
 import fi.jkauppa.javarenderengine.ModelLib.Plane;
+import fi.jkauppa.javarenderengine.ModelLib.PlaneRay;
 import fi.jkauppa.javarenderengine.ModelLib.Position;
 import fi.jkauppa.javarenderengine.ModelLib.Ray;
 import fi.jkauppa.javarenderengine.ModelLib.RenderView;
@@ -1020,16 +1021,23 @@ public class RenderLib {
 		renderview.snapimage = renderview.renderimage.getSnapshot();
 		return renderview;
 	}
+
+	public static Color[] renderPlaneRay(PlaneRay[] vray, Entity[] entitylist, boolean unlit, int bounces) {
+		Color[] rendercolor = null;
+		if ((vray!=null)&&(entitylist!=null)&&(entitylist.length>0)) {
+			rendercolor = new Color[vray.length];
+		}
+		return rendercolor;
+	}
 	
 	public static Color[] renderRay(Ray[] vray, Entity[] entitylist, boolean unlit, int bounces) {
 		Color[] rendercolor = null;
 		if ((vray!=null)&&(entitylist!=null)&&(entitylist.length>0)) {
 			rendercolor = new Color[vray.length];
-			double[] zbuffer = new double[vray.length];
-			Arrays.fill(zbuffer,Double.POSITIVE_INFINITY);
 			Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
 			Position[] entityspherepos = MathLib.sphereVertexList(entityspherelist);
 			for (int k=0;k<vray.length;k++) {
+				double zbuffer = Double.POSITIVE_INFINITY;
 				Ray[] ray = {vray[k]};
 				Position[] raypos = {vray[k].pos};
 				Direction[] raydir = {vray[k].dir};
@@ -1054,8 +1062,8 @@ public class RenderLib {
 									Position[][] raycopytriangleint = MathLib.rayTriangleIntersection(raypos[0], raydir, copytriangle);
 									Position[] camrayintpos = {raycopytriangleint[0][0]};
 									if (camrayintpos[0]!=null) {
-										if ((drawdistance>1.0f)&&(drawdistance<zbuffer[k])) {
-											zbuffer[k] = drawdistance;
+										if ((drawdistance>1.0f)&&(drawdistance<zbuffer)) {
+											zbuffer = drawdistance;
 											Coordinate tex = camrayintpos[0].tex;
 											Coordinate pointuv = null;
 											if (tex!=null) {

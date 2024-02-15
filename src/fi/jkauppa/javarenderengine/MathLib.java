@@ -2359,7 +2359,8 @@ public class MathLib {
 						Matrix rayvsurfrot = rotationMatrixAroundAxis(vsurfnorm[i], 180.0f);
 						Direction[] mirrorraydir = matrixMultiply(raydir, rayvsurfrot);
 						Direction[] mirrorraydirn = normalizeVector(mirrorraydir);
-						k[j][i] = new Ray(rayint[0], mirrorraydirn[0].invert());
+						Direction mirrorraydirninv = mirrorraydirn[0].invert();
+						k[j][i] = new Ray(rayint[0], mirrorraydirninv);
 					}
 				}
 			}
@@ -2400,37 +2401,54 @@ public class MathLib {
 		}
 		return k;
 	}
-	public static PlaneRay[][] surfaceMirrorPlane(PlaneRay[] vplaneray, Plane[] vsurf) {
+	public static PlaneRay[][] surfaceMirrorPlaneRay(PlaneRay[] vplaneray, Plane[] vsurf) {
 		PlaneRay[][] k = null;
 		if ((vplaneray!=null)&&(vsurf!=null)) {
 			k = new PlaneRay[vplaneray.length][vsurf.length];
+			Direction[] vsurfnorm = planeNormal(vsurf);
 			for (int j=0;j<vplaneray.length;j++) {
 				Position campos = vplaneray[j].pos;
-				//Position[] camposa = {campos};
-				//Position[] zeroposa = {new Position(0.0f,0.0f,0.0f)};
+				Position[] camposa = {campos};
+				Position[] zeroposa = {new Position(0.0f,0.0f,0.0f)};
 				Direction[] camfwddir = {vplaneray[j].dir};
 				Plane[] camplane = {vplaneray[j].plane};
+				Direction[] camplanenorm = planeNormal(camplane);
+				double camfov = vplaneray[j].fov;
 				double[][] camfwdvsufrintdist = rayPlaneDistance(campos, camfwddir, vsurf);
 				Position[][] camfwdvsufrint = rayPlaneIntersection(campos, camfwddir, vsurf);
 				Line[][] ppint = planePlaneIntersection(camplane, vsurf);
 				double[] camrgtvsurfangles = planeAngle(camplane[0], vsurf);
 				for (int i=0;i<vsurf.length;i++) {
 					if ((Double.isFinite(camfwdvsufrintdist[0][i]))&&(camfwdvsufrintdist[0][i]>=1.0f)&&(camfwdvsufrint[0][i]!=null)&&(camfwdvsufrint[0][i].isFinite())&&(ppint[0][i]!=null)&&(ppint[0][i].isFinite())) {
-						//Line[] ppintline = {ppint[0][i]};
-						//Direction[] ppintlinedir = vectorFromPoints(ppintline);
+						Line[] ppintline = {ppint[0][i]};
+						Direction[] ppintlinedir = vectorFromPoints(ppintline);
 						double camrgtvsurfangle = camrgtvsurfangles[i];
+						double anglemult = 1.0f;
 						if (camrgtvsurfangle>90.0f) {
 							camrgtvsurfangle = 180.0f-camrgtvsurfangle;
+							anglemult = -1.0f;
 						}
-						//Position[] camfwdvsurfpos = {camfwdvsufrint[0][i]};
-						//k[j][i] = new PlaneRay();
+						Matrix mirrormat = rotationMatrixAroundAxis(ppintlinedir[0], anglemult*2.0f*camrgtvsurfangle);
+						Position[] camfwdvsurfpos = {camfwdvsufrint[0][i]};
+						Direction[] camfwdvsurfdir = vectorFromPoints(zeroposa, camfwdvsurfpos);
+						Position[] camposmirror = translate(camposa, camfwdvsurfdir[0], -1.0f);
+						camposmirror = matrixMultiply(camposmirror, mirrormat);
+						camposmirror = translate(camposmirror, camfwdvsurfdir[0], 1.0f);
+						Matrix rayvsurfrot = rotationMatrixAroundAxis(vsurfnorm[i], 180.0f);
+						Direction[] mirrorraydir = matrixMultiply(camfwddir, rayvsurfrot);
+						Direction[] mirrorraydirn = normalizeVector(mirrorraydir);
+						Direction[] mirrorraydirninv = {mirrorraydirn[0].invert()};
+						Direction[] mirrorplaneraydir = matrixMultiply(camplanenorm, rayvsurfrot);
+						Direction[] mirrorplaneraydirn = normalizeVector(mirrorplaneraydir);
+						Plane[] mirrorplanerayplane = MathLib.planeFromNormalAtPoint(camposmirror[0], mirrorplaneraydirn);
+						k[j][i] = new PlaneRay(camposmirror[0],mirrorraydirninv[0],camfov,mirrorplanerayplane[0]);
 					}
 				}
 			}
 		}
 		return k;
 	}
-	public static PlaneRay[][] surfaceRefractionPlane(Position campos, Plane[] vplane, Plane[] vsurf, double vfov, float refraction1, float refraction2) {
+	public static PlaneRay[][] surfaceRefractionPlaneRay(Position campos, Plane[] vplane, Plane[] vsurf, double vfov, float refraction1, float refraction2) {
 		PlaneRay[][] k = null;
 		return k;
 	}
