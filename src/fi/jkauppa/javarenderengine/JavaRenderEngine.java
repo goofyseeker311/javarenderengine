@@ -64,7 +64,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.4.12");
+		this.setTitle("Java Render Engine v2.4.13");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -375,7 +375,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Direction[] smprdir = {new Direction(1.0f, 0.0f, 0.0f), new Direction(1.0f, -1.0f, 0.0f)};
 		Ray[] smrray = {new Ray(smpcpos[0], smrdir[0]), new Ray(smpcpos[0], smrdir[1]), new Ray(smpcpos[0], smrdir[2]), new Ray(smpcpos[0], smrdir[3]), new Ray(smpcpos[0], smrdir[4])};
 		Plane[] smrdirplane = MathLib.planeFromNormalAtPoint(smpcpos[0], smprdir);
-		PlaneRay[] smplaneray = {new PlaneRay(smpcpos[0],smrdir[0],90.0f,smrdirplane[0]), new PlaneRay(smpcpos[0],smrdir[1],90.0f,smrdirplane[1])};
+		PlaneRay[] smplaneray = {new PlaneRay(smpcpos[0],smrdir[0],smrdirplane[0]), new PlaneRay(smpcpos[0],smrdir[1],smrdirplane[1])};
 		Matrix smpcrot = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
 		Triangle smpctri1 = new Triangle(smpcpos[1],smpcpos[2],smpcpos[3]);
 		Triangle smpctri2 = new Triangle(smpcpos[4],smpcpos[5],smpcpos[6]);
