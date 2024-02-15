@@ -1020,38 +1020,6 @@ public class RenderLib {
 		renderview.snapimage = renderview.renderimage.getSnapshot();
 		return renderview;
 	}
-
-	public static RenderView renderProjectedMirrorView(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, int mode, int bounces, int mouselocationx, int mouselocationy) {
-		Direction[] camdirs = MathLib.projectedCameraDirections(viewrot);
-		Position[] camposa = {campos};
-		Position[] mirrorpos = MathLib.translate(camposa, camdirs[0], 1.0d);
-		Plane[] mirrorplanes = MathLib.planeFromNormalAtPoint(mirrorpos[0], camdirs);
-		Plane[] cammirrorplane = {mirrorplanes[0].invert()};
-		RenderView[] mirrorcamera = MathLib.surfaceMirrorProjectedCamera(campos, cammirrorplane, hfov, vfov, viewrot);
-		ArrayList<Entity> mirrorentitylistarray = new ArrayList<Entity>();
-		if ((entitylist!=null)&&(entitylist.length>0)) {
-			Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
-			Position[] entityspherepointlist = MathLib.sphereVertexList(entityspherelist);
-			double[][] entityspherepointlistdist = MathLib.planePointDistance(entityspherepointlist, cammirrorplane);
-			for (int i=0;i<entitylist.length;i++) {
-				if (entityspherepointlistdist[i][0]>=1.0f) {
-					mirrorentitylistarray.add(entitylist[i]);
-				}
-			}
-		}
-		Entity[] mirrorentitylist = mirrorentitylistarray.toArray(new Entity[mirrorentitylistarray.size()]);
-		RenderView mirrorview = null;
-		if (mode==2) {
-			mirrorview = renderProjectedPlaneViewSoftware(mirrorcamera[0].pos, mirrorentitylist, renderwidth, hfov, renderheight, vfov, mirrorcamera[0].rot, unlit, bounces, mirrorcamera[0].surf, null, null, mouselocationx, mouselocationy);
-		} else if (mode==3) {
-			mirrorview = renderProjectedRayViewSoftware(mirrorcamera[0].pos, mirrorentitylist, renderwidth, hfov, renderheight, vfov, mirrorcamera[0].rot, unlit, bounces, mirrorcamera[0].surf, null, null, mouselocationx, mouselocationy);
-		} else {
-			mirrorview = renderProjectedPolygonViewHardware(mirrorcamera[0].pos, mirrorentitylist, renderwidth, hfov, renderheight, vfov, mirrorcamera[0].rot, unlit, bounces, mirrorcamera[0].surf, null, null, mouselocationx, mouselocationy);
-		}
-		mirrorview.renderimage = UtilLib.flipImage(mirrorview.renderimage, true, false);
-		mirrorview.snapimage = mirrorview.renderimage.getSnapshot();
-		return mirrorview;
-	}
 	
 	public static Color[] renderRay(Ray[] vray, Entity[] entitylist, boolean unlit, int bounces) {
 		Color[] rendercolor = null;
