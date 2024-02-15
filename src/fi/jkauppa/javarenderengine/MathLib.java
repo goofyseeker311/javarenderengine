@@ -1,5 +1,6 @@
 package fi.jkauppa.javarenderengine;
 
+import java.awt.Color;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.util.ArrayList;
@@ -2296,6 +2297,22 @@ public class MathLib {
 		return 2.0f*atand((((double)renderheight)/((double)renderwidth))*tand(hfov/2.0f));
 	}
 	
+	public static Color sourceOverBlend(Color dest, Color source, float alpha) {
+		Color k = dest;
+		if ((source!=null)&&(dest!=null)) {
+			float[] sourcecomp = source.getRGBComponents(new float[4]);
+			float[] destcomp = dest.getRGBComponents(new float[4]);
+			float[] sourcecomppa = new float[4];
+			float[] colorcomp = new float[4];
+			for (int i=0;i<4;i++) {
+				sourcecomppa[i] = alpha*sourcecomp[i];
+				colorcomp[i] = sourcecomppa[i] + destcomp[i]*(1.0f-sourcecomppa[i]);
+			}
+			k = new Color(colorcomp[0],colorcomp[1],colorcomp[2],colorcomp[3]);
+		}
+		return k;
+	}
+	
 	public static double mod(double val, double modulo) {
 		return val-Math.floor(val/modulo)*modulo;
 	}
@@ -2332,16 +2349,16 @@ public class MathLib {
 		}
 		return k;
 	}
-	public static Ray[] surfaceRefractionRay(Ray[] vray, Plane[] vsurf, float refraction1, float refraction2) {
-		Ray[] k = null;
+	public static Ray[][] surfaceRefractionRay(Ray[] vray, Plane[] vsurf, float refraction1, float refraction2) {
+		Ray[][] k = null;
 		return k;
 	}
-	public static Plane[] surfaceMirrorPlane(Position campos, Plane[] vplane, Plane[] vsurf) {
-		Plane[] k = null;
+	public static Plane[][] surfaceMirrorPlane(Position campos, Plane[] vplane, Plane[] vsurf) {
+		Plane[][] k = null;
 		return k;
 	}
-	public static Plane[] surfaceRefractionPlane(Position campos, Plane[] vplane, Plane[] vsurf, float refraction1, float refraction2) {
-		Plane[] k = null;
+	public static Plane[][] surfaceRefractionPlane(Position campos, Plane[] vplane, Plane[] vsurf, float refraction1, float refraction2) {
+		Plane[][] k = null;
 		return k;
 	}
 	public static RenderView[] surfaceMirrorProjectedCamera(Position campos, Plane[] vsurf, double hfov, double vfov, Matrix viewrot) {
