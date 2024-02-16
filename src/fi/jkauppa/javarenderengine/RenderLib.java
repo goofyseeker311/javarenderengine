@@ -1042,8 +1042,6 @@ public class RenderLib {
 		RenderView spheremapview = null;
 		if (mode==2) {
 			spheremapview = renderSpheremapRayViewSoftware(campos, entitylist, renderwidth, renderheight, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
-		} else if (mode==3) {
-			spheremapview = renderSpheremapPlaneRaytracedViewSoftware(campos, entitylist, renderwidth, renderheight, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		} else {
 			spheremapview = renderSpheremapPlaneViewSoftware(campos, entitylist, renderwidth, renderheight, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		}
@@ -1109,41 +1107,6 @@ public class RenderLib {
 		return renderview;
 	}
 
-	public static RenderView renderSpheremapPlaneRaytracedViewSoftware(Position campos, Entity[] entitylist, int renderwidth, int renderheight, Matrix viewrot, boolean unlit, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
-		RenderView renderview = new RenderView();
-		renderview.pos = campos.copy();
-		renderview.rot = viewrot.copy();
-		renderview.renderwidth = renderwidth;
-		renderview.renderheight = renderheight;
-		renderview.hfov = 360.0f;
-		renderview.vfov = 180.0f;
-		renderview.unlit = unlit;
-		renderview.mouselocationx = mouselocationx;
-		renderview.mouselocationy = mouselocationy;
-		renderview.dirs = MathLib.projectedCameraDirections(renderview.rot);
-		renderview.planerays = MathLib.spheremapPlaneRays(renderview.pos, renderwidth, renderheight, renderview.rot);
-		renderview.fwddirs = MathLib.spheremapVectors(renderwidth, viewrot);
-		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
-		Graphics2D g2 = renderview.renderimage.createGraphics();
-		g2.setComposite(AlphaComposite.Src);
-		g2.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
-		g2.setPaint(null);
-		g2.setClip(null);
-		g2.fillRect(0, 0, renderwidth, renderheight);
-		g2.setComposite(AlphaComposite.SrcOver);
-		if ((entitylist!=null)&&(entitylist.length>0)) {
-			for (int i=0;i<renderwidth;i++) {
-				PlaneRay[] planeray = {renderview.planerays[i]};
-				VolatileImage[] planeraycolumn = renderPlaneRay(planeray, entitylist, renderheight, true, unlit, bounces, null, null, null);
-				if (planeraycolumn!=null) {
-					g2.drawImage(planeraycolumn[0], i, 0, null);
-				}
-			}
-		}
-		renderview.snapimage = renderview.renderimage.getSnapshot();
-		return renderview;
-	}
-	
 	public static VolatileImage[] renderPlaneRay(PlaneRay[] vplaneray, Entity[] entitylist, int renderheight, boolean spherical, boolean unlit, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange) {
 		VolatileImage[] rendercolumn = null;
 		if ((vplaneray!=null)&&(entitylist!=null)&&(entitylist.length>0)) {
