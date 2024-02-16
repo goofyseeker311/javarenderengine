@@ -502,34 +502,9 @@ public class RenderLib {
 								Direction copytrianglenormal = copytrianglenormallist[it];
 								int jstart = copytrianglelistint[it].x;
 								int jend = copytrianglelistint[it].x+copytrianglelistint[it].width-1;
-								int[] planeindex = null;
-								Plane[] renderviewplanes = null;
-								if (copytrianglelistint[it].width>0) {
-									planeindex = new int[copytrianglelistint[it].width];
-									renderviewplanes = new Plane[copytrianglelistint[it].width];
-									for (int n=jstart;n<=jend;n++) {
-										planeindex[n-jstart] = n;
-										renderviewplanes[n-jstart] = renderview.planes[n];
-									}
-								} else {
-									int planeindexwidth = renderwidth-jstart+jend+1;
-									planeindex = new int[planeindexwidth];
-									renderviewplanes = new Plane[planeindexwidth];
-									for (int n=0;n<=jend;n++) {
-										planeindex[n] = n;
-										renderviewplanes[n] = renderview.planes[n];
-									}
-									int n2 = jend+1;
-									for (int n=jstart;n<renderwidth;n++) {
-										planeindex[n2] = n;
-										renderviewplanes[n2] = renderview.planes[n];
-										n2++;
-									}
-								}
-								Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(renderviewplanes, copytriangle);
-								for (int l=0;l<planeindex.length;l++) {
-									int j = planeindex[l];
-									Line drawline = vertplanetriangleint[l][0];
+								Line[][] vertplanetriangleint = MathLib.planeTriangleIntersection(renderview.planes, copytriangle);
+								for (int j=jstart;j<=jend;j++) {
+									Line drawline = vertplanetriangleint[j][0];
 									if (drawline!=null) {
 										Position[] drawlinepoints = {drawline.pos1, drawline.pos2};
 										Plane[] camfwdplane = {camfwdplanes[j]};
@@ -827,30 +802,12 @@ public class RenderLib {
 								Triangle[] copytriangle = {copytrianglelist[it]};
 								Direction[] copytrianglenormal = {copytrianglenormallist[it]};
 								Plane[] copytriangleplane = {copytriangleplanelist[n]};
-								int jstart = copytrianglelistint[it].y;
-								int jend = copytrianglelistint[it].y+copytrianglelistint[it].height-1;
+								int jstart = 0; //copytrianglelistint[it].y;
+								int jend = renderheight-1; //copytrianglelistint[it].y+copytrianglelistint[it].height-1;
 								int istart = copytrianglelistint[it].x;
 								int iend = copytrianglelistint[it].x+copytrianglelistint[it].width-1;
-								int[] rayindex = null;
-								if (copytrianglelistint[it].width>0) {
-									rayindex = new int[copytrianglelistint[it].width];
-									for (int i=istart;i<=iend;i++) {
-										rayindex[i-istart] = i;
-									}
-								} else {
-									rayindex = new int[renderwidth-istart+iend+1];
-									for (int i=0;i<=iend;i++) {
-										rayindex[i] = i;
-									}
-									int i2 = iend+1;
-									for (int i=istart;i<renderwidth;i++) {
-										rayindex[i2] = i;
-										i2++;
-									}
-								}
 								for (int j=jstart;j<=jend;j++) {
-									for (int l=0;l<rayindex.length;l++) {
-										int i = rayindex[l];
+									for (int i=istart;i<=iend;i++) {
 										Direction[] camray = {renderview.rays[i][j]};
 										Ray[] ray = {new Ray(campos, camray[0])};
 										Plane[] camfwdplane = {camfwdplanes[i]};

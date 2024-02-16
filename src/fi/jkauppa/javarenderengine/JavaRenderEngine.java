@@ -64,7 +64,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.4.17");
+		this.setTitle("Java Render Engine v2.4.18");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -239,7 +239,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		for (int i=0;i<trianglesphere.length;i++) {System.out.println("JavaRenderEngine: main: trianglesphere["+i+"]="+trianglesphere[i].x+" "+trianglesphere[i].y+" "+trianglesphere[i].z+" "+trianglesphere[i].r);}
 		for (int i=0;i<triangleinsphere.length;i++) {System.out.println("JavaRenderEngine: main: triangleinsphere["+i+"]="+triangleinsphere[i].x+" "+triangleinsphere[i].y+" "+triangleinsphere[i].z+" "+triangleinsphere[i].r);}
 		Position pmsvpos = new Position(0,0,0);
-		Position[] pmstripos = {new Position(0.0f,-3.9f,0.0f),new Position(-1.0f,-3.9f,0.0f),new Position(1.0f,-3.9f,0.0f),new Position(0.0f,-3.9f,1.0f),new Position(0.0f,-3.9f,-1.0f),new Position(-3.9f,0.0f,0.0f),new Position(3.9f,0.0f,0.0f),new Position(0.0f,3.9f,0.0f),new Position(-1.0f,3.9f,0.0f),new Position(1.0f,3.9f,0.0f),new Position(1.0f,3.9f,1.0f),new Position(-1.0f,3.9f,1.0f),new Position(1.0f,3.9f,1.0f),new Position(-1.0f,3.9f,-1.0f),new Position(1.0f,3.9f,-1.0f)};
+		Position[] pmstripos = {new Position(0.0f,-3.9f,0.0f),new Position(-1.0f,-3.9f,0.0f),new Position(1.0f,-3.9f,0.0f),new Position(0.0f,-3.9f,1.0f),new Position(0.0f,-3.9f,-1.0f),new Position(-3.9f,0.0f,0.0f),new Position(3.9f,0.0f,0.0f),new Position(0.0f,3.9f,0.0f),new Position(-1.0f,3.9f,0.0f),new Position(1.0f,3.9f,0.0f),new Position(1.0f,3.9f,1.0f),new Position(-1.0f,3.9f,1.0f),new Position(1.0f,3.9f,1.0f),new Position(-1.0f,3.9f,-1.0f),new Position(1.0f,3.9f,-1.0f),new Position(0.0f,3.9f,3.9f),new Position(0.0f,3.9f,-3.9f),new Position(0.0f,0.0f,3.9f),new Position(0.0f,0.0f,-3.9f),new Position(0.0f,0.0f,3.9f),new Position(0.0f,0.0f,-3.9f), new Position(0.0f,-1.0f,1.0f),new Position(0.0f,-1.0f,-1.0f),new Position(0.0f,-0.5f,1.0f),new Position(0.0f,-0.5f,-1.0f),new Position(0.0f,1.0f,1.0f),new Position(0.0f,1.0f,-1.0f),new Position(0.0f,0.5f,1.0f),new Position(0.0f,0.5f,-1.0f), new Position(1.0f,0.0f,1.0f),new Position(1.0f,0.0f,-1.0f),new Position(0.5f,0.0f,1.0f),new Position(0.5f,0.0f,-1.0f),new Position(-1.0f,-0.0f,1.0f),new Position(-1.0f,0.0f,-1.0f),new Position(-0.5f,0.0f,1.0f),new Position(-0.5f,0.0f,-1.0f)};
 		Triangle[] pmsvtri = {new Triangle(pmstripos[0],pmstripos[1],pmstripos[3]), new Triangle(pmstripos[0],pmstripos[2],pmstripos[3]), new Triangle(pmstripos[0],pmstripos[1],pmstripos[4]), new Triangle(pmstripos[0],pmstripos[2],pmstripos[4]), new Triangle(pmstripos[8],pmstripos[9],pmstripos[10]), new Triangle(pmstripos[1],pmstripos[2],pmstripos[7]), new Triangle(pmstripos[3],pmstripos[11],pmstripos[12]), new Triangle(pmstripos[4],pmstripos[13],pmstripos[14])};
 		Sphere[] pmsvsph = {new Sphere(0,0,0,2), new Sphere(0,0,3.9,2), new Sphere(0,3.9,0,2), new Sphere(3.9,0,0,2)};
 		Matrix pmsrotx = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);

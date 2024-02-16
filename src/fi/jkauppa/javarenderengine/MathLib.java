@@ -1658,8 +1658,8 @@ public class MathLib {
 			double halfvfovmult = (1.0f/tand(vfov/2.0f));
 			double origindeltax = ((double)(hres-1))/2.0f;
 			double origindeltay = ((double)(vres-1))/2.0f;
-			double halfhres = ((double)hres)/2.0f;
-			double halfvres = ((double)vres)/2.0f;
+			double halfhres = ((double)(hres-1))/2.0f;
+			double halfvres = ((double)(vres-1))/2.0f;
 			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
 			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
 			double[][] fwdintpointsdist = planePointDistance(vpoint, dirrightupplanes);
@@ -1974,8 +1974,8 @@ public class MathLib {
 			double halfvfovmult = (1.0f/tand(halfvfov));
 			double origindeltax = ((double)(hres-1))/2.0f;
 			double origindeltay = ((double)(vres-1))/2.0f;
-			double halfhres = ((double)hres)/2.0f;
-			double halfvres = ((double)vres)/2.0f;
+			double halfhres = ((double)(hres-1))/2.0f;
+			double halfvres = ((double)(vres-1))/2.0f;
 			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
 			Plane[] dirrightupplanes = planeFromNormalAtPoint(vpos, dirrightupvectors);
 			double[][] fwdintpointsdist = planePointDistance(vpoint, dirrightupplanes);
@@ -2035,8 +2035,8 @@ public class MathLib {
 			k = new Coordinate[vpoint.length];
 			double halfhfov = 360.0f/2.0f;
 			double halfvfov = 180.0f/2.0f;
-			double halfhreshfovmult = (((double)hres)/2.0f)/halfhfov;
-			double halfvresvfovmult = (((double)vres)/2.0f)/halfvfov;
+			double halfhreshfovmult = (((double)(hres-1))/2.0f)/halfhfov;
+			double halfvresvfovmult = (((double)(vres-1))/2.0f)/halfvfov;
 			double origindeltax = ((double)(hres-1))/2.0f;
 			double origindeltay = ((double)(vres-1))/2.0f;
 			Direction[] camdirs = projectedCameraDirections(vmat);
@@ -2090,10 +2090,8 @@ public class MathLib {
 				if ((vtripos1pixel[j]!=null)&&(vtripos2pixel[j]!=null)&&(vtripos3pixel[j]!=null)) {
 					double minx = Double.POSITIVE_INFINITY;
 					double maxx = Double.NEGATIVE_INFINITY;
-					//double miny = Double.POSITIVE_INFINITY;
-					//double maxy = Double.NEGATIVE_INFINITY;
-					double miny = 0;
-					double maxy = vres-1;
+					double miny = Double.POSITIVE_INFINITY;
+					double maxy = Double.NEGATIVE_INFINITY;
 					Coordinate[] vtripospixels = {vtripos1pixel[j], vtripos2pixel[j], vtripos3pixel[j]};
 					for (int i=0;i<vtripospixels.length;i++) {
 						if (vtripospixels[i].u<minx) {minx = vtripospixels[i].u;}
@@ -2137,6 +2135,7 @@ public class MathLib {
 		return k;
 	}
 	public static Rectangle[] spheremapSphereIntersection(Position vpos, Sphere[] vsphere, int hres, int vres, Matrix vmat, Plane nclipplane) {
+		//TODO fix incorrect pole and back side overlapping sphere rectangle area
 		Rectangle[] k = null;
 		if ((vpos!=null)&&(vsphere!=null)&&(vmat!=null)) {
 			k = new Rectangle[vsphere.length];
@@ -2145,8 +2144,8 @@ public class MathLib {
 			double[] lvecl = vectorLength(lvec);
 			double halfhfov = 360.0f/2.0f;
 			double halfvfov = 180.0f/2.0f;
-			double halfhreshfovmult = (((double)hres)/2.0f)/halfhfov;
-			double halfvresvfovmult = (((double)vres)/2.0f)/halfvfov;
+			double halfhreshfovmult = (((double)(hres-1))/2.0f)/halfhfov;
+			double halfvresvfovmult = (((double)(vres-1))/2.0f)/halfvfov;
 			double origindeltax = ((double)(hres-1))/2.0f;
 			double origindeltay = ((double)(vres-1))/2.0f;
 			Direction[] dirrightupvectors = projectedCameraDirections(vmat);
