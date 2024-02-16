@@ -1032,8 +1032,8 @@ public class RenderLib {
 		renderview.mouselocationx = mouselocationx;
 		renderview.mouselocationy = mouselocationy;
 		renderview.dirs = MathLib.projectedCameraDirections(renderview.rot);
-		renderview.planes = MathLib.projectedPlanes(renderview.pos, renderwidth, renderview.hfov, renderview.rot);
-		renderview.fwddirs = MathLib.projectedPlaneVectors(renderwidth, hfov, viewrot);
+		renderview.planerays = MathLib.projectedPlaneRays(renderview.pos, renderwidth, renderheight, renderview.hfov, renderview.vfov, renderview.rot);
+		renderview.fwddirs = MathLib.projectedPlaneVectors(renderwidth, hfov, viewrot, true);
 		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
 		Graphics2D g2 = renderview.renderimage.createGraphics();
 		g2.setComposite(AlphaComposite.Src);
@@ -1043,11 +1043,11 @@ public class RenderLib {
 		g2.fillRect(0, 0, renderwidth, renderheight);
 		g2.setComposite(AlphaComposite.SrcOver);
 		if ((entitylist!=null)&&(entitylist.length>0)) {
-			for (int j=0;j<renderwidth;j++) {
-				PlaneRay[] planeray = {new PlaneRay(renderview.pos,renderview.fwddirs[j],renderview.planes[j])};
-				VolatileImage[] planeraycolumn = renderPlaneRay(planeray, entitylist, renderheight, vfov, unlit, bounces);
+			for (int i=0;i<renderwidth;i++) {
+				PlaneRay[] planeray = {renderview.planerays[i]};
+				VolatileImage[] planeraycolumn = renderPlaneRay(planeray, entitylist, renderheight, unlit, bounces);
 				if (planeraycolumn!=null) {
-					g2.drawImage(planeraycolumn[0], j, 0, null);
+					g2.drawImage(planeraycolumn[0], i, 0, null);
 				}
 			}
 		}
@@ -1055,14 +1055,10 @@ public class RenderLib {
 		return renderview;
 	}
 	
-	public static VolatileImage[] renderPlaneRay(PlaneRay[] vplaneray, Entity[] entitylist, int renderheight, double vfov, boolean unlit, int bounces) {
+	public static VolatileImage[] renderPlaneRay(PlaneRay[] vplaneray, Entity[] entitylist, int renderheight, boolean unlit, int bounces) {
 		VolatileImage[] rendercolumn = null;
 		if ((vplaneray!=null)&&(entitylist!=null)&&(entitylist.length>0)) {
 			rendercolumn = new VolatileImage[vplaneray.length];
-			double[] verticalangles = MathLib.projectedAngles(renderheight, vfov);
-			double halfvfovmult = (1.0f/MathLib.tand(vfov/2.0f));
-			double origindeltay = ((double)(renderheight-1))/2.0f;
-			double halfvres = ((double)renderheight)/2.0f;
 			Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
 			Position[] entityspherepos = MathLib.sphereVertexList(entityspherelist);
 			for (int k=0;k<vplaneray.length;k++) {
@@ -1079,6 +1075,11 @@ public class RenderLib {
 				Position[] campos = {vplaneray[k].pos};
 				Plane[] camplane = {vplaneray[k].plane};
 				Direction[] camfwddir = {vplaneray[k].dir};
+				double[] camvfov = {vplaneray[k].vfov};
+				double[] verticalangles = MathLib.projectedAngles(renderheight, camvfov[0]);
+				double halfvfovmult = (1.0f/MathLib.tand(camvfov[0]/2.0f));
+				double origindeltay = ((double)(renderheight-1))/2.0f;
+				double halfvres = ((double)renderheight)/2.0f;
 				Direction[] camrgtdir = MathLib.planeNormal(camplane);
 				Direction[] camupdir = MathLib.vectorCross(camfwddir, camrgtdir);
 				Plane[] camfwdplane = MathLib.planeFromNormalAtPoint(campos[0], camfwddir);

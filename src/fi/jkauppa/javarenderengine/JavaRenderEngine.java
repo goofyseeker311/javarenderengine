@@ -64,7 +64,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.4.13");
+		this.setTitle("Java Render Engine v2.4.14");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -188,9 +188,10 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		double[] prjangles = MathLib.projectedAngles(8, 70.0f);
 		Direction[] prjdirs = MathLib.projectedPlaneDirections(matrot1);
 		Direction[] prjdirs2 = MathLib.projectedPlaneDirections(matrot2);
-		Direction[] prjvectors = MathLib.projectedPlaneVectors(8, 70.0f, matrot1);
+		Direction[] prjvectors = MathLib.projectedPlaneVectors(8, 70.0f, matrot1, true);
 		Plane[] prjplane = MathLib.projectedPlanes(campos, 8, 70.0f, matrot1);
 		Plane[] prjplane2 = MathLib.projectedPlanes(campos2[0], 8, 70.0f, matrot2);
+		PlaneRay[] prjplaneray = MathLib.projectedPlaneRays(campos, 9, 9, 90, 90, matrot1);
 		for (int i=0;i<prjstep.length;i++) {System.out.println("JavaRenderEngine: main: prjstep["+i+"]: "+prjstep[i]);}
 		for (int i=0;i<prjangles.length;i++) {System.out.println("JavaRenderEngine: main: prjangles["+i+"]: "+prjangles[i]);}
 		System.out.println("JavaRenderEngine: main: prjdirs[0]="+prjdirs[0].dx+","+prjdirs[0].dy+","+prjdirs[0].dz); System.out.println("JavaRenderEngine: main: prjdirs[1]="+prjdirs[1].dx+","+prjdirs[1].dy+","+prjdirs[1].dz); System.out.println("JavaRenderEngine: main: prjdirs[2]="+prjdirs[2].dx+","+prjdirs[2].dy+","+prjdirs[2].dz);
@@ -198,6 +199,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		for (int i=0;i<prjvectors.length;i++) {System.out.println("JavaRenderEngine: main: prjvectors["+i+"]: "+prjvectors[i].dx+" "+prjvectors[i].dy+" "+prjvectors[i].dz);}
 		for (int i=0;i<prjplane.length;i++) {System.out.println("JavaRenderEngine: main: prjplane["+i+"]: "+prjplane[i].a+" "+prjplane[i].b+" "+prjplane[i].c+" "+prjplane[i].d);}
 		for (int i=0;i<prjplane2.length;i++) {System.out.println("JavaRenderEngine: main: prjplane2["+i+"]: "+prjplane2[i].a+" "+prjplane2[i].b+" "+prjplane2[i].c+" "+prjplane2[i].d);}
+		for (int i=0;i<prjplaneray.length;i++) {System.out.println("JavaRenderEngine: main: prjplaneray["+i+"]: pos="+prjplaneray[i].pos.x+" "+prjplaneray[i].pos.y+" "+prjplaneray[i].pos.z+" dir="+prjplaneray[i].dir.dx+" "+prjplaneray[i].dir.dy+" "+prjplaneray[i].dir.dz+" plane="+prjplaneray[i].plane.a+" "+prjplaneray[i].plane.b+" "+prjplaneray[i].plane.c+" "+prjplaneray[i].plane.d+" vfov="+prjplaneray[i].vfov);}
 		Direction[][] prjrays = MathLib.projectedRays(4, 3, 70, 39, matrot1, true);
 		for (int j=0;j<prjrays.length;j++) {System.out.print("JavaRenderEngine: main: prjrays["+j+"]=");for (int i=0;i<prjrays[j].length;i++) {System.out.print(" ["+prjrays[j][i].dx+","+prjrays[j][i].dy+","+prjrays[j][i].dz+"]");}System.out.println();}
 		double[] sang = MathLib.spheremapAngles(8, 360.0f);
@@ -375,7 +377,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Direction[] smprdir = {new Direction(1.0f, 0.0f, 0.0f), new Direction(1.0f, -1.0f, 0.0f)};
 		Ray[] smrray = {new Ray(smpcpos[0], smrdir[0]), new Ray(smpcpos[0], smrdir[1]), new Ray(smpcpos[0], smrdir[2]), new Ray(smpcpos[0], smrdir[3]), new Ray(smpcpos[0], smrdir[4])};
 		Plane[] smrdirplane = MathLib.planeFromNormalAtPoint(smpcpos[0], smprdir);
-		PlaneRay[] smplaneray = {new PlaneRay(smpcpos[0],smrdir[0],smrdirplane[0]), new PlaneRay(smpcpos[0],smrdir[1],smrdirplane[1])};
+		PlaneRay[] smplaneray = {new PlaneRay(smpcpos[0],smrdir[0],smrdirplane[0],90.0f), new PlaneRay(smpcpos[0],smrdir[1],smrdirplane[1],90.0f)};
 		Matrix smpcrot = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
 		Triangle smpctri1 = new Triangle(smpcpos[1],smpcpos[2],smpcpos[3]);
 		Triangle smpctri2 = new Triangle(smpcpos[4],smpcpos[5],smpcpos[6]);

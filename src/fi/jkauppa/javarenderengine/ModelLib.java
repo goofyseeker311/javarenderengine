@@ -167,6 +167,7 @@ public class ModelLib {
 		public Direction[][] rays;
 		public Ray[][] vrays;
 		public Plane[] planes;
+		public PlaneRay[] planerays;
 		public Direction[] fwddirs;
 	}
 	
@@ -342,7 +343,7 @@ public class ModelLib {
 	public static class Arc {public Position origin; public double r,ang1,ang2; public Arc(Position origini, double ri, double ang1i, double ang2i){this.origin=origini;this.r=ri;this.ang1=ang1i;this.ang2=ang2i;}}
 	public static class Circle {public Position origin; public double r; public Circle(Position origini, double ri){this.origin=origini;this.r=ri;}}
 	public static class Ray {public Position pos; public Direction dir; public Ray(Position posi, Direction diri){this.pos=posi;this.dir=diri;}}
-	public static class PlaneRay {public Position pos; public Direction dir; public Plane plane; public PlaneRay(Position posi, Direction diri, Plane planei){this.pos=posi;this.dir=diri;this.plane=planei;}}
+	public static class PlaneRay {public Position pos; public Direction dir; public Plane plane; public double vfov; public PlaneRay(Position posi, Direction diri, Plane planei, double vfovi){this.pos=posi;this.dir=diri;this.plane=planei;this.vfov=vfovi;}}
 	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}
 		public Plane invert(){return new Plane(-this.a,-this.b,-this.c,-this.d);}
 		public boolean isFinite(){return (Double.isFinite(this.a))&&(Double.isFinite(this.b))&&(Double.isFinite(this.c))&&(Double.isFinite(this.d));}
