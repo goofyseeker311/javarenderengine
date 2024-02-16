@@ -1548,19 +1548,19 @@ public class MathLib {
 		return k;
 	}
 	
-	public static double[] projectedStep(int vres, double vfov) {
-		double[] k = new double[vres];
-		double halfvfov = vfov/2.0f;
+	public static double[] projectedStep(int res, double fov) {
+		double[] k = new double[res];
+		double halfvfov = fov/2.0f;
 		double stepmax = Math.abs(tand(halfvfov));
 		double stepmin = -stepmax;
-		double step = 2.0f/((double)(vres-1))*stepmax;
-		for (int i=0;i<vres;i++){k[i]=stepmin+step*i;}
+		double step = 2.0f/((double)(res-1))*stepmax;
+		for (int i=0;i<res;i++){k[i]=stepmin+step*i;}
 		return k;
 	}
-	public static double[] projectedAngles(int vres, double vfov) {
-		double[] k = new double[vres];
-		double[] hd = projectedStep(vres, vfov);
-		for (int i=0;i<vres;i++){k[i]=atand(hd[i]);}
+	public static double[] projectedAngles(int res, double fov) {
+		double[] k = new double[res];
+		double[] hd = projectedStep(res, fov);
+		for (int i=0;i<res;i++){k[i]=atand(hd[i]);}
 		return k;
 	}
 	public static Direction[] projectedCameraDirections(Matrix vmat) {
@@ -1583,22 +1583,47 @@ public class MathLib {
 		rightdirupvectors[2] = upvector;
 	    return matrixMultiply(rightdirupvectors, vmat);
 	}
-	public static Direction[] projectedPlaneVectors(int hres, double hfov, Matrix vmat) {
+	public static Direction[] projectedPlaneVectors(int hres, double hfov, Matrix vmat, boolean norm) {
 	    double[] steps = projectedStep(hres,hfov);
 		Direction[] fwdvectors = new Direction[hres];
 	    for (int i=0;i<hres;i++) {
 	    	fwdvectors[i] = new Direction(steps[i], 0, -1);
 	    }
-	    fwdvectors = normalizeVector(fwdvectors);
+		if (norm) {
+			fwdvectors = normalizeVector(fwdvectors);
+		}
 	    return matrixMultiply(fwdvectors, vmat);
 	}
-	public static Plane[] projectedPlanes(Position vpos, int vres, double vfov, Matrix vmat) {
-		Direction[] fwdvectors = projectedPlaneVectors(vres, vfov, vmat);
+	public static Plane[] projectedPlanes(Position vpos, int hres, double hfov, Matrix vmat) {
+		Direction[] fwdvectors = projectedPlaneVectors(hres, hfov, vmat, true);
 		Direction[] dirrightupvectors = projectedPlaneDirections(vmat);
 		Direction rightvector = dirrightupvectors[1];
 		Direction[] planenormalvectors = vectorCross(fwdvectors,rightvector);
 		planenormalvectors = normalizeVector(planenormalvectors);
 	    return planeFromNormalAtPoint(vpos, planenormalvectors);
+	}
+	public static PlaneRay[] projectedPlaneRays(Position vpos, int hres, int vres, double hfov, double vfov, Matrix vmat) {
+		PlaneRay[] k = new PlaneRay[hres];
+		Direction[] dirrightupvectors = projectedPlaneDirections(vmat);
+		Direction rightvector = dirrightupvectors[1];
+	    double[] hsteps = projectedStep(hres,hfov);
+	    double[] vsteps = projectedStep(vres,vfov);
+	    double vstepmin = vsteps[0];
+		Direction[] fwdvectors = new Direction[hres];
+	    for (int i=0;i<hres;i++) {
+	    	fwdvectors[i] = new Direction(hsteps[i], 0, -1);
+	    }
+	    Direction[] fwdvectorsn = normalizeVector(fwdvectors);
+	    Direction[] fwdvectorsnrot =  matrixMultiply(fwdvectorsn, vmat);
+		Direction[] planenormalvectors = vectorCross(fwdvectorsnrot, rightvector);
+		planenormalvectors = normalizeVector(planenormalvectors);
+	    Plane[] prjplanes = planeFromNormalAtPoint(vpos, planenormalvectors);
+	    for (int i=0;i<hres;i++) {
+	    	Direction[] fwdupvector = {new Direction(fwdvectors[i].dx,vstepmin,fwdvectors[i].dz)};
+	    	double[] fwdupangle = vectorAngle(fwdvectors[i], fwdupvector);
+	    	k[i] = new PlaneRay(vpos,fwdvectorsnrot[i],prjplanes[i],2.0f*fwdupangle[0]);
+	    }
+		return k;
 	}
 	public static Direction[][] projectedRays(int vhres, int vvres, double vhfov, double vvfov, Matrix vmat, boolean norm) {
 		Direction[][] k = new Direction[vvres][vhres];
@@ -2412,6 +2437,7 @@ public class MathLib {
 				Position[] zeroposa = {new Position(0.0f,0.0f,0.0f)};
 				Direction[] camfwddir = {vplaneray[j].dir};
 				Plane[] camplane = {vplaneray[j].plane};
+				double[] camvfov = {vplaneray[j].vfov};
 				Direction[] camplanenorm = planeNormal(camplane);
 				double[][] camfwdvsufrintdist = rayPlaneDistance(campos, camfwddir, vsurf);
 				Position[][] camfwdvsufrint = rayPlaneIntersection(campos, camfwddir, vsurf);
@@ -2440,7 +2466,7 @@ public class MathLib {
 						Direction[] mirrorplaneraydir = matrixMultiply(camplanenorm, rayvsurfrot);
 						Direction[] mirrorplaneraydirn = normalizeVector(mirrorplaneraydir);
 						Plane[] mirrorplanerayplane = MathLib.planeFromNormalAtPoint(camposmirror[0], mirrorplaneraydirn);
-						k[j][i] = new PlaneRay(camposmirror[0],mirrorraydirninv[0],mirrorplanerayplane[0]);
+						k[j][i] = new PlaneRay(camposmirror[0],mirrorraydirninv[0],mirrorplanerayplane[0],camvfov[0]);
 					}
 				}
 			}
