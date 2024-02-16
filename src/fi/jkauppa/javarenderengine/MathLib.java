@@ -1511,26 +1511,38 @@ public class MathLib {
 		for (int i=0;i<vres;i++){k[i]=-halfvfov+vstep*i;}
 		return k;
 	}
-	public static Direction[] spheremapVectors(int vhres, Matrix vmat) {
-		double[] hangles  = spheremapAngles(vhres, 360.0f);
-		Direction[] vvecs = new Direction[vhres];
-		for (int i=0;i<vhres;i++) {
+	public static Direction[] spheremapVectors(int hres, Matrix vmat) {
+		double[] hangles  = spheremapAngles(hres, 360.0f);
+		Direction[] vvecs = new Direction[hres];
+		for (int i=0;i<hres;i++) {
 			vvecs[i] = new Direction(sind(hangles[i]), 0.0f, -cosd(hangles[i]));
 		}
 		Direction[] vvecsrot = matrixMultiply(vvecs, vmat);
 		return vvecsrot;
 	}
-	public static Plane[] spheremapPlanes(Position vpos, int vhres, Matrix vmat) {
-		double[] hangles  = spheremapAngles(vhres, 360.0f);
-		Direction[] smvecs = new Direction[vhres];
-		for (int i=0;i<vhres;i++) {
-			smvecs[i] = new Direction(cosd(hangles[i]), sind(hangles[i]), 0.0f);
+	public static Plane[] spheremapPlanes(Position vpos, int hres, Matrix vmat) {
+		double[] hangles  = spheremapAngles(hres, 360.0f);
+		Direction[] smvecs = new Direction[hres];
+		for (int i=0;i<hres;i++) {
+			smvecs[i] = new Direction(cosd(hangles[i]), 0.0f, sind(hangles[i]));
 		}
-		Matrix drotzn90 = rotationMatrix(0.0f, 0.0f, -180.0f);
-		Matrix drotxn90 = rotationMatrix(90.0f, 0.0f, 0.0f);
-		Matrix drot = matrixMultiply(vmat, matrixMultiply(drotxn90, drotzn90));
-		Direction[] smvecsrot = matrixMultiply(smvecs, drot);
+		Direction[] smvecsrot = matrixMultiply(smvecs, vmat);
 		return planeFromNormalAtPoint(vpos, smvecsrot);
+	}
+	public static PlaneRay[] spheremapPlaneRays(Position vpos, int hres, int vres, Matrix vmat) {
+		PlaneRay[] k = new PlaneRay[hres];
+		double[] hangles  = spheremapAngles(hres, 360.0f);
+		Direction[] smvecs = new Direction[hres];
+		for (int i=0;i<hres;i++) {
+			smvecs[i] = new Direction(cosd(hangles[i]), 0.0f, sind(hangles[i]));
+		}
+		Direction[] smvecsrot = matrixMultiply(smvecs, vmat);
+		Plane[] smplanes = planeFromNormalAtPoint(vpos, smvecsrot);
+		Direction[] smdirs = spheremapVectors(hres, vmat);
+		for (int i=0;i<hres;i++) {
+			k[i] = new PlaneRay(vpos,smdirs[i],smplanes[i],180.0f);
+		}
+		return k;
 	}
 	public static Direction[][] spheremapRays(int vhres, int vvres, Matrix vmat) {
 		Direction[][] k = new Direction[vhres][vvres];
