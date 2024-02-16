@@ -314,7 +314,7 @@ public class ModelApp extends AppHandlerPanel {
 				} else if (ModelApp.this.polygonfillmode==8) {
 					ModelApp.this.renderview = RenderLib.renderCubemapView(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), (int)Math.floor(((double)ModelApp.this.getHeight())/2.0f), ModelApp.this.cameramat, ModelApp.this.unlitrender, 3, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				} else if (ModelApp.this.polygonfillmode==9) {
-					ModelApp.this.renderview = RenderLib.renderProjectedView(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, ModelApp.this.unlitrender, 4, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+					ModelApp.this.renderview = RenderLib.renderSpheremapView(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), ModelApp.this.cameramat, ModelApp.this.unlitrender, 3, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				}
 				RenderViewUpdater.renderupdaterrunning = false;
 			}
