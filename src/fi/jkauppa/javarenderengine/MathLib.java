@@ -2463,10 +2463,10 @@ public class MathLib {
 						Direction[] mirrorraydir = matrixMultiply(camfwddir, rayvsurfrot);
 						Direction[] mirrorraydirn = normalizeVector(mirrorraydir);
 						Direction[] mirrorraydirninv = {mirrorraydirn[0].invert()};
-						Direction[] mirrorplaneraydir = matrixMultiply(camplanenorm, rayvsurfrot);
-						Direction[] mirrorplaneraydirn = normalizeVector(mirrorplaneraydir);
-						Plane[] mirrorplanerayplane = MathLib.planeFromNormalAtPoint(camposmirror[0], mirrorplaneraydirn);
-						k[j][i] = new PlaneRay(camposmirror[0],mirrorraydirninv[0],mirrorplanerayplane[0],camvfov[0]);
+						Direction[] mirrorplanenormdir = matrixMultiply(camplanenorm, rayvsurfrot);
+						Direction[] mirrorplanenormdirn = normalizeVector(mirrorplanenormdir);
+						Plane[] mirrorplanenormplane = MathLib.planeFromNormalAtPoint(camposmirror[0], mirrorplanenormdirn);
+						k[j][i] = new PlaneRay(camposmirror[0],mirrorraydirninv[0],mirrorplanenormplane[0],camvfov[0]);
 					}
 				}
 			}
