@@ -64,7 +64,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.4.15");
+		this.setTitle("Java Render Engine v2.4.16");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -374,10 +374,10 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		for (int i=0;i<rotdir2.length;i++) {System.out.println("JavaRenderEngine: main: rotdir2="+rotdir2[i].dx+" "+rotdir2[i].dy+" "+rotdir2[i].dz);}
 		Position[] smpcpos = {new Position(0.0f,-2.0f,0.5f), new Position(0.0f,-3.0f,0.0f), new Position(1.0f,-3.0f,0.0f), new Position(0.0f,-3.0f,1.0f), new Position(1.0f,0.0f,0.0f), new Position(1.0f,1.0f,0.0f), new Position(1.0f,0.0f,1.0f)};
 		Direction[] smrdir = {new Direction(0.0f, -1.0f, 0.0f), new Direction(-1.0f, -1.0f, 0.0f), new Direction(1.0f, -1.0f, 0.0f), new Direction(0.0f, -1.0f, 1.0f), new Direction(0.0f, -1.0f, -1.0f)};
-		Direction[] smprdir = {new Direction(1.0f, 0.0f, 0.0f), new Direction(1.0f, -1.0f, 0.0f)};
+		Direction[] smprdir = {new Direction(1.0f, 0.0f, 0.0f), new Direction(1.0f, -1.0f, 0.0f), new Direction(1.0f, 1.0f, 0.0f), new Direction(1.0f, 0.0f, 0.0f), new Direction(1.0f, 0.0f, 0.0f)};
 		Ray[] smrray = {new Ray(smpcpos[0], smrdir[0]), new Ray(smpcpos[0], smrdir[1]), new Ray(smpcpos[0], smrdir[2]), new Ray(smpcpos[0], smrdir[3]), new Ray(smpcpos[0], smrdir[4])};
 		Plane[] smrdirplane = MathLib.planeFromNormalAtPoint(smpcpos[0], smprdir);
-		PlaneRay[] smplaneray = {new PlaneRay(smpcpos[0],smrdir[0],smrdirplane[0],90.0f), new PlaneRay(smpcpos[0],smrdir[1],smrdirplane[1],90.0f)};
+		PlaneRay[] smplaneray = {new PlaneRay(smpcpos[0],smrdir[0],smrdirplane[0],90.0f), new PlaneRay(smpcpos[0],smrdir[1],smrdirplane[1],90.0f), new PlaneRay(smpcpos[0],smrdir[2],smrdirplane[2],90.0f), new PlaneRay(smpcpos[0],smrdir[3],smrdirplane[3],90.0f), new PlaneRay(smpcpos[0],smrdir[4],smrdirplane[4],90.0f)};
 		Matrix smpcrot = MathLib.rotationMatrix(-90.0f, 0.0f, 0.0f);
 		Triangle smpctri1 = new Triangle(smpcpos[1],smpcpos[2],smpcpos[3]);
 		Triangle smpctri2 = new Triangle(smpcpos[4],smpcpos[5],smpcpos[6]);
