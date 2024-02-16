@@ -2473,7 +2473,7 @@ public class MathLib {
 		}
 		return k;
 	}
-	public static PlaneRay[][] surfaceRefractionPlaneRay(Position campos, Plane[] vplane, Plane[] vsurf, double vfov, float refraction1, float refraction2) {
+	public static PlaneRay[][] surfaceRefractionPlaneRay(PlaneRay[] vplane, Plane[] vsurf, float refraction1, float refraction2) {
 		PlaneRay[][] k = null;
 		return k;
 	}
