@@ -1520,15 +1520,6 @@ public class MathLib {
 		Direction[] vvecsrot = matrixMultiply(vvecs, vmat);
 		return vvecsrot;
 	}
-	public static Plane[] spheremapPlanes(Position vpos, int hres, Matrix vmat) {
-		double[] hangles  = spheremapAngles(hres, 360.0f);
-		Direction[] smvecs = new Direction[hres];
-		for (int i=0;i<hres;i++) {
-			smvecs[i] = new Direction(cosd(hangles[i]), 0.0f, sind(hangles[i]));
-		}
-		Direction[] smvecsrot = matrixMultiply(smvecs, vmat);
-		return planeFromNormalAtPoint(vpos, smvecsrot);
-	}
 	public static PlaneRay[] spheremapPlaneRays(Position vpos, int hres, int vres, Matrix vmat) {
 		PlaneRay[] k = new PlaneRay[hres];
 		double[] hangles  = spheremapAngles(hres, 360.0f);
@@ -1585,7 +1576,7 @@ public class MathLib {
 		rightdirupvectors[2] = upvector;
 	    return matrixMultiply(rightdirupvectors, vmat);
 	}
-	public static Direction[] projectedPlaneDirections(Matrix vmat) {
+	public static Direction[] projectedPlaneRayDirections(Matrix vmat) {
 		Direction[] rightdirupvectors = new Direction[3];
 		Direction dirvector = new Direction(0,0,-1);
 		Direction rightvector = new Direction(0,1,0);
@@ -1595,7 +1586,7 @@ public class MathLib {
 		rightdirupvectors[2] = upvector;
 	    return matrixMultiply(rightdirupvectors, vmat);
 	}
-	public static Direction[] projectedPlaneVectors(int hres, double hfov, Matrix vmat, boolean norm) {
+	public static Direction[] projectedPlaneRayVectors(int hres, double hfov, Matrix vmat, boolean norm) {
 	    double[] steps = projectedStep(hres,hfov);
 		Direction[] fwdvectors = new Direction[hres];
 	    for (int i=0;i<hres;i++) {
@@ -1606,17 +1597,9 @@ public class MathLib {
 		}
 	    return matrixMultiply(fwdvectors, vmat);
 	}
-	public static Plane[] projectedPlanes(Position vpos, int hres, double hfov, Matrix vmat) {
-		Direction[] fwdvectors = projectedPlaneVectors(hres, hfov, vmat, true);
-		Direction[] dirrightupvectors = projectedPlaneDirections(vmat);
-		Direction rightvector = dirrightupvectors[1];
-		Direction[] planenormalvectors = vectorCross(fwdvectors,rightvector);
-		planenormalvectors = normalizeVector(planenormalvectors);
-	    return planeFromNormalAtPoint(vpos, planenormalvectors);
-	}
 	public static PlaneRay[] projectedPlaneRays(Position vpos, int hres, int vres, double hfov, double vfov, Matrix vmat) {
 		PlaneRay[] k = new PlaneRay[hres];
-		Direction[] dirrightupvectors = projectedPlaneDirections(vmat);
+		Direction[] dirrightupvectors = projectedPlaneRayDirections(vmat);
 		Direction rightvector = dirrightupvectors[1];
 	    double[] hsteps = projectedStep(hres,hfov);
 	    double[] vsteps = projectedStep(vres,vfov);
