@@ -53,6 +53,7 @@ public class CADApp extends AppHandlerPanel {
 	private boolean texturemode = false;
 	private boolean erasemode = false;
 	private Material drawmat = new Material(Color.getHSBColor(0.0f, 0.0f, 1.0f),1.0f,null);
+	private int renderoutputwidth = 3840, renderoutputheight = 2160;
 	private int polygonfillmode = 1;
 	private boolean unlitrender = false;
 	private Position[] selecteddragvertex = null;
@@ -795,6 +796,45 @@ public class CADApp extends AppHandlerPanel {
 					}
 				}
 		    }
+		} else if (e.getKeyCode()==KeyEvent.VK_F4) {
+		    int onmask = KeyEvent.SHIFT_DOWN_MASK;
+		    int offmask = KeyEvent.ALT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
+		    boolean f4shiftdown = (e.getModifiersEx() & (onmask | offmask)) == onmask;
+			this.imagechooser.setDialogTitle("Render File");
+			this.imagechooser.setApproveButtonText("Render");
+			if (this.imagechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
+				File savefile = this.imagechooser.getSelectedFile();
+				FileFilter savefileformat = this.imagechooser.getFileFilter();
+				RenderView renderimageview = RenderLib.renderProjectedView(this.campos, this.entitylist, this.renderoutputwidth, this.hfov, this.renderoutputheight, this.vfov, this.cameramat, this.unlitrender, 3, 2, null, null, null, this.mouselocationx, this.mouselocationy);
+				VolatileImage renderimage = renderimageview.renderimage;
+				if (!f4shiftdown) {
+					VolatileImage blackbgimage = gc.createCompatibleVolatileImage(renderimage.getWidth(), renderimage.getHeight(), Transparency.TRANSLUCENT);
+					Graphics2D bbggfx = blackbgimage.createGraphics();
+					bbggfx.setComposite(AlphaComposite.Src);
+					bbggfx.setColor(Color.BLACK);
+					bbggfx.fillRect(0, 0, renderimage.getWidth(), renderimage.getHeight());
+					bbggfx.setComposite(AlphaComposite.SrcOver);
+					bbggfx.drawImage(renderimage, 0, 0, null);
+					bbggfx.dispose();
+					renderimage = blackbgimage;
+				}
+				if (savefileformat.equals(this.jpgfilefilter)) {
+					if ((!savefile.getName().toLowerCase().endsWith(".jpg"))&&(!savefile.getName().toLowerCase().endsWith(".jpeg"))) {savefile = new File(savefile.getPath().concat(".jpg"));}
+					UtilLib.saveImage(savefile.getPath(), renderimage, "JPG");
+				} else if (savefileformat.equals(this.giffilefilter)) {
+					if (!savefile.getName().toLowerCase().endsWith(".gif")) {savefile = new File(savefile.getPath().concat(".gif"));}
+					UtilLib.saveImage(savefile.getPath(), renderimage, "GIF");
+				} else if (savefileformat.equals(this.bmpfilefilter)) {
+					if (!savefile.getName().toLowerCase().endsWith(".bmp")) {savefile = new File(savefile.getPath().concat(".bmp"));}
+					UtilLib.saveImage(savefile.getPath(), renderimage, "BMP");
+				} else if (savefileformat.equals(this.wbmpfilefilter)) {
+					if (!savefile.getName().toLowerCase().endsWith(".wbmp")) {savefile = new File(savefile.getPath().concat(".wbmp"));}
+					UtilLib.saveImage(savefile.getPath(), renderimage, "WBMP");
+				} else {
+					if (!savefile.getName().toLowerCase().endsWith(".png")) {savefile = new File(savefile.getPath().concat(".png"));}
+					UtilLib.saveImage(savefile.getPath(), renderimage, "PNG");
+				}
+			}
 		}
 	}
 	
