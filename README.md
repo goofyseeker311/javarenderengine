@@ -97,6 +97,8 @@ NUMPAD0           -- run entity list updater
 F2                -- save model file dialog (all primitives)
 SHIFT-F2          -- save model file dialog (surface only)
 F3                -- load model file dialog
+F4                -- render and save 4K image with black background
+SHIFT-F4          -- render and save 4K image with transparent background
 CTRL-F3           -- load insert model file dialog
 SHIFT-F3          -- load texture image file dialog
 
