@@ -276,7 +276,7 @@ public class RenderLib {
 		return renderview;
 	}
 	
-	public static RenderView renderProjectedPlaneViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean spherical, boolean unlit, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
+	public static RenderView renderPlaneViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean spherical, boolean unlit, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
 		RenderView renderview = new RenderView();
 		renderview.pos = campos.copy();
 		renderview.rot = viewrot.copy();
@@ -537,7 +537,7 @@ public class RenderLib {
 		return renderview;
 	}
 
-	public static RenderView renderProjectedRayViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
+	public static RenderView renderRayViewSoftware(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean spherical, boolean unlit, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
 		RenderView renderview = new RenderView();
 		renderview.pos = campos.copy();
 		renderview.rot = viewrot.copy();
@@ -549,149 +549,14 @@ public class RenderLib {
 		renderview.mouselocationx = mouselocationx; 
 		renderview.mouselocationy = mouselocationy; 
 		renderview.dirs = MathLib.projectedCameraDirections(renderview.rot);
-		renderview.rays = MathLib.projectedRays(renderwidth, renderheight, renderview.hfov, renderview.vfov, renderview.rot, true);
-		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
-		renderview.zbuffer = new double[renderheight][renderwidth];
-		renderview.tbuffer = new Triangle[renderheight][renderwidth];
-		renderview.cbuffer = new Coordinate[renderheight][renderwidth];
-		for (int i=0;i<renderview.zbuffer.length;i++) {Arrays.fill(renderview.zbuffer[i],Double.POSITIVE_INFINITY);}
-		Graphics2D g2 = renderview.renderimage.createGraphics();
-		g2.setComposite(AlphaComposite.Src);
-		g2.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
-		g2.setPaint(null);
-		g2.setClip(null);
-		g2.fillRect(0, 0, renderwidth, renderheight);
-		g2.setComposite(AlphaComposite.SrcOver);
-		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
-		if ((entitylist!=null)&&(entitylist.length>0)) {
-			Plane[] camdirrightupplanes = MathLib.planeFromNormalAtPoint(renderview.pos, renderview.dirs);
-			Plane[] camfwdplane = {camdirrightupplanes[0]};
-			Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
-			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
-			Integer[] sortedentityspherelistind = UtilLib.objectIndexSort(entityspherelist, distcomp);
-			Rectangle[] sortedentityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, entityspherelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot, nclipplane);
-			for (int k=sortedentityspherelistind.length-1;k>=0;k--) {
-				int et = sortedentityspherelistind[k];
-				if (sortedentityspherelistint[et]!=null) {
-					Triangle[] copytrianglelist = entitylist[et].trianglelist;
-					if (copytrianglelist.length>0) {
-						Direction[] copytrianglenormallist = MathLib.triangleNormal(copytrianglelist);
-						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
-						Plane[] copytriangleplanelist = MathLib.trianglePlane(copytrianglelist);
-						Integer[] sortedtrianglespherelistind = UtilLib.objectIndexSort(copytrianglespherelist, distcomp);
-						Rectangle[] copytrianglelistint = MathLib.projectedTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot, nclipplane);
-						for (int n=sortedtrianglespherelistind.length-1;n>=0;n--) {
-							int it = sortedtrianglespherelistind[n];
-							if (copytrianglelistint[it]!=null) {
-								Triangle[] copytriangle = {copytrianglelist[it]};
-								Direction[] copytrianglenormal = {copytrianglenormallist[it]};
-								Plane[] copytriangleplane = {copytriangleplanelist[n]};
-								int jstart = copytrianglelistint[it].y;
-								int jend = copytrianglelistint[it].y+copytrianglelistint[it].height-1;
-								int istart = copytrianglelistint[it].x;
-								int iend = copytrianglelistint[it].x+copytrianglelistint[it].width-1;
-								for (int j=jstart;j<=jend;j++) {
-									for (int i=istart;i<=iend;i++) {
-										Direction[] camray = {renderview.rays[j][i]};
-										Ray[] ray = {new Ray(campos, camray[0])};
-										Position[][] camrayint = MathLib.rayTriangleIntersection(renderview.pos, camray, copytriangle);
-										Position[] camrayintpos = {camrayint[0][0]};
-										if (camrayintpos[0]!=null) {
-											Direction[] linepointdir = MathLib.vectorFromPoints(renderview.pos, camrayintpos);
-											double[] linepointdirlen = MathLib.vectorLength(linepointdir);
-											double drawdistance = linepointdirlen[0];
-											double[][] camrayintposdist = MathLib.planePointDistance(camrayintpos, camfwdplane);
-											if ((camrayintposdist[0][0]>1.0f)&&(drawdistance<renderview.zbuffer[j][i])) {
-												Coordinate tex = camrayint[0][0].tex;
-												Coordinate pointuv = null;
-												if (tex!=null) {
-													pointuv = new Coordinate(tex.u,1.0f-tex.v);
-													renderview.cbuffer[j][i] = pointuv;
-												}
-												renderview.zbuffer[j][i] = drawdistance;
-												renderview.tbuffer[j][i] = copytriangle[0];
-												if ((mouselocationx==i)&&(mouselocationy==j)) {
-													mouseoverhittriangle.add(copytriangle[0]);
-												}
-												Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal[0], pointuv, camray[0], unlit);
-												if (trianglecolor!=null) {
-													if (copytriangle[0].norm.isZero()) {
-														g2.setComposite(AlphaComposite.SrcOver);
-													} else {
-														g2.setComposite(AlphaComposite.Src);
-													}
-													g2.setColor(trianglecolor);
-													g2.drawLine(i, j, i, j);
-													if (bounces>0) {
-														double[] camfwddirposnormangle = MathLib.vectorAngle(camray[0], copytrianglenormal);
-														float refrindex1 = 1.0f;
-														float refrindex2 = copytriangle[0].mat.refraction;
-														Plane[] vsurf = copytriangleplane;
-														if (camfwddirposnormangle[0]<90.0f) {
-															Plane[] newvsurf = {vsurf[0].invert()};
-															vsurf = newvsurf;
-															refrindex1 = copytriangle[0].mat.refraction;
-															refrindex2 = 1.0f;
-														}
-														if ((copytriangle[0].mat.transparency<1.0f)&&(!copytriangle[0].norm.isZero())) {
-															Ray[][] refractionraya = MathLib.surfaceRefractionRay(ray, vsurf, refrindex1, refrindex2);
-															if (refractionraya!=null) {
-																Ray[] refractionray = {refractionraya[0][0]};
-																if ((refractionray!=null)&&(refractionray[0]!=null)) {
-																	Color[] refractionraycolor = renderRay(refractionray, entitylist, unlit, bounces-1);
-																	if ((refractionraycolor!=null)&&(refractionraycolor[0]!=null)) {
-																		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, copytriangle[0].mat.transparency));
-																		g2.setColor(refractionraycolor[0]);
-																		g2.drawLine(i, j, i, j);
-																	}
-																}
-															}
-														}
-														if (copytriangle[0].mat.metallic>0.0f) {
-															Ray[][] mirrorraya = MathLib.surfaceMirrorRay(ray, vsurf);
-															if (mirrorraya!=null) {
-																Ray[] mirrorray = {mirrorraya[0][0]};
-																if ((mirrorray!=null)&&(mirrorray[0]!=null)) {
-																	Color[] mirrorraycolor = renderRay(mirrorray, entitylist, unlit, bounces-1);
-																	if ((mirrorraycolor!=null)&&(mirrorraycolor[0]!=null)) {
-																		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, copytriangle[0].mat.metallic));
-																		g2.setColor(mirrorraycolor[0]);
-																		g2.drawLine(i, j, i, j);
-																	}
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
+		if (spherical) {
+			renderview.rays = MathLib.spheremapRays(renderwidth, renderheight, renderview.rot);
+			renderview.fwddirs = MathLib.spheremapVectors(renderwidth, renderview.rot);
+		} else {
+			renderview.rays = MathLib.projectedRays(renderwidth, renderheight, renderview.hfov, renderview.vfov, renderview.rot, true);
+			Direction[] fwddir = {renderview.dirs[0]};
+			renderview.fwddirs = fwddir;
 		}
-		renderview.mouseovertriangle = mouseoverhittriangle.toArray(new Triangle[mouseoverhittriangle.size()]);
-		renderview.snapimage = renderview.renderimage.getSnapshot();
-		return renderview;
-	}
-
-	public static RenderView renderSpheremapRayViewSoftware(Position campos, Entity[] entitylist, int renderwidth, int renderheight, Matrix viewrot, boolean unlit, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
-		RenderView renderview = new RenderView();
-		renderview.pos = campos.copy();
-		renderview.rot = viewrot.copy();
-		renderview.renderwidth = renderwidth;
-		renderview.renderheight = renderheight;
-		renderview.hfov = 360.0f;
-		renderview.vfov = 180.0f;
-		renderview.unlit = unlit;
-		renderview.mouselocationx = mouselocationx; 
-		renderview.mouselocationy = mouselocationy; 
-		renderview.dirs = MathLib.projectedCameraDirections(renderview.rot);
-		renderview.rays = MathLib.spheremapRays(renderwidth, renderheight, renderview.rot);
-		renderview.fwddirs = MathLib.spheremapVectors(renderwidth, renderview.rot);
 		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
 		renderview.zbuffer = new double[renderheight][renderwidth];
 		renderview.tbuffer = new Triangle[renderheight][renderwidth];
@@ -710,7 +575,12 @@ public class RenderLib {
 			Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
 			SphereDistanceComparator distcomp = new SphereDistanceComparator(renderview.pos);
 			Integer[] sortedentityspherelistind = UtilLib.objectIndexSort(entityspherelist, distcomp);
-			Rectangle[] sortedentityspherelistint = MathLib.spheremapSphereIntersection(renderview.pos, entityspherelist, renderwidth, renderheight, viewrot, nclipplane);
+			Rectangle[] sortedentityspherelistint = null;
+			if (spherical) {
+				sortedentityspherelistint = MathLib.spheremapSphereIntersection(renderview.pos, entityspherelist, renderwidth, renderheight, viewrot, nclipplane);
+			} else {
+				sortedentityspherelistint = MathLib.projectedSphereIntersection(renderview.pos, entityspherelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot, nclipplane);
+			}
 			for (int k=sortedentityspherelistind.length-1;k>=0;k--) {
 				int et = sortedentityspherelistind[k];
 				if (sortedentityspherelistint[et]!=null) {
@@ -720,22 +590,47 @@ public class RenderLib {
 						Sphere[] copytrianglespherelist = MathLib.triangleCircumSphere(copytrianglelist);
 						Plane[] copytriangleplanelist = MathLib.trianglePlane(copytrianglelist);
 						Integer[] sortedtrianglespherelistind = UtilLib.objectIndexSort(copytrianglespherelist, distcomp);
-						Rectangle[] copytrianglelistint = MathLib.spheremapTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, viewrot, nclipplane);
+						Rectangle[] copytrianglelistint = null;
+						if (spherical) {
+							copytrianglelistint = MathLib.spheremapTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, viewrot, nclipplane);
+						} else {
+							copytrianglelistint = MathLib.projectedTriangleIntersection(renderview.pos, copytrianglelist, renderwidth, renderheight, renderview.hfov, renderview.vfov, viewrot, nclipplane);
+						}
 						for (int n=sortedtrianglespherelistind.length-1;n>=0;n--) {
 							int it = sortedtrianglespherelistind[n];
 							if (copytrianglelistint[it]!=null) {
 								Triangle[] copytriangle = {copytrianglelist[it]};
 								Direction[] copytrianglenormal = {copytrianglenormallist[it]};
 								Plane[] copytriangleplane = {copytriangleplanelist[n]};
-								int jstart = 0; //copytrianglelistint[it].y;
-								int jend = renderheight-1; //copytrianglelistint[it].y+copytrianglelistint[it].height-1;
+								int jstart = 0;
+								int jend = 0;
+								if (spherical) {
+									jstart = 0;
+									jend = renderheight-1;
+								} else {
+									jstart = copytrianglelistint[it].y;
+									jend = copytrianglelistint[it].y+copytrianglelistint[it].height-1;
+								}
 								int istart = copytrianglelistint[it].x;
 								int iend = copytrianglelistint[it].x+copytrianglelistint[it].width-1;
 								for (int j=jstart;j<=jend;j++) {
 									for (int i=istart;i<=iend;i++) {
-										Direction[] camray = {renderview.rays[i][j]};
+										Direction[] camray = null;
+										if (spherical) {
+											Direction[] newcamray = {renderview.rays[i][j]};
+											camray = newcamray;
+										} else {
+											Direction[] newcamray = {renderview.rays[j][i]};
+											camray = newcamray;
+										}
 										Ray[] ray = {new Ray(campos, camray[0])};
-										Plane[] camfwdplane = {camfwdplanes[i]};
+										Plane[] camfwdplane = null;
+										if (spherical) {
+											Plane[] newcamfwdplane = {camfwdplanes[i]};
+											camfwdplane = newcamfwdplane;
+										} else {
+											camfwdplane = camfwdplanes;
+										}
 										Position[][] camrayint = MathLib.rayTriangleIntersection(renderview.pos, camray, copytriangle);
 										Position[] camrayintpos = {camrayint[0][0]};
 										if (camrayintpos[0]!=null) {
@@ -823,9 +718,9 @@ public class RenderLib {
 	public static RenderView renderProjectedView(Position campos, Entity[] entitylist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, boolean unlit, int mode, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
 		RenderView projectedview = null;
 		if (mode==2) {
-			projectedview = renderProjectedPlaneViewSoftware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, false, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
+			projectedview = renderPlaneViewSoftware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, false, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		} else if (mode==3) {
-			projectedview = renderProjectedRayViewSoftware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
+			projectedview = renderRayViewSoftware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, false, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		} else {
 			projectedview = renderProjectedPolygonViewHardware(campos, entitylist, renderwidth, hfov, renderheight, vfov, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		}
@@ -834,9 +729,9 @@ public class RenderLib {
 	public static RenderView renderSpheremapView(Position campos, Entity[] entitylist, int renderwidth, int renderheight, Matrix viewrot, boolean unlit, int mode, int bounces, Plane nclipplane, Triangle nodrawtriangle, Rectangle drawrange, int mouselocationx, int mouselocationy) {
 		RenderView spheremapview = null;
 		if (mode==2) {
-			spheremapview = renderSpheremapRayViewSoftware(campos, entitylist, renderwidth, renderheight, viewrot, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
+			spheremapview = renderRayViewSoftware(campos, entitylist, renderwidth, 360.0f, renderheight, 180.0f, viewrot, true, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		} else {
-			spheremapview = renderProjectedPlaneViewSoftware(campos, entitylist, renderwidth, 360.0f, renderheight, 180.0f, viewrot, true, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
+			spheremapview = renderPlaneViewSoftware(campos, entitylist, renderwidth, 360.0f, renderheight, 180.0f, viewrot, true, unlit, bounces, nclipplane, nodrawtriangle, drawrange, mouselocationx, mouselocationy);
 		}
 		return spheremapview;
 	}
