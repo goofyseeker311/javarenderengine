@@ -1282,13 +1282,7 @@ public class CADApp extends AppHandlerPanel {
 			if (!EntityLightMapUpdater.entitylightmapupdaterrunning) {
 				EntityLightMapUpdater.entitylightmapupdaterrunning = true;
 				int bounces = 2;
-				if (CADApp.this.polygonfillmode==1) {
-					RenderLib.renderSurfaceFaceLightmapCubemapView(CADApp.this.entitylist, 32, bounces, 3);
-				} else if (CADApp.this.polygonfillmode==2) {
-					RenderLib.renderSurfaceFaceLightmapCubemapView(CADApp.this.entitylist, 32, bounces, 1);
-				} else if (CADApp.this.polygonfillmode==3) {
-					RenderLib.renderSurfaceFaceLightmapCubemapView(CADApp.this.entitylist, 32, bounces, 2);
-				}
+				RenderLib.renderSurfaceFaceLightmapCubemapView(CADApp.this.entitylist, 32, bounces, 3);
 				EntityLightMapUpdater.entitylightmapupdaterrunning = false;
 			}
 		}
