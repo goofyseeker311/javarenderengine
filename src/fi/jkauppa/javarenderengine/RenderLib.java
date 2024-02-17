@@ -217,7 +217,7 @@ public class RenderLib {
 									}
 									Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal[0], null, copytriangledir, unlit);
 									if (trianglecolor!=null) {
-										if (copytriangle[0].norm.isZero()) {
+										if ((bounces<=0)||(copytriangle[0].norm.isZero())) {
 											g2.setComposite(AlphaComposite.SrcOver);
 										} else {
 											g2.setComposite(AlphaComposite.Src);
@@ -459,7 +459,7 @@ public class RenderLib {
 														}
 														Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal[0], lineuv, camray[0], unlit);
 														if (trianglecolor!=null) {
-															if (copytriangle[0].norm.isZero()) {
+															if ((bounces<=0)||(copytriangle[0].norm.isZero())) {
 																g2.setComposite(AlphaComposite.SrcOver);
 															} else {
 																g2.setComposite(AlphaComposite.Src);
@@ -652,7 +652,7 @@ public class RenderLib {
 												}
 												Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal[0], pointuv, camray[0], unlit);
 												if (trianglecolor!=null) {
-													if (copytriangle[0].norm.isZero()) {
+													if ((bounces<=0)||(copytriangle[0].norm.isZero())) {
 														g2.setComposite(AlphaComposite.SrcOver);
 													} else {
 														g2.setComposite(AlphaComposite.Src);
@@ -940,7 +940,7 @@ public class RenderLib {
 															zbuffer[n] = drawdistance;
 															Color trianglecolor = trianglePixelShader(campos[0], copytriangle[0], copytrianglenormal[0], lineuv, camray[0], unlit);
 															if (trianglecolor!=null) {
-																if (copytriangle[0].norm.isZero()) {
+																if ((bounces<=0)||(copytriangle[0].norm.isZero())) {
 																	g2.setComposite(AlphaComposite.SrcOver);
 																} else {
 																	g2.setComposite(AlphaComposite.Src);
@@ -1058,7 +1058,7 @@ public class RenderLib {
 											}
 											Color trianglecolor = trianglePixelShader(raypos[0], copytriangle[0], copytrianglenormal[0], pointuv, raydir[0], unlit);
 											if (trianglecolor!=null) {
-												if (copytriangle[0].norm.isZero()) {
+												if ((bounces<=0)||(copytriangle[0].norm.isZero())) {
 													rendercolor[k] = MathLib.sourceOverBlend(rendercolor[k], trianglecolor, 1.0f);
 												} else {
 													rendercolor[k] = trianglecolor;

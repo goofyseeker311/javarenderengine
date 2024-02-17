@@ -238,7 +238,7 @@ public class DrawApp extends AppHandlerPanel {
 				File savefile = this.filechooser.getSelectedFile();
 				FileFilter savefileformat = this.filechooser.getFileFilter();
 				if (savefileformat.equals(this.jpgfilefilter)) {
-					if (!savefile.getName().toLowerCase().endsWith(".obj")) {savefile = new File(savefile.getPath().concat(".obj"));}
+					if ((!savefile.getName().toLowerCase().endsWith(".jpg"))&&(!savefile.getName().toLowerCase().endsWith(".jpeg"))) {savefile = new File(savefile.getPath().concat(".jpg"));}
 					try {ImageIO.write(this.renderbuffer.getSnapshot(), "JPG", savefile);} catch (Exception ex) {ex.printStackTrace();}
 				} else if (savefileformat.equals(this.giffilefilter)) {
 					if (!savefile.getName().toLowerCase().endsWith(".gif")) {savefile = new File(savefile.getPath().concat(".gif"));}

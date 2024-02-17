@@ -85,6 +85,11 @@ public class UtilLib {
 		} catch (Exception ex) {ex.printStackTrace();}
     }
 	
+	public static void saveImage(String filename, VolatileImage image, String format) {
+		File savefile = new File(filename);
+		try {ImageIO.write(image.getSnapshot(), format, savefile);} catch (Exception ex) {ex.printStackTrace();}
+	}
+    
 	public static VolatileImage loadImage(String filename, boolean loadresourcefromjar) {
 		VolatileImage k = null;
 		if (filename!=null) {
