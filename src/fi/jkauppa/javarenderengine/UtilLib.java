@@ -16,6 +16,9 @@ import java.awt.image.VolatileImage;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -59,6 +62,29 @@ public class UtilLib {
 			@Override public String getDescription() {return "STL Model file";}
 		}
 	}
+	
+    public static void loadNativeLibrary(String[] filename, boolean loadresourcefromjar) {
+		try {
+			Path tempdir = Files.createTempDirectory("loadlib");
+			String[] temppath = new String[filename.length];
+			for (int i=0;i<filename.length;i++) {
+				if (loadresourcefromjar) {
+					File libraryfile = new File(filename[i]);
+					String libraryfilename = libraryfile.getName();
+					File tempfile = new File(tempdir.toAbsolutePath().toString(),libraryfilename);
+					BufferedInputStream libraryfilestream = null;
+					libraryfilestream = new BufferedInputStream(ClassLoader.getSystemClassLoader().getResourceAsStream(libraryfile.getPath().replace(File.separatorChar, '/')));
+					Files.copy(libraryfilestream, tempfile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			    	libraryfilestream.close();
+			    	temppath[i] = tempfile.toPath().toAbsolutePath().toString();
+				}
+			}
+			for (int i=0;i<filename.length;i++) {
+				System.load(temppath[i]);
+			}
+		} catch (Exception ex) {ex.printStackTrace();}
+    }
+	
 	public static VolatileImage loadImage(String filename, boolean loadresourcefromjar) {
 		VolatileImage k = null;
 		if (filename!=null) {
