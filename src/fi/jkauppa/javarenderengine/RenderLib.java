@@ -590,7 +590,7 @@ public class RenderLib {
 							if (copytrianglelistint[it]!=null) {
 								Triangle[] copytriangle = {copytrianglelist[it]};
 								Direction[] copytrianglenormal = {copytrianglenormallist[it]};
-								Plane[] copytriangleplane = {copytriangleplanelist[n]};
+								Plane[] copytriangleplane = {copytriangleplanelist[it]};
 								int jstart = 0;
 								int jend = 0;
 								if (spherical) {
