@@ -64,7 +64,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.5.6");
+		this.setTitle("Java Render Engine v2.5.7");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -432,7 +432,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		double[] modnumout1 = {MathLib.mod(modnum[0], 1.5f), MathLib.mod(modnum[1], 1.5f), MathLib.mod(modnum[2], 1.5f), MathLib.mod(modnum[3], 1.5f), MathLib.mod(modnum[4], 1.5f)};
 		double[] modnumout2 = {MathLib.mod(modnum[0], 2.0f), MathLib.mod(modnum[1], 2.0f), MathLib.mod(modnum[2], 2.0f), MathLib.mod(modnum[3], 2.0f), MathLib.mod(modnum[4], 2.0f)};
 		Coordinate[] texreps = {new Coordinate(0.5f, -0.4f), new Coordinate(1.5f, -1.4f)};
-		Coordinate[] texrepmodeone = MathLib.modTex(texreps);
+		Coordinate[] texrepmodeone = MathLib.mod(texreps);
 		for (int i=0;i<modnumout1.length;i++) {System.out.println("JavaRenderEngine: main: modnumout1[i]="+modnumout1[i]);}
 		for (int i=0;i<modnumout2.length;i++) {System.out.println("JavaRenderEngine: main: modnumout2[i]="+modnumout2[i]);}
 		for (int i=0;i<texrepmodeone.length;i++) {System.out.println("JavaRenderEngine: main: texrepmodeone[i]="+texrepmodeone[i].u+" "+texrepmodeone[i].v);}
