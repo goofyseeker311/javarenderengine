@@ -783,6 +783,7 @@ public class RenderLib {
 			rendercolumn = new VolatileImage[vplaneray.length];
 			double origindeltay = ((double)(renderheight-1))/2.0f;
 			double halfvres = ((double)(renderheight-1))/2.0f;
+			Plane[] nclipplanea = {nclipplane};
 			Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
 			Position[] entityspherepos = MathLib.sphereVertexList(entityspherelist);
 			for (int k=0;k<vplaneray.length;k++) {
@@ -826,8 +827,9 @@ public class RenderLib {
 							Direction[] copyviewtrianglespheredir = MathLib.vectorFromPoints(raypos[0], copytrianglespherelist);
 							Position[] copytrianglespherepos = MathLib.sphereVertexList(copytrianglespherelist);
 							double[][] rayplanetrianglespheredist = MathLib.planePointDistance(copytrianglespherepos, rayplane);
+							double[][] nearclipplanetrianglespheredist = MathLib.planePointDistance(copytrianglespherepos, nclipplanea);
 							for (int i=0;i<copytrianglelist.length;i++) {
-								if (Math.abs(rayplanetrianglespheredist[i][0])<=copytrianglespherelist[i].r) {
+								if (((nearclipplanetrianglespheredist[i][0]-copytrianglespherelist[i].r)>=1.0f)&&(Math.abs(rayplanetrianglespheredist[i][0])<=copytrianglespherelist[i].r)) {
 									Triangle[] copytriangle = {copytrianglelist[i]};
 									if (!copytriangle[0].equals(nodrawtriangle)) {
 										Direction[] copytrianglenormal = {copytrianglenormallist[i]};
@@ -992,6 +994,7 @@ public class RenderLib {
 		Color[] rendercolor = null;
 		if ((vray!=null)&&(entitylist!=null)&&(entitylist.length>0)) {
 			rendercolor = new Color[vray.length];
+			Plane[] nclipplanea = {nclipplane};
 			Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
 			Position[] entityspherepos = MathLib.sphereVertexList(entityspherelist);
 			for (int k=0;k<vray.length;k++) {
@@ -1011,8 +1014,9 @@ public class RenderLib {
 							Position[] copytrianglespherepos = MathLib.sphereVertexList(copytrianglespherelist);
 							double[][] raytrianglespheredist = MathLib.rayPointDistance(raypos[0], raydir, copytrianglespherepos);
 							double[][] raytriangleplanedist = MathLib.rayPlaneDistance(raypos[0], raydir, copytriangleplanelist);
+							double[][] nearclipplanetrianglespheredist = MathLib.planePointDistance(copytrianglespherepos, nclipplanea);
 							for (int i=0;i<copytrianglelist.length;i++) {
-								if (raytrianglespheredist[0][i]<=copytrianglespherelist[i].r) {
+								if (((nearclipplanetrianglespheredist[i][0]-copytrianglespherelist[i].r)>=1.0f)&&(raytrianglespheredist[0][i]<=copytrianglespherelist[i].r)) {
 									Triangle[] copytriangle = {copytrianglelist[i]};
 									if (!copytriangle[0].equals(nodrawtriangle)) {
 										Direction[] copytrianglenormal = {copytrianglenormallist[i]};
