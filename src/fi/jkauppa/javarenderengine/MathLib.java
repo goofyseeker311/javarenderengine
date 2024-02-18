@@ -1535,19 +1535,23 @@ public class MathLib {
 		}
 		return k;
 	}
-	public static Direction[][] spheremapRays(int vhres, int vvres, Matrix vmat) {
-		Direction[][] k = new Direction[vhres][vvres];
-		double[] hangles  = spheremapAngles(vhres, 360.0f);
-		double[] vangles  = spheremapAngles(vvres, 180.0f);
-		Direction[] vvecs = new Direction[vvres];
-		for (int i=0;i<vvres;i++) {
+	public static Direction[][] spheremapRays(int hres, int vres, Matrix vmat) {
+		Direction[][] k = new Direction[vres][hres];
+		double[] hangles  = spheremapAngles(hres, 360.0f);
+		double[] vangles  = spheremapAngles(vres, 180.0f);
+		Direction[] vvecs = new Direction[vres];
+		for (int i=0;i<vres;i++) {
 			vvecs[i] = new Direction(0.0f, -sind(vangles[i]), -cosd(vangles[i]));
 		}
-		for (int i=0;i<vhres;i++) {
+		for (int i=0;i<hres;i++) {
 			Matrix hmat = rotationMatrix(0, -hangles[i], 0);
 			Matrix hdmat = matrixMultiply(vmat, hmat);
-			k[i] = matrixMultiply(vvecs, hdmat);
+			Direction[] hvvecs = matrixMultiply(vvecs, hdmat);
+			for (int j=0;j<vres;j++) {
+				k[j][i] = hvvecs[j];
+			}
 		}
+		
 		return k;
 	}
 	
@@ -2352,7 +2356,7 @@ public class MathLib {
 	public static double mod(double val, double modulo) {
 		return val-Math.floor(val/modulo)*modulo;
 	}
-	public static Coordinate[] modTex(Coordinate[] tex) {
+	public static Coordinate[] mod(Coordinate[] tex) {
 		Coordinate[] k = null;
 		if (tex!=null) {
 			k = new Coordinate[tex.length];
@@ -2542,15 +2546,21 @@ public class MathLib {
 							Direction[] refcamfwdhalfvendposdirn = normalizeVector(refcamfwdhalfvendposdir);
 							Position[] refcamfwddirendpos = translate(camposa,refcamfwdhalfvendposdirn[0],1.0f);
 							double[][] refcamposcamfwdplanedist = planePointDistance(refcamfwddirendpos, camfwdplane);
+							double[][] refcamposcamrgtplanedist = planePointDistance(refcamfwddirendpos, camplane);
 							double[][] refcamposcamupplanedist = planePointDistance(refcamfwddirendpos, camupplane);
+							Direction[] refcamposcamfwdrgtpos = {new Direction(refcamposcamrgtplanedist[0][0],-refcamposcamfwdplanedist[0][0],0.0f)};
 							Direction[] refcamposcamfwduppos = {new Direction(0.0f,-refcamposcamfwdplanedist[0][0],refcamposcamupplanedist[0][0])};
 							double[] camrefcamvangle = vectorAngle(camzerofwddir, refcamposcamfwduppos);
+							double[] camrefcamhangle = vectorAngle(camzerofwddir, refcamposcamfwdrgtpos);
 							double refcamvangle = ((refcamposcamupplanedist[0][0]>0.0f)?-1.0f:1.0f)*camrefcamvangle[0];
+							double refcamhangle = ((refcamposcamrgtplanedist[0][0]>0.0f)?1.0f:-1.0f)*camrefcamhangle[0];
 							Matrix vrot = rotationMatrixAroundAxis(camrgtdir[0], refcamvangle);
-							Direction[] camfwddirrot = matrixMultiply(camfwddir, vrot);
-							Direction[] camrgtdirrot = matrixMultiply(camrgtdir, vrot);
-							Plane[] camrgtdirplanerot = planeFromNormalAtPoint(camposa[0], camrgtdirrot);
-							k[j][i] = new PlaneRay(camposa[0],camfwddirrot[0],camrgtdirplanerot[0],refcamvfov);
+							Matrix hrot = rotationMatrixAroundAxis(camupdir[0], refcamhangle);
+							Direction[] camfwddirrot = camrgtdir;
+							camfwddirrot = matrixMultiply(camfwddirrot, hrot);
+							camfwddirrot = matrixMultiply(camfwddirrot, vrot);
+							Plane[] camplanerot = MathLib.planeFromNormalAtPoint(camposvrefraction[0], camfwddirrot);
+							k[j][i] = new PlaneRay(camposa[0],refcamfwdhalfvendposdirn[0],camplanerot[0],refcamvfov);
 						}
 					}
 				}
