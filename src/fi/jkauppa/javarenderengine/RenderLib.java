@@ -1266,7 +1266,6 @@ public class RenderLib {
 									if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
 									if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
 									Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
-									System.out.println("RenderLib: renderSurfaceLightmapFaceCubemapView: mode["+mode+"] bounce["+l+"] entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
 									if ((entitylist[j].trianglelist[i].lmatl==null)||(entitylist[j].trianglelist[i].lmatl.length!=lightbounces)) {
 										entitylist[j].trianglelist[i].lmatl = new Material[lightbounces];
 									}
@@ -1363,7 +1362,6 @@ public class RenderLib {
 									if (p4pixelgt>1.0f) {p4pixelgt=1.0f;}
 									if (p4pixelbt>1.0f) {p4pixelbt=1.0f;}
 									Color p4pixelcolor = new Color(p4pixelrt, p4pixelgt, p4pixelbt, 1.0f);
-									System.out.println("RenderLib: renderSurfaceLightmapTextureCubemapView: mode["+mode+"] bounce["+l+"] entitylist["+j+"]["+i+"]="+trianglespherepoint[0].x+","+trianglespherepoint[0].y+","+trianglespherepoint[0].z);
 									if ((entitylist[j].trianglelist[i].lmatl==null)||(entitylist[j].trianglelist[i].lmatl.length!=lightbounces)) {
 										entitylist[j].trianglelist[i].lmatl = new Material[lightbounces];
 									}
