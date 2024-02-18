@@ -54,6 +54,10 @@ public class CADApp extends AppHandlerPanel {
 	private boolean erasemode = false;
 	private Material drawmat = new Material(Color.getHSBColor(0.0f, 0.0f, 1.0f),1.0f,null);
 	private int renderoutputwidth = 3840, renderoutputheight = 2160;
+	private int rendercubemapoutputsize = 2048, rendercubemapoutputwidth = 3*rendercubemapoutputsize, rendercubemapoutputheight = 2*rendercubemapoutputsize;
+	private int renderspheremapoutputwidth = 2*renderoutputwidth, renderspheremapoutputheight = renderoutputheight;
+	private int renderbounces = 2;
+	private Color renderbackgroundcolor = Color.BLACK;
 	private int polygonfillmode = 1;
 	private boolean unlitrender = false;
 	private Position[] selecteddragvertex = null;
@@ -797,21 +801,34 @@ public class CADApp extends AppHandlerPanel {
 				}
 		    }
 		} else if (e.getKeyCode()==KeyEvent.VK_F4) {
-		    int onmask = KeyEvent.SHIFT_DOWN_MASK;
-		    int offmask = KeyEvent.ALT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
-		    boolean f4shiftdown = (e.getModifiersEx() & (onmask | offmask)) == onmask;
+		    int onmaskf4down = 0;
+		    int offmaskf4down = KeyEvent.SHIFT_DOWN_MASK|KeyEvent.ALT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
+		    boolean f4down = (e.getModifiersEx() & (onmaskf4down | offmaskf4down)) == onmaskf4down;
+		    int onmaskf4shiftdown = KeyEvent.SHIFT_DOWN_MASK;
+		    int offmaskf4shiftdown = KeyEvent.ALT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
+		    boolean f4shiftdown = (e.getModifiersEx() & (onmaskf4shiftdown | offmaskf4shiftdown)) == onmaskf4shiftdown;
+		    int onmaskf4ctrldown = KeyEvent.CTRL_DOWN_MASK;
+		    int offmaskf4ctrldown = KeyEvent.ALT_DOWN_MASK|KeyEvent.SHIFT_DOWN_MASK;
+		    boolean f4ctrldown = (e.getModifiersEx() & (onmaskf4ctrldown | offmaskf4ctrldown)) == onmaskf4ctrldown;
 			this.imagechooser.setDialogTitle("Render File");
 			this.imagechooser.setApproveButtonText("Render");
 			if (this.imagechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File savefile = this.imagechooser.getSelectedFile();
 				FileFilter savefileformat = this.imagechooser.getFileFilter();
-				RenderView renderimageview = RenderLib.renderProjectedView(this.campos, this.entitylist, this.renderoutputwidth, this.hfov, this.renderoutputheight, this.vfov, this.cameramat, this.unlitrender, 3, 2, null, null, null, this.mouselocationx, this.mouselocationy);
+				RenderView renderimageview = null;
+				if (f4ctrldown) {
+					renderimageview = RenderLib.renderCubemapView(this.campos, this.entitylist, this.rendercubemapoutputwidth, this.rendercubemapoutputheight, this.rendercubemapoutputsize, this.cameramat, this.unlitrender, 3, this.renderbounces, null, null, null, this.mouselocationx, this.mouselocationy);
+				} else if (f4shiftdown) {
+					renderimageview = RenderLib.renderSpheremapView(this.campos, this.entitylist, this.renderspheremapoutputwidth, this.renderspheremapoutputheight, this.cameramat, this.unlitrender, 2, this.renderbounces, null, null, null, this.mouselocationx, this.mouselocationy);
+				} else {
+					renderimageview = RenderLib.renderProjectedView(this.campos, this.entitylist, this.renderoutputwidth, this.hfov, this.renderoutputheight, this.vfov, this.cameramat, this.unlitrender, 3, this.renderbounces, null, null, null, this.mouselocationx, this.mouselocationy);
+				}
 				VolatileImage renderimage = renderimageview.renderimage;
-				if (!f4shiftdown) {
+				if (f4down) {
 					VolatileImage blackbgimage = gc.createCompatibleVolatileImage(renderimage.getWidth(), renderimage.getHeight(), Transparency.TRANSLUCENT);
 					Graphics2D bbggfx = blackbgimage.createGraphics();
 					bbggfx.setComposite(AlphaComposite.Src);
-					bbggfx.setColor(Color.BLACK);
+					bbggfx.setColor(this.renderbackgroundcolor);
 					bbggfx.fillRect(0, 0, renderimage.getWidth(), renderimage.getHeight());
 					bbggfx.setComposite(AlphaComposite.SrcOver);
 					bbggfx.drawImage(renderimage, 0, 0, null);
