@@ -296,7 +296,7 @@ public class ModelApp extends AppHandlerPanel {
 		public void run() {
 			if (!RenderViewUpdater.renderupdaterrunning) {
 				RenderViewUpdater.renderupdaterrunning = true;
-				int bounces = 0;
+				int bounces = 2;
 				if (ModelApp.this.polygonfillmode==1) {
 					ModelApp.this.renderview = RenderLib.renderProjectedView(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, ModelApp.this.unlitrender, 1, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				} else if (ModelApp.this.polygonfillmode==2) {
