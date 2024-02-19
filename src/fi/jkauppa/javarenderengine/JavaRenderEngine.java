@@ -64,7 +64,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.5.10");
+		this.setTitle("Java Render Engine v2.5.11");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -383,13 +383,15 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Ray[][] smrrray = MathLib.surfaceRefractionRay(smrray, smpcplanes, 1.0f, 1.45f);
 		Ray[][] smrrray2 = MathLib.surfaceRefractionRay(smrray, smpcplanes, 1.45f, 1.0f);
 		PlaneRay[][] smpray = MathLib.surfaceMirrorPlaneRay(smplaneray, smpcplanes);
+		PlaneRay[][] srpray = MathLib.surfaceRefractionPlaneRay(smplaneray, smpcplanes, 1.0f, 1.45f);
 		for (int i=0;i<smpc.length;i++) {if (smpc[i]!=null) {System.out.println("JavaRenderEngine: main: smpc["+i+"] pos="+smpc[i].pos.x+" "+smpc[i].pos.y+" "+smpc[i].pos.z+" hfov="+smpc[i].hfov+" vfov="+smpc[i].vfov);System.out.println("JavaRenderEngine: main: smpc["+i+"] a1="+smpc[i].rot.a11+" "+smpc[i].rot.a12+" "+smpc[i].rot.a13);System.out.println("JavaRenderEngine: main: smpc["+i+"] a2="+smpc[i].rot.a21+" "+smpc[i].rot.a22+" "+smpc[i].rot.a23);System.out.println("JavaRenderEngine: main: smpc["+i+"] a3="+smpc[i].rot.a31+" "+smpc[i].rot.a32+" "+smpc[i].rot.a33);} else {System.out.println("JavaRenderEngine: main: smpc["+i+"]=not visible.");}}
 		for (int i=0;i<srpc.length;i++) {if (srpc[i]!=null) {System.out.println("JavaRenderEngine: main: srpc["+i+"] pos="+srpc[i].pos.x+" "+srpc[i].pos.y+" "+srpc[i].pos.z+" hfov="+srpc[i].hfov+" vfov="+srpc[i].vfov);System.out.println("JavaRenderEngine: main: srpc["+i+"] a1="+srpc[i].rot.a11+" "+srpc[i].rot.a12+" "+srpc[i].rot.a13);System.out.println("JavaRenderEngine: main: srpc["+i+"] a2="+srpc[i].rot.a21+" "+srpc[i].rot.a22+" "+srpc[i].rot.a23);System.out.println("JavaRenderEngine: main: srpc["+i+"] a3="+srpc[i].rot.a31+" "+srpc[i].rot.a32+" "+srpc[i].rot.a33);} else {System.out.println("JavaRenderEngine: main: srpc["+i+"]=not visible.");}}
 		for (int i=0;i<srpc2.length;i++) {if (srpc2[i]!=null) {System.out.println("JavaRenderEngine: main: srpc2["+i+"] pos="+srpc2[i].pos.x+" "+srpc2[i].pos.y+" "+srpc2[i].pos.z+" hfov="+srpc2[i].hfov+" vfov="+srpc2[i].vfov);System.out.println("JavaRenderEngine: main: srpc2["+i+"] a1="+srpc2[i].rot.a11+" "+srpc2[i].rot.a12+" "+srpc2[i].rot.a13);System.out.println("JavaRenderEngine: main: srpc2["+i+"] a2="+srpc2[i].rot.a21+" "+srpc2[i].rot.a22+" "+srpc2[i].rot.a23);System.out.println("JavaRenderEngine: main: srpc2["+i+"] a3="+srpc2[i].rot.a31+" "+srpc2[i].rot.a32+" "+srpc2[i].rot.a33);} else {System.out.println("JavaRenderEngine: main: srpc2["+i+"]=not visible.");}}
 		for (int j=0;j<smrmray.length;j++) {for (int i=0;i<smrmray[j].length;i++) {if (smrmray[j][i]!=null) {System.out.println("JavaRenderEngine: main: smrmray["+j+"]["+i+"] pos="+smrmray[j][i].pos.x+" "+smrmray[j][i].pos.y+" "+smrmray[j][i].pos.z+" dir="+smrmray[j][i].dir.dx+" "+smrmray[j][i].dir.dy+" "+smrmray[j][i].dir.dz);}else{System.out.println("JavaRenderEngine: main: smrmray["+j+"]["+i+"]=not visible.");}}}
 		for (int j=0;j<smrrray.length;j++) {for (int i=0;i<smrrray[j].length;i++) {if (smrrray[j][i]!=null) {System.out.println("JavaRenderEngine: main: smrrray["+j+"]["+i+"] pos="+smrrray[j][i].pos.x+" "+smrrray[j][i].pos.y+" "+smrrray[j][i].pos.z+" dir="+smrrray[j][i].dir.dx+" "+smrrray[j][i].dir.dy+" "+smrrray[j][i].dir.dz);}else{System.out.println("JavaRenderEngine: main: smrrray["+j+"]["+i+"]=not visible.");}}}
 		for (int j=0;j<smrrray2.length;j++) {for (int i=0;i<smrrray2[j].length;i++) {if (smrrray2[j][i]!=null) {System.out.println("JavaRenderEngine: main: smrrray2["+j+"]["+i+"] pos="+smrrray2[j][i].pos.x+" "+smrrray2[j][i].pos.y+" "+smrrray2[j][i].pos.z+" dir="+smrrray2[j][i].dir.dx+" "+smrrray2[j][i].dir.dy+" "+smrrray2[j][i].dir.dz);}else{System.out.println("JavaRenderEngine: main: smrrray2["+j+"]["+i+"]=not visible.");}}}
-		for (int j=0;j<smpray.length;j++) {for (int i=0;i<smpray[j].length;i++) {if (smpray[j][i]!=null) {System.out.println("JavaRenderEngine: main: smpray["+j+"]["+i+"] pos="+smpray[j][i].pos.x+" "+smpray[j][i].pos.y+" "+smpray[j][i].pos.z+" dir="+smpray[j][i].dir.dx+" "+smpray[j][i].dir.dy+" "+smpray[j][i].dir.dz+" plane="+smpray[j][i].plane.a+" "+smpray[j][i].plane.b+" "+smpray[j][i].plane.c+" "+smpray[j][i].plane.d);}else{System.out.println("JavaRenderEngine: main: smpray["+j+"]["+i+"]=not visible.");}}}
+		for (int j=0;j<smpray.length;j++) {for (int i=0;i<smpray[j].length;i++) {if (smpray[j][i]!=null) {System.out.println("JavaRenderEngine: main: smpray["+j+"]["+i+"] pos="+smpray[j][i].pos.x+" "+smpray[j][i].pos.y+" "+smpray[j][i].pos.z+" dir="+smpray[j][i].dir.dx+" "+smpray[j][i].dir.dy+" "+smpray[j][i].dir.dz+" plane="+smpray[j][i].plane.a+" "+smpray[j][i].plane.b+" "+smpray[j][i].plane.c+" "+smpray[j][i].plane.d+" vfov="+smpray[j][i].vfov);}else{System.out.println("JavaRenderEngine: main: smpray["+j+"]["+i+"]=not visible.");}}}
+		for (int j=0;j<srpray.length;j++) {for (int i=0;i<srpray[j].length;i++) {if (srpray[j][i]!=null) {System.out.println("JavaRenderEngine: main: srpray["+j+"]["+i+"] pos="+srpray[j][i].pos.x+" "+srpray[j][i].pos.y+" "+srpray[j][i].pos.z+" dir="+srpray[j][i].dir.dx+" "+srpray[j][i].dir.dy+" "+srpray[j][i].dir.dz+" plane="+srpray[j][i].plane.a+" "+srpray[j][i].plane.b+" "+srpray[j][i].plane.c+" "+srpray[j][i].plane.d+" vfov="+srpray[j][i].vfov);}else{System.out.println("JavaRenderEngine: main: srpray["+j+"]["+i+"]=not visible.");}}}
 		Position papos = new Position(0.0f,0.0f,0.0f);
 		Direction[] padir = {new Direction(1.0f,0.0f,0.0f),new Direction(0.0f,-1.0f,0.0f)};
 		Plane[] paplane = MathLib.planeFromNormalAtPoint(papos, padir);
@@ -440,7 +442,9 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Direction[] rrintvdir1 = {new Direction(1,1,0)};
 		Position[] rrintvpos2 = {new Position(1,0,0), new Position(1,0,0)};
 		Direction[] rrintvdir2 = {new Direction(0,1,0), new Direction(0,1,1)};
-		Position[][] rrint = MathLib.rayRayIntersection(rrintvpos1, rrintvdir1, rrintvpos2, rrintvdir2);
+		Ray[] rrintvray1 = {new Ray(rrintvpos1[0], rrintvdir1[0])};
+		Ray[] rrintvray2 = {new Ray(rrintvpos2[0], rrintvdir2[0]), new Ray(rrintvpos2[1], rrintvdir2[1])};
+		Position[][] rrint = MathLib.rayRayIntersection(rrintvray1, rrintvray2);
 		for (int j=0;j<rrint.length;j++) {for (int i=0;i<rrint[j].length;i++) { if (rrint[j][i]!=null) {System.out.println("JavaRenderEngine: main: rrint["+j+"]["+i+"]="+rrint[j][i].x+" "+rrint[j][i].y+" "+rrint[j][i].z);} else {System.out.println("JavaRenderEngine: main: rrint["+j+"]["+i+"]=no hit.");}}}
 		Double[] snum = {1.0d, -5.0d, 2.0d, 0.0d, 7.0d};
 		Integer[] snumind = UtilLib.objectIndexSort(snum,null);
