@@ -14,28 +14,25 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.ArrayList;
 
 import javax.swing.JFileChooser;
 
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandlerPanel;
-import fi.jkauppa.javarenderengine.ModelLib.Coordinate;
 import fi.jkauppa.javarenderengine.ModelLib.Direction;
 import fi.jkauppa.javarenderengine.ModelLib.Entity;
-import fi.jkauppa.javarenderengine.ModelLib.Material;
 import fi.jkauppa.javarenderengine.ModelLib.Matrix;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
 import fi.jkauppa.javarenderengine.ModelLib.Position;
 import fi.jkauppa.javarenderengine.ModelLib.RenderView;
 import fi.jkauppa.javarenderengine.ModelLib.Rotation;
-import fi.jkauppa.javarenderengine.ModelLib.Triangle;
-import fi.jkauppa.javarenderengine.ModelLib.Model;
 
 public class ModelApp extends AppHandlerPanel {
 	private static final long serialVersionUID = 1L;
 	private Entity[] entitylist = null;
-	private Position campos = new Position(0,0,0);
-	private Rotation camrot = new Rotation(0.0f, 0.0f, 0.0f);
+	private final Position[] defaultcampos = {new Position(0.0f,0.0f,0.0f)};
+	private final Rotation defaultcamrot = new Rotation(0.0f, 0.0f, 0.0f);
+	private Position[] campos = this.defaultcampos;
+	private Rotation camrot = this.defaultcamrot;
 	private Matrix cameramat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 	private final Direction[] lookdirs = MathLib.projectedCameraDirections(cameramat);
 	private Direction[] camdirs = lookdirs;
@@ -83,59 +80,41 @@ public class ModelApp extends AppHandlerPanel {
 		}
 	}
 
+	@Override public void timerTick() {
+		double movementstep = 20.0f;
+		if (this.leftkeydown) {
+			this.campos = MathLib.translate(campos, this.camdirs[1], -movementstep);
+		} else if (this.rightkeydown) {
+			this.campos = MathLib.translate(campos, this.camdirs[1], movementstep);
+		}
+		if (this.forwardkeydown) {
+			this.campos = MathLib.translate(campos, this.camdirs[0], movementstep);
+		} else if (this.backwardkeydown) {
+			this.campos = MathLib.translate(campos, this.camdirs[0], -movementstep);
+		}
+		if (this.upwardkeydown) {
+			this.campos = MathLib.translate(campos, this.camdirs[2], -movementstep);
+		} else if (this.downwardkeydown) {
+			this.campos = MathLib.translate(campos, this.camdirs[2], movementstep);
+		}
+		if (this.rollleftkeydown) {
+			this.camrot = this.camrot.copy();
+			this.camrot.y -= 1.0f;
+		} else if (this.rollrightkeydown) {
+			this.camrot = this.camrot.copy();
+			this.camrot.y += 1.0f;
+		}
+		updateCameraDirections();
+		(new RenderViewUpdater()).start();
+	}
+
 	private void updateCameraDirections() {
 		Matrix camrotmat = MathLib.rotationMatrixLookHorizontalRoll(this.camrot);
 		Direction[] camlookdirs = MathLib.matrixMultiply(this.lookdirs, camrotmat);
 		this.cameramat = camrotmat;
 		this.camdirs = camlookdirs;
 	}
-
-	@Override public void timerTick() {
-		if (this.leftkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x -= 20.0f*this.camdirs[1].dx;
-			this.campos.y -= 20.0f*this.camdirs[1].dy;
-			this.campos.z -= 20.0f*this.camdirs[1].dz;
-		} else if (this.rightkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x += 20.0f*this.camdirs[1].dx;
-			this.campos.y += 20.0f*this.camdirs[1].dy;
-			this.campos.z += 20.0f*this.camdirs[1].dz;
-		}
-		if (this.forwardkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x += 20.0f*this.camdirs[0].dx;
-			this.campos.y += 20.0f*this.camdirs[0].dy;
-			this.campos.z += 20.0f*this.camdirs[0].dz;
-		} else if (this.backwardkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x -= 20.0f*this.camdirs[0].dx;
-			this.campos.y -= 20.0f*this.camdirs[0].dy;
-			this.campos.z -= 20.0f*this.camdirs[0].dz;
-		}
-		if (this.upwardkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x -= 20.0f*this.camdirs[2].dx;
-			this.campos.y -= 20.0f*this.camdirs[2].dy;
-			this.campos.z -= 20.0f*this.camdirs[2].dz;
-		} else if (this.downwardkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x += 20.0f*this.camdirs[2].dx;
-			this.campos.y += 20.0f*this.camdirs[2].dy;
-			this.campos.z += 20.0f*this.camdirs[2].dz;
-		}
-		if (this.rollleftkeydown) {
-			this.camrot = this.camrot.copy();
-			this.camrot.y -= 1.0f;
-			updateCameraDirections();
-		} else if (this.rollrightkeydown) {
-			this.camrot = this.camrot.copy();
-			this.camrot.y += 1.0f;
-			updateCameraDirections();
-		}
-		(new RenderViewUpdater()).start();
-	}
-
+	
 	@Override public void keyReleased(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_A) {
 		this.leftkeydown = false;
@@ -159,8 +138,8 @@ public class ModelApp extends AppHandlerPanel {
 	@Override public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
 			this.entitylist = null;
-			this.campos = new Position(0,0,0);
-			this.camrot = new Rotation(0,0,0);
+			this.campos = this.defaultcampos;
+			this.camrot = this.defaultcamrot;
 			updateCameraDirections();
 		} else if (e.getKeyCode()==KeyEvent.VK_A) {
 			this.leftkeydown = true;
@@ -194,60 +173,8 @@ public class ModelApp extends AppHandlerPanel {
 			this.filechooser.setApproveButtonText("Load");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File loadfile = this.filechooser.getSelectedFile();
-				Model loadmodel = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
-				ArrayList<Entity> newentitylist = new ArrayList<Entity>();
-				for (int j=0;j<loadmodel.objects.length;j++) {
-					Entity newentity = new Entity();
-					ArrayList<Triangle> newtrianglelistarray = new ArrayList<Triangle>();
-					for (int i=0;i<loadmodel.objects[j].faceindex.length;i++) {
-						if (loadmodel.objects[j].faceindex[i].facevertexindex.length==3) {
-							Material foundmat = null;
-							for (int n=0;(n<loadmodel.materials.length)&&(foundmat==null);n++) {
-								if (loadmodel.objects[j].faceindex[i].usemtl.equals(loadmodel.materials[n].materialname)) {
-									foundmat = loadmodel.materials[n];
-								}
-							}
-							if (foundmat==null) {
-								foundmat = new Material();
-								foundmat.facecolor = Color.WHITE;
-							}
-							Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
-							Position pos2 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
-							Position pos3 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[2].vertexindex-1];
-							Direction norm = new Direction(0.0f, 0.0f, 0.0f);
-				    		Coordinate tex1 = new Coordinate(0.0f,0.0f);
-				    		Coordinate tex2 = new Coordinate(1.0f,0.0f);
-				    		Coordinate tex3 = new Coordinate(1.0f,1.0f);
-							if (loadmodel.objects[j].faceindex[i].facevertexindex[0].normalindex>0) {
-								norm = loadmodel.facenormals[loadmodel.objects[j].faceindex[i].facevertexindex[0].normalindex-1];
-							}
-							if (loadmodel.objects[j].faceindex[i].facevertexindex[0].textureindex>0) {
-								tex1 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[0].textureindex-1];
-							}
-							if (loadmodel.objects[j].faceindex[i].facevertexindex[1].textureindex>0) {
-								tex2 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[1].textureindex-1];
-							}
-							if (loadmodel.objects[j].faceindex[i].facevertexindex[2].textureindex>0) {
-								tex3 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[2].textureindex-1];
-							}
-							Triangle tri = new Triangle(new Position(pos1.x,pos1.y,pos1.z),new Position(pos2.x,pos2.y,pos2.z),new Position(pos3.x,pos3.y,pos3.z));
-							tri.norm = norm;
-							tri.pos1.tex = tex1;
-							tri.pos2.tex = tex2;
-							tri.pos3.tex = tex3;
-							tri.mat = foundmat;
-							newtrianglelistarray.add(tri);
-						}
-					}
-					newentity.trianglelist = newtrianglelistarray.toArray(new Triangle[newtrianglelistarray.size()]);
-					if (newentity.trianglelist.length>0) {
-						newentity.vertexlist = MathLib.generateVertexList(newentity.trianglelist);
-						newentity.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newentity.vertexlist);
-						newentity.sphereboundaryvolume = MathLib.pointCloudCircumSphere(newentity.vertexlist);
-						newentitylist.add(newentity);
-					}
-				}
-				this.entitylist = newentitylist.toArray(new Entity[newentitylist.size()]);
+				Entity loadentity = ModelLib.loadOBJFileEntity(loadfile.getPath(), false);
+				this.entitylist = loadentity.childlist;
 			}
 		}
 	}
@@ -298,21 +225,21 @@ public class ModelApp extends AppHandlerPanel {
 				RenderViewUpdater.renderupdaterrunning = true;
 				int bounces = 0;
 				if (ModelApp.this.polygonfillmode==1) {
-					ModelApp.this.renderview = RenderLib.renderProjectedView(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, ModelApp.this.unlitrender, 1, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+					ModelApp.this.renderview = RenderLib.renderProjectedView(ModelApp.this.campos[0], ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, ModelApp.this.unlitrender, 1, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				} else if (ModelApp.this.polygonfillmode==2) {
-					ModelApp.this.renderview = RenderLib.renderCubemapView(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), (int)Math.floor(((double)ModelApp.this.getHeight())/2.0f), ModelApp.this.cameramat, ModelApp.this.unlitrender, 1, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+					ModelApp.this.renderview = RenderLib.renderCubemapView(ModelApp.this.campos[0], ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), (int)Math.floor(((double)ModelApp.this.getHeight())/2.0f), ModelApp.this.cameramat, ModelApp.this.unlitrender, 1, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				} else if (ModelApp.this.polygonfillmode==3) {
-					ModelApp.this.renderview = RenderLib.renderProjectedView(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, ModelApp.this.unlitrender, 2, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+					ModelApp.this.renderview = RenderLib.renderProjectedView(ModelApp.this.campos[0], ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, ModelApp.this.unlitrender, 2, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				} else if (ModelApp.this.polygonfillmode==4) {
-					ModelApp.this.renderview = RenderLib.renderSpheremapView(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), ModelApp.this.cameramat, ModelApp.this.unlitrender, 1, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+					ModelApp.this.renderview = RenderLib.renderSpheremapView(ModelApp.this.campos[0], ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), ModelApp.this.cameramat, ModelApp.this.unlitrender, 1, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				} else if (ModelApp.this.polygonfillmode==5) {
-					ModelApp.this.renderview = RenderLib.renderCubemapView(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), (int)Math.floor(((double)ModelApp.this.getHeight())/2.0f), ModelApp.this.cameramat, ModelApp.this.unlitrender, 2, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+					ModelApp.this.renderview = RenderLib.renderCubemapView(ModelApp.this.campos[0], ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), (int)Math.floor(((double)ModelApp.this.getHeight())/2.0f), ModelApp.this.cameramat, ModelApp.this.unlitrender, 2, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				} else if (ModelApp.this.polygonfillmode==6) {
-					ModelApp.this.renderview = RenderLib.renderProjectedView(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, ModelApp.this.unlitrender, 3, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+					ModelApp.this.renderview = RenderLib.renderProjectedView(ModelApp.this.campos[0], ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.hfov, ModelApp.this.getHeight(), ModelApp.this.vfov, ModelApp.this.cameramat, ModelApp.this.unlitrender, 3, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				} else if (ModelApp.this.polygonfillmode==7) {
-					ModelApp.this.renderview = RenderLib.renderSpheremapView(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), ModelApp.this.cameramat, ModelApp.this.unlitrender, 2, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+					ModelApp.this.renderview = RenderLib.renderSpheremapView(ModelApp.this.campos[0], ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), ModelApp.this.cameramat, ModelApp.this.unlitrender, 2, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				} else if (ModelApp.this.polygonfillmode==8) {
-					ModelApp.this.renderview = RenderLib.renderCubemapView(ModelApp.this.campos, ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), (int)Math.floor(((double)ModelApp.this.getHeight())/2.0f), ModelApp.this.cameramat, ModelApp.this.unlitrender, 3, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
+					ModelApp.this.renderview = RenderLib.renderCubemapView(ModelApp.this.campos[0], ModelApp.this.entitylist, ModelApp.this.getWidth(), ModelApp.this.getHeight(), (int)Math.floor(((double)ModelApp.this.getHeight())/2.0f), ModelApp.this.cameramat, ModelApp.this.unlitrender, 3, bounces, null, null, null, ModelApp.this.mouselocationx, ModelApp.this.mouselocationy);
 				}
 				RenderViewUpdater.renderupdaterrunning = false;
 			}

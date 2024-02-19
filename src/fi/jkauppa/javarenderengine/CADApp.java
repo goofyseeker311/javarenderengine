@@ -64,10 +64,12 @@ public class CADApp extends AppHandlerPanel {
 	private int mouselocationx = 0, mouselocationy = 0;
 	private int mouselastlocationx = -1, mouselastlocationy = -1; 
 	private final double defaultcamdist = 1371.023f;
+	private final Position[] defaultcampos = {new Position(0.0f,0.0f,defaultcamdist)};
+	private final Rotation defaultcamrot = new Rotation(0.0f, 0.0f, 0.0f);
 	private Position drawstartpos = new Position(0,0,0);
 	private Position editpos = new Position(0.0f,0.0f,0.0f);
-	private Position campos = new Position(0.0f,0.0f,defaultcamdist);
-	private Rotation camrot = new Rotation(0.0f, 0.0f, 0.0f);
+	private Position[] campos = this.defaultcampos;
+	private Rotation camrot = this.defaultcamrot;
 	private Matrix cameramat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 	private final Direction[] lookdirs = MathLib.projectedCameraDirections(cameramat);
 	private Direction[] camdirs = lookdirs;
@@ -133,42 +135,25 @@ public class CADApp extends AppHandlerPanel {
 			movementstep = this.gridstep;
 		}
 		if (this.leftkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x -= movementstep*this.camdirs[1].dx;
-			this.campos.y -= movementstep*this.camdirs[1].dy;
-			this.campos.z -= movementstep*this.camdirs[1].dz;			System.out.println("CADApp: keyPressed: key A: camera position to left="+this.campos.x+","+this.campos.y+","+this.campos.z);
+			this.campos = MathLib.translate(campos, this.camdirs[1], -movementstep);
+			System.out.println("CADApp: keyPressed: key A: camera position to left="+this.campos[0].x+","+this.campos[0].y+","+this.campos[0].z);
 		} else if (this.rightkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x += movementstep*this.camdirs[1].dx;
-			this.campos.y += movementstep*this.camdirs[1].dy;
-			this.campos.z += movementstep*this.camdirs[1].dz;
-			System.out.println("CADApp: keyPressed: key D: camera position to right="+this.campos.x+","+this.campos.y+","+this.campos.z);
+			this.campos = MathLib.translate(campos, this.camdirs[1], movementstep);
+			System.out.println("CADApp: keyPressed: key D: camera position to right="+this.campos[0].x+","+this.campos[0].y+","+this.campos[0].z);
 		}
 		if (this.forwardkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x += movementstep*this.camdirs[0].dx;
-			this.campos.y += movementstep*this.camdirs[0].dy;
-			this.campos.z += movementstep*this.camdirs[0].dz;
-			System.out.println("CADApp: keyPressed: key +/SPACE: camera position to forward="+this.campos.x+","+this.campos.y+","+this.campos.z);
+			this.campos = MathLib.translate(campos, this.camdirs[0], movementstep);
+			System.out.println("CADApp: keyPressed: key +/SPACE: camera position to forward="+this.campos[0].x+","+this.campos[0].y+","+this.campos[0].z);
 		} else if (this.backwardkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x -= movementstep*this.camdirs[0].dx;
-			this.campos.y -= movementstep*this.camdirs[0].dy;
-			this.campos.z -= movementstep*this.camdirs[0].dz;
-			System.out.println("CADApp: keyPressed: key -/C: camera position to backward="+this.campos.x+","+this.campos.y+","+this.campos.z);
+			this.campos = MathLib.translate(campos, this.camdirs[0], -movementstep);
+			System.out.println("CADApp: keyPressed: key -/C: camera position to backward="+this.campos[0].x+","+this.campos[0].y+","+this.campos[0].z);
 		}
 		if (this.upwardkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x -= movementstep*this.camdirs[2].dx;
-			this.campos.y -= movementstep*this.camdirs[2].dy;
-			this.campos.z -= movementstep*this.camdirs[2].dz;
-			System.out.println("CADApp: keyPressed: key W: camera position to upward="+this.campos.x+","+this.campos.y+","+this.campos.z);
+			this.campos = MathLib.translate(campos, this.camdirs[2], -movementstep);
+			System.out.println("CADApp: keyPressed: key W: camera position to upward="+this.campos[0].x+","+this.campos[0].y+","+this.campos[0].z);
 		} else if (this.downwardkeydown) {
-			this.campos = this.campos.copy();
-			this.campos.x += movementstep*this.camdirs[2].dx;
-			this.campos.y += movementstep*this.camdirs[2].dy;
-			this.campos.z += movementstep*this.camdirs[2].dz;
-			System.out.println("CADApp: keyPressed: key S: camera position to downward="+this.campos.x+","+this.campos.y+","+this.campos.z);
+			this.campos = MathLib.translate(campos, this.camdirs[2], movementstep);
+			System.out.println("CADApp: keyPressed: key S: camera position to downward="+this.campos[0].x+","+this.campos[0].y+","+this.campos[0].z);
 		}
 		if (this.rollleftkeydown) {
 			this.camrot = this.camrot.copy();
@@ -204,8 +189,7 @@ public class CADApp extends AppHandlerPanel {
 	private void updateCameraDirections() {
 		Matrix camrotmat = MathLib.rotationMatrixLookHorizontalRoll(this.camrot);
 		Direction[] camlookdirs = MathLib.projectedCameraDirections(camrotmat);
-		Position[] camposa = {this.campos};
-		Position[] editposa = MathLib.translate(camposa, this.lookdirs[0], this.defaultcamdist);
+		Position[] editposa = MathLib.translate(this.campos, this.lookdirs[0], this.defaultcamdist);
 		this.editpos = editposa[0];
 		this.cameramat = camrotmat;
 		this.camdirs = camlookdirs;
@@ -271,9 +255,9 @@ public class CADApp extends AppHandlerPanel {
 					this.linelisttree.clear();
 					this.entitylist = null;
 				}
-				this.campos = new Position(0.0f, 0.0f, defaultcamdist);
-				this.camrot = new Rotation(0.0f, 0.0f, 0.0f);
-				System.out.println("CADApp: keyPressed: key BACKSPACE: reset camera position="+this.campos.x+","+this.campos.y+","+this.campos.z);
+				this.campos = this.defaultcampos;
+				this.camrot = this.defaultcamrot;
+				System.out.println("CADApp: keyPressed: key BACKSPACE: reset camera position="+this.campos[0].x+","+this.campos[0].y+","+this.campos[0].z);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_INSERT) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
@@ -613,11 +597,11 @@ public class CADApp extends AppHandlerPanel {
 				FileFilter savefileformat = this.imagechooser.getFileFilter();
 				RenderView renderimageview = null;
 				if (f4ctrldown) {
-					renderimageview = RenderLib.renderCubemapView(this.campos, this.entitylist, this.rendercubemapoutputwidth, this.rendercubemapoutputheight, this.rendercubemapoutputsize, this.cameramat, this.unlitrender, 3, this.renderbounces, null, null, null, this.mouselocationx, this.mouselocationy);
+					renderimageview = RenderLib.renderCubemapView(this.campos[0], this.entitylist, this.rendercubemapoutputwidth, this.rendercubemapoutputheight, this.rendercubemapoutputsize, this.cameramat, this.unlitrender, 3, this.renderbounces, null, null, null, this.mouselocationx, this.mouselocationy);
 				} else if (f4shiftdown) {
-					renderimageview = RenderLib.renderSpheremapView(this.campos, this.entitylist, this.renderspheremapoutputwidth, this.renderspheremapoutputheight, this.cameramat, this.unlitrender, 2, this.renderbounces, null, null, null, this.mouselocationx, this.mouselocationy);
+					renderimageview = RenderLib.renderSpheremapView(this.campos[0], this.entitylist, this.renderspheremapoutputwidth, this.renderspheremapoutputheight, this.cameramat, this.unlitrender, 2, this.renderbounces, null, null, null, this.mouselocationx, this.mouselocationy);
 				} else {
-					renderimageview = RenderLib.renderProjectedView(this.campos, this.entitylist, this.renderoutputwidth, this.hfov, this.renderoutputheight, this.vfov, this.cameramat, this.unlitrender, 3, this.renderbounces, null, null, null, this.mouselocationx, this.mouselocationy);
+					renderimageview = RenderLib.renderProjectedView(this.campos[0], this.entitylist, this.renderoutputwidth, this.hfov, this.renderoutputheight, this.vfov, this.cameramat, this.unlitrender, 3, this.renderbounces, null, null, null, this.mouselocationx, this.mouselocationy);
 				}
 				VolatileImage renderimage = renderimageview.renderimage;
 				if (f4down) {
@@ -849,14 +833,9 @@ public class CADApp extends AppHandlerPanel {
 	    		}
 	        	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
 	        	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
-	        	this.campos = this.campos.copy();
-	    		this.campos.x -= mousedeltax*movementstep*this.camdirs[1].dx;
-	    		this.campos.y -= mousedeltax*movementstep*this.camdirs[1].dy;
-	    		this.campos.z -= mousedeltax*movementstep*this.camdirs[1].dz;
-	    		this.campos.x -= mousedeltay*movementstep*this.camdirs[2].dx;
-	    		this.campos.y -= mousedeltay*movementstep*this.camdirs[2].dy;
-	    		this.campos.z -= mousedeltay*movementstep*this.camdirs[2].dz;
-				System.out.println("CADApp: mouseDragged: key DRAG-CMB: camera position="+this.campos.x+","+this.campos.y+","+this.campos.z);
+				this.campos = MathLib.translate(campos, this.camdirs[1], -mousedeltax*movementstep);
+				this.campos = MathLib.translate(campos, this.camdirs[2], -mousedeltay*movementstep);
+				System.out.println("CADApp: mouseDragged: key DRAG-CMB: camera position="+this.campos[0].x+","+this.campos[0].y+","+this.campos[0].z);
     		}
     	}
 	    int onmask2ctrlaltdown = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
@@ -1029,11 +1008,8 @@ public class CADApp extends AppHandlerPanel {
 				if (this.snaplinemode) {
 					movementstep *= this.gridstep;
 				}
-				this.campos = this.campos.copy();
-				this.campos.x -= movementstep*this.camdirs[0].dx;
-				this.campos.y -= movementstep*this.camdirs[0].dy;
-				this.campos.z -= movementstep*this.camdirs[0].dz;
-				System.out.println("CADApp: mouseWheelMoved: key MWHEEL: camera position="+this.campos.x+","+this.campos.y+","+this.campos.z);
+				this.campos = MathLib.translate(campos, this.camdirs[0], -movementstep);
+				System.out.println("CADApp: mouseWheelMoved: key MWHEEL: camera position="+this.campos[0].x+","+this.campos[0].y+","+this.campos[0].z);
 	    	}
 	    }
 	}
@@ -1085,13 +1061,13 @@ public class CADApp extends AppHandlerPanel {
 				int bounces = 0;
 				if (CADApp.this.polygonfillmode==1) {
 					Line[] linelist = CADApp.this.linelisttree.toArray(new Line[CADApp.this.linelisttree.size()]);
-					CADApp.this.renderview = RenderLib.renderProjectedLineViewHardware(CADApp.this.campos, linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.renderview = RenderLib.renderProjectedLineViewHardware(CADApp.this.campos[0], linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseoverline = CADApp.this.renderview.mouseoverline;
 					CADApp.this.mouseoververtex = CADApp.this.renderview.mouseoververtex;
 				} else if (CADApp.this.polygonfillmode==2) { 
-					RenderView view = RenderLib.renderProjectedView(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					RenderView view = RenderLib.renderProjectedView(CADApp.this.campos[0], CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					if (CADApp.this.entitybuffer!=null) {
-						RenderView entitybufferview = RenderLib.renderProjectedView(CADApp.this.campos, CADApp.this.entitybuffer, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+						RenderView entitybufferview = RenderLib.renderProjectedView(CADApp.this.campos[0], CADApp.this.entitybuffer, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 						Graphics2D viewgfx = view.renderimage.createGraphics();
 						viewgfx.setComposite(AlphaComposite.SrcOver);
 						viewgfx.drawImage(entitybufferview.renderimage, 0, 0, null);
@@ -1101,7 +1077,7 @@ public class CADApp extends AppHandlerPanel {
 					CADApp.this.mouseoverentity = CADApp.this.renderview.mouseoverentity;
 					CADApp.this.mouseovertriangle = CADApp.this.renderview.mouseovertriangle;
 				} else if (CADApp.this.polygonfillmode==3) {
-					CADApp.this.renderview = RenderLib.renderProjectedView(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 2, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.renderview = RenderLib.renderProjectedView(CADApp.this.campos[0], CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 2, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					CADApp.this.mouseoverentity = CADApp.this.renderview.mouseoverentity;
 					CADApp.this.mouseovertriangle = CADApp.this.renderview.mouseovertriangle;
 				}
