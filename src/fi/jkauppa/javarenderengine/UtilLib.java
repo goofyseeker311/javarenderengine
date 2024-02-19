@@ -23,7 +23,10 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 import javax.imageio.ImageIO;
+import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
+
+import fi.jkauppa.javarenderengine.ModelLib.Entity;
 
 public class UtilLib {
 	private static GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -84,7 +87,74 @@ public class UtilLib {
 			}
 		} catch (Exception ex) {ex.printStackTrace();}
     }
-	
+
+    public static JFileChooser createModelFileChooser() {
+    	JFileChooser filechooser = new JFileChooser();
+    	ModelFileFilters.OBJFileFilter objfilefilter = new ModelFileFilters.OBJFileFilter();
+		filechooser.addChoosableFileFilter(objfilefilter);
+		filechooser.addChoosableFileFilter(new ModelFileFilters.STLFileFilter());
+		filechooser.setFileFilter(objfilefilter);
+		filechooser.setAcceptAllFileFilterUsed(false);
+		return filechooser;
+    }
+    
+    public static void saveModelFormat(String filename, Entity[] entitylist, FileFilter savefileformat, boolean savesurfaceonly) {
+    	String savefilename = filename;
+		if (savefileformat.getClass().equals(ModelFileFilters.STLFileFilter.class)) {
+			if (!savefilename.toLowerCase().endsWith(".stl")) {savefilename = savefilename.concat(".stl");}
+			Entity saveentity = new Entity();
+			saveentity.childlist = entitylist;
+			ModelLib.saveSTLFileEntity(savefilename, saveentity, "JREOBJ");
+		} else {
+			if (!savefilename.toLowerCase().endsWith(".obj")) {savefilename = savefilename.concat(".obj");}
+			Entity saveentity = new Entity();
+			saveentity.childlist = entitylist;
+			ModelLib.saveOBJFileEntity(savefilename, saveentity, savesurfaceonly);
+		}
+    }
+    public static Entity loadModelFormat(String filename, FileFilter loadfileformat, boolean loadresourcefromjar) {
+    	Entity loadentity = null;
+		if (loadfileformat.getClass().equals(ModelFileFilters.STLFileFilter.class)) {
+			loadentity = ModelLib.loadSTLFileEntity(filename, loadresourcefromjar);
+		} else {
+			loadentity = ModelLib.loadOBJFileEntity(filename, loadresourcefromjar);
+		}
+		return loadentity;
+    }
+    
+    public static JFileChooser createImageFileChooser() {
+    	JFileChooser imagechooser = new JFileChooser();
+    	ImageFileFilters.PNGFileFilter pngfilefilter = new ImageFileFilters.PNGFileFilter();
+		imagechooser.addChoosableFileFilter(pngfilefilter);
+		imagechooser.addChoosableFileFilter(new ImageFileFilters.JPGFileFilter());
+		imagechooser.addChoosableFileFilter(new ImageFileFilters.GIFFileFilter());
+		imagechooser.addChoosableFileFilter(new ImageFileFilters.BMPFileFilter());
+		imagechooser.addChoosableFileFilter(new ImageFileFilters.WBMPFileFilter());
+		imagechooser.setFileFilter(pngfilefilter);
+		imagechooser.setAcceptAllFileFilterUsed(false);
+		return imagechooser;
+    }
+
+    public static void saveImageFormat(String filename, VolatileImage image, FileFilter savefileformat) {
+    	String savefilename = filename;
+		if (savefileformat.getClass().equals(ImageFileFilters.JPGFileFilter.class)) {
+			if ((!savefilename.toLowerCase().endsWith(".jpg"))&&(!savefilename.toLowerCase().endsWith(".jpeg"))) {savefilename = savefilename.concat(".jpg");}
+			UtilLib.saveImage(savefilename, image, "JPG");
+		} else if (savefileformat.getClass().equals(ImageFileFilters.GIFFileFilter.class)) {
+			if (!savefilename.toLowerCase().endsWith(".gif")) {savefilename = savefilename.concat(".gif");}
+			UtilLib.saveImage(savefilename, image, "GIF");
+		} else if (savefileformat.getClass().equals(ImageFileFilters.BMPFileFilter.class)) {
+			if (!savefilename.toLowerCase().endsWith(".bmp")) {savefilename = savefilename.concat(".bmp");}
+			UtilLib.saveImage(savefilename, image, "BMP");
+		} else if (savefileformat.getClass().equals(ImageFileFilters.WBMPFileFilter.class)) {
+			if (!savefilename.toLowerCase().endsWith(".wbmp")) {savefilename = savefilename.concat(".wbmp");}
+			UtilLib.saveImage(savefilename, image, "WBMP");
+		} else {
+			if (!savefilename.toLowerCase().endsWith(".png")) {savefilename = savefilename.concat(".png");}
+			UtilLib.saveImage(savefilename, image, "PNG");
+		}
+    }
+    
 	public static void saveImage(String filename, VolatileImage image, String format) {
 		File savefile = new File(filename);
 		try {ImageIO.write(image.getSnapshot(), format, savefile);} catch (Exception ex) {ex.printStackTrace();}

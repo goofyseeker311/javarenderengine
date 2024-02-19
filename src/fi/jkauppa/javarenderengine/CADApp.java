@@ -28,13 +28,6 @@ import fi.jkauppa.javarenderengine.ModelLib.Entity;
 import fi.jkauppa.javarenderengine.ModelLib.Line;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
 import fi.jkauppa.javarenderengine.ModelLib.Matrix;
-import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.BMPFileFilter;
-import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.GIFFileFilter;
-import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.JPGFileFilter;
-import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.PNGFileFilter;
-import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.WBMPFileFilter;
-import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
-import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.STLFileFilter;
 import fi.jkauppa.javarenderengine.ModelLib.Position;
 import fi.jkauppa.javarenderengine.ModelLib.RenderView;
 import fi.jkauppa.javarenderengine.ModelLib.Rotation;
@@ -78,9 +71,8 @@ public class CADApp extends AppHandlerPanel {
 	private int gridstep = 20;
 	private TreeSet<Line> linelisttree = new TreeSet<Line>();
 	private Entity[] entitylist = null;
-	private JFileChooser filechooser = new JFileChooser();
-	private OBJFileFilter objfilefilter = new OBJFileFilter();
-	private STLFileFilter stlfilefilter = new STLFileFilter();
+	private JFileChooser filechooser = UtilLib.createModelFileChooser();
+	private JFileChooser imagechooser = UtilLib.createImageFileChooser();
 	private boolean leftkeydown = false;
 	private boolean rightkeydown = false;
 	private boolean upwardkeydown = false;
@@ -94,24 +86,8 @@ public class CADApp extends AppHandlerPanel {
 	private boolean yawleftkeydown = false;
 	private boolean yawrightkeydown = false;
 	private RenderView renderview = null;
-	private JFileChooser imagechooser = new JFileChooser();
-	private PNGFileFilter pngfilefilter = new PNGFileFilter();
-	private JPGFileFilter jpgfilefilter = new JPGFileFilter();
-	private GIFFileFilter giffilefilter = new GIFFileFilter();
-	private BMPFileFilter bmpfilefilter = new BMPFileFilter();
-	private WBMPFileFilter wbmpfilefilter = new WBMPFileFilter();
 	
 	public CADApp() {
-		this.filechooser.addChoosableFileFilter(this.objfilefilter);
-		this.filechooser.addChoosableFileFilter(this.stlfilefilter);
-		this.filechooser.setFileFilter(this.objfilefilter);
-		this.filechooser.setAcceptAllFileFilterUsed(false);
-		this.imagechooser.addChoosableFileFilter(this.pngfilefilter);
-		this.imagechooser.addChoosableFileFilter(this.jpgfilefilter);
-		this.imagechooser.addChoosableFileFilter(this.giffilefilter);
-		this.imagechooser.addChoosableFileFilter(this.bmpfilefilter);
-		this.imagechooser.addChoosableFileFilter(this.wbmpfilefilter);
-		this.imagechooser.setFileFilter(this.pngfilefilter);
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 		this.setFocusTraversalKeysEnabled(false);
 	}
@@ -521,15 +497,7 @@ public class CADApp extends AppHandlerPanel {
 			    boolean f2shiftdown = (e.getModifiersEx() & (onmask | offmask)) == onmask;
 				File savefile = this.filechooser.getSelectedFile();
 				FileFilter savefileformat = this.filechooser.getFileFilter();
-				if (savefileformat.equals(this.stlfilefilter)) {
-					Entity saveentity = new Entity();
-					saveentity.childlist = this.entitylist;
-					ModelLib.saveSTLFileEntity(savefile.getPath(), saveentity, "JREOBJ");
-				} else {
-					Entity saveentity = new Entity();
-					saveentity.childlist = this.entitylist;
-					ModelLib.saveOBJFileEntity(savefile.getPath(), saveentity, f2shiftdown);
-				}
+				UtilLib.saveModelFormat(savefile.getPath(), this.entitylist, savefileformat, f2shiftdown);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
 		    int onmaskf3shiftdown = KeyEvent.SHIFT_DOWN_MASK;
@@ -555,13 +523,8 @@ public class CADApp extends AppHandlerPanel {
 				if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 					File loadfile = this.filechooser.getSelectedFile();
 					FileFilter loadfileformat = this.filechooser.getFileFilter();
-					if (loadfileformat.equals(this.stlfilefilter)) {
-						Entity loadentity = ModelLib.loadSTLFileEntity(loadfile.getPath(), false);
-						this.entitybuffer = loadentity.childlist;
-					} else {
-						Entity loadentity = ModelLib.loadOBJFileEntity(loadfile.getPath(), false);
-						this.entitybuffer = loadentity.childlist;
-					}
+					Entity loadentity = UtilLib.loadModelFormat(loadfile.getPath(), loadfileformat, false);
+					this.entitybuffer = loadentity.childlist;
 				}
 		    } else {
 				this.filechooser.setDialogTitle("Load File");
@@ -569,15 +532,9 @@ public class CADApp extends AppHandlerPanel {
 				if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 					File loadfile = this.filechooser.getSelectedFile();
 					FileFilter loadfileformat = this.filechooser.getFileFilter();
-					if (loadfileformat.equals(this.stlfilefilter)) {
-						Entity loadentity = ModelLib.loadSTLFileEntity(loadfile.getPath(), false);
-						this.entitylist = loadentity.childlist;
-						this.linelisttree.addAll(Arrays.asList(loadentity.linelist));
-					} else {
-						Entity loadentity = ModelLib.loadOBJFileEntity(loadfile.getPath(), false);
-						this.entitylist = loadentity.childlist;
-						this.linelisttree.addAll(Arrays.asList(loadentity.linelist));
-					}
+					Entity loadentity = UtilLib.loadModelFormat(loadfile.getPath(), loadfileformat, false);
+					this.entitylist = loadentity.childlist;
+					this.linelisttree.addAll(Arrays.asList(loadentity.linelist));
 				}
 		    }
 		} else if (e.getKeyCode()==KeyEvent.VK_F4) {
@@ -615,22 +572,7 @@ public class CADApp extends AppHandlerPanel {
 					bbggfx.dispose();
 					renderimage = blackbgimage;
 				}
-				if (savefileformat.equals(this.jpgfilefilter)) {
-					if ((!savefile.getName().toLowerCase().endsWith(".jpg"))&&(!savefile.getName().toLowerCase().endsWith(".jpeg"))) {savefile = new File(savefile.getPath().concat(".jpg"));}
-					UtilLib.saveImage(savefile.getPath(), renderimage, "JPG");
-				} else if (savefileformat.equals(this.giffilefilter)) {
-					if (!savefile.getName().toLowerCase().endsWith(".gif")) {savefile = new File(savefile.getPath().concat(".gif"));}
-					UtilLib.saveImage(savefile.getPath(), renderimage, "GIF");
-				} else if (savefileformat.equals(this.bmpfilefilter)) {
-					if (!savefile.getName().toLowerCase().endsWith(".bmp")) {savefile = new File(savefile.getPath().concat(".bmp"));}
-					UtilLib.saveImage(savefile.getPath(), renderimage, "BMP");
-				} else if (savefileformat.equals(this.wbmpfilefilter)) {
-					if (!savefile.getName().toLowerCase().endsWith(".wbmp")) {savefile = new File(savefile.getPath().concat(".wbmp"));}
-					UtilLib.saveImage(savefile.getPath(), renderimage, "WBMP");
-				} else {
-					if (!savefile.getName().toLowerCase().endsWith(".png")) {savefile = new File(savefile.getPath().concat(".png"));}
-					UtilLib.saveImage(savefile.getPath(), renderimage, "PNG");
-				}
+				UtilLib.saveImageFormat(savefile.getPath(), renderimage, savefileformat);
 			}
 		}
 	}
