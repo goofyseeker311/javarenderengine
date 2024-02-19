@@ -63,12 +63,12 @@ SHIFT-LMB         -- material picker at cursor
 CTRL-DRAG-LMB     -- move line vertex
 ALT-DRAG-LMB      -- vector line drag draw (in vector line mode)
 PERIOD-LMB        -- remove line vertex
-CTRL-DRAG-RMB     -- move object (minmax)
+DRAG-RMB          -- move object (minmax)
 SHIFT             -- toggle snap to grid/vertex, drag multiple vertex, and speed movement
 DRAG-CMB          -- camera location view position sideways pan (minmax)
-CTRL-DRAG-CMB     -- change forward looking movement direction (minmax)
+CTRL-DRAG-CMB     -- change forward looking movement direction (looping)
 MWHEEL            -- draw forward position change (minmax)
-ARROW-KEYS        -- change forward looking movement direction (minmax)
+ARROW-KEYS        -- change forward looking movement direction (looping)
 TAB-DRAG-CMB      -- triangle texture coordinates pan (minmax)
 TAB-MWHEEL        -- triangle texture coordinates zoom
 TAB-SHIFT-MWHEEL  -- triangle texture coordinates rotate
@@ -111,7 +111,8 @@ WASD              -- camera location change forward/left/backward/right (minmax)
 C-SPACE           -- camera height change down/up (minmax)
 QE                -- camera tilt change left/right (looping)
 F3                -- load model file dialog
-ENTER             -- changes between plane-projection/plane-spheremap/plane-cubemap/
+ENTER             -- changes between polygon-projection/polygon-cubemap/
+                     plane-projection/plane-spheremap/plane-cubemap/
                      ray-projection/ray-spheremap/ray-cubemap renderers (looping)
 SHIFT-ENTER       -- changes between unlit and lit render modes (looping)
 
