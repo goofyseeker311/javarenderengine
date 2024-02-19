@@ -62,7 +62,7 @@ public class RenderLib {
 		renderview.renderimage = gc.createCompatibleVolatileImage(renderwidth, renderheight, Transparency.TRANSLUCENT);
 		renderview.zbuffer = new double[renderheight][renderwidth];
 		for (int i=0;i<renderview.zbuffer.length;i++) {Arrays.fill(renderview.zbuffer[i],Double.POSITIVE_INFINITY);}
-		double editplanedistance = (((double)renderwidth)/2.0f)/MathLib.tand(renderview.hfov/2.0f);
+		double editplanedistance = 1371.022f;
 		Graphics2D g2 = renderview.renderimage.createGraphics();
 		g2.setComposite(AlphaComposite.Src);
 		g2.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
@@ -169,6 +169,7 @@ public class RenderLib {
 		g2.setClip(null);
 		g2.fillRect(0, 0, renderwidth, renderheight);
 		g2.setComposite(AlphaComposite.SrcOver);
+		ArrayList<Entity> mouseoverhitentity = new ArrayList<Entity>();
 		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
 		if ((entitylist!=null)&&(entitylist.length>0)) {
 			Sphere[] entityspherelist = MathLib.entitySphereList(entitylist);
@@ -214,6 +215,7 @@ public class RenderLib {
 									boolean mouseoverhit = g2.hit(new Rectangle(mouselocationx-vertexradius,mouselocationy-vertexradius,3,3), trianglepolygon, false);
 									if (mouseoverhit) {
 										mouseoverhittriangle.add(copytrianglelist[it]);
+										mouseoverhitentity.add(entitylist[et]);
 									}
 									Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal[0], null, copytriangledir, unlit);
 									if (trianglecolor!=null) {
@@ -271,6 +273,7 @@ public class RenderLib {
 				}
 			}
 		}
+		renderview.mouseoverentity = mouseoverhitentity.toArray(new Entity[mouseoverhitentity.size()]);
 		renderview.mouseovertriangle = mouseoverhittriangle.toArray(new Triangle[mouseoverhittriangle.size()]);
 		renderview.snapimage = renderview.renderimage.getSnapshot();
 		return renderview;
@@ -307,6 +310,7 @@ public class RenderLib {
 		g2.setClip(null);
 		g2.fillRect(0, 0, renderwidth, renderheight);
 		g2.setComposite(AlphaComposite.SrcOver);
+		ArrayList<Entity> mouseoverhitentity = new ArrayList<Entity>();
 		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
 		if ((entitylist!=null)&&(entitylist.length>0)) {
 			double origindeltay = ((double)(renderheight-1))/2.0f;
@@ -339,6 +343,7 @@ public class RenderLib {
 						for (int i=sortedtrianglespherelistind.length-1;i>=0;i--) {
 							int it = sortedtrianglespherelistind[i];
 							if (copytrianglelistint[it]!=null) {
+								Entity[] copyentity = {entitylist[et]};
 								Triangle[] copytriangle = {copytrianglelist[it]};
 								Direction[] copytrianglenormal = {copytrianglenormallist[it]};
 								Plane[] copytriangleplane = {copytriangleplanelist[it]};
@@ -454,6 +459,7 @@ public class RenderLib {
 														}
 														if ((mouselocationx==j)&&(mouselocationy==n)) {
 															mouseoverhittriangle.add(copytriangle[0]);
+															mouseoverhitentity.add(copyentity[0]);
 														}
 														Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal[0], lineuv, camray[0], unlit);
 														if (trianglecolor!=null) {
@@ -521,6 +527,7 @@ public class RenderLib {
 				}
 			}
 		}
+		renderview.mouseoverentity = mouseoverhitentity.toArray(new Entity[mouseoverhitentity.size()]);
 		renderview.mouseovertriangle = mouseoverhittriangle.toArray(new Triangle[mouseoverhittriangle.size()]);
 		renderview.snapimage = renderview.renderimage.getSnapshot();
 		return renderview;
@@ -558,6 +565,7 @@ public class RenderLib {
 		g2.setClip(null);
 		g2.fillRect(0, 0, renderwidth, renderheight);
 		g2.setComposite(AlphaComposite.SrcOver);
+		ArrayList<Entity> mouseoverhitentity = new ArrayList<Entity>();
 		ArrayList<Triangle> mouseoverhittriangle = new ArrayList<Triangle>();
 		if ((entitylist!=null)&&(entitylist.length>0)) {
 			Plane[] camfwdplanes = MathLib.planeFromNormalAtPoint(renderview.pos, renderview.fwddirs);
@@ -588,6 +596,7 @@ public class RenderLib {
 						for (int n=sortedtrianglespherelistind.length-1;n>=0;n--) {
 							int it = sortedtrianglespherelistind[n];
 							if (copytrianglelistint[it]!=null) {
+								Entity[] copyentity = {entitylist[et]};
 								Triangle[] copytriangle = {copytrianglelist[it]};
 								if (!copytriangle[0].equals(nodrawtriangle)) {
 									Direction[] copytrianglenormal = {copytrianglenormallist[it]};
@@ -632,6 +641,7 @@ public class RenderLib {
 													renderview.tbuffer[j][i] = copytriangle[0];
 													if ((mouselocationx==i)&&(mouselocationy==j)) {
 														mouseoverhittriangle.add(copytriangle[0]);
+														mouseoverhitentity.add(copyentity[0]);
 													}
 													Color trianglecolor = trianglePixelShader(renderview.pos, copytriangle[0], copytrianglenormal[0], pointuv, camray[0], unlit);
 													if (trianglecolor!=null) {
@@ -694,6 +704,7 @@ public class RenderLib {
 				}
 			}
 		}
+		renderview.mouseoverentity = mouseoverhitentity.toArray(new Entity[mouseoverhitentity.size()]);
 		renderview.mouseovertriangle = mouseoverhittriangle.toArray(new Triangle[mouseoverhittriangle.size()]);
 		renderview.snapimage = renderview.renderimage.getSnapshot();
 		return renderview;

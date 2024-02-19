@@ -77,7 +77,7 @@ public class ModelApp extends AppHandlerPanel {
 		g2.setPaint(null);
 		g2.setClip(null);
 		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
-		this.vfov = 2.0f*MathLib.atand((((double)this.getHeight())/((double)this.getWidth()))*MathLib.tand(this.hfov/2.0f));
+		this.vfov = MathLib.calculateVfov(this.getWidth(), this.getHeight(), hfov);
 		if (this.renderview!=null) {
 			g2.drawImage(renderview.renderimage, 0, 0, null);
 		}

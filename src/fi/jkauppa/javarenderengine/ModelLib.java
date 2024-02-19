@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.TreeSet;
 
 import javax.imageio.ImageIO;
 
@@ -151,6 +152,7 @@ public class ModelLib {
 		public Triangle[][] tbuffer = null;
 		public Direction[][] nbuffer = null;
 		public Coordinate[][] cbuffer = null;
+		public Entity[] mouseoverentity = null;
 		public Triangle[] mouseovertriangle = null;
 		public Position[] mouseoververtex = null;
 		public Line[] mouseoverline = null;
@@ -1117,6 +1119,252 @@ public class ModelLib {
 			} catch(Exception ex) {ex.printStackTrace();}
 		}
 		return k;
+	}
+	
+	public static void saveSTLFileEntity(String filename, Entity entity, String objectname) {
+		Entity[] entitylist = entity.childlist;
+		ArrayList<Triangle> savemodeltrianglearray = new ArrayList<Triangle>();  
+		for (int i=0;i<entitylist.length;i++) {
+			Triangle[] copytrianglelist = entitylist[i].trianglelist;
+		    savemodeltrianglearray.addAll(Arrays.asList(copytrianglelist));
+		}
+		Triangle[] savemodel = savemodeltrianglearray.toArray(new Triangle[savemodeltrianglearray.size()]);
+		if (filename.toLowerCase().endsWith(".stl")) {
+			filename = filename.substring(0, filename.length()-4).concat(".stl");
+		} else {
+			filename = filename.concat(".stl");
+		}
+		ModelLib.saveSTLFile(filename, savemodel, objectname);
+	}
+	public static void saveOBJFileEntity(String filename, Entity entity, boolean savesurfaceonly) {
+		File savefile = new File(filename);
+		Entity[] entitylist = entity.childlist;
+		Model savemodel = new Model(savefile.getPath());
+		String saveobjfile = savefile.getPath();
+		String savemtlfile = savefile.getName();
+		String saveimgfile = savefile.getName();
+		if (savemtlfile.toLowerCase().endsWith(".obj")) {
+			savemtlfile = savemtlfile.substring(0, savemtlfile.length()-4).concat(".mtl");
+			saveimgfile = savemtlfile.substring(0, savemtlfile.length()-4);
+		} else {
+			saveobjfile = saveobjfile.concat(".obj");
+			savemtlfile = savemtlfile.concat(".mtl");
+		}
+		savemodel.mtllib = savemtlfile;
+		TreeSet<Material> materiallistarray = new TreeSet<Material>();
+		TreeSet<Position> vertexlistarray = new TreeSet<Position>();
+		TreeSet<Direction> normallistarray = new TreeSet<Direction>();
+		TreeSet<Coordinate> texcoordlistarray = new TreeSet<Coordinate>();
+		savemodel.objects = new ModelObject[entitylist.length];
+		normallistarray.add(new Direction(0, 0, 0));
+		texcoordlistarray.add(new Coordinate(0.0f,0.0f));
+		for (int j=0;j<entitylist.length;j++) {
+			savemodel.objects[j] = new ModelObject("JREOBJ"+(j+1));
+			Triangle[] copytrianglelist = entitylist[j].trianglelist;
+		    vertexlistarray.addAll(Arrays.asList(entitylist[j].vertexlist));
+			for (int i=0;i<copytrianglelist.length;i++) {
+				vertexlistarray.add(copytrianglelist[i].pos1);
+				vertexlistarray.add(copytrianglelist[i].pos2);
+				vertexlistarray.add(copytrianglelist[i].pos3);
+				normallistarray.add(copytrianglelist[i].norm);
+				texcoordlistarray.add(copytrianglelist[i].pos1.tex);
+				texcoordlistarray.add(copytrianglelist[i].pos2.tex);
+				texcoordlistarray.add(copytrianglelist[i].pos3.tex);
+				if (copytrianglelist[i].mat.facecolor==null) {copytrianglelist[i].mat.facecolor = Color.WHITE;}
+				materiallistarray.add(copytrianglelist[i].mat);
+			}
+		}
+		savemodel.materials = materiallistarray.toArray(new Material[materiallistarray.size()]);
+		savemodel.vertexlist = vertexlistarray.toArray(new Position[vertexlistarray.size()]);
+		savemodel.facenormals = normallistarray.toArray(new Direction[normallistarray.size()]);
+		savemodel.texturecoords = texcoordlistarray.toArray(new Coordinate[texcoordlistarray.size()]);
+		int imagenum = 0;
+		for (int i=0;i<savemodel.materials.length;i++) {
+			savemodel.materials[i].materialname = "JREMAT"+(i+1);
+			if (savemodel.materials[i].fileimage!=null) {
+				imagenum += 1;
+				savemodel.materials[i].filename = saveimgfile+"_"+imagenum+".png";
+			}
+		}
+		for (int j=0;j<entitylist.length;j++) {
+			Triangle[] copytrianglelist = entitylist[j].trianglelist;
+			for (int i=0;i<copytrianglelist.length;i++) {
+				ModelFaceVertexIndex[] trianglevertex = new ModelFaceVertexIndex[3];
+				int trianglefacenormalind = Arrays.binarySearch(savemodel.facenormals, copytrianglelist[i].norm)+1;
+				trianglevertex[0] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist,copytrianglelist[i].pos1)+1,Arrays.binarySearch(savemodel.texturecoords,copytrianglelist[i].pos1.tex)+1,trianglefacenormalind);
+				trianglevertex[1] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist,copytrianglelist[i].pos2)+1,Arrays.binarySearch(savemodel.texturecoords,copytrianglelist[i].pos2.tex)+1,trianglefacenormalind);
+				trianglevertex[2] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist,copytrianglelist[i].pos3)+1,Arrays.binarySearch(savemodel.texturecoords,copytrianglelist[i].pos3.tex)+1,trianglefacenormalind);
+				Material copymaterial = copytrianglelist[i].mat;
+				int searchmatindex = Arrays.binarySearch(savemodel.materials, copymaterial);
+				ModelFaceIndex[] objectfaceindex = savemodel.objects[j].faceindex;
+				ArrayList<ModelFaceIndex> faceindexarray = (objectfaceindex!=null)?(new ArrayList<ModelFaceIndex>(Arrays.asList(objectfaceindex))):(new ArrayList<ModelFaceIndex>());
+				ModelFaceIndex newmodelfaceindex = new ModelFaceIndex(trianglevertex);
+				newmodelfaceindex.usemtl = savemodel.materials[searchmatindex].materialname;
+				faceindexarray.add(newmodelfaceindex);
+				savemodel.objects[j].faceindex = faceindexarray.toArray(new ModelFaceIndex[faceindexarray.size()]);
+			}
+			if (!savesurfaceonly) {
+				if (entitylist[j].linelist!=null) {
+					Line[] uniquelinelist = entitylist[j].linelist;
+					for (int i=0;i<uniquelinelist.length;i++) {
+						if (uniquelinelist[i].pos1.compareTo(uniquelinelist[i].pos2)!=0) {
+							int[] linevertex = new int[2];
+							linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
+							linevertex[1] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos2)+1;
+							ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[j].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[j].lineindex))):(new ArrayList<ModelLineIndex>());
+							lineindexarray.add(new ModelLineIndex(linevertex));
+							savemodel.objects[j].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
+						} else {
+							int[] linevertex = new int[1];
+							linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
+							ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[j].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[j].lineindex))):(new ArrayList<ModelLineIndex>());
+							lineindexarray.add(new ModelLineIndex(linevertex));
+							savemodel.objects[j].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
+						}
+					}
+				}
+			}
+		}
+		ModelLib.saveWaveFrontOBJFile(saveobjfile, savemodel);
+	}
+	
+	public static Entity loadSTLFileEntity(String filename, boolean loadresourcefromjar) {
+		Entity loadentity = new Entity();
+		Entity[] newentitylist = {new Entity()};
+		newentitylist[0].trianglelist = ModelLib.loadSTLFile(filename, loadresourcefromjar);
+		for (int i=0;i<newentitylist[0].trianglelist.length;i++) {
+			if (newentitylist[0].trianglelist[i].mat==null) {
+				newentitylist[0].trianglelist[i].mat = new Material(Color.WHITE,1.0f,null);
+			}
+		}
+		loadentity.childlist = newentitylist;
+		loadentity.linelist = MathLib.generateLineList(newentitylist[0].trianglelist);
+		newentitylist[0].vertexlist = MathLib.generateVertexList(loadentity.linelist);
+		newentitylist[0].aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newentitylist[0].vertexlist);
+		newentitylist[0].sphereboundaryvolume = MathLib.pointCloudCircumSphere(newentitylist[0].vertexlist);
+		return loadentity;
+	}
+	public static Entity loadOBJFileEntity(String filename, boolean loadresourcefromjar) {
+		Entity loadentity = new Entity();
+		TreeSet<Line> linelisttree = new TreeSet<Line>();
+		Model loadmodel = ModelLib.loadWaveFrontOBJFile(filename, loadresourcefromjar);
+		ArrayList<Entity> newentitylist = new ArrayList<Entity>();
+		for (int j=0;j<loadmodel.objects.length;j++) {
+			Entity newentity = new Entity();
+			TreeSet<Line> newlinelisttree = new TreeSet<Line>();
+			TreeSet<Line> newnontrianglelinelisttree = new TreeSet<Line>();
+			ArrayList<Triangle> newtrianglelistarray = new ArrayList<Triangle>();
+			for (int i=0;i<loadmodel.objects[j].faceindex.length;i++) {
+				if (loadmodel.objects[j].faceindex[i].facevertexindex.length==1) {
+					Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
+					Line newline = new Line(pos1.copy(), pos1.copy());
+					newlinelisttree.add(newline);
+					linelisttree.add(newline);
+					newnontrianglelinelisttree.add(newline);
+				} else if (loadmodel.objects[j].faceindex[i].facevertexindex.length==2) {
+					Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
+					Position pos2 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
+					Line newline = new Line(pos1.copy(), pos2.copy());
+					newlinelisttree.add(newline);
+					linelisttree.add(newline);
+					newnontrianglelinelisttree.add(newline);
+				} else if (loadmodel.objects[j].faceindex[i].facevertexindex.length==3) {
+					Material foundmat = null;
+					for (int n=0;(n<loadmodel.materials.length)&&(foundmat==null);n++) {
+						if (loadmodel.objects[j].faceindex[i].usemtl.equals(loadmodel.materials[n].materialname)) {
+							foundmat = loadmodel.materials[n];
+						}
+					}
+					if (foundmat==null) {
+						foundmat = new Material(Color.WHITE,1.0f,null);
+					}
+					Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
+					Position pos2 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
+					Position pos3 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[2].vertexindex-1];
+					Direction norm = new Direction(0.0f, 0.0f, 0.0f);
+		    		Coordinate tex1 = new Coordinate(0.0f,0.0f);
+		    		Coordinate tex2 = new Coordinate(1.0f,0.0f);
+		    		Coordinate tex3 = new Coordinate(1.0f,1.0f);
+					if (loadmodel.objects[j].faceindex[i].facevertexindex[0].normalindex>0) {
+						norm = loadmodel.facenormals[loadmodel.objects[j].faceindex[i].facevertexindex[0].normalindex-1];
+					}
+		    		if (loadmodel.objects[j].faceindex[i].facevertexindex[0].textureindex>0) {
+		    			tex1 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[0].textureindex-1];
+		    		}
+		    		if (loadmodel.objects[j].faceindex[i].facevertexindex[1].textureindex>0) {
+		    			tex2 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[1].textureindex-1];
+		    		}
+		    		if (loadmodel.objects[j].faceindex[i].facevertexindex[2].textureindex>0) {
+		    			tex3 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[2].textureindex-1];
+		    		}
+					Triangle tri = new Triangle(new Position(pos1.x,pos1.y,pos1.z),new Position(pos2.x,pos2.y,pos2.z),new Position(pos3.x,pos3.y,pos3.z));
+					tri.norm = norm;
+					tri.pos1.tex = tex1;
+					tri.pos2.tex = tex2;
+					tri.pos3.tex = tex3;
+					tri.mat = foundmat;
+					newtrianglelistarray.add(tri);
+					Line newline1 = new Line(pos1.copy(), pos2.copy());
+					Line newline2 = new Line(pos1.copy(), pos3.copy());
+					Line newline3 = new Line(pos2.copy(), pos3.copy());
+					newlinelisttree.add(newline1);
+					newlinelisttree.add(newline2);
+					newlinelisttree.add(newline3);
+					linelisttree.add(newline1);
+					linelisttree.add(newline2);
+					linelisttree.add(newline3);
+				} else {
+					Position[] pos = new Position[loadmodel.objects[j].faceindex[i].facevertexindex.length];
+					for (int m=0;m<loadmodel.objects[j].faceindex[i].facevertexindex.length;m++) {
+						pos[m] = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[m].vertexindex-1];
+						if (m>0) {
+							Line newline = new Line(pos[m].copy(), pos[m-1].copy());
+							newlinelisttree.add(newline);
+							linelisttree.add(newline);
+							newnontrianglelinelisttree.add(newline);
+						}
+					}
+					Line newline = new Line(pos[0].copy(), pos[loadmodel.objects[j].faceindex[i].facevertexindex.length-1].copy());
+					newlinelisttree.add(newline);
+					linelisttree.add(newline);
+					newnontrianglelinelisttree.add(newline);
+				}
+			}
+			for (int i=0;i<loadmodel.objects[j].lineindex.length;i++) {
+				if (loadmodel.objects[j].lineindex[i].linevertexindex.length==1) {
+					Position pos = loadmodel.vertexlist[loadmodel.objects[j].lineindex[i].linevertexindex[0]-1];
+					Line newline = new Line(pos.copy(), pos.copy());
+					newlinelisttree.add(newline);
+					linelisttree.add(newline);
+					newnontrianglelinelisttree.add(newline);
+				} else {
+					Position[] pos = new Position[loadmodel.objects[j].lineindex[i].linevertexindex.length];
+					for (int m=0;m<loadmodel.objects[j].lineindex[i].linevertexindex.length;m++) {
+						pos[m] = loadmodel.vertexlist[loadmodel.objects[j].lineindex[i].linevertexindex[m]-1];
+						if (m>0) {
+							Line newline = new Line(pos[m].copy(), pos[m-1].copy());
+							newlinelisttree.add(newline);
+							linelisttree.add(newline);
+							newnontrianglelinelisttree.add(newline);
+						}
+					}
+				}
+			}
+			newentity.trianglelist = newtrianglelistarray.toArray(new Triangle[newtrianglelistarray.size()]);
+			newentity.linelist = newnontrianglelinelisttree.toArray(new Line[newnontrianglelinelisttree.size()]);
+			Line[] newlinelist = newlinelisttree.toArray(new Line[newlinelisttree.size()]);
+			if (newlinelist.length>0) {
+				newentity.vertexlist = MathLib.generateVertexList(newlinelist);
+				newentity.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newentity.vertexlist);
+				newentity.sphereboundaryvolume = MathLib.pointCloudCircumSphere(newentity.vertexlist);
+				newentitylist.add(newentity);
+			}
+		}
+		Entity[] entitylist = newentitylist.toArray(new Entity[newentitylist.size()]);
+		Line[] linelist = linelisttree.toArray(new Line[linelisttree.size()]);
+		loadentity.childlist = entitylist;
+		loadentity.linelist = linelist;
+		return loadentity;
 	}
 
 }

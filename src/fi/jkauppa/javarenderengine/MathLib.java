@@ -2326,6 +2326,22 @@ public class MathLib {
 		}
 		return k;
 	}
+
+	public static Position cameraPlanePosition(Position drawpos, int coordx, int coordy, int renderwidth, int renderheight, boolean snaplinemode, int gridstep, Matrix vmat) {
+		Direction[] camdirs = projectedCameraDirections(vmat);
+		int origindeltax = (int)Math.floor(((double)(renderwidth-1))/2.0f);
+		int origindeltay = (int)Math.floor(((double)(renderheight-1))/2.0f);
+		int mouserelativelocationx = coordx-origindeltax;
+		int mouserelativelocationy = coordy-origindeltay;
+		if (snaplinemode) {
+    		mouserelativelocationx = snapToGrid(mouserelativelocationx, gridstep);
+    		mouserelativelocationy = snapToGrid(mouserelativelocationy, gridstep);
+		}
+		Position[] drawposa = {drawpos};
+		drawposa = translate(drawposa, camdirs[1], mouserelativelocationx);
+		drawposa = translate(drawposa, camdirs[2], mouserelativelocationy);
+		return drawposa[0];
+	}
 	
 	public static int snapToGrid(int coordinate, int gridstep) {
 		return gridstep*(int)Math.round(((double)coordinate)/((double)gridstep));

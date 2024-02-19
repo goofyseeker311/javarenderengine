@@ -39,11 +39,6 @@ import fi.jkauppa.javarenderengine.ModelLib.Position;
 import fi.jkauppa.javarenderengine.ModelLib.RenderView;
 import fi.jkauppa.javarenderengine.ModelLib.Rotation;
 import fi.jkauppa.javarenderengine.ModelLib.Triangle;
-import fi.jkauppa.javarenderengine.ModelLib.Model;
-import fi.jkauppa.javarenderengine.ModelLib.ModelFaceIndex;
-import fi.jkauppa.javarenderengine.ModelLib.ModelFaceVertexIndex;
-import fi.jkauppa.javarenderengine.ModelLib.ModelLineIndex;
-import fi.jkauppa.javarenderengine.ModelLib.ModelObject;
 import fi.jkauppa.javarenderengine.ModelLib.Plane;
 
 public class CADApp extends AppHandlerPanel {
@@ -60,17 +55,18 @@ public class CADApp extends AppHandlerPanel {
 	private Color renderbackgroundcolor = Color.BLACK;
 	private int polygonfillmode = 1;
 	private boolean unlitrender = false;
+	private Entity[] entitybuffer = null;
 	private Position[] selecteddragvertex = null;
+	private Entity[] mouseoverentity = null;
 	private Triangle[] mouseovertriangle = null;
 	private Position[] mouseoververtex = null;
 	private Line[] mouseoverline = null;
 	private int mouselocationx = 0, mouselocationy = 0;
 	private int mouselastlocationx = -1, mouselastlocationy = -1; 
-	private int origindeltax = 0, origindeltay = 0;
-	private final double defaultcamzpos = 1371.023f;
+	private final double defaultcamdist = 1371.023f;
 	private Position drawstartpos = new Position(0,0,0);
 	private Position editpos = new Position(0.0f,0.0f,0.0f);
-	private Position campos = new Position(0.0f,0.0f,defaultcamzpos);
+	private Position campos = new Position(0.0f,0.0f,defaultcamdist);
 	private Rotation camrot = new Rotation(0.0f, 0.0f, 0.0f);
 	private Matrix cameramat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 	private final Direction[] lookdirs = MathLib.projectedCameraDirections(cameramat);
@@ -125,22 +121,10 @@ public class CADApp extends AppHandlerPanel {
 		g2.setPaint(null);
 		g2.setClip(null);
 		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
-		this.origindeltax = (int)Math.floor(((double)(this.getWidth()-1))/2.0f);
-		this.origindeltay = (int)Math.floor(((double)(this.getHeight()-1))/2.0f);
-		this.vfov = 2.0f*MathLib.atand((((double)this.getHeight())/((double)this.getWidth()))*MathLib.tand(this.hfov/2.0f));
+		this.vfov = MathLib.calculateVfov(this.getWidth(), this.getHeight(), hfov);
 		if (this.renderview!=null) {
 			g2.drawImage(this.renderview.renderimage, 0, 0, null);
 		}
-	}
-
-	private void updateCameraDirections() {
-		Matrix camrotmat = MathLib.rotationMatrixLookHorizontalRoll(this.camrot);
-		Direction[] camlookdirs = MathLib.matrixMultiply(this.lookdirs, camrotmat);
-		Position[] camposa = {this.campos};
-		Position[] editposa = MathLib.translate(camposa, this.lookdirs[0], this.defaultcamzpos);
-		this.editpos = editposa[0];
-		this.cameramat = camrotmat;
-		this.camdirs = camlookdirs;
 	}
 	
 	@Override public void timerTick() {
@@ -216,6 +200,16 @@ public class CADApp extends AppHandlerPanel {
 		updateCameraDirections();
 		(new RenderViewUpdater()).start();
 	}
+
+	private void updateCameraDirections() {
+		Matrix camrotmat = MathLib.rotationMatrixLookHorizontalRoll(this.camrot);
+		Direction[] camlookdirs = MathLib.projectedCameraDirections(camrotmat);
+		Position[] camposa = {this.campos};
+		Position[] editposa = MathLib.translate(camposa, this.lookdirs[0], this.defaultcamdist);
+		this.editpos = editposa[0];
+		this.cameramat = camrotmat;
+		this.camdirs = camlookdirs;
+	}
 	
 	@Override public void keyTyped(KeyEvent e) {}
 	@Override public void keyReleased(KeyEvent e) {
@@ -277,9 +271,8 @@ public class CADApp extends AppHandlerPanel {
 					this.linelisttree.clear();
 					this.entitylist = null;
 				}
-				this.campos = new Position(0.0f, 0.0f, defaultcamzpos);
+				this.campos = new Position(0.0f, 0.0f, defaultcamdist);
 				this.camrot = new Rotation(0.0f, 0.0f, 0.0f);
-				updateCameraDirections();
 				System.out.println("CADApp: keyPressed: key BACKSPACE: reset camera position="+this.campos.x+","+this.campos.y+","+this.campos.z);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_INSERT) {
@@ -292,6 +285,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
+			this.entitybuffer = null;
 			System.out.println("CADApp: keyPressed: key INSERT: draw material color hue positive: r="+colorvalues[0]+" g="+colorvalues[1]+" b="+colorvalues[2]+" tr="+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_DELETE) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
@@ -303,6 +297,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
+			this.entitybuffer = null;
 			System.out.println("CADApp: keyPressed: key DELETE: draw material color hue negative: r="+colorvalues[0]+" g="+colorvalues[1]+" b="+colorvalues[2]+" tr="+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_HOME) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
@@ -314,6 +309,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
+			this.entitybuffer = null;
 			System.out.println("CADApp: keyPressed: key HOME: draw material color saturation positive: r="+colorvalues[0]+" g="+colorvalues[1]+" b="+colorvalues[2]+" tr="+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_END) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
@@ -325,6 +321,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
+			this.entitybuffer = null;
 			System.out.println("CADApp: keyPressed: key END: draw material color saturation negative: r="+colorvalues[0]+" g="+colorvalues[1]+" b="+colorvalues[2]+" tr="+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_UP) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
@@ -336,6 +333,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
+			this.entitybuffer = null;
 			System.out.println("CADApp: keyPressed: key PAGEUP: draw material color brightness positive: r="+colorvalues[0]+" g="+colorvalues[1]+" b="+colorvalues[2]+" tr="+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_DOWN) {
 			float[] drawcolorhsb = Color.RGBtoHSB(this.drawmat.facecolor.getRed(), this.drawmat.facecolor.getGreen(), this.drawmat.facecolor.getBlue(), new float[3]);
@@ -347,6 +345,7 @@ public class CADApp extends AppHandlerPanel {
 			this.drawmat.facecolor = newfacecolor;
 			this.drawmat.fileimage = null;
 			this.drawmat.snapimage = null;
+			this.entitybuffer = null;
 			System.out.println("CADApp: keyPressed: key PAGEDOWN: draw material color brightness negative: r="+colorvalues[0]+" g="+colorvalues[1]+" b="+colorvalues[2]+" tr="+this.drawmat.transparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_MULTIPLY) {
 			float newemissivity = this.drawmat.emissivity*1.1f; if (newemissivity<=0.0f) {newemissivity = 0.00001f;} if (newemissivity>1.0f) {newemissivity = 1.0f;}
@@ -539,107 +538,13 @@ public class CADApp extends AppHandlerPanel {
 				File savefile = this.filechooser.getSelectedFile();
 				FileFilter savefileformat = this.filechooser.getFileFilter();
 				if (savefileformat.equals(this.stlfilefilter)) {
-					ArrayList<Triangle> savemodeltrianglearray = new ArrayList<Triangle>();  
-					for (int i=0;i<this.entitylist.length;i++) {
-						Triangle[] copytrianglelist = this.entitylist[i].trianglelist;
-					    savemodeltrianglearray.addAll(Arrays.asList(copytrianglelist));
-					}
-					Triangle[] savemodel = savemodeltrianglearray.toArray(new Triangle[savemodeltrianglearray.size()]);
-					String savestlfile = savefile.getPath();
-					if (savestlfile.toLowerCase().endsWith(".stl")) {
-						savestlfile = savestlfile.substring(0, savestlfile.length()-4).concat(".stl");
-					} else {
-						savestlfile = savestlfile.concat(".stl");
-					}
-					ModelLib.saveSTLFile(savestlfile, savemodel, "JREOBJ");
+					Entity saveentity = new Entity();
+					saveentity.childlist = this.entitylist;
+					ModelLib.saveSTLFileEntity(savefile.getPath(), saveentity, "JREOBJ");
 				} else {
-					Model savemodel = new Model(savefile.getPath());
-					String saveobjfile = savefile.getPath();
-					String savemtlfile = savefile.getName();
-					String saveimgfile = savefile.getName();
-					if (savemtlfile.toLowerCase().endsWith(".obj")) {
-						savemtlfile = savemtlfile.substring(0, savemtlfile.length()-4).concat(".mtl");
-						saveimgfile = savemtlfile.substring(0, savemtlfile.length()-4);
-					} else {
-						saveobjfile = saveobjfile.concat(".obj");
-						savemtlfile = savemtlfile.concat(".mtl");
-					}
-					savemodel.mtllib = savemtlfile;
-					TreeSet<Material> materiallistarray = new TreeSet<Material>();
-					TreeSet<Position> vertexlistarray = new TreeSet<Position>();
-					TreeSet<Direction> normallistarray = new TreeSet<Direction>();
-					TreeSet<Coordinate> texcoordlistarray = new TreeSet<Coordinate>();
-					savemodel.objects = new ModelObject[this.entitylist.length];
-					normallistarray.add(new Direction(0, 0, 0));
-					texcoordlistarray.add(new Coordinate(0.0f,0.0f));
-					for (int j=0;j<this.entitylist.length;j++) {
-						savemodel.objects[j] = new ModelObject("JREOBJ"+(j+1));
-						Triangle[] copytrianglelist = this.entitylist[j].trianglelist;
-					    vertexlistarray.addAll(Arrays.asList(this.entitylist[j].vertexlist));
-						for (int i=0;i<copytrianglelist.length;i++) {
-							vertexlistarray.add(copytrianglelist[i].pos1);
-							vertexlistarray.add(copytrianglelist[i].pos2);
-							vertexlistarray.add(copytrianglelist[i].pos3);
-							normallistarray.add(copytrianglelist[i].norm);
-							texcoordlistarray.add(copytrianglelist[i].pos1.tex);
-							texcoordlistarray.add(copytrianglelist[i].pos2.tex);
-							texcoordlistarray.add(copytrianglelist[i].pos3.tex);
-							if (copytrianglelist[i].mat.facecolor==null) {copytrianglelist[i].mat.facecolor = Color.WHITE;}
-							materiallistarray.add(copytrianglelist[i].mat);
-						}
-					}
-					savemodel.materials = materiallistarray.toArray(new Material[materiallistarray.size()]);
-					savemodel.vertexlist = vertexlistarray.toArray(new Position[vertexlistarray.size()]);
-					savemodel.facenormals = normallistarray.toArray(new Direction[normallistarray.size()]);
-					savemodel.texturecoords = texcoordlistarray.toArray(new Coordinate[texcoordlistarray.size()]);
-					int imagenum = 0;
-					for (int i=0;i<savemodel.materials.length;i++) {
-						savemodel.materials[i].materialname = "JREMAT"+(i+1);
-						if (savemodel.materials[i].fileimage!=null) {
-							imagenum += 1;
-							savemodel.materials[i].filename = saveimgfile+"_"+imagenum+".png";
-						}
-					}
-					for (int j=0;j<this.entitylist.length;j++) {
-						Triangle[] copytrianglelist = this.entitylist[j].trianglelist;
-						for (int i=0;i<copytrianglelist.length;i++) {
-							ModelFaceVertexIndex[] trianglevertex = new ModelFaceVertexIndex[3];
-							int trianglefacenormalind = Arrays.binarySearch(savemodel.facenormals, copytrianglelist[i].norm)+1;
-							trianglevertex[0] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist,copytrianglelist[i].pos1)+1,Arrays.binarySearch(savemodel.texturecoords,copytrianglelist[i].pos1.tex)+1,trianglefacenormalind);
-							trianglevertex[1] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist,copytrianglelist[i].pos2)+1,Arrays.binarySearch(savemodel.texturecoords,copytrianglelist[i].pos2.tex)+1,trianglefacenormalind);
-							trianglevertex[2] = new ModelFaceVertexIndex(Arrays.binarySearch(savemodel.vertexlist,copytrianglelist[i].pos3)+1,Arrays.binarySearch(savemodel.texturecoords,copytrianglelist[i].pos3.tex)+1,trianglefacenormalind);
-							Material copymaterial = copytrianglelist[i].mat;
-							int searchmatindex = Arrays.binarySearch(savemodel.materials, copymaterial);
-							ModelFaceIndex[] objectfaceindex = savemodel.objects[j].faceindex;
-							ArrayList<ModelFaceIndex> faceindexarray = (objectfaceindex!=null)?(new ArrayList<ModelFaceIndex>(Arrays.asList(objectfaceindex))):(new ArrayList<ModelFaceIndex>());
-							ModelFaceIndex newmodelfaceindex = new ModelFaceIndex(trianglevertex);
-							newmodelfaceindex.usemtl = savemodel.materials[searchmatindex].materialname;
-							faceindexarray.add(newmodelfaceindex);
-							savemodel.objects[j].faceindex = faceindexarray.toArray(new ModelFaceIndex[faceindexarray.size()]);
-						}
-						if (!f2shiftdown) {
-							if (this.entitylist[j].linelist!=null) {
-								Line[] uniquelinelist = this.entitylist[j].linelist;
-								for (int i=0;i<uniquelinelist.length;i++) {
-									if (uniquelinelist[i].pos1.compareTo(uniquelinelist[i].pos2)!=0) {
-										int[] linevertex = new int[2];
-										linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
-										linevertex[1] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos2)+1;
-										ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[j].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[j].lineindex))):(new ArrayList<ModelLineIndex>());
-										lineindexarray.add(new ModelLineIndex(linevertex));
-										savemodel.objects[j].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
-									} else {
-										int[] linevertex = new int[1];
-										linevertex[0] = Arrays.binarySearch(savemodel.vertexlist, uniquelinelist[i].pos1)+1;
-										ArrayList<ModelLineIndex> lineindexarray = (savemodel.objects[j].lineindex!=null)?(new ArrayList<ModelLineIndex>(Arrays.asList(savemodel.objects[j].lineindex))):(new ArrayList<ModelLineIndex>());
-										lineindexarray.add(new ModelLineIndex(linevertex));
-										savemodel.objects[j].lineindex = lineindexarray.toArray(new ModelLineIndex[lineindexarray.size()]);
-									}
-								}
-							}
-						}
-					}
-					ModelLib.saveWaveFrontOBJFile(saveobjfile, savemodel);
+					Entity saveentity = new Entity();
+					saveentity.childlist = this.entitylist;
+					ModelLib.saveOBJFileEntity(savefile.getPath(), saveentity, f2shiftdown);
 				}
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
@@ -661,7 +566,19 @@ public class CADApp extends AppHandlerPanel {
 					this.drawmat.snapimage = fileimage.getSnapshot();
 				}
 		    } else if (f3ctrldown) {
-		    	//TODO load insert object
+				this.filechooser.setDialogTitle("Load File");
+				this.filechooser.setApproveButtonText("Load");
+				if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
+					File loadfile = this.filechooser.getSelectedFile();
+					FileFilter loadfileformat = this.filechooser.getFileFilter();
+					if (loadfileformat.equals(this.stlfilefilter)) {
+						Entity loadentity = ModelLib.loadSTLFileEntity(loadfile.getPath(), false);
+						this.entitybuffer = loadentity.childlist;
+					} else {
+						Entity loadentity = ModelLib.loadOBJFileEntity(loadfile.getPath(), false);
+						this.entitybuffer = loadentity.childlist;
+					}
+				}
 		    } else {
 				this.filechooser.setDialogTitle("Load File");
 				this.filechooser.setApproveButtonText("Load");
@@ -669,134 +586,13 @@ public class CADApp extends AppHandlerPanel {
 					File loadfile = this.filechooser.getSelectedFile();
 					FileFilter loadfileformat = this.filechooser.getFileFilter();
 					if (loadfileformat.equals(this.stlfilefilter)) {
-						Entity[] newentitylist = {new Entity()};
-						newentitylist[0].trianglelist = ModelLib.loadSTLFile(loadfile.getPath(), false);
-						for (int i=0;i<newentitylist[0].trianglelist.length;i++) {
-							if (newentitylist[0].trianglelist[i].mat==null) {
-								newentitylist[0].trianglelist[i].mat = new Material(Color.WHITE,1.0f,null);
-							}
-						}
-						this.linelisttree.addAll(Arrays.asList(MathLib.generateLineList(newentitylist[0].trianglelist)));
-						Line[] linelist = this.linelisttree.toArray(new Line[this.linelisttree.size()]);
-						newentitylist[0].vertexlist = MathLib.generateVertexList(linelist);
-						newentitylist[0].aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newentitylist[0].vertexlist);
-						newentitylist[0].sphereboundaryvolume = MathLib.pointCloudCircumSphere(newentitylist[0].vertexlist);
-						this.entitylist = newentitylist;
+						Entity loadentity = ModelLib.loadSTLFileEntity(loadfile.getPath(), false);
+						this.entitylist = loadentity.childlist;
+						this.linelisttree.addAll(Arrays.asList(loadentity.linelist));
 					} else {
-						Model loadmodel = ModelLib.loadWaveFrontOBJFile(loadfile.getPath(), false);
-						ArrayList<Entity> newentitylist = new ArrayList<Entity>();
-						for (int j=0;j<loadmodel.objects.length;j++) {
-							Entity newentity = new Entity();
-							TreeSet<Line> newlinelisttree = new TreeSet<Line>();
-							TreeSet<Line> newnontrianglelinelisttree = new TreeSet<Line>();
-							ArrayList<Triangle> newtrianglelistarray = new ArrayList<Triangle>();
-							for (int i=0;i<loadmodel.objects[j].faceindex.length;i++) {
-								if (loadmodel.objects[j].faceindex[i].facevertexindex.length==1) {
-									Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
-									Line newline = new Line(pos1.copy(), pos1.copy());
-									newlinelisttree.add(newline);
-									this.linelisttree.add(newline);
-									newnontrianglelinelisttree.add(newline);
-								} else if (loadmodel.objects[j].faceindex[i].facevertexindex.length==2) {
-									Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
-									Position pos2 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
-									Line newline = new Line(pos1.copy(), pos2.copy());
-									newlinelisttree.add(newline);
-									this.linelisttree.add(newline);
-									newnontrianglelinelisttree.add(newline);
-								} else if (loadmodel.objects[j].faceindex[i].facevertexindex.length==3) {
-									Material foundmat = null;
-									for (int n=0;(n<loadmodel.materials.length)&&(foundmat==null);n++) {
-										if (loadmodel.objects[j].faceindex[i].usemtl.equals(loadmodel.materials[n].materialname)) {
-											foundmat = loadmodel.materials[n];
-										}
-									}
-									if (foundmat==null) {
-										foundmat = new Material(Color.WHITE,1.0f,null);
-									}
-									Position pos1 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[0].vertexindex-1];
-									Position pos2 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[1].vertexindex-1];
-									Position pos3 = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[2].vertexindex-1];
-									Direction norm = new Direction(0.0f, 0.0f, 0.0f);
-						    		Coordinate tex1 = new Coordinate(0.0f,0.0f);
-						    		Coordinate tex2 = new Coordinate(1.0f,0.0f);
-						    		Coordinate tex3 = new Coordinate(1.0f,1.0f);
-									if (loadmodel.objects[j].faceindex[i].facevertexindex[0].normalindex>0) {
-										norm = loadmodel.facenormals[loadmodel.objects[j].faceindex[i].facevertexindex[0].normalindex-1];
-									}
-						    		if (loadmodel.objects[j].faceindex[i].facevertexindex[0].textureindex>0) {
-						    			tex1 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[0].textureindex-1];
-						    		}
-						    		if (loadmodel.objects[j].faceindex[i].facevertexindex[1].textureindex>0) {
-						    			tex2 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[1].textureindex-1];
-						    		}
-						    		if (loadmodel.objects[j].faceindex[i].facevertexindex[2].textureindex>0) {
-						    			tex3 = loadmodel.texturecoords[loadmodel.objects[j].faceindex[i].facevertexindex[2].textureindex-1];
-						    		}
-									Triangle tri = new Triangle(new Position(pos1.x,pos1.y,pos1.z),new Position(pos2.x,pos2.y,pos2.z),new Position(pos3.x,pos3.y,pos3.z));
-									tri.norm = norm;
-									tri.pos1.tex = tex1;
-									tri.pos2.tex = tex2;
-									tri.pos3.tex = tex3;
-									tri.mat = foundmat;
-									newtrianglelistarray.add(tri);
-									Line newline1 = new Line(pos1.copy(), pos2.copy());
-									Line newline2 = new Line(pos1.copy(), pos3.copy());
-									Line newline3 = new Line(pos2.copy(), pos3.copy());
-									newlinelisttree.add(newline1);
-									newlinelisttree.add(newline2);
-									newlinelisttree.add(newline3);
-									this.linelisttree.add(newline1);
-									this.linelisttree.add(newline2);
-									this.linelisttree.add(newline3);
-								} else {
-									Position[] pos = new Position[loadmodel.objects[j].faceindex[i].facevertexindex.length];
-									for (int m=0;m<loadmodel.objects[j].faceindex[i].facevertexindex.length;m++) {
-										pos[m] = loadmodel.vertexlist[loadmodel.objects[j].faceindex[i].facevertexindex[m].vertexindex-1];
-										if (m>0) {
-											Line newline = new Line(pos[m].copy(), pos[m-1].copy());
-											newlinelisttree.add(newline);
-											this.linelisttree.add(newline);
-											newnontrianglelinelisttree.add(newline);
-										}
-									}
-									Line newline = new Line(pos[0].copy(), pos[loadmodel.objects[j].faceindex[i].facevertexindex.length-1].copy());
-									newlinelisttree.add(newline);
-									this.linelisttree.add(newline);
-									newnontrianglelinelisttree.add(newline);
-								}
-							}
-							for (int i=0;i<loadmodel.objects[j].lineindex.length;i++) {
-								if (loadmodel.objects[j].lineindex[i].linevertexindex.length==1) {
-									Position pos = loadmodel.vertexlist[loadmodel.objects[j].lineindex[i].linevertexindex[0]-1];
-									Line newline = new Line(pos.copy(), pos.copy());
-									newlinelisttree.add(newline);
-									this.linelisttree.add(newline);
-									newnontrianglelinelisttree.add(newline);
-								} else {
-									Position[] pos = new Position[loadmodel.objects[j].lineindex[i].linevertexindex.length];
-									for (int m=0;m<loadmodel.objects[j].lineindex[i].linevertexindex.length;m++) {
-										pos[m] = loadmodel.vertexlist[loadmodel.objects[j].lineindex[i].linevertexindex[m]-1];
-										if (m>0) {
-											Line newline = new Line(pos[m].copy(), pos[m-1].copy());
-											newlinelisttree.add(newline);
-											this.linelisttree.add(newline);
-											newnontrianglelinelisttree.add(newline);
-										}
-									}
-								}
-							}
-							newentity.trianglelist = newtrianglelistarray.toArray(new Triangle[newtrianglelistarray.size()]);
-							newentity.linelist = newnontrianglelinelisttree.toArray(new Line[newnontrianglelinelisttree.size()]);
-							Line[] newlinelist = newlinelisttree.toArray(new Line[newlinelisttree.size()]);
-							if (newlinelist.length>0) {
-								newentity.vertexlist = MathLib.generateVertexList(newlinelist);
-								newentity.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newentity.vertexlist);
-								newentity.sphereboundaryvolume = MathLib.pointCloudCircumSphere(newentity.vertexlist);
-								newentitylist.add(newentity);
-							}
-						}
-						this.entitylist = newentitylist.toArray(new Entity[newentitylist.size()]);
+						Entity loadentity = ModelLib.loadOBJFileEntity(loadfile.getPath(), false);
+						this.entitylist = loadentity.childlist;
+						this.linelisttree.addAll(Arrays.asList(loadentity.linelist));
 					}
 				}
 		    }
@@ -857,7 +653,6 @@ public class CADApp extends AppHandlerPanel {
 	
 	@Override public void mouseMoved(MouseEvent e) {
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
-		
 	}
 	@Override public void mousePressed(MouseEvent e) {
 		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
@@ -881,18 +676,12 @@ public class CADApp extends AppHandlerPanel {
 	    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1alt | offmask1alt)) == onmask1alt);
     	if ((mouse1altdown)&&(this.polygonfillmode==1)) {
     		this.drawstartpos = null;
-    		double mouserelativelocationx = this.mouselocationx-this.origindeltax;
-    		double mouserelativelocationy = this.mouselocationy-this.origindeltay;
 			if (this.snaplinemode) {
-	    		mouserelativelocationx = MathLib.snapToGrid(this.mouselocationx-this.origindeltax,this.gridstep);
-	    		mouserelativelocationy = MathLib.snapToGrid(this.mouselocationy-this.origindeltay,this.gridstep);
 				if ((this.mouseoververtex!=null)&&(this.mouseoververtex.length>0)) {
 					this.drawstartpos = this.mouseoververtex[this.mouseoververtex.length-1].copy(); 
 				}
 			}
-			Position[] editposarray = {this.editpos};
-			Position[] drawposarray = MathLib.translate(editposarray, this.camdirs[1], mouserelativelocationx);
-			drawposarray = MathLib.translate(drawposarray, this.camdirs[2], mouserelativelocationy);
+    		Position[] drawposarray = {MathLib.cameraPlanePosition(this.editpos, this.mouselocationx, this.mouselocationy, this.getWidth(), this.getHeight(), this.snaplinemode, this.gridstep, this.cameramat)};
 			if (this.drawstartpos==null) {
 				this.drawstartpos = drawposarray[0].copy();
 			}
@@ -932,6 +721,27 @@ public class CADApp extends AppHandlerPanel {
         			}
     				(new EntityListUpdater()).start();
     			}
+    		} else if (this.entitybuffer!=null) {
+        		Position mousepos = MathLib.cameraPlanePosition(this.editpos, this.mouselocationx, this.mouselocationy, this.getWidth(), this.getHeight(), this.snaplinemode, this.gridstep, this.cameramat);
+        		Entity[] newentitylist = Arrays.copyOf(this.entitylist, this.entitylist.length+this.entitybuffer.length);
+        		Entity[] copyentitybuffer = Arrays.copyOf(this.entitybuffer, this.entitybuffer.length);
+        		for (int j=0;j<copyentitybuffer.length;j++) {
+        			copyentitybuffer[j] = copyentitybuffer[j].copy();
+            		for (int i=0;i<copyentitybuffer[j].trianglelist.length;i++) {
+            			copyentitybuffer[j].trianglelist[i] = copyentitybuffer[j].trianglelist[i].copy();
+            			Position[] pos1 = {copyentitybuffer[j].trianglelist[i].pos1.copy()};
+            			Position[] pos2 = {copyentitybuffer[j].trianglelist[i].pos2.copy()};
+            			Position[] pos3 = {copyentitybuffer[j].trianglelist[i].pos3.copy()};
+            			Position[] pos1t = MathLib.translate(pos1, mousepos);
+            			Position[] pos2t = MathLib.translate(pos2, mousepos);
+            			Position[] pos3t = MathLib.translate(pos3, mousepos);
+            			copyentitybuffer[j].trianglelist[i].pos1 = pos1t[0];
+            			copyentitybuffer[j].trianglelist[i].pos2 = pos2t[0];
+            			copyentitybuffer[j].trianglelist[i].pos3 = pos3t[0];
+            		}
+            		newentitylist[this.entitylist.length+j] = copyentitybuffer[j];
+        		}
+        		this.entitylist = newentitylist;
     		} else {
 		    	Triangle mousetriangle = null;
 	    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
@@ -975,19 +785,13 @@ public class CADApp extends AppHandlerPanel {
     	if (mouse1ctrldown||mouse1altdown) {
     		if (this.draglinemode) {
     			Position drawlocation = null;
-	    		double mouserelativelocationx = this.mouselocationx-this.origindeltax;
-	    		double mouserelativelocationy = this.mouselocationy-this.origindeltay;
 				if (this.snaplinemode) {
-		    		mouserelativelocationx = MathLib.snapToGrid(this.mouselocationx-this.origindeltax,this.gridstep);
-		    		mouserelativelocationy = MathLib.snapToGrid(this.mouselocationy-this.origindeltay,this.gridstep);
 					if ((this.mouseoververtex!=null)&&(this.mouseoververtex.length>0)) {
 						drawlocation = this.mouseoververtex[this.mouseoververtex.length-1].copy(); 
 					}
 				}
 				if (drawlocation==null) {
-					Position[] editposarray = {this.editpos};
-					Position[] drawposarray = MathLib.translate(editposarray, this.camdirs[1], mouserelativelocationx);
-					drawposarray = MathLib.translate(drawposarray, this.camdirs[2], mouserelativelocationy);
+	        		Position[] drawposarray = {MathLib.cameraPlanePosition(this.editpos, this.mouselocationx, this.mouselocationy, this.getWidth(), this.getHeight(), this.snaplinemode, this.gridstep, this.cameramat)};
 	    			drawlocation = drawposarray[0];
 				}
 				for (int i=0;i<this.selecteddragvertex.length;i++) {
@@ -1069,7 +873,6 @@ public class CADApp extends AppHandlerPanel {
 	        	this.camrot = this.camrot.copy();
 	        	this.camrot.z -= mousedeltax*(movementstep/((double)this.gridstep))*0.1f;
 	        	this.camrot.x -= mousedeltay*(movementstep/((double)this.gridstep))*0.1f;
-	        	updateCameraDirections();
 				System.out.println("CADApp: mouseDragged: key CTRL-DRAG-CMB: camera rotation angles="+this.camrot.x+","+this.camrot.y+","+this.camrot.z);
     		}
     	}
@@ -1077,7 +880,11 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask3down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mouse3down = ((e.getModifiersEx() & (onmask3down | offmask3down)) == onmask3down);
     	if (mouse3down) {
-    		//TODO <tbd>
+    		//TODO move entity
+    		if ((this.mouseoverentity!=null)&&(mouseoverentity.length>0)) {
+    			Entity mouseentity = this.mouseoverentity[this.mouseoverentity.length-1];
+    			System.out.println("CADApp: mouseDragged: key CTRL-DRAG-RMB: move entity ="+mouseentity.sphereboundaryvolume.x+" "+mouseentity.sphereboundaryvolume.y+" "+mouseentity.sphereboundaryvolume.z);
+    		}
     	}
 	    int onmask3shiftdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    int offmask3shiftdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
@@ -1095,7 +902,7 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask3ctrldown = MouseEvent.ALT_DOWN_MASK;
 	    boolean mouse3ctrldown = ((e.getModifiersEx() & (onmask3ctrldown | offmask3ctrldown)) == onmask3ctrldown);
     	if (mouse3ctrldown) {
-    		//TODO move entity
+    		//TODO <tbd>
     	}
 	}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {
@@ -1282,10 +1089,20 @@ public class CADApp extends AppHandlerPanel {
 					CADApp.this.mouseoverline = CADApp.this.renderview.mouseoverline;
 					CADApp.this.mouseoververtex = CADApp.this.renderview.mouseoververtex;
 				} else if (CADApp.this.polygonfillmode==2) { 
-					CADApp.this.renderview = RenderLib.renderProjectedView(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					RenderView view = RenderLib.renderProjectedView(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					if (CADApp.this.entitybuffer!=null) {
+						RenderView entitybufferview = RenderLib.renderProjectedView(CADApp.this.campos, CADApp.this.entitybuffer, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+						Graphics2D viewgfx = view.renderimage.createGraphics();
+						viewgfx.setComposite(AlphaComposite.SrcOver);
+						viewgfx.drawImage(entitybufferview.renderimage, 0, 0, null);
+						viewgfx.dispose();
+					}
+					CADApp.this.renderview = view;
+					CADApp.this.mouseoverentity = CADApp.this.renderview.mouseoverentity;
 					CADApp.this.mouseovertriangle = CADApp.this.renderview.mouseovertriangle;
 				} else if (CADApp.this.polygonfillmode==3) {
 					CADApp.this.renderview = RenderLib.renderProjectedView(CADApp.this.campos, CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 2, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					CADApp.this.mouseoverentity = CADApp.this.renderview.mouseoverentity;
 					CADApp.this.mouseovertriangle = CADApp.this.renderview.mouseovertriangle;
 				}
 				RenderViewUpdater.renderupdaterrunning = false;
