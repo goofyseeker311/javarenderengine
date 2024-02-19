@@ -2489,69 +2489,6 @@ public class MathLib {
 		PlaneRay[][] k = null;
 		if ((vplaneray!=null)&&(vsurf!=null)) {
 			k = new PlaneRay[vplaneray.length][vsurf.length];
-			for (int j=0;j<vplaneray.length;j++) {
-				PlaneRay[] planeray = {vplaneray[j]};
-				Position[] rayposa = {planeray[0].pos};
-				Direction[] rayfwddir = {planeray[0].dir};
-				Plane[] rayplane = {planeray[0].plane};
-				double[] rayvfov = {planeray[0].vfov};
-				double halfvfov = rayvfov[0]/2.0f;
-				double[] rayvangles = {-halfvfov, halfvfov};
-				Direction[] vsurfnorm = planeNormal(vsurf);
-				double[][] rayfwdvsufrintdist = rayPlaneDistance(rayposa[0], rayfwddir, vsurf);
-				Position[][] rayfwdvsufrint = rayPlaneIntersection(rayposa[0], rayfwddir, vsurf);
-				Line[][] ppint = planePlaneIntersection(rayplane, vsurf);
-				for (int i=0;i<vsurf.length;i++) {
-					if ((Double.isFinite(rayfwdvsufrintdist[0][i]))&&(rayfwdvsufrintdist[0][i]>=1.0f)&&(rayfwdvsufrint[0][i]!=null)&&(rayfwdvsufrint[0][i].isFinite())&&(ppint[0][i]!=null)&&(ppint[0][i].isFinite())) {
-						Line[] ppintline = {ppint[0][i]};
-						Direction[] vsurfnormal = {vsurfnorm[i]};
-						Plane[] vsurface = {vsurf[i]};
-						vsurfnormal = normalizeVector(vsurfnormal);
-						double[] rayfwddirposnormangle = vectorAngle(rayfwddir, vsurfnormal);
-						if (rayfwddirposnormangle[0]<90.0f) {
-							Direction[] newvsurfnormal = {vsurfnormal[0].invert()};
-							vsurfnormal = newvsurfnormal;
-						}
-						Direction[] ppintlinedir = vectorFromPoints(ppintline);
-						Position[] rayfwdvsurfpos = {rayfwdvsufrint[0][i]};
-						Position[] rayfwdvsurfpos2 = translate(rayfwdvsurfpos,ppintlinedir[0],1.0f);
-						Line[] centerheightline = {new Line(rayfwdvsurfpos[0], rayfwdvsurfpos2[0])};
-						double[][] linevlen = linearAngleLengthInterpolation(rayposa[0], centerheightline, rayvangles);
-						Position[] rayfwdvsurfvendpos1 = translate(rayfwdvsurfpos,ppintlinedir[0],linevlen[0][0]);
-						Position[] rayfwdvsurfvendpos2 = translate(rayfwdvsurfpos,ppintlinedir[0],linevlen[0][1]);
-						Direction[] rayfwdvsurfvendposdir1 = vectorFromPoints(rayposa, rayfwdvsurfvendpos1);
-						Direction[] rayfwdvsurfvendposdir2 = vectorFromPoints(rayposa, rayfwdvsurfvendpos2);
-						Direction[] rayfwdvenddir12 = vectorFromPoints(rayfwdvsurfvendpos1, rayfwdvsurfvendpos2);
-						Line[] rayfwdvenddir12line = {new Line(rayfwdvsurfvendpos1[0], rayfwdvsurfvendpos2[0])};
-						Direction[] rayfwdvsurfvendposdirn1 = normalizeVector(rayfwdvsurfvendposdir1);
-						Direction[] rayfwdvsurfvendposdirn2 = normalizeVector(rayfwdvsurfvendposdir2);
-						Ray[] rayfwdvsurfvendposray1 = {new Ray(rayposa[0], rayfwdvsurfvendposdirn1[0])};
-						Ray[] rayfwdvsurfvendposray2 = {new Ray(rayposa[0], rayfwdvsurfvendposdirn2[0])};
-						Ray[][] rayfwdvsurfvendposrefray1 = surfaceRefractionRay(rayfwdvsurfvendposray1, vsurface, refraction1, refraction2);
-						Ray[][] rayfwdvsurfvendposrefray2 = surfaceRefractionRay(rayfwdvsurfvendposray2, vsurface, refraction1, refraction2);
-						if ((rayfwdvsurfvendposrefray1!=null)&&(rayfwdvsurfvendposrefray1[0][0]!=null)&&(rayfwdvsurfvendposrefray2!=null)&&(rayfwdvsurfvendposrefray2[0][0]!=null)) {
-							Direction[] refraydir1 = {rayfwdvsurfvendposrefray1[0][0].dir};
-							Direction[] refraydir2 = {rayfwdvsurfvendposrefray2[0][0].dir};
-							double[] refraysangle = vectorAngle(refraydir1, refraydir2);
-							Position[][] refrayposa = rayRayIntersection(rayfwdvsurfvendposrefray1[0], rayfwdvsurfvendposrefray2[0]);
-							if ((Double.isFinite(refraysangle[0]))&&(refrayposa!=null)&&(refrayposa[0][0]!=null)) {
-								Position[] refraypos = {refrayposa[0][0]};
-								Direction[] refrayplanenorm = vectorCross(refraydir1, refraydir2);
-								Direction[] refrayplanenormn = normalizeVector(refrayplanenorm);
-								Plane[] refrayplane = planeFromNormalAtPoint(refraypos, refrayplanenormn);
-								double[] refrayhalfangle = {refraysangle[0]/2.0f};
-								double[][] refrayhalflenfrac = linearAngleLengthInterpolation(refraypos[0], rayfwdvenddir12line, refrayhalfangle);
-								if (Double.isFinite(refrayhalflenfrac[0][0])) {
-									Position[] refrayfwdvenddirhalfanglepos12 = translate(rayfwdvsurfvendpos1,rayfwdvenddir12[0],refrayhalflenfrac[0][0]);
-									Direction[] refrayfwddir = vectorFromPoints(refraypos, refrayfwdvenddirhalfanglepos12);
-									Direction[] refrayfwddirn = normalizeVector(refrayfwddir);
-									k[j][i] = new PlaneRay(refraypos[0],refrayfwddirn[0],refrayplane[0],refraysangle[0]);
-								}
-							}
-						}
-					}
-				}
-			}
 		}
 		return k;
 	}

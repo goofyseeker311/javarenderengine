@@ -155,19 +155,20 @@ public class ModelLib {
 		public Position[] mouseoververtex = null;
 		public Line[] mouseoverline = null;
 		public int mouselocationx=0,mouselocationy=0; 
-		public Position pos;
-		public Matrix rot;
+		public Position pos = null;
+		public Matrix rot = null;
+		public Plane[] nearclipplane = null;
 		public int renderwidth=0, renderheight=0;
 		public int rendersize=0;
 		public double hfov=0.0f, vfov=0.0f;
 		public boolean rendered = false;
 		public boolean unlit = false;
-		public Direction[] dirs;
-		public Direction[][] rays;
-		public Ray[][] vrays;
-		public Plane[] planes;
-		public PlaneRay[] planerays;
-		public Direction[] fwddirs;
+		public Direction[] dirs = null;
+		public Direction[][] rays = null;
+		public Ray[][] vrays = null;
+		public Plane[] planes = null;
+		public PlaneRay[] planerays = null;
+		public Direction[] fwddirs = null;
 	}
 	
 	public static class Cubemap {
