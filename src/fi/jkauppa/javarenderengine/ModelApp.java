@@ -16,12 +16,12 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 
 import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileFilter;
 
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandlerPanel;
 import fi.jkauppa.javarenderengine.ModelLib.Direction;
 import fi.jkauppa.javarenderengine.ModelLib.Entity;
 import fi.jkauppa.javarenderengine.ModelLib.Matrix;
-import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
 import fi.jkauppa.javarenderengine.ModelLib.Position;
 import fi.jkauppa.javarenderengine.ModelLib.RenderView;
 import fi.jkauppa.javarenderengine.ModelLib.Rotation;
@@ -40,8 +40,7 @@ public class ModelApp extends AppHandlerPanel {
 	private double vfov = 43.0f;
 	private int polygonfillmode = 1;
 	private boolean unlitrender = false;
-	private JFileChooser filechooser = new JFileChooser();
-	private OBJFileFilter objfilefilter = new OBJFileFilter();
+	private JFileChooser filechooser = UtilLib.createModelFileChooser();
 	private boolean leftkeydown = false;
 	private boolean rightkeydown = false;
 	private boolean upwardkeydown = false;
@@ -59,9 +58,6 @@ public class ModelApp extends AppHandlerPanel {
 	public ModelApp() {
 		cursorimage.setRGB(0, 0, (new Color(0.0f,0.0f,0.0f,0.0f)).getRGB());
 		this.customcursor = tk.createCustomCursor(cursorimage, new Point(0,0), "customcursor");
-		this.filechooser.addChoosableFileFilter(this.objfilefilter);
-		this.filechooser.setFileFilter(this.objfilefilter);
-		this.filechooser.setAcceptAllFileFilterUsed(false);
 		this.setCursor(this.customcursor);
 		this.setFocusTraversalKeysEnabled(false);
 	}
@@ -173,7 +169,8 @@ public class ModelApp extends AppHandlerPanel {
 			this.filechooser.setApproveButtonText("Load");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File loadfile = this.filechooser.getSelectedFile();
-				Entity loadentity = ModelLib.loadOBJFileEntity(loadfile.getPath(), false);
+				FileFilter loadfileformat = this.filechooser.getFileFilter();
+				Entity loadentity = UtilLib.loadModelFormat(loadfile.getPath(), loadfileformat, false);
 				this.entitylist = loadentity.childlist;
 			}
 		}

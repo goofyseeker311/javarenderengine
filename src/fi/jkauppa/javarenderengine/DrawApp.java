@@ -23,16 +23,10 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 
 import fi.jkauppa.javarenderengine.JavaRenderEngine.AppHandlerPanel;
-import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.BMPFileFilter;
-import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.GIFFileFilter;
-import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.JPGFileFilter;
-import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.PNGFileFilter;
-import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.WBMPFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ImageTransferable;
 
 public class DrawApp extends AppHandlerPanel {
@@ -54,12 +48,7 @@ public class DrawApp extends AppHandlerPanel {
 	private int mousestartlocationx = -1, mousestartlocationy = -1;  
 	private int mouselastlocationx = -1, mouselastlocationy = -1;  
 	private int mouselocationx = -1, mouselocationy = -1;
-	private JFileChooser filechooser = new JFileChooser();
-	private PNGFileFilter pngfilefilter = new PNGFileFilter();
-	private JPGFileFilter jpgfilefilter = new JPGFileFilter();
-	private GIFFileFilter giffilefilter = new GIFFileFilter();
-	private BMPFileFilter bmpfilefilter = new BMPFileFilter();
-	private WBMPFileFilter wbmpfilefilter = new WBMPFileFilter();
+	private JFileChooser filechooser = UtilLib.createImageFileChooser();
 	
 	public DrawApp() {
 		BufferedImage bgpatternimage = gc.createCompatibleImage(64, 64, Transparency.OPAQUE);
@@ -71,12 +60,6 @@ public class DrawApp extends AppHandlerPanel {
 		pgfx.drawLine(0, 31, 63, 31);
 		pgfx.dispose();
 		this.bgpattern = new TexturePaint(bgpatternimage,new Rectangle(0, 0, 64, 64));
-		this.filechooser.addChoosableFileFilter(this.pngfilefilter);
-		this.filechooser.addChoosableFileFilter(this.jpgfilefilter);
-		this.filechooser.addChoosableFileFilter(this.giffilefilter);
-		this.filechooser.addChoosableFileFilter(this.bmpfilefilter);
-		this.filechooser.addChoosableFileFilter(this.wbmpfilefilter);
-		this.filechooser.setFileFilter(this.pngfilefilter);
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		this.setFocusTraversalKeysEnabled(false);
 	}
@@ -164,36 +147,42 @@ public class DrawApp extends AppHandlerPanel {
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+    		this.pencilbuffer = null;
 		} else if (e.getKeyCode()==KeyEvent.VK_DELETE) {
 			this.drawcolorhsb[0] -= 0.01f;
 			if (this.drawcolorhsb[0]<0.0f) {this.drawcolorhsb[0] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+    		this.pencilbuffer = null;
 		} else if (e.getKeyCode()==KeyEvent.VK_HOME) {
 			this.drawcolorhsb[1] += 0.01f;
 			if (this.drawcolorhsb[1]>1.0f) {this.drawcolorhsb[1] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+    		this.pencilbuffer = null;
 		} else if (e.getKeyCode()==KeyEvent.VK_END) {
 			this.drawcolorhsb[1] -= 0.01f;
 			if (this.drawcolorhsb[1]<0.0f) {this.drawcolorhsb[1] = 0.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+    		this.pencilbuffer = null;
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_UP) {
 			this.drawcolorhsb[2] += 0.01f;
 			if (this.drawcolorhsb[2]>1.0f) {this.drawcolorhsb[2] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+    		this.pencilbuffer = null;
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_DOWN) {
 			this.drawcolorhsb[2] -= 0.01f;
 			if (this.drawcolorhsb[2]<0.0f) {this.drawcolorhsb[2] = 0.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+    		this.pencilbuffer = null;
 		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
 			this.pencilsize += 1;
 		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
@@ -237,30 +226,14 @@ public class DrawApp extends AppHandlerPanel {
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File savefile = this.filechooser.getSelectedFile();
 				FileFilter savefileformat = this.filechooser.getFileFilter();
-				if (savefileformat.equals(this.jpgfilefilter)) {
-					if ((!savefile.getName().toLowerCase().endsWith(".jpg"))&&(!savefile.getName().toLowerCase().endsWith(".jpeg"))) {savefile = new File(savefile.getPath().concat(".jpg"));}
-					try {ImageIO.write(this.renderbuffer.getSnapshot(), "JPG", savefile);} catch (Exception ex) {ex.printStackTrace();}
-				} else if (savefileformat.equals(this.giffilefilter)) {
-					if (!savefile.getName().toLowerCase().endsWith(".gif")) {savefile = new File(savefile.getPath().concat(".gif"));}
-					try {ImageIO.write(this.renderbuffer.getSnapshot(), "GIF", savefile);} catch (Exception ex) {ex.printStackTrace();}
-				} else if (savefileformat.equals(this.bmpfilefilter)) {
-					if (!savefile.getName().toLowerCase().endsWith(".bmp")) {savefile = new File(savefile.getPath().concat(".bmp"));}
-					try {ImageIO.write(this.renderbuffer.getSnapshot(), "BMP", savefile);} catch (Exception ex) {ex.printStackTrace();}
-				} else if (savefileformat.equals(this.wbmpfilefilter)) {
-					if (!savefile.getName().toLowerCase().endsWith(".wbmp")) {savefile = new File(savefile.getPath().concat(".wbmp"));}
-					try {ImageIO.write(this.renderbuffer.getSnapshot(), "WBMP", savefile);} catch (Exception ex) {ex.printStackTrace();}
-				} else {
-					if (!savefile.getName().toLowerCase().endsWith(".png")) {savefile = new File(savefile.getPath().concat(".png"));}
-					try {ImageIO.write(this.renderbuffer.getSnapshot(), "PNG", savefile);} catch (Exception ex) {ex.printStackTrace();}
-				}
+				UtilLib.saveImageFormat(savefile.getPath(), this.renderbuffer, savefileformat);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
 			this.filechooser.setDialogTitle("Load File");
 			this.filechooser.setApproveButtonText("Load");
 			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 				File loadfile = this.filechooser.getSelectedFile();
-				BufferedImage loadimage = null;
-				try {loadimage=ImageIO.read(loadfile);} catch (Exception ex) {ex.printStackTrace();}
+				VolatileImage loadimage = UtilLib.loadImage(loadfile.getPath(), false);
 				if (loadimage!=null) {
 				    int onmask = KeyEvent.SHIFT_DOWN_MASK;
 				    int offmask = KeyEvent.ALT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
@@ -268,12 +241,7 @@ public class DrawApp extends AppHandlerPanel {
 				    if (f3shiftdown) {
 				    	this.oldpencilsize = this.pencilsize;
 						this.pencilsize = loadimage.getWidth();
-						VolatileImage loadimagevolatile = gc.createCompatibleVolatileImage(loadimage.getWidth(), loadimage.getHeight(), Transparency.TRANSLUCENT);
-						Graphics2D loadimagevolatilegfx = loadimagevolatile.createGraphics();
-						loadimagevolatilegfx.setComposite(AlphaComposite.Src);
-						loadimagevolatilegfx.drawImage(loadimage, 0, 0, null);
-						loadimagevolatilegfx.dispose();
-				    	this.pencilbuffer = loadimagevolatile;
+				    	this.pencilbuffer = loadimage;
 				    }else{
 				    	Graphics2D dragimagegfx = this.renderbuffer.createGraphics();
 				    	dragimagegfx.setComposite(AlphaComposite.Clear);
