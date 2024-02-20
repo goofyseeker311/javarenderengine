@@ -63,7 +63,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.6.9");
+		this.setTitle("Java Render Engine v2.6.10");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -396,6 +396,12 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Plane[] paplane = MathLib.planeFromNormalAtPoint(papos, padir);
 		double[] paangles = MathLib.planeAngle(paplane[0], paplane);
 		for (int i=0;i<paangles.length;i++) {System.out.println("JavaRenderEngine: main: paangles[i]="+paangles[i]);}
+		Position[] trpos1 = {new Position(3.0f, 2.0f, 1.0f)};
+		Position trposto = new Position(1.0f, 1.0f, 1.0f);
+		Position[] trpos2 = MathLib.translate(trpos1, trposto);
+		trpos2 = MathLib.translate(trpos1, trposto);
+		trpos2 = MathLib.translate(trpos1, trposto);
+		for (int i=0;i<trpos2.length;i++) {System.out.println("JavaRenderEngine: main: trpos2="+trpos2[i].x+" "+trpos2[i].y+" "+trpos2[i].z);}
 		Position[] ttplanepos = {new Position(0,0,0), new Position(1,0,0)};
 		Direction[] ttplanenorm = {new Direction(1.0f,0,0)};
 		Direction ttplanedir = new Direction(1.0f,0,0);

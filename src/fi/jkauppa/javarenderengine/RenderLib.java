@@ -38,7 +38,7 @@ public class RenderLib {
 	private static GraphicsDevice gd = ge.getDefaultScreenDevice();
 	private static GraphicsConfiguration gc = gd.getDefaultConfiguration();
 
-	public static RenderView renderProjectedLineViewHardware(Position campos, Line[] linelist, int renderwidth, double hfov, int renderheight, double vfov, Matrix viewrot, int mouselocationx, int mouselocationy) {
+	public static RenderView renderProjectedLineViewHardware(Position campos, Line[] linelist, int renderwidth, double hfov, int renderheight, double vfov, boolean drawgrid, Matrix viewrot, int mouselocationx, int mouselocationy) {
 		int originlinelength = 100;
 		int vertexradius = 2;
 		int axisstroke = 2;
@@ -63,33 +63,35 @@ public class RenderLib {
 		renderview.zbuffer = new double[renderheight][renderwidth];
 		for (int i=0;i<renderview.zbuffer.length;i++) {Arrays.fill(renderview.zbuffer[i],Double.POSITIVE_INFINITY);}
 		double editplanedistance = 1371.022f;
+		int origindeltax = (int)Math.floor(((double)(renderwidth-1))/2.0f);
+		int origindeltay = (int)Math.floor(((double)(renderheight-1))/2.0f);
 		Graphics2D g2 = renderview.renderimage.createGraphics();
 		g2.setComposite(AlphaComposite.Src);
 		g2.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
 		g2.setPaint(null);
 		g2.setClip(null);
 		g2.fillRect(0, 0, renderwidth, renderheight);
+		if (drawgrid) {
+			g2.setComposite(AlphaComposite.SrcOver);
+			BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
+			TexturePaint bgpattern = null;
+			Graphics2D pgfx = bgpatternimage.createGraphics();
+			pgfx.setColor(Color.WHITE);
+			pgfx.fillRect(0, 0, bgpatternimage.getWidth(), bgpatternimage.getHeight());
+			pgfx.setColor(Color.BLACK);
+			pgfx.drawLine(0, 0, 0, gridstep-1);
+			pgfx.drawLine(0, 0, gridstep-1, 0);
+			pgfx.dispose();
+			bgpattern = new TexturePaint(bgpatternimage,new Rectangle(origindeltax, origindeltay, gridstep, gridstep));
+			g2.setComposite(AlphaComposite.Src);
+			g2.setColor(null);
+			g2.setPaint(bgpattern);
+			g2.fillRect(0, 0, renderwidth, renderheight);
+			g2.setPaint(null);
+		}
 		g2.setComposite(AlphaComposite.SrcOver);
 		ArrayList<Position> mouseoverhitvertex = new ArrayList<Position>(); 
 		ArrayList<Line> mouseoverhitline = new ArrayList<Line>();
-		BufferedImage bgpatternimage = gc.createCompatibleImage(gridstep, gridstep, Transparency.OPAQUE);
-		TexturePaint bgpattern = null;
-		Graphics2D pgfx = bgpatternimage.createGraphics();
-		pgfx.setColor(Color.WHITE);
-		pgfx.fillRect(0, 0, bgpatternimage.getWidth(), bgpatternimage.getHeight());
-		pgfx.setColor(Color.BLACK);
-		pgfx.drawLine(0, 0, 0, gridstep-1);
-		pgfx.drawLine(0, 0, gridstep-1, 0);
-		pgfx.dispose();
-		int origindeltax = (int)Math.floor(((double)(renderwidth-1))/2.0f);
-		int origindeltay = (int)Math.floor(((double)(renderheight-1))/2.0f);
-		bgpattern = new TexturePaint(bgpatternimage,new Rectangle(origindeltax, origindeltay, gridstep, gridstep));
-		g2.setComposite(AlphaComposite.Src);
-		g2.setColor(null);
-		g2.setPaint(bgpattern);
-		g2.fillRect(0, 0, renderwidth, renderheight);
-		g2.setPaint(null);
-		g2.setComposite(AlphaComposite.SrcOver);
 		Coordinate[][] linelistcoords = MathLib.projectedLine(renderview.pos, linelist, renderwidth, renderview.hfov, renderheight, renderview.vfov, viewrot, null);
 		Position[] camposarray = {renderview.pos};
 		Position[] editposarray = MathLib.translate(camposarray, renderview.dirs[0], editplanedistance);

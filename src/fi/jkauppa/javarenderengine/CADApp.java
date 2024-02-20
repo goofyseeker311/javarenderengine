@@ -55,7 +55,7 @@ public class CADApp extends AppHandlerPanel {
 	private Color renderbackgroundcolor = Color.BLACK;
 	private int polygonfillmode = 1;
 	private boolean unlitrender = false;
-	private Entity[] entitybuffer = null;
+	private Entity entitybuffer = null;
 	private Position[] selecteddragvertex = null;
 	private Entity[] mouseoverentity = null;
 	private Triangle[] mouseovertriangle = null;
@@ -530,8 +530,7 @@ public class CADApp extends AppHandlerPanel {
 				if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 					File loadfile = this.filechooser.getSelectedFile();
 					FileFilter loadfileformat = this.filechooser.getFileFilter();
-					Entity loadentity = UtilLib.loadModelFormat(loadfile.getPath(), loadfileformat, false);
-					this.entitybuffer = loadentity.childlist;
+					this.entitybuffer = UtilLib.loadModelFormat(loadfile.getPath(), loadfileformat, false);
 				}
 		    } else {
 				this.filechooser.setDialogTitle("Load File");
@@ -966,12 +965,10 @@ public class CADApp extends AppHandlerPanel {
                 	} else if (UtilLib.isModelFilename(filename)) {
                 		if (filename.toLowerCase().endsWith(".obj")) {
                 			FileFilter loadfileformat = new OBJFileFilter();
-        					Entity loadentity = UtilLib.loadModelFormat(filepath, loadfileformat, false);
-        					this.entitybuffer = loadentity.childlist;
+                			this.entitybuffer = UtilLib.loadModelFormat(filepath, loadfileformat, false);
                 		} else if (filename.toLowerCase().endsWith(".stl")) {
                 			FileFilter loadfileformat = new STLFileFilter();
-        					Entity loadentity = UtilLib.loadModelFormat(filepath, loadfileformat, false);
-        					this.entitybuffer = loadentity.childlist;
+                			this.entitybuffer = UtilLib.loadModelFormat(filepath, loadfileformat, false);
                 		}
                 	}
                 }
@@ -1020,38 +1017,56 @@ public class CADApp extends AppHandlerPanel {
 			if (!RenderViewUpdater.renderupdaterrunning) {
 				RenderViewUpdater.renderupdaterrunning = true;
 				int bounces = 0;
+        		Position mousepos = MathLib.cameraPlanePosition(CADApp.this.editpos, CADApp.this.mouselocationx, CADApp.this.mouselocationy, CADApp.this.getWidth(), CADApp.this.getHeight(), CADApp.this.snaplinemode, CADApp.this.gridstep, CADApp.this.cameramat);
 				if (CADApp.this.polygonfillmode==1) {
 					Line[] linelist = CADApp.this.linelisttree.toArray(new Line[CADApp.this.linelisttree.size()]);
-					CADApp.this.renderview = RenderLib.renderProjectedLineViewHardware(CADApp.this.campos[0], linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
-					CADApp.this.mouseoverline = CADApp.this.renderview.mouseoverline;
-					CADApp.this.mouseoververtex = CADApp.this.renderview.mouseoververtex;
-				} else if (CADApp.this.polygonfillmode==2) { 
-					RenderView view = RenderLib.renderProjectedView(CADApp.this.campos[0], CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					RenderView drawrenderview = RenderLib.renderProjectedLineViewHardware(CADApp.this.campos[0], linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, true, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					if (CADApp.this.entitybuffer!=null) {
-		        		//Position mousepos = MathLib.cameraPlanePosition(CADApp.this.editpos, CADApp.this.mouselocationx, CADApp.this.mouselocationy, CADApp.this.getWidth(), CADApp.this.getHeight(), CADApp.this.snaplinemode, CADApp.this.gridstep, CADApp.this.cameramat);
-						//Entity[] copyentitybuffer = new Entity[CADApp.this.entitybuffer.length];
-		        		//for (int j=0;j<CADApp.this.entitybuffer.length;j++) {
-		        		//	copyentitybuffer[j] = CADApp.this.entitybuffer[j].translate(mousepos);
-		        		//}
-						Entity[] copyentitybuffer = new Entity[CADApp.this.entitybuffer.length];
-		        		for (int i=0;i<CADApp.this.entitybuffer.length;i++) {
-		        			copyentitybuffer[i] = CADApp.this.entitybuffer[i].translate(CADApp.this.editpos);
-		        			//copyentitybuffer[i] = CADApp.this.entitybuffer[i].translate(new Position(0.0f,0.0f,0.0f));
-		        			//copyentitybuffer[i] = CADApp.this.entitybuffer[i].copy();
-		        		}
-						RenderView entitybufferview = RenderLib.renderProjectedView(CADApp.this.campos[0], copyentitybuffer, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
-						Graphics2D viewgfx = view.renderimage.createGraphics();
+						Line[] copyentitybufferlinelist = new Line[CADApp.this.entitybuffer.linelist.length];
+						for (int i=0;i<CADApp.this.entitybuffer.linelist.length;i++) {
+							copyentitybufferlinelist[i] = CADApp.this.entitybuffer.linelist[i].translate(mousepos);
+						}
+						RenderView entitybufferview = RenderLib.renderProjectedLineViewHardware(CADApp.this.campos[0], copyentitybufferlinelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, false, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+						Graphics2D viewgfx = drawrenderview.renderimage.createGraphics();
 						viewgfx.setComposite(AlphaComposite.SrcOver);
 						viewgfx.drawImage(entitybufferview.renderimage, 0, 0, null);
 						viewgfx.dispose();
 					}
-					CADApp.this.renderview = view;
-					CADApp.this.mouseoverentity = CADApp.this.renderview.mouseoverentity;
-					CADApp.this.mouseovertriangle = CADApp.this.renderview.mouseovertriangle;
+					CADApp.this.renderview = drawrenderview;
+					CADApp.this.mouseoverline = drawrenderview.mouseoverline;
+					CADApp.this.mouseoververtex = drawrenderview.mouseoververtex;
+				} else if (CADApp.this.polygonfillmode==2) { 
+					RenderView drawrenderview = RenderLib.renderProjectedView(CADApp.this.campos[0], CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					if (CADApp.this.entitybuffer!=null) {
+						Entity[] copyentitybuffer = new Entity[CADApp.this.entitybuffer.childlist.length];
+						for (int i=0;i<CADApp.this.entitybuffer.childlist.length;i++) {
+		        			copyentitybuffer[i] = CADApp.this.entitybuffer.childlist[i].translate(mousepos);
+		        		}
+						RenderView entitybufferview = RenderLib.renderProjectedView(CADApp.this.campos[0], copyentitybuffer, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+						Graphics2D viewgfx = drawrenderview.renderimage.createGraphics();
+						viewgfx.setComposite(AlphaComposite.SrcOver);
+						viewgfx.drawImage(entitybufferview.renderimage, 0, 0, null);
+						viewgfx.dispose();
+					}
+					CADApp.this.renderview = drawrenderview;
+					CADApp.this.mouseoverentity = drawrenderview.mouseoverentity;
+					CADApp.this.mouseovertriangle = drawrenderview.mouseovertriangle;
 				} else if (CADApp.this.polygonfillmode==3) {
-					CADApp.this.renderview = RenderLib.renderProjectedView(CADApp.this.campos[0], CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 2, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
-					CADApp.this.mouseoverentity = CADApp.this.renderview.mouseoverentity;
-					CADApp.this.mouseovertriangle = CADApp.this.renderview.mouseovertriangle;
+					RenderView drawrenderview = RenderLib.renderProjectedView(CADApp.this.campos[0], CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 2, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+					if (CADApp.this.entitybuffer!=null) {
+						Entity[] copyentitybuffer = new Entity[CADApp.this.entitybuffer.childlist.length];
+						for (int i=0;i<CADApp.this.entitybuffer.childlist.length;i++) {
+		        			copyentitybuffer[i] = CADApp.this.entitybuffer.childlist[i].translate(mousepos);
+		        		}
+						RenderView entitybufferview = RenderLib.renderProjectedView(CADApp.this.campos[0], copyentitybuffer, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 2, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+						Graphics2D viewgfx = drawrenderview.renderimage.createGraphics();
+						viewgfx.setComposite(AlphaComposite.SrcOver);
+						viewgfx.drawImage(entitybufferview.renderimage, 0, 0, null);
+						viewgfx.dispose();
+					}
+					CADApp.this.renderview = drawrenderview;
+					CADApp.this.mouseoverentity = drawrenderview.mouseoverentity;
+					CADApp.this.mouseovertriangle = drawrenderview.mouseovertriangle;
 				}
 				RenderViewUpdater.renderupdaterrunning = false;
 			}

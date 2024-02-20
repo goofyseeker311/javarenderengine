@@ -554,23 +554,23 @@ public class ModelLib {
 		@Override public int compareTo(Entity o) {return this.sphereboundaryvolume.compareTo(o.sphereboundaryvolume);}
 		public Entity copy(){Entity k=new Entity();k.childlist=this.childlist;k.trianglelist=this.trianglelist;k.linelist=this.linelist;k.vertexlist=this.vertexlist;k.sphereboundaryvolume=this.sphereboundaryvolume;k.aabbboundaryvolume=this.aabbboundaryvolume;k.transform=this.transform;k.translation=this.translation;return k;}
 		public Entity translate(Position pos) {
-			Entity k = this.copy();
-			if (k.childlist!=null) {for (int i=0;i<k.childlist.length;i++) {k.childlist[i] = k.childlist[i].translate(pos);}}
-			if (k.trianglelist!=null) {for (int i=0;i<k.trianglelist.length;i++) {k.trianglelist[i] = k.trianglelist[i].translate(pos);}}
-			if (k.linelist!=null) {for (int i=0;i<k.linelist.length;i++) {k.linelist[i] = k.linelist[i].translate(pos);}}
-			if (k.vertexlist!=null) {for (int i=0;i<k.vertexlist.length;i++) {k.vertexlist[i] = k.vertexlist[i].translate(pos);}}
-			if (k.sphereboundaryvolume!=null) {k.sphereboundaryvolume = k.sphereboundaryvolume.translate(pos);}
-			if (k.aabbboundaryvolume!=null) {k.aabbboundaryvolume = k.aabbboundaryvolume.translate(pos);}
+			Entity k = new Entity();
+			if (this.childlist!=null) {k.childlist=new Entity[this.childlist.length]; for (int i=0;i<k.childlist.length;i++) {k.childlist[i] = this.childlist[i].translate(pos);}}
+			if (this.trianglelist!=null) {k.trianglelist=new Triangle[this.trianglelist.length]; for (int i=0;i<k.trianglelist.length;i++) {k.trianglelist[i] = this.trianglelist[i].translate(pos);}}
+			if (this.linelist!=null) {k.linelist=new Line[this.linelist.length]; for (int i=0;i<k.linelist.length;i++) {k.linelist[i] = this.linelist[i].translate(pos);}}
+			if (this.vertexlist!=null) {k.vertexlist=new Position[this.vertexlist.length]; for (int i=0;i<k.vertexlist.length;i++) {k.vertexlist[i] = this.vertexlist[i].translate(pos);}}
+			if (this.sphereboundaryvolume!=null) {k.sphereboundaryvolume = this.sphereboundaryvolume.translate(pos);}
+			if (this.aabbboundaryvolume!=null) {k.aabbboundaryvolume = this.aabbboundaryvolume.translate(pos);}
 			return k;
 		}
 		public Entity translate(Direction dir, double mult) {
 			Entity k = this.copy();
-			if (k.childlist!=null) {for (int i=0;i<k.childlist.length;i++) {k.childlist[i] = k.childlist[i].translate(dir,mult);}}
-			if (k.trianglelist!=null) {for (int i=0;i<k.trianglelist.length;i++) {k.trianglelist[i] = k.trianglelist[i].translate(dir,mult);}}
-			if (k.linelist!=null) {for (int i=0;i<k.linelist.length;i++) {k.linelist[i] = k.linelist[i].translate(dir,mult);}}
-			if (k.vertexlist!=null) {for (int i=0;i<k.vertexlist.length;i++) {k.vertexlist[i] = k.vertexlist[i].translate(dir,mult);}}
-			if (k.sphereboundaryvolume!=null) {k.sphereboundaryvolume = k.sphereboundaryvolume.translate(dir,mult);}
-			if (k.aabbboundaryvolume!=null) {k.aabbboundaryvolume = k.aabbboundaryvolume.translate(dir,mult);}
+			if (this.childlist!=null) {k.childlist=new Entity[this.childlist.length]; for (int i=0;i<k.childlist.length;i++) {k.childlist[i] = this.childlist[i].translate(dir,mult);}}
+			if (this.trianglelist!=null) {k.trianglelist=new Triangle[this.trianglelist.length]; for (int i=0;i<k.trianglelist.length;i++) {k.trianglelist[i] = this.trianglelist[i].translate(dir,mult);}}
+			if (this.linelist!=null) {k.linelist=new Line[this.linelist.length]; for (int i=0;i<k.linelist.length;i++) {k.linelist[i] = this.linelist[i].translate(dir,mult);}}
+			if (this.vertexlist!=null) {k.vertexlist=new Position[this.vertexlist.length]; for (int i=0;i<k.vertexlist.length;i++) {k.vertexlist[i] = this.vertexlist[i].translate(dir,mult);}}
+			if (this.sphereboundaryvolume!=null) {k.sphereboundaryvolume = this.sphereboundaryvolume.translate(dir,mult);}
+			if (this.aabbboundaryvolume!=null) {k.aabbboundaryvolume = this.aabbboundaryvolume.translate(dir,mult);}
 			return k;
 		}
 	}
