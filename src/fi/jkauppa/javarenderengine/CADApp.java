@@ -172,7 +172,7 @@ public class CADApp extends AppHandlerPanel {
 	private void updateCameraDirections() {
 		Matrix camrotmat = MathLib.rotationMatrixLookHorizontalRoll(this.camrot);
 		Direction[] camlookdirs = MathLib.projectedCameraDirections(camrotmat);
-		Position[] editposa = MathLib.translate(this.campos, this.lookdirs[0], this.defaultcamdist);
+		Position[] editposa = MathLib.translate(this.campos, camlookdirs[0], this.defaultcamdist);
 		this.editpos = editposa[0];
 		this.cameramat = camrotmat;
 		this.camdirs = camlookdirs;
@@ -662,9 +662,9 @@ public class CADApp extends AppHandlerPanel {
         			copyentitybuffer[j] = copyentitybuffer[j].copy();
             		for (int i=0;i<copyentitybuffer[j].trianglelist.length;i++) {
             			copyentitybuffer[j].trianglelist[i] = copyentitybuffer[j].trianglelist[i].copy();
-            			Position[] pos1 = {copyentitybuffer[j].trianglelist[i].pos1.copy()};
-            			Position[] pos2 = {copyentitybuffer[j].trianglelist[i].pos2.copy()};
-            			Position[] pos3 = {copyentitybuffer[j].trianglelist[i].pos3.copy()};
+            			Position[] pos1 = {copyentitybuffer[j].trianglelist[i].pos1};
+            			Position[] pos2 = {copyentitybuffer[j].trianglelist[i].pos2};
+            			Position[] pos3 = {copyentitybuffer[j].trianglelist[i].pos3};
             			Position[] pos1t = MathLib.translate(pos1, mousepos);
             			Position[] pos2t = MathLib.translate(pos2, mousepos);
             			Position[] pos3t = MathLib.translate(pos3, mousepos);
