@@ -147,42 +147,60 @@ public class DrawApp extends AppHandlerPanel {
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
-    		this.pencilbuffer = null;
+	    	if (this.pencilbuffer!=null) {
+	    		this.pencilbuffer = null;
+	    		this.pencilsize = this.oldpencilsize;
+	    	}
 		} else if (e.getKeyCode()==KeyEvent.VK_DELETE) {
 			this.drawcolorhsb[0] -= 0.01f;
 			if (this.drawcolorhsb[0]<0.0f) {this.drawcolorhsb[0] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
-    		this.pencilbuffer = null;
+	    	if (this.pencilbuffer!=null) {
+	    		this.pencilbuffer = null;
+	    		this.pencilsize = this.oldpencilsize;
+	    	}
 		} else if (e.getKeyCode()==KeyEvent.VK_HOME) {
 			this.drawcolorhsb[1] += 0.01f;
 			if (this.drawcolorhsb[1]>1.0f) {this.drawcolorhsb[1] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
-    		this.pencilbuffer = null;
+	    	if (this.pencilbuffer!=null) {
+	    		this.pencilbuffer = null;
+	    		this.pencilsize = this.oldpencilsize;
+	    	}
 		} else if (e.getKeyCode()==KeyEvent.VK_END) {
 			this.drawcolorhsb[1] -= 0.01f;
 			if (this.drawcolorhsb[1]<0.0f) {this.drawcolorhsb[1] = 0.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
-    		this.pencilbuffer = null;
+	    	if (this.pencilbuffer!=null) {
+	    		this.pencilbuffer = null;
+	    		this.pencilsize = this.oldpencilsize;
+	    	}
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_UP) {
 			this.drawcolorhsb[2] += 0.01f;
 			if (this.drawcolorhsb[2]>1.0f) {this.drawcolorhsb[2] = 1.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
-    		this.pencilbuffer = null;
+	    	if (this.pencilbuffer!=null) {
+	    		this.pencilbuffer = null;
+	    		this.pencilsize = this.oldpencilsize;
+	    	}
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_DOWN) {
 			this.drawcolorhsb[2] -= 0.01f;
 			if (this.drawcolorhsb[2]<0.0f) {this.drawcolorhsb[2] = 0.0f;}
 			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
 			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
 			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
-    		this.pencilbuffer = null;
+	    	if (this.pencilbuffer!=null) {
+	    		this.pencilbuffer = null;
+	    		this.pencilsize = this.oldpencilsize;
+	    	}
 		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
 			this.pencilsize += 1;
 		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
@@ -415,11 +433,10 @@ public class DrawApp extends AppHandlerPanel {
 				List<File> files = (List<File>)dtt.getTransferData(DataFlavor.javaFileListFlavor);
                 for (Iterator<File> i=files.iterator();i.hasNext();) {
                 	File file = i.next();
-                    VolatileImage image = UtilLib.loadImage(file.getPath(), false);
-    				Graphics2D loadimagevolatilegfx = this.renderbuffer.createGraphics();
-    				loadimagevolatilegfx.setComposite(AlphaComposite.Src);
-    				loadimagevolatilegfx.drawImage(image, 0, 0, null);
-    				loadimagevolatilegfx.dispose();
+                    VolatileImage loadimage = UtilLib.loadImage(file.getPath(), false);
+			    	this.oldpencilsize = this.pencilsize;
+					this.pencilsize = loadimage.getWidth();
+					this.pencilbuffer = loadimage;
                 }
             }
         } catch (Exception ex){ex.printStackTrace();}

@@ -6,6 +6,9 @@ import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Transparency;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -16,6 +19,8 @@ import java.awt.image.VolatileImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.TreeSet;
 
 import javax.swing.JFileChooser;
@@ -32,6 +37,8 @@ import fi.jkauppa.javarenderengine.ModelLib.Position;
 import fi.jkauppa.javarenderengine.ModelLib.RenderView;
 import fi.jkauppa.javarenderengine.ModelLib.Rotation;
 import fi.jkauppa.javarenderengine.ModelLib.Triangle;
+import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
+import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.STLFileFilter;
 import fi.jkauppa.javarenderengine.ModelLib.Plane;
 
 public class CADApp extends AppHandlerPanel {
@@ -41,8 +48,8 @@ public class CADApp extends AppHandlerPanel {
 	private boolean texturemode = false;
 	private boolean erasemode = false;
 	private Material drawmat = new Material(Color.getHSBColor(0.0f, 0.0f, 1.0f),1.0f,null);
-	private int renderoutputwidth = 3840, renderoutputheight = 2160;
-	private int rendercubemapoutputsize = 2048, rendercubemapoutputwidth = 3*rendercubemapoutputsize, rendercubemapoutputheight = 2*rendercubemapoutputsize;
+	private int renderoutputwidth = 7680, renderoutputheight = 4320;
+	private int rendercubemapoutputsize = 4096, rendercubemapoutputwidth = 3*rendercubemapoutputsize, rendercubemapoutputheight = 2*rendercubemapoutputsize;
 	private int renderspheremapoutputwidth = 2*renderoutputwidth, renderspheremapoutputheight = renderoutputheight;
 	private int renderbounces = 2;
 	private Color renderbackgroundcolor = Color.BLACK;
@@ -958,7 +965,38 @@ public class CADApp extends AppHandlerPanel {
 	@Override public void mouseClicked(MouseEvent e) {}
 	@Override public void mouseEntered(MouseEvent e) {}
 	@Override public void mouseExited(MouseEvent e) {}
-	@Override public void drop(DropTargetDropEvent dtde) {}
+	
+	@SuppressWarnings("unchecked")
+	@Override public void drop(DropTargetDropEvent dtde) {
+		dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
+		Transferable dtt = dtde.getTransferable();
+        try {
+            if ((dtt!=null)&&(dtt.isDataFlavorSupported(DataFlavor.javaFileListFlavor))) {
+				List<File> files = (List<File>)dtt.getTransferData(DataFlavor.javaFileListFlavor);
+                for (Iterator<File> i=files.iterator();i.hasNext();) {
+                	File file = i.next();
+                	String filepath = file.getPath();
+                	String filename = file.getName();
+                	if (UtilLib.isImageFilename(filename)) {
+	                    VolatileImage fileimage = UtilLib.loadImage(filepath, false);
+						this.drawmat = this.drawmat.copy();
+						this.drawmat.fileimage = fileimage;
+						this.drawmat.snapimage = fileimage.getSnapshot();
+                	} else if (UtilLib.isModelFilename(filename)) {
+                		if (filename.toLowerCase().endsWith(".obj")) {
+                			FileFilter loadfileformat = new OBJFileFilter();
+        					Entity loadentity = UtilLib.loadModelFormat(filepath, loadfileformat, false);
+        					this.entitybuffer = loadentity.childlist;
+                		} else if (filename.toLowerCase().endsWith(".stl")) {
+                			FileFilter loadfileformat = new STLFileFilter();
+        					Entity loadentity = UtilLib.loadModelFormat(filepath, loadfileformat, false);
+        					this.entitybuffer = loadentity.childlist;
+                		}
+                	}
+                }
+            }
+        } catch (Exception ex){ex.printStackTrace();}
+	}
 
 	private class EntityListUpdater extends Thread {
 		private static boolean entitylistupdaterrunning = false;
