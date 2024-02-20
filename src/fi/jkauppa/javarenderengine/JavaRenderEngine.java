@@ -24,7 +24,6 @@ import java.awt.event.MouseWheelListener;
 import java.awt.image.VolatileImage;
 import java.io.File;
 
-import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
@@ -64,7 +63,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.6.7");
+		this.setTitle("Java Render Engine v2.6.8");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -580,19 +579,17 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 			//TODO <tbd>
 		}else if (e.getKeyCode()==KeyEvent.VK_F12) {
 			System.out.println("JavaRenderEngine: main: keyPressed: VK_F12");
+			VolatileImage componentimage = this.activeapp.gc.createCompatibleVolatileImage(this.activeapp.getWidth(),this.activeapp.getHeight(), Transparency.OPAQUE);
+			Graphics2D gfx = componentimage.createGraphics();
+			this.activeapp.paintComponent(gfx);
+			gfx.dispose();
 			File screenshotfile = new File("screenshot1.png");
 			int screenshotnum = 1;
 			while (screenshotfile.exists()) {
 				screenshotnum += 1;
 				screenshotfile = new File("screenshot"+screenshotnum+".png");
 			}
-			VolatileImage componentimage = this.activeapp.gc.createCompatibleVolatileImage(this.activeapp.getWidth(),this.activeapp.getHeight(), Transparency.OPAQUE);
-			Graphics2D gfx = componentimage.createGraphics();
-			this.activeapp.paintComponent(gfx);
-			gfx.dispose();
-			try {
-				ImageIO.write(componentimage.getSnapshot(), "PNG", screenshotfile);
-			} catch (Exception ex) {ex.printStackTrace();}
+			UtilLib.saveImageFormat(screenshotfile.getPath(), componentimage, new UtilLib.ImageFileFilters.PNGFileFilter());
 		}else {
 			if (this.activeapp!=null) {this.activeapp.keyPressed(e);}
 		}
