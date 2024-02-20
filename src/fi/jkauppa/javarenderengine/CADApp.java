@@ -68,6 +68,7 @@ public class CADApp extends AppHandlerPanel {
 	private final Rotation defaultcamrot = new Rotation(0.0f, 0.0f, 0.0f);
 	private Position drawstartpos = new Position(0,0,0);
 	private Position editpos = new Position(0.0f,0.0f,0.0f);
+	private Position mousepos = this.editpos;
 	private Position[] campos = this.defaultcampos;
 	private Rotation camrot = this.defaultcamrot;
 	private Matrix cameramat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
@@ -173,6 +174,7 @@ public class CADApp extends AppHandlerPanel {
 		Matrix camrotmat = MathLib.rotationMatrixLookHorizontalRoll(this.camrot);
 		Direction[] camlookdirs = MathLib.projectedCameraDirections(camrotmat);
 		Position[] editposa = MathLib.translate(this.campos, camlookdirs[0], this.defaultcamdist);
+		this.mousepos = MathLib.cameraPlanePosition(this.editpos, this.mouselocationx, this.mouselocationy, this.getWidth(), this.getHeight(), this.snaplinemode, this.gridstep, this.cameramat);
 		this.editpos = editposa[0];
 		this.cameramat = camrotmat;
 		this.camdirs = camlookdirs;
@@ -654,7 +656,24 @@ public class CADApp extends AppHandlerPanel {
     				(new EntityListUpdater()).start();
     			}
     		} else if (this.entitybuffer!=null) {
-    			//TODO add floating selection entity at cursor plane vertex position
+				Entity[] copyentitybuffer = new Entity[this.entitybuffer.childlist.length];
+				for (int i=0;i<this.entitybuffer.childlist.length;i++) {
+        			copyentitybuffer[i] = this.entitybuffer.childlist[i].translate(this.mousepos);
+        		}
+				Line[] copyentitybufferlinelist = new Line[this.entitybuffer.linelist.length];
+				for (int i=0;i<this.entitybuffer.linelist.length;i++) {
+					copyentitybufferlinelist[i] = this.entitybuffer.linelist[i].translate(this.mousepos);
+				}
+				if (this.entitylist!=null) {
+					Entity[] copyentitylist = Arrays.copyOf(this.entitylist, this.entitylist.length+copyentitybuffer.length);
+					for (int i=0;i<copyentitybuffer.length;i++) {
+						copyentitylist[this.entitylist.length+i] = copyentitybuffer[i];
+					}
+					this.entitylist = copyentitylist;
+				} else {
+					this.entitylist = copyentitybuffer;
+				}
+				this.linelisttree.addAll(Arrays.asList(copyentitybufferlinelist));
     		} else {
 		    	Triangle mousetriangle = null;
 	    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
@@ -1017,14 +1036,13 @@ public class CADApp extends AppHandlerPanel {
 			if (!RenderViewUpdater.renderupdaterrunning) {
 				RenderViewUpdater.renderupdaterrunning = true;
 				int bounces = 0;
-        		Position mousepos = MathLib.cameraPlanePosition(CADApp.this.editpos, CADApp.this.mouselocationx, CADApp.this.mouselocationy, CADApp.this.getWidth(), CADApp.this.getHeight(), CADApp.this.snaplinemode, CADApp.this.gridstep, CADApp.this.cameramat);
 				if (CADApp.this.polygonfillmode==1) {
 					Line[] linelist = CADApp.this.linelisttree.toArray(new Line[CADApp.this.linelisttree.size()]);
 					RenderView drawrenderview = RenderLib.renderProjectedLineViewHardware(CADApp.this.campos[0], linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, true, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					if (CADApp.this.entitybuffer!=null) {
 						Line[] copyentitybufferlinelist = new Line[CADApp.this.entitybuffer.linelist.length];
 						for (int i=0;i<CADApp.this.entitybuffer.linelist.length;i++) {
-							copyentitybufferlinelist[i] = CADApp.this.entitybuffer.linelist[i].translate(mousepos);
+							copyentitybufferlinelist[i] = CADApp.this.entitybuffer.linelist[i].translate(CADApp.this.mousepos);
 						}
 						RenderView entitybufferview = RenderLib.renderProjectedLineViewHardware(CADApp.this.campos[0], copyentitybufferlinelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, false, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 						Graphics2D viewgfx = drawrenderview.renderimage.createGraphics();
@@ -1040,7 +1058,7 @@ public class CADApp extends AppHandlerPanel {
 					if (CADApp.this.entitybuffer!=null) {
 						Entity[] copyentitybuffer = new Entity[CADApp.this.entitybuffer.childlist.length];
 						for (int i=0;i<CADApp.this.entitybuffer.childlist.length;i++) {
-		        			copyentitybuffer[i] = CADApp.this.entitybuffer.childlist[i].translate(mousepos);
+		        			copyentitybuffer[i] = CADApp.this.entitybuffer.childlist[i].translate(CADApp.this.mousepos);
 		        		}
 						RenderView entitybufferview = RenderLib.renderProjectedView(CADApp.this.campos[0], copyentitybuffer, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 						Graphics2D viewgfx = drawrenderview.renderimage.createGraphics();
@@ -1056,7 +1074,7 @@ public class CADApp extends AppHandlerPanel {
 					if (CADApp.this.entitybuffer!=null) {
 						Entity[] copyentitybuffer = new Entity[CADApp.this.entitybuffer.childlist.length];
 						for (int i=0;i<CADApp.this.entitybuffer.childlist.length;i++) {
-		        			copyentitybuffer[i] = CADApp.this.entitybuffer.childlist[i].translate(mousepos);
+		        			copyentitybuffer[i] = CADApp.this.entitybuffer.childlist[i].translate(CADApp.this.mousepos);
 		        		}
 						RenderView entitybufferview = RenderLib.renderProjectedView(CADApp.this.campos[0], copyentitybuffer, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 2, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 						Graphics2D viewgfx = drawrenderview.renderimage.createGraphics();
