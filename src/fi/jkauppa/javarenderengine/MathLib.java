@@ -1077,6 +1077,44 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static Tetrahedron[] translate(Tetrahedron[] vtetra, Position vpos) {
+		Tetrahedron[] k = null;
+		if ((vtetra!=null)&&(vpos!=null)) {
+			k = new Tetrahedron[vtetra.length];
+			for (int n=0;n<vtetra.length;n++) {
+				k[n] = vtetra[n].copy();
+				k[n].pos1.x = vtetra[n].pos1.x+vpos.x;
+				k[n].pos1.y = vtetra[n].pos1.y+vpos.y;
+				k[n].pos1.z = vtetra[n].pos1.z+vpos.z;
+				k[n].pos2.x = vtetra[n].pos2.x+vpos.x;
+				k[n].pos2.y = vtetra[n].pos2.y+vpos.y;
+				k[n].pos2.z = vtetra[n].pos2.z+vpos.z;
+				k[n].pos3.x = vtetra[n].pos3.x+vpos.x;
+				k[n].pos3.y = vtetra[n].pos3.y+vpos.y;
+				k[n].pos3.z = vtetra[n].pos3.z+vpos.z;
+				k[n].pos4.x = vtetra[n].pos4.x+vpos.x;
+				k[n].pos4.y = vtetra[n].pos4.y+vpos.y;
+				k[n].pos4.z = vtetra[n].pos4.z+vpos.z;
+			}
+		}
+		return k;
+	}
+	public static AxisAlignedBoundingBox[] translate(AxisAlignedBoundingBox[] vaabb, Position vpos) {
+		AxisAlignedBoundingBox[] k = null;
+		if ((vaabb!=null)&&(vpos!=null)) {
+			k = new AxisAlignedBoundingBox[vaabb.length];
+			for (int n=0;n<vaabb.length;n++) {
+				k[n] = vaabb[n].copy();
+				k[n].x1 = vaabb[n].x1+vpos.x;
+				k[n].y1 = vaabb[n].y1+vpos.y;
+				k[n].z1 = vaabb[n].z1+vpos.z;
+				k[n].x2 = vaabb[n].x2+vpos.x;
+				k[n].y2 = vaabb[n].y2+vpos.y;
+				k[n].z2 = vaabb[n].z2+vpos.z;
+			}
+		}
+		return k;
+	}
 	public static Position[] translate(Position[] vpoint, Direction vdir, double mult) {
 		Position[] k = null;
 		if ((vpoint!=null)&&(vdir!=null)) {
@@ -1175,6 +1213,44 @@ public class MathLib {
 				k[n].pos4.x = vquad[n].pos4.x+mult*vdir.dx;
 				k[n].pos4.y = vquad[n].pos4.y+mult*vdir.dy;
 				k[n].pos4.z = vquad[n].pos4.z+mult*vdir.dz;
+			}
+		}
+		return k;
+	}
+	public static Tetrahedron[] translate(Tetrahedron[] vtetra, Direction vdir, double mult) {
+		Tetrahedron[] k = null;
+		if ((vtetra!=null)&&(vdir!=null)) {
+			k = new Tetrahedron[vtetra.length];
+			for (int n=0;n<vtetra.length;n++) {
+				k[n] = vtetra[n].copy();
+				k[n].pos1.x = vtetra[n].pos1.x+mult*vdir.dx;
+				k[n].pos1.y = vtetra[n].pos1.y+mult*vdir.dy;
+				k[n].pos1.z = vtetra[n].pos1.z+mult*vdir.dz;
+				k[n].pos2.x = vtetra[n].pos2.x+mult*vdir.dx;
+				k[n].pos2.y = vtetra[n].pos2.y+mult*vdir.dy;
+				k[n].pos2.z = vtetra[n].pos2.z+mult*vdir.dz;
+				k[n].pos3.x = vtetra[n].pos3.x+mult*vdir.dx;
+				k[n].pos3.y = vtetra[n].pos3.y+mult*vdir.dy;
+				k[n].pos3.z = vtetra[n].pos3.z+mult*vdir.dz;
+				k[n].pos4.x = vtetra[n].pos4.x+mult*vdir.dx;
+				k[n].pos4.y = vtetra[n].pos4.y+mult*vdir.dy;
+				k[n].pos4.z = vtetra[n].pos4.z+mult*vdir.dz;
+			}
+		}
+		return k;
+	}
+	public static AxisAlignedBoundingBox[] translate(AxisAlignedBoundingBox[] vaabb, Direction vdir, double mult) {
+		AxisAlignedBoundingBox[] k = null;
+		if ((vaabb!=null)&&(vdir!=null)) {
+			k = new AxisAlignedBoundingBox[vaabb.length];
+			for (int n=0;n<vaabb.length;n++) {
+				k[n] = vaabb[n].copy();
+				k[n].x1 = vaabb[n].x1+mult*vdir.dx;
+				k[n].y1 = vaabb[n].y1+mult*vdir.dy;
+				k[n].z1 = vaabb[n].z1+mult*vdir.dz;
+				k[n].x2 = vaabb[n].x2+mult*vdir.dx;
+				k[n].y2 = vaabb[n].y2+mult*vdir.dy;
+				k[n].z2 = vaabb[n].z2+mult*vdir.dz;
 			}
 		}
 		return k;
