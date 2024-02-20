@@ -655,26 +655,7 @@ public class CADApp extends AppHandlerPanel {
     				(new EntityListUpdater()).start();
     			}
     		} else if (this.entitybuffer!=null) {
-        		Position mousepos = MathLib.cameraPlanePosition(this.editpos, this.mouselocationx, this.mouselocationy, this.getWidth(), this.getHeight(), this.snaplinemode, this.gridstep, this.cameramat);
-        		Entity[] newentitylist = Arrays.copyOf(this.entitylist, this.entitylist.length+this.entitybuffer.length);
-        		Entity[] copyentitybuffer = Arrays.copyOf(this.entitybuffer, this.entitybuffer.length);
-        		for (int j=0;j<copyentitybuffer.length;j++) {
-        			copyentitybuffer[j] = copyentitybuffer[j].copy();
-            		for (int i=0;i<copyentitybuffer[j].trianglelist.length;i++) {
-            			copyentitybuffer[j].trianglelist[i] = copyentitybuffer[j].trianglelist[i].copy();
-            			Position[] pos1 = {copyentitybuffer[j].trianglelist[i].pos1};
-            			Position[] pos2 = {copyentitybuffer[j].trianglelist[i].pos2};
-            			Position[] pos3 = {copyentitybuffer[j].trianglelist[i].pos3};
-            			Position[] pos1t = MathLib.translate(pos1, mousepos);
-            			Position[] pos2t = MathLib.translate(pos2, mousepos);
-            			Position[] pos3t = MathLib.translate(pos3, mousepos);
-            			copyentitybuffer[j].trianglelist[i].pos1 = pos1t[0];
-            			copyentitybuffer[j].trianglelist[i].pos2 = pos2t[0];
-            			copyentitybuffer[j].trianglelist[i].pos3 = pos3t[0];
-            		}
-            		newentitylist[this.entitylist.length+j] = copyentitybuffer[j];
-        		}
-        		this.entitylist = newentitylist;
+    			//TODO add floating selection entity at cursor plane vertex position
     		} else {
 		    	Triangle mousetriangle = null;
 	    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
@@ -1047,7 +1028,18 @@ public class CADApp extends AppHandlerPanel {
 				} else if (CADApp.this.polygonfillmode==2) { 
 					RenderView view = RenderLib.renderProjectedView(CADApp.this.campos[0], CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					if (CADApp.this.entitybuffer!=null) {
-						RenderView entitybufferview = RenderLib.renderProjectedView(CADApp.this.campos[0], CADApp.this.entitybuffer, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+		        		//Position mousepos = MathLib.cameraPlanePosition(CADApp.this.editpos, CADApp.this.mouselocationx, CADApp.this.mouselocationy, CADApp.this.getWidth(), CADApp.this.getHeight(), CADApp.this.snaplinemode, CADApp.this.gridstep, CADApp.this.cameramat);
+						//Entity[] copyentitybuffer = new Entity[CADApp.this.entitybuffer.length];
+		        		//for (int j=0;j<CADApp.this.entitybuffer.length;j++) {
+		        		//	copyentitybuffer[j] = CADApp.this.entitybuffer[j].translate(mousepos);
+		        		//}
+						Entity[] copyentitybuffer = new Entity[CADApp.this.entitybuffer.length];
+		        		for (int i=0;i<CADApp.this.entitybuffer.length;i++) {
+		        			copyentitybuffer[i] = CADApp.this.entitybuffer[i].translate(CADApp.this.editpos);
+		        			//copyentitybuffer[i] = CADApp.this.entitybuffer[i].translate(new Position(0.0f,0.0f,0.0f));
+		        			//copyentitybuffer[i] = CADApp.this.entitybuffer[i].copy();
+		        		}
+						RenderView entitybufferview = RenderLib.renderProjectedView(CADApp.this.campos[0], copyentitybuffer, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 						Graphics2D viewgfx = view.renderimage.createGraphics();
 						viewgfx.setComposite(AlphaComposite.SrcOver);
 						viewgfx.drawImage(entitybufferview.renderimage, 0, 0, null);
