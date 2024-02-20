@@ -890,10 +890,10 @@ public class CADApp extends AppHandlerPanel {
 				}
 	    	}
 	    }
-	    int onmaskaltdown = MouseEvent.ALT_DOWN_MASK;
-	    int offmaskaltdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
-	    boolean mousewheelaltdown = ((e.getModifiersEx() & (onmaskaltdown | offmaskaltdown)) == onmaskaltdown);
-	    if (mousewheelaltdown) {
+	    int onmaskctrlshiftdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
+	    int offmaskctrlshiftdown = MouseEvent.ALT_DOWN_MASK;
+	    boolean mousewheelctrlshiftdown = ((e.getModifiersEx() & (onmaskctrlshiftdown | offmaskctrlshiftdown)) == onmaskctrlshiftdown);
+	    if (mousewheelctrlshiftdown) {
 	    	if (this.texturemode) {
 		    	Triangle mousetriangle = null;
 	    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
