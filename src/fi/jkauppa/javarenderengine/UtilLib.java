@@ -88,6 +88,13 @@ public class UtilLib {
 		} catch (Exception ex) {ex.printStackTrace();}
     }
 
+    public static boolean isImageFilename(String filename) {
+    	String filenamelower = filename.toLowerCase();
+    	return (filenamelower.endsWith(".png"))||(filenamelower.endsWith(".jpeg")||(filenamelower.endsWith(".jpg"))||
+    			(filenamelower.endsWith(".tif")||(filenamelower.endsWith(".tiff"))||(filenamelower.endsWith(".bmp"))||
+    					(filenamelower.endsWith(".wbmp"))||(filenamelower.endsWith(".gif"))));
+    }
+    
     public static JFileChooser createModelFileChooser() {
     	JFileChooser filechooser = new JFileChooser();
     	ModelFileFilters.OBJFileFilter objfilefilter = new ModelFileFilters.OBJFileFilter();
@@ -120,6 +127,11 @@ public class UtilLib {
 			loadentity = ModelLib.loadOBJFileEntity(filename, loadresourcefromjar);
 		}
 		return loadentity;
+    }
+
+    public static boolean isModelFilename(String filename) {
+    	String filenamelower = filename.toLowerCase();
+    	return (filenamelower.endsWith(".obj"))||(filenamelower.endsWith(".stl"));
     }
     
     public static JFileChooser createImageFileChooser() {
