@@ -62,8 +62,9 @@ DRAG-LMB              -- material drag triangle paint
 SHIFT-LMB             -- material picker at cursor
 CTRL-DRAG-LMB         -- move line vertex
 ALT-DRAG-LMB          -- vector line drag draw (in vector line mode)
-PERIOD-LMB            -- remove line vertex
-DRAG-RMB              -- move object (minmax)
+PERIOD-DRAG-LMB       -- remove line vertex or triangle surface
+PERIOD-DRAG-RMB       -- remove entity
+DRAG-RMB              -- move entity (minmax)
 SHIFT                 -- toggle snap to grid/vertex, drag multiple vertex, and speed movement
 DRAG-CMB              -- camera location view position sideways pan (minmax)
 CTRL-DRAG-CMB         -- change forward looking movement direction (looping)
