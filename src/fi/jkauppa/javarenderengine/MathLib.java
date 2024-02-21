@@ -496,12 +496,12 @@ public class MathLib {
 		if ((vpos!=null)&&(vdir!=null)&&(vaabb!=null)) {
 			k = new Line[vdir.length][vaabb.length];
 			for (int m=0;m<vaabb.length;m++) {
-				double vaabbxmin=vaabb[m].x1; double vaabbxmax=vaabb[m].x2;
-				if (vaabbxmin>vaabbxmax) {vaabbxmin=vaabb[m].x2;vaabbxmax=vaabb[m].x1;}
-				double vaabbymin=vaabb[m].y1; double vaabbymax=vaabb[m].y2;
-				if (vaabbymin>vaabbymax) {vaabbymin=vaabb[m].y2;vaabbymax=vaabb[m].y1;}
-				double vaabbzmin=vaabb[m].z1;double vaabbzmax=vaabb[m].z2;
-				if (vaabbzmin>vaabbzmax) {vaabbzmin=vaabb[m].z2;vaabbzmax=vaabb[m].z1;}
+				double vaabbxmin=vaabb[m].pos1.x; double vaabbxmax=vaabb[m].pos2.x;
+				if (vaabbxmin>vaabbxmax) {vaabbxmin=vaabb[m].pos2.x;vaabbxmax=vaabb[m].pos1.x;}
+				double vaabbymin=vaabb[m].pos1.y; double vaabbymax=vaabb[m].pos2.y;
+				if (vaabbymin>vaabbymax) {vaabbymin=vaabb[m].pos2.y;vaabbymax=vaabb[m].pos1.y;}
+				double vaabbzmin=vaabb[m].pos1.z;double vaabbzmax=vaabb[m].pos2.z;
+				if (vaabbzmin>vaabbzmax) {vaabbzmin=vaabb[m].pos2.z;vaabbzmax=vaabb[m].pos1.z;}
 				Position vaabbpos1 = new Position(vaabbxmin,vaabbymin,vaabbzmin);
 				Position vaabbpos2 = new Position(vaabbxmax,vaabbymax,vaabbzmax);
 				Direction[] xyzplanenormals = {new Direction(1,0,0),new Direction(0,1,0),new Direction(0,0,1)};
@@ -549,18 +549,18 @@ public class MathLib {
 		if ((vpos!=null)&&(vdir!=null)&&(vcub!=null)) {
 			k = new Line[vdir.length][vcub.length];
 			for (int m=0;m<vcub.length;m++) {
-				Triangle vaabbtri1 = new Triangle(vcub[m].poslft,vcub[m].poslbt,vcub[m].posrft);
-				Triangle vaabbtri2 = new Triangle(vcub[m].posrbt,vcub[m].poslbt,vcub[m].posrft);
-				Triangle vaabbtri3 = new Triangle(vcub[m].poslfb,vcub[m].poslbb,vcub[m].posrfb);
-				Triangle vaabbtri4 = new Triangle(vcub[m].posrbb,vcub[m].poslbb,vcub[m].posrfb);
-				Triangle vaabbtri5 = new Triangle(vcub[m].poslft,vcub[m].poslbt,vcub[m].poslfb);
-				Triangle vaabbtri6 = new Triangle(vcub[m].poslbb,vcub[m].poslbt,vcub[m].poslfb);
-				Triangle vaabbtri7 = new Triangle(vcub[m].posrft,vcub[m].posrbt,vcub[m].posrfb);
-				Triangle vaabbtri8 = new Triangle(vcub[m].posrbb,vcub[m].posrbt,vcub[m].posrfb);
-				Triangle vaabbtri9 = new Triangle(vcub[m].poslft,vcub[m].posrft,vcub[m].poslfb);
-				Triangle vaabbtri10 = new Triangle(vcub[m].posrfb,vcub[m].posrft,vcub[m].poslfb);
-				Triangle vaabbtri11 = new Triangle(vcub[m].poslbt,vcub[m].posrbt,vcub[m].poslbb);
-				Triangle vaabbtri12 = new Triangle(vcub[m].posrbb,vcub[m].posrbt,vcub[m].poslbb);
+				Triangle vaabbtri1 = new Triangle(vcub[m].pos1,vcub[m].pos2,vcub[m].pos3);
+				Triangle vaabbtri2 = new Triangle(vcub[m].pos1,vcub[m].pos3,vcub[m].pos4);
+				Triangle vaabbtri3 = new Triangle(vcub[m].pos5,vcub[m].pos6,vcub[m].pos7);
+				Triangle vaabbtri4 = new Triangle(vcub[m].pos5,vcub[m].pos7,vcub[m].pos8);
+				Triangle vaabbtri5 = new Triangle(vcub[m].pos1,vcub[m].pos2,vcub[m].pos7);
+				Triangle vaabbtri6 = new Triangle(vcub[m].pos1,vcub[m].pos7,vcub[m].pos8);
+				Triangle vaabbtri7 = new Triangle(vcub[m].pos3,vcub[m].pos4,vcub[m].pos5);
+				Triangle vaabbtri8 = new Triangle(vcub[m].pos3,vcub[m].pos5,vcub[m].pos6);
+				Triangle vaabbtri9 = new Triangle(vcub[m].pos1,vcub[m].pos4,vcub[m].pos5);
+				Triangle vaabbtri10 = new Triangle(vcub[m].pos1,vcub[m].pos5,vcub[m].pos8);
+				Triangle vaabbtri11 = new Triangle(vcub[m].pos2,vcub[m].pos3,vcub[m].pos6);
+				Triangle vaabbtri12 = new Triangle(vcub[m].pos2,vcub[m].pos6,vcub[m].pos7);
 				Triangle[] vaabbtrilist = {vaabbtri1,vaabbtri2,vaabbtri3,vaabbtri4,vaabbtri5,vaabbtri6,vaabbtri7,vaabbtri8,vaabbtri9,vaabbtri10,vaabbtri11,vaabbtri12};
 				Position[][] vaabbtrirayint = rayTriangleIntersection(vpos, vdir, vaabbtrilist);
 				for (int n=0;n<vaabbtrirayint.length;n++) {
@@ -810,7 +810,7 @@ public class MathLib {
 			k = new boolean[vpoint.length];
 			for (int i=0;i<vpoint.length;i++) {
 				k[i] = false;
-				if ((vpoint[i].x>=vaabb.x1)&&(vpoint[i].x<=vaabb.x2)&&(vpoint[i].y>=vaabb.y1)&&(vpoint[i].y<=vaabb.y2)&&(vpoint[i].z>=vaabb.z1)&&(vpoint[i].z<=vaabb.z2)) {
+				if ((vpoint[i].x>=vaabb.pos1.x)&&(vpoint[i].x<=vaabb.pos2.x)&&(vpoint[i].y>=vaabb.pos1.y)&&(vpoint[i].y<=vaabb.pos2.y)&&(vpoint[i].z>=vaabb.pos1.z)&&(vpoint[i].z<=vaabb.pos2.z)) {
 					k[i] = true;
 				}
 			}
@@ -907,6 +907,18 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static Coordinate[] matrixMultiply(Coordinate[] vcoord, Matrix vmat) {
+		Coordinate[] k = null;
+		if ((vcoord!=null)&&(vmat!=null)) {
+			k = new Coordinate[vcoord.length];
+			for (int n=0;n<vcoord.length;n++) {
+				k[n] = vcoord[n].copy();
+				k[n].u = vcoord[n].u*vmat.a11+vcoord[n].v*vmat.a12;
+				k[n].v = vcoord[n].u*vmat.a21+vcoord[n].v*vmat.a22;
+			}
+		}
+		return k;
+	}
 	public static Line[] matrixMultiply(Line[] vline, Matrix vmat) {
 		Line[] k = null;
 		if ((vline!=null)&&(vmat!=null)) {
@@ -955,6 +967,40 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static Cuboid[] matrixMultiply(Cuboid[] vcuboid, Matrix vmat) {
+		Cuboid[] k = null;
+		if ((vcuboid!=null)&&(vmat!=null)) {
+			k = new Cuboid[vcuboid.length];
+			for (int n=0;n<vcuboid.length;n++) {
+				k[n] = vcuboid[n].copy();
+				k[n].pos1.x = vcuboid[n].pos1.x*vmat.a11+vcuboid[n].pos1.y*vmat.a12+vcuboid[n].pos1.z*vmat.a13;
+				k[n].pos1.y = vcuboid[n].pos1.x*vmat.a21+vcuboid[n].pos1.y*vmat.a22+vcuboid[n].pos1.z*vmat.a23;
+				k[n].pos1.z = vcuboid[n].pos1.x*vmat.a31+vcuboid[n].pos1.y*vmat.a32+vcuboid[n].pos1.z*vmat.a33;
+				k[n].pos2.x = vcuboid[n].pos2.x*vmat.a11+vcuboid[n].pos2.y*vmat.a12+vcuboid[n].pos2.z*vmat.a13;
+				k[n].pos2.y = vcuboid[n].pos2.x*vmat.a21+vcuboid[n].pos2.y*vmat.a22+vcuboid[n].pos2.z*vmat.a23;
+				k[n].pos2.z = vcuboid[n].pos2.x*vmat.a31+vcuboid[n].pos2.y*vmat.a32+vcuboid[n].pos2.z*vmat.a33;
+				k[n].pos3.x = vcuboid[n].pos3.x*vmat.a11+vcuboid[n].pos3.y*vmat.a12+vcuboid[n].pos3.z*vmat.a13;
+				k[n].pos3.y = vcuboid[n].pos3.x*vmat.a21+vcuboid[n].pos3.y*vmat.a22+vcuboid[n].pos3.z*vmat.a23;
+				k[n].pos3.z = vcuboid[n].pos3.x*vmat.a31+vcuboid[n].pos3.y*vmat.a32+vcuboid[n].pos3.z*vmat.a33;
+				k[n].pos4.x = vcuboid[n].pos4.x*vmat.a11+vcuboid[n].pos4.y*vmat.a12+vcuboid[n].pos4.z*vmat.a13;
+				k[n].pos4.y = vcuboid[n].pos4.x*vmat.a21+vcuboid[n].pos4.y*vmat.a22+vcuboid[n].pos4.z*vmat.a23;
+				k[n].pos4.z = vcuboid[n].pos4.x*vmat.a31+vcuboid[n].pos4.y*vmat.a32+vcuboid[n].pos4.z*vmat.a33;
+				k[n].pos5.x = vcuboid[n].pos5.x*vmat.a11+vcuboid[n].pos5.y*vmat.a12+vcuboid[n].pos5.z*vmat.a13;
+				k[n].pos5.y = vcuboid[n].pos5.x*vmat.a21+vcuboid[n].pos5.y*vmat.a22+vcuboid[n].pos5.z*vmat.a23;
+				k[n].pos5.z = vcuboid[n].pos5.x*vmat.a31+vcuboid[n].pos5.y*vmat.a32+vcuboid[n].pos5.z*vmat.a33;
+				k[n].pos6.x = vcuboid[n].pos6.x*vmat.a11+vcuboid[n].pos6.y*vmat.a12+vcuboid[n].pos6.z*vmat.a13;
+				k[n].pos6.y = vcuboid[n].pos6.x*vmat.a21+vcuboid[n].pos6.y*vmat.a22+vcuboid[n].pos6.z*vmat.a23;
+				k[n].pos6.z = vcuboid[n].pos6.x*vmat.a31+vcuboid[n].pos6.y*vmat.a32+vcuboid[n].pos6.z*vmat.a33;
+				k[n].pos7.x = vcuboid[n].pos7.x*vmat.a11+vcuboid[n].pos7.y*vmat.a12+vcuboid[n].pos7.z*vmat.a13;
+				k[n].pos7.y = vcuboid[n].pos7.x*vmat.a21+vcuboid[n].pos7.y*vmat.a22+vcuboid[n].pos7.z*vmat.a23;
+				k[n].pos7.z = vcuboid[n].pos7.x*vmat.a31+vcuboid[n].pos7.y*vmat.a32+vcuboid[n].pos7.z*vmat.a33;
+				k[n].pos8.x = vcuboid[n].pos8.x*vmat.a11+vcuboid[n].pos8.y*vmat.a12+vcuboid[n].pos8.z*vmat.a13;
+				k[n].pos8.y = vcuboid[n].pos8.x*vmat.a21+vcuboid[n].pos8.y*vmat.a22+vcuboid[n].pos8.z*vmat.a23;
+				k[n].pos8.z = vcuboid[n].pos8.x*vmat.a31+vcuboid[n].pos8.y*vmat.a32+vcuboid[n].pos8.z*vmat.a33;
+			}
+		}
+		return k;
+	}
 	public static Quad[] matrixMultiply(Quad[] vquad, Matrix vmat) {
 		Quad[] k = null;
 		if ((vquad!=null)&&(vmat!=null)) {
@@ -973,6 +1019,22 @@ public class MathLib {
 				k[n].pos4.x = vquad[n].pos4.x*vmat.a11+vquad[n].pos4.y*vmat.a12+vquad[n].pos4.z*vmat.a13;
 				k[n].pos4.y = vquad[n].pos4.x*vmat.a21+vquad[n].pos4.y*vmat.a22+vquad[n].pos4.z*vmat.a23;
 				k[n].pos4.z = vquad[n].pos4.x*vmat.a31+vquad[n].pos4.y*vmat.a32+vquad[n].pos4.z*vmat.a33;
+			}
+		}
+		return k;
+	}
+	public static AxisAlignedBoundingBox[] matrixMultiply(AxisAlignedBoundingBox[] vaabb, Matrix vmat) {
+		AxisAlignedBoundingBox[] k = null;
+		if ((vaabb!=null)&&(vmat!=null)) {
+			k = new AxisAlignedBoundingBox[vaabb.length];
+			for (int n=0;n<vaabb.length;n++) {
+				k[n] = vaabb[n].copy();
+				k[n].pos1.x = vaabb[n].pos1.x*vmat.a11+vaabb[n].pos1.y*vmat.a12+vaabb[n].pos1.z*vmat.a13;
+				k[n].pos1.y = vaabb[n].pos1.x*vmat.a21+vaabb[n].pos1.y*vmat.a22+vaabb[n].pos1.z*vmat.a23;
+				k[n].pos1.z = vaabb[n].pos1.x*vmat.a31+vaabb[n].pos1.y*vmat.a32+vaabb[n].pos1.z*vmat.a33;
+				k[n].pos2.x = vaabb[n].pos2.x*vmat.a11+vaabb[n].pos2.y*vmat.a12+vaabb[n].pos2.z*vmat.a13;
+				k[n].pos2.y = vaabb[n].pos2.x*vmat.a21+vaabb[n].pos2.y*vmat.a22+vaabb[n].pos2.z*vmat.a23;
+				k[n].pos2.z = vaabb[n].pos2.x*vmat.a31+vaabb[n].pos2.y*vmat.a32+vaabb[n].pos2.z*vmat.a33;
 			}
 		}
 		return k;
@@ -999,6 +1061,18 @@ public class MathLib {
 				k[n].dx = vdir[n].dx+vpos.x;
 				k[n].dy = vdir[n].dy+vpos.y;
 				k[n].dz = vdir[n].dz+vpos.z;
+			}
+		}
+		return k;
+	}
+	public static Coordinate[] translate(Coordinate[] vcoord, Position vpos) {
+		Coordinate[] k = null;
+		if ((vcoord!=null)&&(vpos!=null)) {
+			k = new Coordinate[vcoord.length];
+			for (int n=0;n<vcoord.length;n++) {
+				k[n] = vcoord[n].copy();
+				k[n].u = vcoord[n].u+vpos.x;
+				k[n].v = vcoord[n].v+vpos.y;
 			}
 		}
 		return k;
@@ -1055,6 +1129,40 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static Cuboid[] translate(Cuboid[] vcuboid, Position vpos) {
+		Cuboid[] k = null;
+		if ((vcuboid!=null)&&(vpos!=null)) {
+			k = new Cuboid[vcuboid.length];
+			for (int n=0;n<vcuboid.length;n++) {
+				k[n] = vcuboid[n].copy();
+				k[n].pos1.x = vcuboid[n].pos1.x+vpos.x;
+				k[n].pos1.y = vcuboid[n].pos1.y+vpos.y;
+				k[n].pos1.z = vcuboid[n].pos1.z+vpos.z;
+				k[n].pos2.x = vcuboid[n].pos2.x+vpos.x;
+				k[n].pos2.y = vcuboid[n].pos2.y+vpos.y;
+				k[n].pos2.z = vcuboid[n].pos2.z+vpos.z;
+				k[n].pos3.x = vcuboid[n].pos3.x+vpos.x;
+				k[n].pos3.y = vcuboid[n].pos3.y+vpos.y;
+				k[n].pos3.z = vcuboid[n].pos3.z+vpos.z;
+				k[n].pos4.x = vcuboid[n].pos4.x+vpos.x;
+				k[n].pos4.y = vcuboid[n].pos4.y+vpos.y;
+				k[n].pos4.z = vcuboid[n].pos4.z+vpos.z;
+				k[n].pos5.x = vcuboid[n].pos5.x+vpos.x;
+				k[n].pos5.y = vcuboid[n].pos5.y+vpos.y;
+				k[n].pos5.z = vcuboid[n].pos5.z+vpos.z;
+				k[n].pos6.x = vcuboid[n].pos6.x+vpos.x;
+				k[n].pos6.y = vcuboid[n].pos6.y+vpos.y;
+				k[n].pos6.z = vcuboid[n].pos6.z+vpos.z;
+				k[n].pos7.x = vcuboid[n].pos7.x+vpos.x;
+				k[n].pos7.y = vcuboid[n].pos7.y+vpos.y;
+				k[n].pos7.z = vcuboid[n].pos7.z+vpos.z;
+				k[n].pos8.x = vcuboid[n].pos8.x+vpos.x;
+				k[n].pos8.y = vcuboid[n].pos8.y+vpos.y;
+				k[n].pos8.z = vcuboid[n].pos8.z+vpos.z;
+			}
+		}
+		return k;
+	}
 	public static Quad[] translate(Quad[] vquad, Position vpos) {
 		Quad[] k = null;
 		if ((vquad!=null)&&(vpos!=null)) {
@@ -1105,12 +1213,12 @@ public class MathLib {
 			k = new AxisAlignedBoundingBox[vaabb.length];
 			for (int n=0;n<vaabb.length;n++) {
 				k[n] = vaabb[n].copy();
-				k[n].x1 = vaabb[n].x1+vpos.x;
-				k[n].y1 = vaabb[n].y1+vpos.y;
-				k[n].z1 = vaabb[n].z1+vpos.z;
-				k[n].x2 = vaabb[n].x2+vpos.x;
-				k[n].y2 = vaabb[n].y2+vpos.y;
-				k[n].z2 = vaabb[n].z2+vpos.z;
+				k[n].pos1.x = vaabb[n].pos1.x+vpos.x;
+				k[n].pos1.y = vaabb[n].pos1.y+vpos.y;
+				k[n].pos1.z = vaabb[n].pos1.z+vpos.z;
+				k[n].pos2.x = vaabb[n].pos2.x+vpos.x;
+				k[n].pos2.y = vaabb[n].pos2.y+vpos.y;
+				k[n].pos2.z = vaabb[n].pos2.z+vpos.z;
 			}
 		}
 		return k;
@@ -1137,6 +1245,18 @@ public class MathLib {
 				k[n].dx = vvec[n].dx+mult*vdir.dx;
 				k[n].dy = vvec[n].dy+mult*vdir.dy;
 				k[n].dz = vvec[n].dz+mult*vdir.dz;
+			}
+		}
+		return k;
+	}
+	public static Coordinate[] translate(Coordinate[] vcoord, Direction vdir, double mult) {
+		Coordinate[] k = null;
+		if ((vcoord!=null)&&(vdir!=null)) {
+			k = new Coordinate[vcoord.length];
+			for (int n=0;n<vcoord.length;n++) {
+				k[n] = vcoord[n].copy();
+				k[n].u = vcoord[n].u+mult*vdir.dx;
+				k[n].v = vcoord[n].v+mult*vdir.dy;
 			}
 		}
 		return k;
@@ -1195,6 +1315,40 @@ public class MathLib {
 		}
 		return k;
 	}
+	public static Cuboid[] translate(Cuboid[] vcuboid, Direction vdir, double mult) {
+		Cuboid[] k = null;
+		if ((vcuboid!=null)&&(vdir!=null)) {
+			k = new Cuboid[vcuboid.length];
+			for (int n=0;n<vcuboid.length;n++) {
+				k[n] = vcuboid[n].copy();
+				k[n].pos1.x = vcuboid[n].pos1.x+mult*vdir.dx;
+				k[n].pos1.y = vcuboid[n].pos1.y+mult*vdir.dy;
+				k[n].pos1.z = vcuboid[n].pos1.z+mult*vdir.dz;
+				k[n].pos2.x = vcuboid[n].pos2.x+mult*vdir.dx;
+				k[n].pos2.y = vcuboid[n].pos2.y+mult*vdir.dy;
+				k[n].pos2.z = vcuboid[n].pos2.z+mult*vdir.dz;
+				k[n].pos3.x = vcuboid[n].pos3.x+mult*vdir.dx;
+				k[n].pos3.y = vcuboid[n].pos3.y+mult*vdir.dy;
+				k[n].pos3.z = vcuboid[n].pos3.z+mult*vdir.dz;
+				k[n].pos4.x = vcuboid[n].pos4.x+mult*vdir.dx;
+				k[n].pos4.y = vcuboid[n].pos4.y+mult*vdir.dy;
+				k[n].pos4.z = vcuboid[n].pos4.z+mult*vdir.dz;
+				k[n].pos5.x = vcuboid[n].pos5.x+mult*vdir.dx;
+				k[n].pos5.y = vcuboid[n].pos5.y+mult*vdir.dy;
+				k[n].pos5.z = vcuboid[n].pos5.z+mult*vdir.dz;
+				k[n].pos6.x = vcuboid[n].pos6.x+mult*vdir.dx;
+				k[n].pos6.y = vcuboid[n].pos6.y+mult*vdir.dy;
+				k[n].pos6.z = vcuboid[n].pos6.z+mult*vdir.dz;
+				k[n].pos7.x = vcuboid[n].pos7.x+mult*vdir.dx;
+				k[n].pos7.y = vcuboid[n].pos7.y+mult*vdir.dy;
+				k[n].pos7.z = vcuboid[n].pos7.z+mult*vdir.dz;
+				k[n].pos8.x = vcuboid[n].pos8.x+mult*vdir.dx;
+				k[n].pos8.y = vcuboid[n].pos8.y+mult*vdir.dy;
+				k[n].pos8.z = vcuboid[n].pos8.z+mult*vdir.dz;
+			}
+		}
+		return k;
+	}
 	public static Quad[] translate(Quad[] vquad, Direction vdir, double mult) {
 		Quad[] k = null;
 		if ((vquad!=null)&&(vdir!=null)) {
@@ -1245,16 +1399,28 @@ public class MathLib {
 			k = new AxisAlignedBoundingBox[vaabb.length];
 			for (int n=0;n<vaabb.length;n++) {
 				k[n] = vaabb[n].copy();
-				k[n].x1 = vaabb[n].x1+mult*vdir.dx;
-				k[n].y1 = vaabb[n].y1+mult*vdir.dy;
-				k[n].z1 = vaabb[n].z1+mult*vdir.dz;
-				k[n].x2 = vaabb[n].x2+mult*vdir.dx;
-				k[n].y2 = vaabb[n].y2+mult*vdir.dy;
-				k[n].z2 = vaabb[n].z2+mult*vdir.dz;
+				k[n].pos1.x = vaabb[n].pos1.x+mult*vdir.dx;
+				k[n].pos1.y = vaabb[n].pos1.y+mult*vdir.dy;
+				k[n].pos1.z = vaabb[n].pos1.z+mult*vdir.dz;
+				k[n].pos2.x = vaabb[n].pos2.x+mult*vdir.dx;
+				k[n].pos2.y = vaabb[n].pos2.y+mult*vdir.dy;
+				k[n].pos2.z = vaabb[n].pos2.z+mult*vdir.dz;
 			}
 		}
 		return k;
 	}
+	
+	public static Position[] rotateAroundAxisPos(Position[] vpos, Position pos, Direction axis, double axisr) {
+		Matrix rotmat = rotationMatrixAroundAxis(axis, axisr);
+		Position zeropos = new Position(0.0f,0.0f,0.0f);
+		Position[] posa = {pos};
+		Direction[] posdir = vectorFromPoints(zeropos, posa);
+		Position[] vposrot = translate(vpos, posdir[0], -1.0f);
+		vposrot = matrixMultiply(vposrot, rotmat);
+		vposrot = translate(vposrot, posdir[0], 1.0f);
+		return vposrot;
+	}
+	
 	public static Matrix rotationMatrix(double xaxisr, double yaxisr, double zaxisr) {
 		Matrix xrot = new Matrix(1,0,0,0,cosd(xaxisr),-sind(xaxisr),0,sind(xaxisr),cosd(xaxisr));
 		Matrix yrot = new Matrix(cosd(yaxisr),0,sind(yaxisr),0,1,0,-sind(yaxisr),0,cosd(yaxisr));
@@ -1524,17 +1690,17 @@ public class MathLib {
 		if (entitylist!=null) {
 			for (int j=0;j<entitylist.length;j++) {
 				Entity[] newchildren = {new Entity(),new Entity(),new Entity(),new Entity(),new Entity(),new Entity(),new Entity(),new Entity()}; 
-				double xlimit = (entitylist[j].aabbboundaryvolume.x1+entitylist[j].aabbboundaryvolume.x2)/2.0f;
-				double ylimit = (entitylist[j].aabbboundaryvolume.y1+entitylist[j].aabbboundaryvolume.y2)/2.0f;
-				double zlimit = (entitylist[j].aabbboundaryvolume.z1+entitylist[j].aabbboundaryvolume.z2)/2.0f;
-				newchildren[0].aabbboundaryvolume = new AxisAlignedBoundingBox(entitylist[j].aabbboundaryvolume.x1,entitylist[j].aabbboundaryvolume.y1,entitylist[j].aabbboundaryvolume.z1,xlimit,ylimit,zlimit);
-				newchildren[1].aabbboundaryvolume = new AxisAlignedBoundingBox(xlimit,entitylist[j].aabbboundaryvolume.y1,entitylist[j].aabbboundaryvolume.z1,entitylist[j].aabbboundaryvolume.x2,ylimit,zlimit);
-				newchildren[2].aabbboundaryvolume = new AxisAlignedBoundingBox(entitylist[j].aabbboundaryvolume.x1,ylimit,entitylist[j].aabbboundaryvolume.z1,xlimit,entitylist[j].aabbboundaryvolume.y2,zlimit);
-				newchildren[3].aabbboundaryvolume = new AxisAlignedBoundingBox(xlimit,ylimit,entitylist[j].aabbboundaryvolume.z1,entitylist[j].aabbboundaryvolume.x2,entitylist[j].aabbboundaryvolume.y2,zlimit);
-				newchildren[4].aabbboundaryvolume = new AxisAlignedBoundingBox(entitylist[j].aabbboundaryvolume.x1,entitylist[j].aabbboundaryvolume.y1,zlimit,xlimit,ylimit,entitylist[j].aabbboundaryvolume.z2);
-				newchildren[5].aabbboundaryvolume = new AxisAlignedBoundingBox(xlimit,entitylist[j].aabbboundaryvolume.y1,zlimit,entitylist[j].aabbboundaryvolume.x2,ylimit,entitylist[j].aabbboundaryvolume.z2);
-				newchildren[6].aabbboundaryvolume = new AxisAlignedBoundingBox(entitylist[j].aabbboundaryvolume.x1,ylimit,zlimit,xlimit,entitylist[j].aabbboundaryvolume.y2,entitylist[j].aabbboundaryvolume.z2);
-				newchildren[7].aabbboundaryvolume = new AxisAlignedBoundingBox(xlimit,ylimit,zlimit,entitylist[j].aabbboundaryvolume.x2,entitylist[j].aabbboundaryvolume.y2,entitylist[j].aabbboundaryvolume.z2);
+				double xlimit = (entitylist[j].aabbboundaryvolume.pos1.x+entitylist[j].aabbboundaryvolume.pos2.x)/2.0f;
+				double ylimit = (entitylist[j].aabbboundaryvolume.pos1.y+entitylist[j].aabbboundaryvolume.pos2.y)/2.0f;
+				double zlimit = (entitylist[j].aabbboundaryvolume.pos1.z+entitylist[j].aabbboundaryvolume.pos2.z)/2.0f;
+				newchildren[0].aabbboundaryvolume = new AxisAlignedBoundingBox(entitylist[j].aabbboundaryvolume.pos1, new Position(xlimit,ylimit,zlimit));
+				newchildren[1].aabbboundaryvolume = new AxisAlignedBoundingBox(new Position(xlimit,entitylist[j].aabbboundaryvolume.pos1.y,entitylist[j].aabbboundaryvolume.pos1.z),new Position(entitylist[j].aabbboundaryvolume.pos2.x,ylimit,zlimit));
+				newchildren[2].aabbboundaryvolume = new AxisAlignedBoundingBox(new Position(entitylist[j].aabbboundaryvolume.pos1.x,ylimit,entitylist[j].aabbboundaryvolume.pos1.z),new Position(xlimit,entitylist[j].aabbboundaryvolume.pos2.y,zlimit));
+				newchildren[3].aabbboundaryvolume = new AxisAlignedBoundingBox(new Position(xlimit,ylimit,entitylist[j].aabbboundaryvolume.pos1.z),new Position(entitylist[j].aabbboundaryvolume.pos2.x,entitylist[j].aabbboundaryvolume.pos2.y,zlimit));
+				newchildren[4].aabbboundaryvolume = new AxisAlignedBoundingBox(new Position(entitylist[j].aabbboundaryvolume.pos1.x,entitylist[j].aabbboundaryvolume.pos1.y,zlimit),new Position(xlimit,ylimit,entitylist[j].aabbboundaryvolume.pos2.z));
+				newchildren[5].aabbboundaryvolume = new AxisAlignedBoundingBox(new Position(xlimit,entitylist[j].aabbboundaryvolume.pos1.y,zlimit),new Position(entitylist[j].aabbboundaryvolume.pos2.x,ylimit,entitylist[j].aabbboundaryvolume.pos2.z));
+				newchildren[6].aabbboundaryvolume = new AxisAlignedBoundingBox(new Position(entitylist[j].aabbboundaryvolume.pos1.x,ylimit,zlimit),new Position(xlimit,entitylist[j].aabbboundaryvolume.pos2.y,entitylist[j].aabbboundaryvolume.pos2.z));
+				newchildren[7].aabbboundaryvolume = new AxisAlignedBoundingBox(new Position(xlimit,ylimit,zlimit),entitylist[j].aabbboundaryvolume.pos2);
 				ArrayList<Entity> newchildlistarray = new ArrayList<Entity>();
 				for (int n=0;n<newchildren.length;n++) {
 					if (entitylist[j].trianglelist!=null) {
@@ -1556,11 +1722,11 @@ public class MathLib {
 						newchildren[n].vertexlist = vertintarray.toArray(new Position[vertintarray.size()]);
 					}
 					if ((newchildren[n].vertexlist!=null)&&(newchildren[n].vertexlist.length>0)) {
-						double aabbxcenter = (newchildren[n].aabbboundaryvolume.x1+newchildren[n].aabbboundaryvolume.x2)/2.0f;
-						double aabbycenter = (newchildren[n].aabbboundaryvolume.y1+newchildren[n].aabbboundaryvolume.y2)/2.0f;
-						double aabbzcenter = (newchildren[n].aabbboundaryvolume.z1+newchildren[n].aabbboundaryvolume.z2)/2.0f;
+						double aabbxcenter = (newchildren[n].aabbboundaryvolume.pos1.x+newchildren[n].aabbboundaryvolume.pos2.x)/2.0f;
+						double aabbycenter = (newchildren[n].aabbboundaryvolume.pos1.y+newchildren[n].aabbboundaryvolume.pos2.y)/2.0f;
+						double aabbzcenter = (newchildren[n].aabbboundaryvolume.pos1.z+newchildren[n].aabbboundaryvolume.pos2.z)/2.0f;
 						Position[] aabbcenter = {new Position(aabbxcenter,aabbycenter,aabbzcenter)};
-						Position[] aabbedge = {new Position(newchildren[n].aabbboundaryvolume.x1,newchildren[n].aabbboundaryvolume.y1,newchildren[n].aabbboundaryvolume.z1)};
+						Position[] aabbedge = {new Position(newchildren[n].aabbboundaryvolume.pos1.x,newchildren[n].aabbboundaryvolume.pos1.y,newchildren[n].aabbboundaryvolume.pos1.z)};
 						Direction[] aabbdir = vectorFromPoints(aabbcenter, aabbedge);
 						double[] aabbradius = vectorLength(aabbdir);
 						newchildren[n].sphereboundaryvolume = new Sphere(aabbxcenter,aabbycenter,aabbzcenter,aabbradius[0]);
@@ -2301,11 +2467,11 @@ public class MathLib {
 			if (vertexlist[i].z<zmin) {zmin=vertexlist[i].z;}
 			if (vertexlist[i].z>zmax) {zmax=vertexlist[i].z;}
 		}
-		return new AxisAlignedBoundingBox(xmin,ymin,zmin,xmax,ymax,zmax);
+		return new AxisAlignedBoundingBox(new Position(xmin,ymin,zmin),new Position(xmax,ymax,zmax));
 	}
 	public static Sphere pointCloudCircumSphere(Position[] vertexlist) {
 		AxisAlignedBoundingBox pointcloudlimits = axisAlignedBoundingBox(vertexlist);
-		Position pointcloudcenter = new Position((pointcloudlimits.x1+pointcloudlimits.x2)/2.0f,(pointcloudlimits.y1+pointcloudlimits.y2)/2.0f,(pointcloudlimits.z1+pointcloudlimits.z2)/2.0f);
+		Position pointcloudcenter = new Position((pointcloudlimits.pos1.x+pointcloudlimits.pos2.x)/2.0f,(pointcloudlimits.pos1.y+pointcloudlimits.pos2.y)/2.0f,(pointcloudlimits.pos1.z+pointcloudlimits.pos2.z)/2.0f);
 		Direction[] pointvectors = vectorFromPoints(pointcloudcenter, vertexlist);
 		double[] pointdistances = vectorLength(pointvectors);
 		double maxradius = -1;
@@ -2553,7 +2719,6 @@ public class MathLib {
 			for (int j=0;j<vplaneray.length;j++) {
 				Position raypos = vplaneray[j].pos;
 				Position[] rayposa = {raypos};
-				Position[] zeroposa = {new Position(0.0f,0.0f,0.0f)};
 				Direction[] rayfwddir = {vplaneray[j].dir};
 				Plane[] rayplane = {vplaneray[j].plane};
 				double[] rayvfov = {vplaneray[j].vfov};
@@ -2572,12 +2737,9 @@ public class MathLib {
 							rayrgtvsurfangle = 180.0f-rayrgtvsurfangle;
 							anglemult = -1.0f;
 						}
-						Matrix mirrormat = rotationMatrixAroundAxis(ppintlinedir[0], anglemult*2.0f*rayrgtvsurfangle);
 						Position[] rayfwdvsurfpos = {rayfwdvsufrint[0][i]};
-						Direction[] rayfwdvsurfdir = vectorFromPoints(zeroposa, rayfwdvsurfpos);
-						Position[] rayposmirror = translate(rayposa, rayfwdvsurfdir[0], -1.0f);
-						rayposmirror = matrixMultiply(rayposmirror, mirrormat);
-						rayposmirror = translate(rayposmirror, rayfwdvsurfdir[0], 1.0f);
+						double rotangle = anglemult*2.0f*rayrgtvsurfangle;
+						Position[] rayposmirror = rotateAroundAxisPos(rayposa, rayfwdvsurfpos[0], ppintlinedir[0], rotangle);
 						Matrix rayvsurfrot = rotationMatrixAroundAxis(vsurfnorm[i], 180.0f);
 						Direction[] mirrorraydir = matrixMultiply(rayfwddir, rayvsurfrot);
 						Direction[] mirrorraydirn = normalizeVector(mirrorraydir);
@@ -2603,7 +2765,6 @@ public class MathLib {
 		RenderView[] k = null;
 		if ((vsurf!=null)&&(campos!=null)) {
 			k = new RenderView[vsurf.length];
-			Position[] zeroposa = {new Position(0.0f,0.0f,0.0f)};
 			Position[] camposa = {campos};
 			Direction[] camdirs = projectedCameraDirections(viewrot);
 			Plane[] camplanes = planeFromNormalAtPoint(campos, camdirs);
@@ -2624,12 +2785,10 @@ public class MathLib {
 						anglemult = -1.0f;
 					}
 					Position[] camfwdvsurfpos = {camfwdvsufrint[0][i]};
-					Matrix mirrormat = rotationMatrixAroundAxis(ppintlinedir[0], anglemult*2.0f*camrgtvsurfangle);
+					double rotangle = anglemult*2.0f*camrgtvsurfangle;
+					Matrix mirrormat = rotationMatrixAroundAxis(ppintlinedir[0], rotangle);
 					Matrix viewrotmirror = matrixMultiply(mirrormat, viewrot);
-					Direction[] camfwdvsurfdir = vectorFromPoints(zeroposa, camfwdvsurfpos);
-					Position[] camposmirror = translate(camposa, camfwdvsurfdir[0], -1.0f);
-					camposmirror = matrixMultiply(camposmirror, mirrormat);
-					camposmirror = translate(camposmirror, camfwdvsurfdir[0], 1.0f);
+					Position[] camposmirror = rotateAroundAxisPos(camposa, camfwdvsurfpos[0], ppintlinedir[0], rotangle);
 					k[i] = new RenderView();
 					k[i].rot = viewrotmirror;
 					k[i].pos = camposmirror[0];
