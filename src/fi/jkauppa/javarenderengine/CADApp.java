@@ -57,6 +57,7 @@ public class CADApp extends AppHandlerPanel {
 	private boolean unlitrender = false;
 	private Entity entitybuffer = null;
 	private Position[] selecteddragvertex = null;
+	private Entity[] selecteddragentity = null;
 	private Entity[] mouseoverentity = null;
 	private Triangle[] mouseovertriangle = null;
 	private Position[] mouseoververtex = null;
@@ -615,7 +616,7 @@ public class CADApp extends AppHandlerPanel {
 					this.drawstartpos = this.mouseoververtex[this.mouseoververtex.length-1].copy(); 
 				}
 			}
-    		Position[] drawposarray = {MathLib.cameraPlanePosition(this.editpos, this.mouselocationx, this.mouselocationy, this.getWidth(), this.getHeight(), this.snaplinemode, this.gridstep, this.cameramat)};
+    		Position[] drawposarray = {this.mousepos};
 			if (this.drawstartpos==null) {
 				this.drawstartpos = drawposarray[0].copy();
 			}
@@ -626,17 +627,28 @@ public class CADApp extends AppHandlerPanel {
 			(new EntityListUpdater()).start();
 			System.out.println("CADApp: mousePressed: key ALT-LMB: adding line="+addline.pos1.x+","+addline.pos1.y+","+addline.pos1.z+" "+addline.pos2.x+","+addline.pos2.y+","+addline.pos2.z);
     	}
+	    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
+	    int offmask3 = 0;
+	    boolean mouse3down = ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3);
+    	if (mouse3down) {
+    		if (!this.erasemode) {
+		    	if ((this.mouseoverentity!=null)&&(mouseoverentity.length>0)) {
+	    			Entity[] mouseentity = {this.mouseoverentity[this.mouseoverentity.length-1]};
+	    			this.drawstartpos = this.mousepos;
+	    			this.selecteddragentity = mouseentity;
+	    		}
+    		}
+    	}
 		mouseDragged(e);
 	}
 	@Override public void mouseReleased(MouseEvent e) {
 	    boolean mouse1up = e.getButton()==MouseEvent.BUTTON1;
 	    boolean mouse3up = e.getButton()==MouseEvent.BUTTON3;
-		if (mouse1up||mouse3up) {
-			if (mouse1up) {
-				if (this.draglinemode) {
-					this.draglinemode = false;
-				}
-			}
+		if (mouse1up) {
+			this.draglinemode = false;
+		}
+		if (mouse3up) {
+			this.selecteddragentity = null;
 		}
 	}
 	
@@ -655,6 +667,27 @@ public class CADApp extends AppHandlerPanel {
         			}
     				(new EntityListUpdater()).start();
     			}
+        		if ((this.mouseoverentity!=null)&&(mouseoverentity.length>0)&&(this.entitylist!=null)) {
+	    			Entity[] mouseentity = {this.mouseoverentity[this.mouseoverentity.length-1]};
+			    	Triangle mousetriangle = null;
+		    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
+		    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+			    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
+		    			}
+		    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+		    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+		    		}
+					if (mousetriangle!=null) {
+		    			Line[] mouseentitylinelist = MathLib.generateLineList(mouseentity);
+		    			ArrayList<Line> mouseentitylinelistarray = new ArrayList<Line>(Arrays.asList(mouseentitylinelist));
+						ArrayList<Triangle> trianglelistarray = new ArrayList<Triangle>(Arrays.asList(mouseentity[0].trianglelist));
+						trianglelistarray.remove(mousetriangle);
+						mouseentity[0].trianglelist = trianglelistarray.toArray(new Triangle[trianglelistarray.size()]);
+						Line[] mouseentitytrianglelinelist = MathLib.generateLineList(mouseentity[0].trianglelist);
+						mouseentitylinelistarray.removeAll(Arrays.asList(mouseentitytrianglelinelist));
+		    			this.linelisttree.removeAll(mouseentitylinelistarray);
+					}
+	    		}
     		} else if (this.entitybuffer!=null) {
 				Entity[] copyentitybuffer = new Entity[this.entitybuffer.childlist.length];
 				for (int i=0;i<this.entitybuffer.childlist.length;i++) {
@@ -723,7 +756,7 @@ public class CADApp extends AppHandlerPanel {
 					}
 				}
 				if (drawlocation==null) {
-	        		Position[] drawposarray = {MathLib.cameraPlanePosition(this.editpos, this.mouselocationx, this.mouselocationy, this.getWidth(), this.getHeight(), this.snaplinemode, this.gridstep, this.cameramat)};
+	        		Position[] drawposarray = {this.mousepos};
 	    			drawlocation = drawposarray[0];
 				}
 				for (int i=0;i<this.selecteddragvertex.length;i++) {
@@ -807,10 +840,26 @@ public class CADApp extends AppHandlerPanel {
 	    int offmask3down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
 	    boolean mouse3down = ((e.getModifiersEx() & (onmask3down | offmask3down)) == onmask3down);
     	if (mouse3down) {
-    		//TODO move entity
-    		if ((this.mouseoverentity!=null)&&(mouseoverentity.length>0)) {
-    			Entity mouseentity = this.mouseoverentity[this.mouseoverentity.length-1];
-    			System.out.println("CADApp: mouseDragged: key CTRL-DRAG-RMB: move entity ="+mouseentity.sphereboundaryvolume.x+" "+mouseentity.sphereboundaryvolume.y+" "+mouseentity.sphereboundaryvolume.z);
+    		if ((this.erasemode)&&(this.entitylist!=null)) {
+	    		if ((this.mouseoverentity!=null)&&(mouseoverentity.length>0)) {
+	    			Entity[] mouseentity = {this.mouseoverentity[this.mouseoverentity.length-1]};
+	    			Line[] mouseentitylinelist = MathLib.generateLineList(mouseentity);
+	    			this.linelisttree.removeAll(Arrays.asList(mouseentitylinelist));
+	    			ArrayList<Entity> entitylistarray = new ArrayList<Entity>(Arrays.asList(this.entitylist));
+	    			entitylistarray.remove(mouseentity[0]);
+	    			this.entitylist = entitylistarray.toArray(new Entity[entitylistarray.size()]);
+	    		}
+    		} else if (this.selecteddragentity!=null) {
+    			Entity selectedentity = this.selecteddragentity[0];
+    			Line[] selectedentitylinelist = MathLib.generateLineList(this.selecteddragentity);
+    			this.linelisttree.removeAll(Arrays.asList(selectedentitylinelist));
+        		Position[] drawposarray = {this.mousepos};
+    			Direction[] drawmovedir = MathLib.vectorFromPoints(this.drawstartpos, drawposarray);
+    			selectedentity.translateSelf(drawmovedir[0], 1.0f);
+    			Line[] movedentitylinelist = MathLib.generateLineList(this.selecteddragentity);
+    			this.linelisttree.addAll(Arrays.asList(movedentitylinelist));
+    			this.drawstartpos = drawposarray[0];
+    			System.out.println("CADApp: mouseDragged: key DRAG-RMB: move entity ="+selectedentity.sphereboundaryvolume.x+" "+selectedentity.sphereboundaryvolume.y+" "+selectedentity.sphereboundaryvolume.z);
     		}
     	}
 	    int onmask3shiftdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
@@ -1053,6 +1102,8 @@ public class CADApp extends AppHandlerPanel {
 					CADApp.this.renderview = drawrenderview;
 					CADApp.this.mouseoverline = drawrenderview.mouseoverline;
 					CADApp.this.mouseoververtex = drawrenderview.mouseoververtex;
+					CADApp.this.mouseoverentity = null;
+					CADApp.this.mouseovertriangle = null;
 				} else if (CADApp.this.polygonfillmode==2) { 
 					RenderView drawrenderview = RenderLib.renderProjectedView(CADApp.this.campos[0], CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
 					if (CADApp.this.entitybuffer!=null) {
@@ -1067,6 +1118,8 @@ public class CADApp extends AppHandlerPanel {
 						viewgfx.dispose();
 					}
 					CADApp.this.renderview = drawrenderview;
+					CADApp.this.mouseoverline = null;
+					CADApp.this.mouseoververtex = null;
 					CADApp.this.mouseoverentity = drawrenderview.mouseoverentity;
 					CADApp.this.mouseovertriangle = drawrenderview.mouseovertriangle;
 				} else if (CADApp.this.polygonfillmode==3) {
@@ -1083,6 +1136,8 @@ public class CADApp extends AppHandlerPanel {
 						viewgfx.dispose();
 					}
 					CADApp.this.renderview = drawrenderview;
+					CADApp.this.mouseoverline = null;
+					CADApp.this.mouseoververtex = null;
 					CADApp.this.mouseoverentity = drawrenderview.mouseoverentity;
 					CADApp.this.mouseovertriangle = drawrenderview.mouseovertriangle;
 				}

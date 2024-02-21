@@ -63,7 +63,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.6.11");
+		this.setTitle("Java Render Engine v2.6.12");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -540,10 +540,11 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	    int altonmask = KeyEvent.ALT_DOWN_MASK;
 	    int altoffmask = KeyEvent.SHIFT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
 	    boolean altdownmask = (e.getModifiersEx() & (altonmask | altoffmask)) == altonmask;
-	    
 		if ((e.getKeyCode()==KeyEvent.VK_ALT)) {
 			if (this.activeapp!=null) {this.activeapp.keyPressed(e);}
 			e.consume();
+		} else if ((e.getKeyCode()==KeyEvent.VK_F4)&&(altdownmask)) {
+			System.out.println("JavaRenderEngine: main: keyPressed: ALT+VK_F4: closing software");
 		} else if ((e.getKeyCode()==KeyEvent.VK_ENTER)&&(altdownmask)) {
 			System.out.println("JavaRenderEngine: main: keyPressed: ALT+VK_ENTER");
 	    	this.dispose();

@@ -1348,6 +1348,21 @@ public class MathLib {
 		}
 		return linelist.toArray(new Line[linelist.size()]);
 	}
+	public static Line[] generateLineList(Entity[] entitylist) {
+		TreeSet<Line> linelist = new TreeSet<Line>();
+		for (int i=0;i<entitylist.length;i++) {
+			if (entitylist[i].childlist!=null) {
+				linelist.addAll(Arrays.asList(generateLineList(entitylist[i].childlist)));
+			}
+			if (entitylist[i].trianglelist!=null) {
+				linelist.addAll(Arrays.asList(generateLineList(entitylist[i].trianglelist)));
+			}
+			if (entitylist[i].linelist!=null) {
+				linelist.addAll(Arrays.asList(entitylist[i].linelist));
+			}
+		}
+		return linelist.toArray(new Line[linelist.size()]);
+	}
 	public static Triangle[] generateTriangleList(Line[] linelist) {
 		ArrayList<Triangle> trianglelist = new ArrayList<Triangle>();
 		for (int k=0;k<linelist.length;k++) {

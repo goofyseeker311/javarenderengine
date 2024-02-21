@@ -553,6 +553,24 @@ public class ModelLib {
 		public Position translation = null;
 		@Override public int compareTo(Entity o) {return this.sphereboundaryvolume.compareTo(o.sphereboundaryvolume);}
 		public Entity copy(){Entity k=new Entity();k.childlist=this.childlist;k.trianglelist=this.trianglelist;k.linelist=this.linelist;k.vertexlist=this.vertexlist;k.sphereboundaryvolume=this.sphereboundaryvolume;k.aabbboundaryvolume=this.aabbboundaryvolume;k.transform=this.transform;k.translation=this.translation;return k;}
+		public void translateSelf(Position pos) {
+			Entity translatedself = translate(pos);
+			this.childlist = translatedself.childlist;
+			this.trianglelist = translatedself.trianglelist;
+			this.linelist = translatedself.linelist;
+			this.vertexlist = translatedself.vertexlist;
+			this.sphereboundaryvolume = translatedself.sphereboundaryvolume;
+			this.aabbboundaryvolume = translatedself.aabbboundaryvolume;
+		}
+		public void translateSelf(Direction dir, double mult) {
+			Entity translatedself = translate(dir,mult);
+			this.childlist = translatedself.childlist;
+			this.trianglelist = translatedself.trianglelist;
+			this.linelist = translatedself.linelist;
+			this.vertexlist = translatedself.vertexlist;
+			this.sphereboundaryvolume = translatedself.sphereboundaryvolume;
+			this.aabbboundaryvolume = translatedself.aabbboundaryvolume;
+		}
 		public Entity translate(Position pos) {
 			Entity k = new Entity();
 			if (this.childlist!=null) {k.childlist=new Entity[this.childlist.length]; for (int i=0;i<k.childlist.length;i++) {k.childlist[i] = this.childlist[i].translate(pos);}}
