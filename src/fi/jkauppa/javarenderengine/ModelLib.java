@@ -1,8 +1,8 @@
 package fi.jkauppa.javarenderengine;
 
 import java.awt.Color;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.awt.image.VolatileImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -12,37 +12,26 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
-import javax.imageio.ImageIO;
+import fi.jkauppa.javarenderengine.UtilLib.ImageFileFilters.PNGFileFilter;
 
 public class ModelLib {
 	public static class Material implements Comparable<Material> {
 		public String materialname = null;
-		public VolatileImage fileimage = null;
-		public BufferedImage snapimage = null;
-		public VolatileImage ambientfileimage = null;
-		public BufferedImage ambientsnapimage = null;
-		public VolatileImage specularfileimage = null;
-		public BufferedImage specularsnapimage = null;
-		public VolatileImage specularhighfileimage = null;
-		public BufferedImage specularhighsnapimage = null;
-		public VolatileImage emissivefileimage = null;
-		public BufferedImage emissivesnapimage = null;
-		public VolatileImage alphafileimage = null;
-		public BufferedImage alphasnapimage = null;
-		public VolatileImage roughnessfileimage = null;
-		public BufferedImage roughnesssnapimage = null;
-		public VolatileImage metallicfileimage = null;
-		public BufferedImage metallicsnapimage = null;
-		public VolatileImage sheenfileimage = null;
-		public BufferedImage sheensnapimage = null;
-		public VolatileImage bumpfileimage = null;
-		public BufferedImage bumpsnapimage = null;
-		public VolatileImage dispfileimage = null;
-		public BufferedImage dispsnapimage = null;
-		public VolatileImage decalfileimage = null;
-		public BufferedImage decalsnapimage = null;
+		public BufferedImage fileimage = null;
+		public BufferedImage ambientfileimage = null;
+		public BufferedImage specularfileimage = null;
+		public BufferedImage specularhighfileimage = null;
+		public BufferedImage emissivefileimage = null;
+		public BufferedImage alphafileimage = null;
+		public BufferedImage roughnessfileimage = null;
+		public BufferedImage metallicfileimage = null;
+		public BufferedImage sheenfileimage = null;
+		public BufferedImage bumpfileimage = null;
+		public BufferedImage dispfileimage = null;
+		public BufferedImage decalfileimage = null;
 		public String filename = null;
 		public Color facecolor = null;
 		public Color ambientcolor = null;
@@ -60,30 +49,21 @@ public class ModelLib {
 		public float anisotropyrot = 0.0f;
 		public float refraction = 1.45f;
 		public Material() {}
-		public Material(Color facecolori, float transparencyi, VolatileImage fileimagei) {this.facecolor=facecolori;this.transparency=transparencyi;this.fileimage=fileimagei;}
+		public Material(Color facecolori, float transparencyi, BufferedImage fileimagei) {this.facecolor=facecolori;this.transparency=transparencyi;this.fileimage=fileimagei;}
 		@Override public int compareTo(Material o) {
 			int k=-1;
-			if(this.facecolor.getRed()>o.facecolor.getRed()) {
-				k=1;
-			} else if(this.facecolor.getRed()==o.facecolor.getRed()) {
-				if (this.facecolor.getGreen()>o.facecolor.getGreen()) {
-					k=1;
-				} else if (this.facecolor.getGreen()==o.facecolor.getGreen()) {
-					if (this.facecolor.getBlue()>o.facecolor.getBlue()) {
-						k=1;
-					} else if (this.facecolor.getBlue()==o.facecolor.getBlue()) {
-						if(this.facecolor.getAlpha()>o.facecolor.getAlpha()) {
-							k=1;
-						} else if (this.facecolor.getAlpha()==o.facecolor.getAlpha()) {
-							if (this.fileimage==o.fileimage) {
-								k=0;
-							} else if ((this.fileimage!=null)&&(o.fileimage!=null)) {
-								k=this.fileimage.toString().compareTo(o.fileimage.toString());
-							} else if (this.fileimage!=null) {
-								k=1;
-							}
-						}}}}
-			return k;}
+			ColorComparator colorcomp = new ColorComparator();
+			ImageComparator imagecomp = new ImageComparator();
+			k = colorcomp.compare(this.facecolor, o.facecolor);
+			if (k==0) { k = imagecomp.compare(this.fileimage, o.fileimage); }
+			if (k==0) { k = colorcomp.compare(this.ambientcolor, o.ambientcolor); }
+			if (k==0) { k = imagecomp.compare(this.ambientfileimage, o.ambientfileimage); }
+			if (k==0) { k = colorcomp.compare(this.emissivecolor, o.emissivecolor); }
+			if (k==0) { k = imagecomp.compare(this.emissivefileimage, o.emissivefileimage); }
+			if (k==0) { k = colorcomp.compare(this.specularcolor, o.specularcolor); }
+			if (k==0) { k = imagecomp.compare(this.specularfileimage, o.specularfileimage); }
+			return k;
+		}
 		@Override public boolean equals(Object o) {
 			boolean k=false;
 			if ((o!=null)&&(o.getClass().equals(this.getClass()))){
@@ -98,29 +78,17 @@ public class ModelLib {
 			Material k = new Material();
 			k.materialname = this.materialname;
 			k.fileimage = this.fileimage;
-			k.snapimage = this.snapimage;
 			k.ambientfileimage = this.ambientfileimage;
-			k.ambientsnapimage = this.ambientsnapimage;
 			k.specularfileimage = this.specularfileimage;
-			k.specularsnapimage = this.specularsnapimage;
 			k.specularhighfileimage = this.specularhighfileimage;
-			k.specularhighsnapimage = this.specularhighsnapimage;
 			k.emissivefileimage = this.emissivefileimage;
-			k.emissivesnapimage = this.emissivesnapimage;
 			k.alphafileimage = this.alphafileimage;
-			k.alphasnapimage = this.alphasnapimage;
 			k.roughnessfileimage = this.roughnessfileimage;
-			k.roughnesssnapimage = this.roughnesssnapimage;
 			k.metallicfileimage = this.metallicfileimage;
-			k.metallicsnapimage = this.metallicsnapimage;
 			k.sheenfileimage = this.sheenfileimage;
-			k.sheensnapimage = this.sheensnapimage;
 			k.bumpfileimage = this.bumpfileimage;
-			k.bumpsnapimage = this.bumpsnapimage;
 			k.dispfileimage = this.dispfileimage;
-			k.dispsnapimage = this.dispsnapimage;
 			k.decalfileimage = this.decalfileimage;
-			k.decalsnapimage = this.decalsnapimage;
 			k.filename = this.filename;
 			k.facecolor = this.facecolor;
 			k.ambientcolor = this.ambientcolor;
@@ -141,9 +109,71 @@ public class ModelLib {
 		}
 	}
 
+	public static class ColorComparator implements Comparator<Color> {
+		@Override public int compare(Color o1, Color o2) {
+			int k = -1;
+			if (o1==o2) {
+				k=0;
+			} else if((o1!=null)&&(o2!=null)) {
+				float[] o1ccomp = o1.getRGBComponents(new float[4]);
+				float[] o2ccomp = o2.getRGBComponents(new float[4]);
+				if (o1ccomp[0]>o2ccomp[0]) {
+					k=1;
+				} else if (o1ccomp[0]==o2ccomp[0]) {
+					if (o1ccomp[1]>o2ccomp[1]){
+						k=1;
+					} else if (o1ccomp[1]==o2ccomp[1]) {
+						if (o1ccomp[2]>o2ccomp[2]) {
+							k=1;
+						} else if(o1ccomp[2]==o2ccomp[2]) {
+							if (o1ccomp[3]>o2ccomp[3]) {
+								k=1;
+							} else if (o1ccomp[3]==o2ccomp[3]) {
+								k = 0;
+							}
+						}
+					}
+				}
+			} else if (o1!=null) {
+				k=1;
+			}
+			return k;
+		}
+	}
+	public static class ImageComparator implements Comparator<Image> {
+		@Override public int compare(Image o1, Image o2) {
+			int k = -1;
+			if (o1==o2) {
+				k=0;
+			} else if((o1!=null)&&(o2!=null)) {
+				k=o1.toString().compareTo(o2.toString());
+			} else if (o1!=null) {
+				k=1;
+			}
+			return k;
+		}
+	}
+	public static class SphereComparator implements Comparator<Sphere> {
+		public Position origin = new Position(0.0f,0.0f,0.0f);
+		public SphereComparator(Position origini) {this.origin = origini;}
+		@Override public int compare(Sphere o1, Sphere o2) {
+			int k = -1;
+			Sphere[] spheres = {o1,o2};
+			Direction[] spheredir = MathLib.vectorFromPoints(this.origin, spheres);
+			double[] spheredist = MathLib.vectorLength(spheredir);
+			if (spheredist[0]>spheredist[1]) {
+				k = 1;
+			} else if (spheredist[0]==spheredist[1]) {
+				k = 0;
+			}
+			return k;
+		}
+		
+	}
+	
 	public static class RenderView {
-		public VolatileImage renderimage = null;
-		public BufferedImage snapimage = null;
+		public BufferedImage renderimage = null;
+		public Object renderimageobject = null;
 		public Cubemap cubemap = null;
 		public Spheremap spheremap = null;
 		public double[][] sbuffer = null;
@@ -180,7 +210,7 @@ public class ModelLib {
 		public RenderView sphereview=null;
 	}
 	
-	public static class Position implements Comparable<Position> {public double x,y,z; public Coordinate tex; public Material mat; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
+	public static class Position implements Comparable<Position> {public double x=0,y=0,z=0; public Coordinate tex=new Coordinate(0.0f,0.0f); public Material mat=new Material(); public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
 		@Override public int compareTo(Position o){
 			int k = -1;
 			if (this.z>o.z) {
@@ -208,7 +238,7 @@ public class ModelLib {
 			}
 			return k;
 		}
-		public Position copy(){Position k=new Position(this.x,this.y,this.z); k.tex=this.tex; return k;}
+		public Position copy(){Position k=new Position(this.x,this.y,this.z); k.tex=this.tex.copy();k.mat=this.mat.copy(); return k;}
 		public Position invert(){Position k=this.copy(); k.x=-k.x;k.y=-k.y;k.z=-k.z; return k;}
 		public boolean isZero(){return (this.x==0.0f)&&(this.y==0.0f)&&(this.z==0.0f);}
 		public boolean isFinite(){return (Double.isFinite(this.x))&&(Double.isFinite(this.y))&&(Double.isFinite(this.z));}
@@ -217,8 +247,12 @@ public class ModelLib {
 		public void translateSelf(Direction dir, double mult) {setValue(translate(dir,mult));}
 		public Position translate(Position pos) {Position[]k={this};k=MathLib.translate(k,pos);return k[0];}
 		public Position translate(Direction dir, double mult) {Position[]k={this};k=MathLib.translate(k,dir,mult);return k[0];}
+		public void rotateSelfAroundAxisPos(Position pos, Direction axis, double angle) {setValue(rotateAroundAxisPos(pos,axis,angle));}
+		public Position rotateAroundAxisPos(Position pos, Direction axis, double angle) {Position[]k={this};k=MathLib.rotateAroundAxisPos(k,pos,axis,angle);return k[0];}
+		public void scaleSelfAroundPos(Position pos, Scaling scale) {setValue(scaleAroundPos(pos,scale));}
+		public Position scaleAroundPos(Position pos, Scaling scale) {Position[]k={this};k=MathLib.scaleAroundPos(k,pos,scale);return k[0];}
 	}
-	public static class Direction implements Comparable<Direction> {public double dx,dy,dz; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;}
+	public static class Direction implements Comparable<Direction> {public double dx=0,dy=0,dz=0; public Direction(double dxi,double dyi,double dzi){this.dx=dxi;this.dy=dyi;this.dz=dzi;}
 		@Override public int compareTo(Direction o){
 			int k = -1;
 			if (this.dz>o.dz) {
@@ -255,8 +289,24 @@ public class ModelLib {
 		public void translateSelf(Direction dir, double mult) {setValue(translate(dir,mult));}
 		public Direction translate(Position pos) {Direction[]k={this};k=MathLib.translate(k,pos);return k[0];}
 		public Direction translate(Direction dir, double mult) {Direction[]k={this};k=MathLib.translate(k,dir,mult);return k[0];}
+		public void rotateSelfAroundAxisPos(Position pos, Direction axis, double angle) {setValue(rotateAroundAxisPos(pos,axis,angle));}
+		public Direction rotateAroundAxisPos(Position pos, Direction axis, double angle) {Direction[]k={this};k=MathLib.rotateAroundAxisPos(k,pos,axis,angle);return k[0];}
+		public void scaleSelfAroundPos(Position pos, Scaling scale) {setValue(scaleAroundPos(pos,scale));}
+		public Direction scaleAroundPos(Position pos, Scaling scale) {Direction[]k={this};k=MathLib.scaleAroundPos(k,pos,scale);return k[0];}
 	}
-	public static class Coordinate implements Comparable<Coordinate> {public double u,v; public Coordinate(double ui,double vi){this.u=ui;this.v=vi;}
+	public static class Axis { public Position pos; public Direction fwd=new Direction(1.0f,0.0f,0.0f),rgt=new Direction(0.0f,1.0f,0.0f),up=new Direction(0.0f,0.0f,1.0f); public Axis(Position posi, Direction fwdi, Direction rgti, Direction upi){this.pos=posi;this.fwd=fwdi;this.rgt=rgti;this.up=upi;}
+		public Axis copy(){return new Axis(this.pos.copy(),this.fwd.copy(),this.rgt.copy(),this.up.copy());}
+		public void setValue(Axis value) {this.pos=value.pos;this.fwd=value.fwd;this.rgt=value.rgt;this.up=value.up;}
+		public void translateSelf(Position pos) {setValue(translate(pos));}
+		public void translateSelf(Direction dir, double mult) {setValue(translate(dir,mult));}
+		public Axis translate(Position pos) {Axis[]k={this};k=MathLib.translate(k,pos);return k[0];}
+		public Axis translate(Direction dir, double mult) {Axis[]k={this};k=MathLib.translate(k,dir,mult);return k[0];}
+		public void rotateSelfAroundAxisPos(Position pos, Direction axis, double angle) {setValue(rotateAroundAxisPos(pos,axis,angle));}
+		public Axis rotateAroundAxisPos(Position pos, Direction axis, double angle) {Axis[]k={this};k=MathLib.rotateAroundAxisPos(k,pos,axis,angle);return k[0];}
+		public void scaleSelfAroundPos(Position pos, Scaling scale) {setValue(scaleAroundPos(pos,scale));}
+		public Axis scaleAroundPos(Position pos, Scaling scale) {Axis[]k={this};k=MathLib.scaleAroundPos(k,pos,scale);return k[0];}
+	}
+	public static class Coordinate implements Comparable<Coordinate> {public double u=0,v=0; public Coordinate(double ui,double vi){this.u=ui;this.v=vi;}
 	@Override public int compareTo(Coordinate o){
 		int k = -1;
 		if (this.u>o.u) {
@@ -289,6 +339,10 @@ public class ModelLib {
 		public void translateSelf(Direction dir, double mult) {setValue(translate(dir,mult));}
 		public Coordinate translate(Position pos) {Coordinate[]k={this};k=MathLib.translate(k,pos);return k[0];}
 		public Coordinate translate(Direction dir, double mult) {Coordinate[]k={this};k=MathLib.translate(k,dir,mult);return k[0];}
+		public void rotateSelfAroundAxisPos(Position pos, Direction axis, double angle) {setValue(rotateAroundAxisPos(pos,axis,angle));}
+		public Coordinate rotateAroundAxisPos(Position pos, Direction axis, double angle) {Coordinate[]k={this};k=MathLib.rotateAroundAxisPos(k,pos,axis,angle);return k[0];}
+		public void scaleSelfAroundPos(Position pos, Scaling scale) {setValue(scaleAroundPos(pos,scale));}
+		public Coordinate scaleAroundPos(Position pos, Scaling scale) {Coordinate[]k={this};k=MathLib.scaleAroundPos(k,pos,scale);return k[0];}
 	}
 	public static class Rotation {public double x,y,z; public Rotation(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
 		@Override public boolean equals(Object o) {
@@ -303,7 +357,20 @@ public class ModelLib {
 		}
 		public Rotation copy(){return new Rotation(this.x,this.y,this.z);}
 	}
-	public static class Sphere implements Comparable<Sphere> {public double x,y,z,r; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}
+	public static class Scaling {public double x,y,z; public Scaling(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
+	@Override public boolean equals(Object o) {
+		boolean k = false;
+		if ((o!=null)&&(o.getClass().equals(this.getClass()))) {
+			Rotation os = (Rotation)o;
+			if ((this.x==os.x)&&(this.y==os.y)&&(this.z==os.z)) {
+				k = true;
+			}
+		}
+		return k;
+	}
+	public Scaling copy(){return new Scaling(this.x,this.y,this.z);}
+}
+	public static class Sphere implements Comparable<Sphere> {public double x=0,y=0,z=0,r=0; public Sphere(double xi,double yi,double zi,double ri){this.x=xi;this.y=yi;this.z=zi;this.r=ri;}
 		@Override public int compareTo(Sphere o) {
 			int k = -1;
 			if (this.z>o.z) {
@@ -335,72 +402,84 @@ public class ModelLib {
 			}
 			return k;
 		}
-		public static class SphereDistanceComparator implements Comparator<Sphere> {
-			public Position origin;
-			public SphereDistanceComparator(Position origini) {this.origin = origini;}
-			@Override public int compare(Sphere o1, Sphere o2) {
-				int k = -1;
-				Sphere[] spheres = {o1,o2};
-				Direction[] spheredir = MathLib.vectorFromPoints(this.origin, spheres);
-				double[] spheredist = MathLib.vectorLength(spheredir);				
-				if (spheredist[0]>spheredist[1]) {
-					k = 1;
-				} else if (spheredist[0]==spheredist[1]) {
-					k = 0;
-				}
-				return k;
-			}
-			
-		}
 		public Sphere copy(){Sphere k = new Sphere(this.x,this.y,this.z,this.r); return k;}
 		public void setValue(Sphere value) {this.x=value.x;this.y=value.y;this.z=value.z;this.r=value.r;}
 		public void translateSelf(Position pos) {setValue(translate(pos));}
 		public void translateSelf(Direction dir, double mult) {setValue(translate(dir,mult));}
 		public Sphere translate(Position pos) {Sphere[]k={this};k=MathLib.translate(k,pos);return k[0];}
 		public Sphere translate(Direction dir, double mult) {Sphere[]k={this};k=MathLib.translate(k,dir,mult);return k[0];}
+		public void rotateSelfAroundAxisPos(Position pos, Direction axis, double angle) {setValue(rotateAroundAxisPos(pos,axis,angle));}
+		public Sphere rotateAroundAxisPos(Position pos, Direction axis, double angle) {Sphere[]k={this};k=MathLib.rotateAroundAxisPos(k,pos,axis,angle);return k[0];}
+		public void scaleSelfAroundPos(Position pos, Scaling scale) {setValue(scaleAroundPos(pos,scale));}
+		public Sphere scaleAroundPos(Position pos, Scaling scale) {Sphere[]k={this};k=MathLib.scaleAroundPos(k,pos,scale);return k[0];}
 	}
-	public static class AxisAlignedBoundingBox {public Position pos1,pos2; public AxisAlignedBoundingBox(Position pos1i, Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}
-		public AxisAlignedBoundingBox copy(){AxisAlignedBoundingBox k = new AxisAlignedBoundingBox(this.pos1,this.pos2); return k;}
-		public void setValue(AxisAlignedBoundingBox value) {this.pos1=value.pos1;this.pos2=value.pos2;}
+	public static class Ellipsoid {public double x=0,y=0,z=0,rx=0,ry=0,rz=0; public Ellipsoid(double xi,double yi,double zi,double rxi,double ryi,double rzi){this.x=xi;this.y=yi;this.z=zi;this.rx=rxi;this.ry=ryi;this.rz=rzi;}}
+	public static class AxisAlignedBoundingBox {public Position pos1=new Position(0.0f,0.0f,0.0f),pos2=new Position(0.0f,0.0f,0.0f); public Axis axis=new Axis(new Position(0.0f,0.0f,0.0f),new Direction(0.0f,0.0f,0.0f),new Direction(0.0f,0.0f,0.0f),new Direction(0.0f,0.0f,0.0f)); public AxisAlignedBoundingBox(Position pos1i, Position pos2i, Axis axisi){this.pos1=pos1i;this.pos2=pos2i;this.axis=axisi;}
+		public AxisAlignedBoundingBox copy(){AxisAlignedBoundingBox k=new AxisAlignedBoundingBox(this.pos1.copy(),this.pos2.copy(),this.axis.copy()); return k;}
+		public void setValue(AxisAlignedBoundingBox value) {this.pos1=value.pos1;this.pos2=value.pos2;this.axis=value.axis;}
 		public void translateSelf(Position pos) {setValue(translate(pos));}
 		public void translateSelf(Direction dir, double mult) {setValue(translate(dir,mult));}
 		public AxisAlignedBoundingBox translate(Position pos) {AxisAlignedBoundingBox[]k={this};k=MathLib.translate(k,pos);return k[0];}
 		public AxisAlignedBoundingBox translate(Direction dir, double mult) {AxisAlignedBoundingBox[]k={this};k=MathLib.translate(k,dir,mult);return k[0];}
+		public void rotateSelfAroundAxisPos(Position pos, Direction axis, double angle) {setValue(rotateAroundAxisPos(pos,axis,angle));}
+		public AxisAlignedBoundingBox rotateAroundAxisPos(Position pos, Direction axis, double angle) {AxisAlignedBoundingBox[]k={this};k=MathLib.rotateAroundAxisPos(k,pos,axis,angle);return k[0];}
+		public void scaleSelfAroundPos(Position pos, Scaling scale) {setValue(scaleAroundPos(pos,scale));}
+		public AxisAlignedBoundingBox scaleAroundPos(Position pos, Scaling scale) {AxisAlignedBoundingBox[]k={this};k=MathLib.scaleAroundPos(k,pos,scale);return k[0];}
 	}
-	public static class Cuboid {public Position pos1,pos2,pos3,pos4,pos5,pos6,pos7,pos8; public Cuboid(Position pos1i,Position pos2i,Position pos3i,Position pos4i,Position pos5i,Position pos6i,Position pos7i,Position pos8i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;this.pos4=pos4i;this.pos5=pos5i;this.pos6=pos6i;this.pos7=pos7i;this.pos8=pos8i;}
+	public static class Cuboid {public Position pos1=new Position(0.0f,0.0f,0.0f),pos2=new Position(0.0f,0.0f,0.0f),pos3=new Position(0.0f,0.0f,0.0f),pos4=new Position(0.0f,0.0f,0.0f),pos5=new Position(0.0f,0.0f,0.0f),pos6=new Position(0.0f,0.0f,0.0f),pos7=new Position(0.0f,0.0f,0.0f),pos8=new Position(0.0f,0.0f,0.0f); public Cuboid(Position pos1i,Position pos2i,Position pos3i,Position pos4i,Position pos5i,Position pos6i,Position pos7i,Position pos8i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;this.pos4=pos4i;this.pos5=pos5i;this.pos6=pos6i;this.pos7=pos7i;this.pos8=pos8i;}
 		public Cuboid copy(){Cuboid k = new Cuboid(this.pos1.copy(),this.pos2.copy(),this.pos3.copy(),this.pos4.copy(),this.pos5.copy(),this.pos6.copy(),this.pos7.copy(),this.pos8.copy()); return k;}
 		public void setValue(Cuboid value) {this.pos1=value.pos1;this.pos2=value.pos2;this.pos3=value.pos3;this.pos4=value.pos4;this.pos5=value.pos5;this.pos6=value.pos6;this.pos7=value.pos7;this.pos8=value.pos8;}
 		public void translateSelf(Position pos) {setValue(translate(pos));}
 		public void translateSelf(Direction dir, double mult) {setValue(translate(dir,mult));}
 		public Cuboid translate(Position pos) {Cuboid[]k={this};k=MathLib.translate(k,pos);return k[0];}
 		public Cuboid translate(Direction dir, double mult) {Cuboid[]k={this};k=MathLib.translate(k,dir,mult);return k[0];}
+		public void rotateSelfAroundAxisPos(Position pos, Direction axis, double angle) {setValue(rotateAroundAxisPos(pos,axis,angle));}
+		public Cuboid rotateAroundAxisPos(Position pos, Direction axis, double angle) {Cuboid[]k={this};k=MathLib.rotateAroundAxisPos(k,pos,axis,angle);return k[0];}
+		public void scaleSelfAroundPos(Position pos, Scaling scale) {setValue(scaleAroundPos(pos,scale));}
+		public Cuboid scaleAroundPos(Position pos, Scaling scale) {Cuboid[]k={this};k=MathLib.scaleAroundPos(k,pos,scale);return k[0];}
 	}
-	public static class Quad {public Position pos1,pos2,pos3,pos4; public Quad(Position pos1i,Position pos2i,Position pos3i,Position pos4i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;this.pos4=pos4i;}
-		public Quad copy(){Quad k = new Quad(this.pos1.copy(),this.pos2.copy(),this.pos3.copy(),this.pos4.copy()); return k;}
+	public static class Quad {public Position pos1=new Position(0.0f,0.0f,0.0f),pos2=new Position(0.0f,0.0f,0.0f),pos3=new Position(0.0f,0.0f,0.0f),pos4=new Position(0.0f,0.0f,0.0f); public Direction norm=new Direction(0.0f,0.0f,0.0f); public Material mat=new Material(); public Material[] lmatl=null; public Quad(Position pos1i,Position pos2i,Position pos3i,Position pos4i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;this.pos4=pos4i;}
+		public Quad copy(){Quad k = new Quad(this.pos1.copy(),this.pos2.copy(),this.pos3.copy(),this.pos4.copy()); k.norm=this.norm.copy();k.mat=this.mat.copy();k.lmatl=this.lmatl; return k;}
 		public void setValue(Quad value) {this.pos1=value.pos1;this.pos2=value.pos2;this.pos3=value.pos3;this.pos4=value.pos4;}
 		public void translateSelf(Position pos) {setValue(translate(pos));}
 		public void translateSelf(Direction dir, double mult) {setValue(translate(dir,mult));}
 		public Quad translate(Position pos) {Quad[]k={this};k=MathLib.translate(k,pos);return k[0];}
 		public Quad translate(Direction dir, double mult) {Quad[]k={this};k=MathLib.translate(k,dir,mult);return k[0];}
+		public void rotateSelfAroundAxisPos(Position pos, Direction axis, double angle) {setValue(rotateAroundAxisPos(pos,axis,angle));}
+		public Quad rotateAroundAxisPos(Position pos, Direction axis, double angle) {Quad[]k={this};k=MathLib.rotateAroundAxisPos(k,pos,axis,angle);return k[0];}
+		public void scaleSelfAroundPos(Position pos, Scaling scale) {setValue(scaleAroundPos(pos,scale));}
+		public Quad scaleAroundPos(Position pos, Scaling scale) {Quad[]k={this};k=MathLib.scaleAroundPos(k,pos,scale);return k[0];}
 	}
-	public static class Arc {public Position origin; public double r,ang1,ang2; public Arc(Position origini, double ri, double ang1i, double ang2i){this.origin=origini;this.r=ri;this.ang1=ang1i;this.ang2=ang2i;}}
-	public static class Circle {public Position origin; public double r; public Circle(Position origini, double ri){this.origin=origini;this.r=ri;}}
-	public static class Ray {public Position pos; public Direction dir; public Ray(Position posi, Direction diri){this.pos=posi;this.dir=diri;}
+	public static class Ellipse {public double x=0,y=0,z=0,rx=0,ry=0,rz=0; public Ellipse(double xi, double yi, double zi, double rxi, double ryi, double rzi){this.x=xi;this.y=yi;this.z=zi;this.rx=rxi;this.ry=ryi;this.rz=rzi;}}
+	public static class Arc {public double x=0,y=0,z=0,r=0,ang1=0,ang2=0; public Arc(double xi, double yi, double zi, double ri, double ang1i, double ang2i){this.x=xi;this.y=yi;this.z=zi;this.r=ri;this.ang1=ang1i;this.ang2=ang2i;}}
+	public static class Circle {public Position origin=new Position(0.0f,0.0f,0.0f); public double r=0; public Circle(Position origini, double ri){this.origin=origini;this.r=ri;}}
+	public static class Ray {public Position pos=new Position(0.0f,0.0f,0.0f); public Direction dir=new Direction(0.0f,0.0f,0.0f); public Ray(Position posi, Direction diri){this.pos=posi;this.dir=diri;}
+		public Ray copy(){Ray k = new Ray(this.pos.copy(),this.dir.copy()); return k;}
 		public Ray invert(){return new Ray(this.pos, this.dir.invert());}
 		public void setValue(Ray value) {this.pos=value.pos;this.dir=value.dir;}
 		public void translateSelf(Position pos) {setValue(translate(pos));}
 		public void translateSelf(Direction dir, double mult) {setValue(translate(dir,mult));}
 		public Ray translate(Position pos) {Position[]k={this.pos};k=MathLib.translate(k,pos);return new Ray(k[0],this.dir);}
 		public Ray translate(Direction dir, double mult) {Position[]k={this.pos};k=MathLib.translate(k,dir,mult);return new Ray(k[0],this.dir);}
+		public void rotateSelfAroundAxisPos(Position pos, Direction axis, double angle) {setValue(rotateAroundAxisPos(pos,axis,angle));}
+		public Ray rotateAroundAxisPos(Position pos, Direction axis, double angle) {Ray[]k={this};k=MathLib.rotateAroundAxisPos(k,pos,axis,angle);return k[0];}
+		public void scaleSelfAroundPos(Position pos, Scaling scale) {setValue(scaleAroundPos(pos,scale));}
+		public Ray scaleAroundPos(Position pos, Scaling scale) {Ray[]k={this};k=MathLib.scaleAroundPos(k,pos,scale);return k[0];}
 	}
-	public static class PlaneRay {public Position pos; public Direction dir; public Plane plane; public double vfov; public PlaneRay(Position posi, Direction diri, Plane planei, double vfovi){this.pos=posi;this.dir=diri;this.plane=planei;this.vfov=vfovi;}
+	public static class PlaneRay {public Position pos=new Position(0.0f,0.0f,0.0f); public Direction dir=new Direction(0.0f,0.0f,0.0f); public Plane plane=new Plane(0, 0, 0, 0); public double vfov=0; public PlaneRay(Position posi, Direction diri, Plane planei, double vfovi){this.pos=posi;this.dir=diri;this.plane=planei;this.vfov=vfovi;}
+		public PlaneRay copy(){PlaneRay k=new PlaneRay(this.pos.copy(),this.dir.copy(),this.plane.copy(),this.vfov); return k;}
 		public void setValue(PlaneRay value) {this.pos=value.pos;this.dir=value.dir;this.plane=value.plane;this.vfov=value.vfov;}
 		public void translateSelf(Position pos) {setValue(translate(pos));}
 		public void translateSelf(Direction dir, double mult) {setValue(translate(dir,mult));}
 		public PlaneRay translate(Position pos) {Position[]k={this.pos};Plane[]k2={this.plane};k=MathLib.translate(k,pos);k2=MathLib.translate(k2,pos);return new PlaneRay(k[0],this.dir,k2[0],this.vfov);}
 		public PlaneRay translate(Direction dir, double mult) {Position[]k={this.pos};Plane[]k2={this.plane};k=MathLib.translate(k,dir,mult);k2=MathLib.translate(k2,dir,mult);return new PlaneRay(k[0],this.dir,k2[0],this.vfov);}
+		public void rotateSelfAroundAxisPos(Position pos, Direction axis, double angle) {setValue(rotateAroundAxisPos(pos,axis,angle));}
+		public PlaneRay rotateAroundAxisPos(Position pos, Direction axis, double angle) {PlaneRay[]k={this};k=MathLib.rotateAroundAxisPos(k,pos,axis,angle);return k[0];}
+		public void scaleSelfAroundPos(Position pos, Scaling scale) {setValue(scaleAroundPos(pos,scale));}
+		public PlaneRay scaleAroundPos(Position pos, Scaling scale) {PlaneRay[]k={this};k=MathLib.scaleAroundPos(k,pos,scale);return k[0];}
 	}
-	public static class Plane {public double a,b,c,d; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}
+	public static class Plane {public double a=0,b=0,c=0,d=0; public Plane(double ai,double bi,double ci,double di){this.a=ai;this.b=bi;this.c=ci;this.d=di;}
+		public Plane copy(){Plane k = new Plane(this.a,this.b,this.c,this.d); return k;}
 		public Plane invert(){return new Plane(-this.a,-this.b,-this.c,-this.d);}
 		public boolean isFinite(){return (Double.isFinite(this.a))&&(Double.isFinite(this.b))&&(Double.isFinite(this.c))&&(Double.isFinite(this.d));}
 		public void setValue(Plane value) {this.a=value.a;this.b=value.b;this.c=value.c;this.d=value.d;}
@@ -408,8 +487,12 @@ public class ModelLib {
 		public void translateSelf(Direction dir, double mult) {setValue(translate(dir,mult));}
 		public Plane translate(Position pos) {Plane[]k={this};k=MathLib.translate(k,pos);return k[0];}
 		public Plane translate(Direction dir, double mult) {Plane[]k={this};k=MathLib.translate(k,dir,mult);return k[0];}
+		public void rotateSelfAroundAxisPos(Position pos, Direction axis, double angle) {setValue(rotateAroundAxisPos(pos,axis,angle));}
+		public Plane rotateAroundAxisPos(Position pos, Direction axis, double angle) {Plane[]k={this};k=MathLib.rotateAroundAxisPos(k,pos,axis,angle);return k[0];}
+		public void scaleSelfAroundPos(Position pos, Scaling scale) {setValue(scaleAroundPos(pos,scale));}
+		public Plane scaleAroundPos(Position pos, Scaling scale) {Plane[]k={this};k=MathLib.scaleAroundPos(k,pos,scale);return k[0];}
 	}
-	public static class Line implements Comparable<Line> {public Position pos1,pos2; public Material mat; public Line(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}
+	public static class Line implements Comparable<Line> {public Position pos1=new Position(0.0f,0.0f,0.0f),pos2=new Position(0.0f,0.0f,0.0f); public Material mat=new Material(); public Line(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}
 		@Override public int compareTo(Line o){
 			int k=-1;
 			Line ts=this.sort();
@@ -447,7 +530,7 @@ public class ModelLib {
 			}
 			return k;
 		}
-		public Line copy(){Line k = new Line(new Position(this.pos1.x,this.pos1.y,this.pos1.z),new Position(this.pos2.x,this.pos2.y,this.pos2.z)); return k;}
+		public Line copy(){Line k = new Line(this.pos1.copy(),this.pos2.copy()); return k;}
 		public Line swap(){return new Line(this.pos2,this.pos1);}
 		public Line sort(){Line k=this;if (this.pos1.compareTo(this.pos2)==1) {k=this.swap();}return k;}
 		public boolean isFinite(){return (this.pos1!=null)&&(this.pos2!=null)&&(this.pos1.isFinite())&&(this.pos2.isFinite());}
@@ -456,8 +539,12 @@ public class ModelLib {
 		public void translateSelf(Direction dir, double mult) {setValue(translate(dir,mult));}
 		public Line translate(Position pos) {Line[]k={this};k=MathLib.translate(k,pos);return k[0];}
 		public Line translate(Direction dir, double mult) {Line[]k={this};k=MathLib.translate(k,dir,mult);return k[0];}
+		public void rotateSelfAroundAxisPos(Position pos, Direction axis, double angle) {setValue(rotateAroundAxisPos(pos,axis,angle));}
+		public Line rotateAroundAxisPos(Position pos, Direction axis, double angle) {Line[]k={this};k=MathLib.rotateAroundAxisPos(k,pos,axis,angle);return k[0];}
+		public void scaleSelfAroundPos(Position pos, Scaling scale) {setValue(scaleAroundPos(pos,scale));}
+		public Line scaleAroundPos(Position pos, Scaling scale) {Line[]k={this};k=MathLib.scaleAroundPos(k,pos,scale);return k[0];}
 	}
-	public static class Tetrahedron implements Comparable<Tetrahedron> {public Position pos1,pos2,pos3,pos4; public Tetrahedron(Position pos1i,Position pos2i, Position pos3i,Position pos4i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;this.pos4=pos4i;}
+	public static class Tetrahedron implements Comparable<Tetrahedron> {public Position pos1=new Position(0.0f,0.0f,0.0f),pos2=new Position(0.0f,0.0f,0.0f),pos3=new Position(0.0f,0.0f,0.0f),pos4=new Position(0.0f,0.0f,0.0f); public Tetrahedron(Position pos1i,Position pos2i, Position pos3i,Position pos4i){this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;this.pos4=pos4i;}
 		@Override public int compareTo(Tetrahedron o) {
 			int k = -1;
 			Position[] tposarray = {this.pos1,this.pos2,this.pos3,this.pos4};
@@ -528,8 +615,12 @@ public class ModelLib {
 		public void translateSelf(Direction dir, double mult) {setValue(translate(dir,mult));}
 		public Tetrahedron translate(Position pos) {Tetrahedron[]k={this};k=MathLib.translate(k,pos);return k[0];}
 		public Tetrahedron translate(Direction dir, double mult) {Tetrahedron[]k={this};k=MathLib.translate(k,dir,mult);return k[0];}
+		public void rotateSelfAroundAxisPos(Position pos, Direction axis, double angle) {setValue(rotateAroundAxisPos(pos,axis,angle));}
+		public Tetrahedron rotateAroundAxisPos(Position pos, Direction axis, double angle) {Tetrahedron[]k={this};k=MathLib.rotateAroundAxisPos(k,pos,axis,angle);return k[0];}
+		public void scaleSelfAroundPos(Position pos, Scaling scale) {setValue(scaleAroundPos(pos,scale));}
+		public Tetrahedron scaleAroundPos(Position pos, Scaling scale) {Tetrahedron[]k={this};k=MathLib.scaleAroundPos(k,pos,scale);return k[0];}
 	}
-	public static class Triangle implements Comparable<Triangle> {public Position pos1,pos2,pos3; public Direction norm; public Material mat = null; public Material[] lmatl = null;
+	public static class Triangle implements Comparable<Triangle> {public Position pos1=new Position(0.0f,0.0f,0.0f),pos2=new Position(0.0f,0.0f,0.0f),pos3=new Position(0.0f,0.0f,0.0f); public Direction norm=new Direction(0.0f,0.0f,0.0f); public Material mat=new Material(); public Material[] lmatl=null; public Object hwent=null; public Object hwtri=null;
 		public Triangle(Position pos1i,Position pos2i,Position pos3i) {this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;}
 		@Override public int compareTo(Triangle o) {
 			int k = -1;
@@ -582,16 +673,21 @@ public class ModelLib {
 			}
 			return k;
 		}
-		public Triangle copy(){Triangle k=new Triangle(this.pos1.copy(),this.pos2.copy(),this.pos3.copy());k.norm=this.norm;k.mat=this.mat;k.lmatl=this.lmatl;return k;}
+		public Triangle copy(){Triangle k=new Triangle(this.pos1.copy(),this.pos2.copy(),this.pos3.copy());k.norm=this.norm.copy();k.mat=this.mat.copy();k.lmatl=this.lmatl;return k;}
 		public void setValue(Triangle value) {this.pos1=value.pos1;this.pos2=value.pos2;this.pos3=value.pos3;this.norm=value.norm;this.mat=value.mat;this.lmatl=value.lmatl;}
 		public void translateSelf(Position pos) {setValue(translate(pos));}
 		public void translateSelf(Direction dir, double mult) {setValue(translate(dir,mult));}
 		public Triangle translate(Position pos) {Triangle[]k={this};k=MathLib.translate(k,pos);return k[0];}
 		public Triangle translate(Direction dir, double mult) {Triangle[]k={this};k=MathLib.translate(k,dir,mult);return k[0];}
+		public void rotateSelfAroundAxisPos(Position pos, Direction axis, double angle) {setValue(rotateAroundAxisPos(pos,axis,angle));}
+		public Triangle rotateAroundAxisPos(Position pos, Direction axis, double angle) {Triangle[]k={this};k=MathLib.rotateAroundAxisPos(k,pos,axis,angle);return k[0];}
+		public void scaleSelfAroundPos(Position pos, Scaling scale) {setValue(scaleAroundPos(pos,scale));}
+		public Triangle scaleAroundPos(Position pos, Scaling scale) {Triangle[]k={this};k=MathLib.scaleAroundPos(k,pos,scale);return k[0];}
 	}
 	public static class Entity implements Comparable<Entity> {
 		public Entity[] childlist = null;
 		public Triangle[] trianglelist = null;
+		public Quad[] quadlist = null;
 		public Line[] linelist = null;
 		public Position[] vertexlist = null;
 		public Sphere sphereboundaryvolume = null;
@@ -628,6 +724,28 @@ public class ModelLib {
 			if (this.vertexlist!=null) {k.vertexlist=new Position[this.vertexlist.length]; for (int i=0;i<k.vertexlist.length;i++) {k.vertexlist[i] = this.vertexlist[i].translate(dir,mult);}}
 			if (this.sphereboundaryvolume!=null) {k.sphereboundaryvolume = this.sphereboundaryvolume.translate(dir,mult);}
 			if (this.aabbboundaryvolume!=null) {k.aabbboundaryvolume = this.aabbboundaryvolume.translate(dir,mult);}
+			return k;
+		}
+		public void rotateSelfAroundAxisPos(Position pos, Direction axis, double angle) {setValue(rotateAroundAxisPos(pos,axis,angle));}
+		public Entity rotateAroundAxisPos(Position pos, Direction axis, double angle) {
+			Entity k = this.copy();
+			if (this.childlist!=null) {k.childlist=new Entity[this.childlist.length]; for (int i=0;i<k.childlist.length;i++) {k.childlist[i] = this.childlist[i].rotateAroundAxisPos(pos,axis,angle);}}
+			if (this.trianglelist!=null) {k.trianglelist=new Triangle[this.trianglelist.length]; for (int i=0;i<k.trianglelist.length;i++) {k.trianglelist[i] = this.trianglelist[i].rotateAroundAxisPos(pos,axis,angle);}}
+			if (this.linelist!=null) {k.linelist=new Line[this.linelist.length]; for (int i=0;i<k.linelist.length;i++) {k.linelist[i] = this.linelist[i].rotateAroundAxisPos(pos,axis,angle);}}
+			if (this.vertexlist!=null) {k.vertexlist=new Position[this.vertexlist.length]; for (int i=0;i<k.vertexlist.length;i++) {k.vertexlist[i] = this.vertexlist[i].rotateAroundAxisPos(pos,axis,angle);}}
+			if (this.sphereboundaryvolume!=null) {k.sphereboundaryvolume = this.sphereboundaryvolume.rotateAroundAxisPos(pos,axis,angle);}
+			if (this.aabbboundaryvolume!=null) {k.aabbboundaryvolume = this.aabbboundaryvolume.rotateAroundAxisPos(pos,axis,angle);}
+			return k;
+		}
+		public void scaleSelfAroundPos(Position pos, Scaling scale) {setValue(scaleAroundPos(pos,scale));}
+		public Entity scaleAroundPos(Position pos, Scaling scale) {
+			Entity k = this.copy();
+			if (this.childlist!=null) {k.childlist=new Entity[this.childlist.length]; for (int i=0;i<k.childlist.length;i++) {k.childlist[i] = this.childlist[i].scaleAroundPos(pos,scale);}}
+			if (this.trianglelist!=null) {k.trianglelist=new Triangle[this.trianglelist.length]; for (int i=0;i<k.trianglelist.length;i++) {k.trianglelist[i] = this.trianglelist[i].scaleAroundPos(pos,scale);}}
+			if (this.linelist!=null) {k.linelist=new Line[this.linelist.length]; for (int i=0;i<k.linelist.length;i++) {k.linelist[i] = this.linelist[i].scaleAroundPos(pos,scale);}}
+			if (this.vertexlist!=null) {k.vertexlist=new Position[this.vertexlist.length]; for (int i=0;i<k.vertexlist.length;i++) {k.vertexlist[i] = this.vertexlist[i].scaleAroundPos(pos,scale);}}
+			if (this.sphereboundaryvolume!=null) {k.sphereboundaryvolume = this.sphereboundaryvolume.scaleAroundPos(pos,scale);}
+			if (this.aabbboundaryvolume!=null) {k.aabbboundaryvolume = this.aabbboundaryvolume.scaleAroundPos(pos,scale);}
 			return k;
 		}
 	}
@@ -749,6 +867,7 @@ public class ModelLib {
 		if ((filename!=null)&&(model!=null)) {
 			try {
 				File savemtlfile = new File(filename);
+				TreeMap<Material,String> modelmaterialimages = new TreeMap<Material,String>();
 				BufferedWriter modelobjfile = new BufferedWriter(new FileWriter(savemtlfile, false));
 				for (int i=0;i<model.materials.length;i++) {
 					modelobjfile.write("newmtl "+model.materials[i].materialname);
@@ -797,98 +916,182 @@ public class ModelLib {
 					modelobjfile.newLine();
 					if (model.materials[i].fileimage!=null) {
 						String savefilename = model.materials[i].filename;
+						String parentdirectory = savemtlfile.getParent();
+						Material savefileimagematerial = new Material(Color.WHITE,1.0f,model.materials[i].fileimage);
+						if (modelmaterialimages.containsKey(savefileimagematerial)) {
+							savefilename = modelmaterialimages.get(savefileimagematerial);
+						} else {
+							String imagefilename = new File(parentdirectory, savefilename).getPath();
+							UtilLib.saveImageFormat(imagefilename, savefileimagematerial.fileimage, new PNGFileFilter());
+							modelmaterialimages.put(savefileimagematerial, savefilename);
+						}
 						modelobjfile.write("map_Kd "+savefilename);
 						modelobjfile.newLine();
-						File imagefile = new File(savemtlfile.getParent(), savefilename);
-						ImageIO.write(model.materials[i].fileimage.getSnapshot(), "PNG", imagefile);
 					}
 					if (model.materials[i].ambientfileimage!=null) {
 						String savefilename = model.materials[i].filename;
 						savefilename = savefilename.substring(0, savefilename.length()-4)+"_ambient.png";
+						String parentdirectory = savemtlfile.getParent();
+						Material savefileimagematerial = new Material(Color.WHITE,1.0f,model.materials[i].ambientfileimage);
+						if (modelmaterialimages.containsKey(savefileimagematerial)) {
+							savefilename = modelmaterialimages.get(savefileimagematerial);
+						} else {
+							String imagefilename = new File(parentdirectory, savefilename).getPath();
+							UtilLib.saveImageFormat(imagefilename, savefileimagematerial.fileimage, new PNGFileFilter());
+							modelmaterialimages.put(savefileimagematerial, savefilename);
+						}
 						modelobjfile.write("map_Ka "+savefilename);
 						modelobjfile.newLine();
-						File imagefile = new File(savemtlfile.getParent(), savefilename);
-						ImageIO.write(model.materials[i].ambientfileimage.getSnapshot(), "PNG", imagefile);
 					}
 					if (model.materials[i].specularfileimage!=null) {
 						String savefilename = model.materials[i].filename;
-						savefilename = savefilename.substring(0, savefilename.length()-4)+"_spec.png";
+						savefilename = savefilename.substring(0, savefilename.length()-4)+"_specular.png";
+						String parentdirectory = savemtlfile.getParent();
+						Material savefileimagematerial = new Material(Color.WHITE,1.0f,model.materials[i].specularfileimage);
+						if (modelmaterialimages.containsKey(savefileimagematerial)) {
+							savefilename = modelmaterialimages.get(savefileimagematerial);
+						} else {
+							String imagefilename = new File(parentdirectory, savefilename).getPath();
+							UtilLib.saveImageFormat(imagefilename, savefileimagematerial.fileimage, new PNGFileFilter());
+							modelmaterialimages.put(savefileimagematerial, savefilename);
+						}
 						modelobjfile.write("map_Ks "+savefilename);
 						modelobjfile.newLine();
-						File imagefile = new File(savemtlfile.getParent(), savefilename);
-						ImageIO.write(model.materials[i].specularfileimage.getSnapshot(), "PNG", imagefile);
 					}
 					if (model.materials[i].specularhighfileimage!=null) {
 						String savefilename = model.materials[i].filename;
 						savefilename = savefilename.substring(0, savefilename.length()-4)+"_spechigh.png";
+						String parentdirectory = savemtlfile.getParent();
+						Material savefileimagematerial = new Material(Color.WHITE,1.0f,model.materials[i].specularhighfileimage);
+						if (modelmaterialimages.containsKey(savefileimagematerial)) {
+							savefilename = modelmaterialimages.get(savefileimagematerial);
+						} else {
+							String imagefilename = new File(parentdirectory, savefilename).getPath();
+							UtilLib.saveImageFormat(imagefilename, savefileimagematerial.fileimage, new PNGFileFilter());
+							modelmaterialimages.put(savefileimagematerial, savefilename);
+						}
 						modelobjfile.write("map_Ns "+savefilename);
 						modelobjfile.newLine();
-						File imagefile = new File(savemtlfile.getParent(), savefilename);
-						ImageIO.write(model.materials[i].specularhighfileimage.getSnapshot(), "PNG", imagefile);
 					}
 					if (model.materials[i].emissivefileimage!=null) {
 						String savefilename = model.materials[i].filename;
 						savefilename = savefilename.substring(0, savefilename.length()-4)+"_emissive.png";
+						String parentdirectory = savemtlfile.getParent();
+						Material savefileimagematerial = new Material(Color.WHITE,1.0f,model.materials[i].emissivefileimage);
+						if (modelmaterialimages.containsKey(savefileimagematerial)) {
+							savefilename = modelmaterialimages.get(savefileimagematerial);
+						} else {
+							String imagefilename = new File(parentdirectory, savefilename).getPath();
+							UtilLib.saveImageFormat(imagefilename, savefileimagematerial.fileimage, new PNGFileFilter());
+							modelmaterialimages.put(savefileimagematerial, savefilename);
+						}
 						modelobjfile.write("map_Ke "+savefilename);
 						modelobjfile.newLine();
-						File imagefile = new File(savemtlfile.getParent(), savefilename);
-						ImageIO.write(model.materials[i].emissivefileimage.getSnapshot(), "PNG", imagefile);
 					}
 					if (model.materials[i].roughnessfileimage!=null) {
 						String savefilename = model.materials[i].filename;
 						savefilename = savefilename.substring(0, savefilename.length()-4)+"_roughness.png";
+						String parentdirectory = savemtlfile.getParent();
+						Material savefileimagematerial = new Material(Color.WHITE,1.0f,model.materials[i].roughnessfileimage);
+						if (modelmaterialimages.containsKey(savefileimagematerial)) {
+							savefilename = modelmaterialimages.get(savefileimagematerial);
+						} else {
+							String imagefilename = new File(parentdirectory, savefilename).getPath();
+							UtilLib.saveImageFormat(imagefilename, savefileimagematerial.fileimage, new PNGFileFilter());
+							modelmaterialimages.put(savefileimagematerial, savefilename);
+						}
 						modelobjfile.write("map_Pr "+savefilename);
 						modelobjfile.newLine();
-						File imagefile = new File(savemtlfile.getParent(), savefilename);
-						ImageIO.write(model.materials[i].roughnessfileimage.getSnapshot(), "PNG", imagefile);
 					}
 					if (model.materials[i].metallicfileimage!=null) {
 						String savefilename = model.materials[i].filename;
 						savefilename = savefilename.substring(0, savefilename.length()-4)+"_metallic.png";
+						String parentdirectory = savemtlfile.getParent();
+						Material savefileimagematerial = new Material(Color.WHITE,1.0f,model.materials[i].metallicfileimage);
+						if (modelmaterialimages.containsKey(savefileimagematerial)) {
+							savefilename = modelmaterialimages.get(savefileimagematerial);
+						} else {
+							String imagefilename = new File(parentdirectory, savefilename).getPath();
+							UtilLib.saveImageFormat(imagefilename, savefileimagematerial.fileimage, new PNGFileFilter());
+							modelmaterialimages.put(savefileimagematerial, savefilename);
+						}
 						modelobjfile.write("map_Pm "+savefilename);
 						modelobjfile.newLine();
-						File imagefile = new File(savemtlfile.getParent(), savefilename);
-						ImageIO.write(model.materials[i].metallicfileimage.getSnapshot(), "PNG", imagefile);
 					}
 					if (model.materials[i].sheenfileimage!=null) {
 						String savefilename = model.materials[i].filename;
 						savefilename = savefilename.substring(0, savefilename.length()-4)+"_sheen.png";
+						String parentdirectory = savemtlfile.getParent();
+						Material savefileimagematerial = new Material(Color.WHITE,1.0f,model.materials[i].sheenfileimage);
+						if (modelmaterialimages.containsKey(savefileimagematerial)) {
+							savefilename = modelmaterialimages.get(savefileimagematerial);
+						} else {
+							String imagefilename = new File(parentdirectory, savefilename).getPath();
+							UtilLib.saveImageFormat(imagefilename, savefileimagematerial.fileimage, new PNGFileFilter());
+							modelmaterialimages.put(savefileimagematerial, savefilename);
+						}
 						modelobjfile.write("map_Ps "+savefilename);
 						modelobjfile.newLine();
-						File imagefile = new File(savemtlfile.getParent(), savefilename);
-						ImageIO.write(model.materials[i].sheenfileimage.getSnapshot(), "PNG", imagefile);
 					}
 					if (model.materials[i].alphafileimage!=null) {
 						String savefilename = model.materials[i].filename;
 						savefilename = savefilename.substring(0, savefilename.length()-4)+"_alpha.png";
+						String parentdirectory = savemtlfile.getParent();
+						Material savefileimagematerial = new Material(Color.WHITE,1.0f,model.materials[i].alphafileimage);
+						if (modelmaterialimages.containsKey(savefileimagematerial)) {
+							savefilename = modelmaterialimages.get(savefileimagematerial);
+						} else {
+							String imagefilename = new File(parentdirectory, savefilename).getPath();
+							UtilLib.saveImageFormat(imagefilename, savefileimagematerial.fileimage, new PNGFileFilter());
+							modelmaterialimages.put(savefileimagematerial, savefilename);
+						}
 						modelobjfile.write("map_d "+savefilename);
 						modelobjfile.newLine();
-						File imagefile = new File(savemtlfile.getParent(), savefilename);
-						ImageIO.write(model.materials[i].alphafileimage.getSnapshot(), "PNG", imagefile);
 					}
 					if (model.materials[i].bumpfileimage!=null) {
 						String savefilename = model.materials[i].filename;
 						savefilename = savefilename.substring(0, savefilename.length()-4)+"_bump.png";
+						String parentdirectory = savemtlfile.getParent();
+						Material savefileimagematerial = new Material(Color.WHITE,1.0f,model.materials[i].bumpfileimage);
+						if (modelmaterialimages.containsKey(savefileimagematerial)) {
+							savefilename = modelmaterialimages.get(savefileimagematerial);
+						} else {
+							String imagefilename = new File(parentdirectory, savefilename).getPath();
+							UtilLib.saveImageFormat(imagefilename, savefileimagematerial.fileimage, new PNGFileFilter());
+							modelmaterialimages.put(savefileimagematerial, savefilename);
+						}
 						modelobjfile.write("bump "+savefilename);
 						modelobjfile.newLine();
-						File imagefile = new File(savemtlfile.getParent(), savefilename);
-						ImageIO.write(model.materials[i].bumpfileimage.getSnapshot(), "PNG", imagefile);
 					}
 					if (model.materials[i].dispfileimage!=null) {
 						String savefilename = model.materials[i].filename;
 						savefilename = savefilename.substring(0, savefilename.length()-4)+"_disp.png";
+						String parentdirectory = savemtlfile.getParent();
+						Material savefileimagematerial = new Material(Color.WHITE,1.0f,model.materials[i].dispfileimage);
+						if (modelmaterialimages.containsKey(savefileimagematerial)) {
+							savefilename = modelmaterialimages.get(savefileimagematerial);
+						} else {
+							String imagefilename = new File(parentdirectory, savefilename).getPath();
+							UtilLib.saveImageFormat(imagefilename, savefileimagematerial.fileimage, new PNGFileFilter());
+							modelmaterialimages.put(savefileimagematerial, savefilename);
+						}
 						modelobjfile.write("disp "+savefilename);
 						modelobjfile.newLine();
-						File imagefile = new File(savemtlfile.getParent(), savefilename);
-						ImageIO.write(model.materials[i].dispfileimage.getSnapshot(), "PNG", imagefile);
 					}
 					if (model.materials[i].decalfileimage!=null) {
 						String savefilename = model.materials[i].filename;
 						savefilename = savefilename.substring(0, savefilename.length()-4)+"_decal.png";
+						String parentdirectory = savemtlfile.getParent();
+						Material savefileimagematerial = new Material(Color.WHITE,1.0f,model.materials[i].decalfileimage);
+						if (modelmaterialimages.containsKey(savefileimagematerial)) {
+							savefilename = modelmaterialimages.get(savefileimagematerial);
+						} else {
+							String imagefilename = new File(parentdirectory, savefilename).getPath();
+							UtilLib.saveImageFormat(imagefilename, savefileimagematerial.fileimage, new PNGFileFilter());
+							modelmaterialimages.put(savefileimagematerial, savefilename);
+						}
 						modelobjfile.write("decal "+savefilename);
 						modelobjfile.newLine();
-						File imagefile = new File(savemtlfile.getParent(), savefilename);
-						ImageIO.write(model.materials[i].decalfileimage.getSnapshot(), "PNG", imagefile);
 					}
 					modelobjfile.newLine();
 				}
@@ -1003,6 +1206,7 @@ public class ModelLib {
 			BufferedReader modelmtlfile = null;
 			try {
 				File loadmtlfile = new File(filename);
+				TreeMap<String,Material> modelmaterialimages = new TreeMap<String,Material>();
 				if (loadresourcefromjar) {
 					modelmtlfile = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream(loadmtlfile.getPath().replace(File.separatorChar, '/'))));
 				}else {
@@ -1022,62 +1226,146 @@ public class ModelLib {
 					    	String farg = fline.substring(7).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
 					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
-					    	modelmaterials.get(modelmaterials.size()-1).fileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    	BufferedImage loadimage = null;
+					    	if (modelmaterialimages.containsKey(loadimgfile.getPath())) {
+					    		loadimage = modelmaterialimages.get(loadimgfile.getPath()).fileimage;
+					    	} else {
+					    		loadimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    		modelmaterialimages.put(loadimgfile.getPath(),new Material(Color.WHITE,1.0f,loadimage));
+					    	}
+				    		modelmaterials.get(modelmaterials.size()-1).fileimage = loadimage;
 					    }else if (fline.toLowerCase().startsWith("map_ka ")) {
 					    	String farg = fline.substring(7).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
 					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
-					    	modelmaterials.get(modelmaterials.size()-1).ambientfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    	BufferedImage loadimage = null;
+					    	if (modelmaterialimages.containsKey(loadimgfile.getPath())) {
+					    		loadimage = modelmaterialimages.get(loadimgfile.getPath()).fileimage;
+					    	} else {
+					    		loadimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    		modelmaterialimages.put(loadimgfile.getPath(),new Material(Color.WHITE,1.0f,loadimage));
+					    	}
+					    	modelmaterials.get(modelmaterials.size()-1).ambientfileimage = loadimage;
 					    }else if (fline.toLowerCase().startsWith("map_ks ")) {
 					    	String farg = fline.substring(7).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
 					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
-					    	modelmaterials.get(modelmaterials.size()-1).specularfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    	BufferedImage loadimage = null;
+					    	if (modelmaterialimages.containsKey(loadimgfile.getPath())) {
+					    		loadimage = modelmaterialimages.get(loadimgfile.getPath()).fileimage;
+					    	} else {
+					    		loadimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    		modelmaterialimages.put(loadimgfile.getPath(),new Material(Color.WHITE,1.0f,loadimage));
+					    	}
+					    	modelmaterials.get(modelmaterials.size()-1).specularfileimage = loadimage;
 					    }else if (fline.toLowerCase().startsWith("map_ke ")) {
 					    	String farg = fline.substring(7).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
 					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
-					    	modelmaterials.get(modelmaterials.size()-1).emissivefileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    	BufferedImage loadimage = null;
+					    	if (modelmaterialimages.containsKey(loadimgfile.getPath())) {
+					    		loadimage = modelmaterialimages.get(loadimgfile.getPath()).fileimage;
+					    	} else {
+					    		loadimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    		modelmaterialimages.put(loadimgfile.getPath(),new Material(Color.WHITE,1.0f,loadimage));
+					    	}
+					    	modelmaterials.get(modelmaterials.size()-1).emissivefileimage = loadimage;
 					    }else if (fline.toLowerCase().startsWith("map_pr ")) {
 					    	String farg = fline.substring(7).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
 					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
-					    	modelmaterials.get(modelmaterials.size()-1).roughnessfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    	BufferedImage loadimage = null;
+					    	if (modelmaterialimages.containsKey(loadimgfile.getPath())) {
+					    		loadimage = modelmaterialimages.get(loadimgfile.getPath()).fileimage;
+					    	} else {
+					    		loadimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    		modelmaterialimages.put(loadimgfile.getPath(),new Material(Color.WHITE,1.0f,loadimage));
+					    	}
+					    	modelmaterials.get(modelmaterials.size()-1).roughnessfileimage = loadimage;
 					    }else if (fline.toLowerCase().startsWith("map_pm ")) {
 					    	String farg = fline.substring(7).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
 					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
-					    	modelmaterials.get(modelmaterials.size()-1).metallicfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    	BufferedImage loadimage = null;
+					    	if (modelmaterialimages.containsKey(loadimgfile.getPath())) {
+					    		loadimage = modelmaterialimages.get(loadimgfile.getPath()).fileimage;
+					    	} else {
+					    		loadimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    		modelmaterialimages.put(loadimgfile.getPath(),new Material(Color.WHITE,1.0f,loadimage));
+					    	}
+					    	modelmaterials.get(modelmaterials.size()-1).metallicfileimage = loadimage;
 					    }else if (fline.toLowerCase().startsWith("map_ps ")) {
 					    	String farg = fline.substring(7).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
 					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
-					    	modelmaterials.get(modelmaterials.size()-1).sheenfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    	BufferedImage loadimage = null;
+					    	if (modelmaterialimages.containsKey(loadimgfile.getPath())) {
+					    		loadimage = modelmaterialimages.get(loadimgfile.getPath()).fileimage;
+					    	} else {
+					    		loadimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    		modelmaterialimages.put(loadimgfile.getPath(),new Material(Color.WHITE,1.0f,loadimage));
+					    	}
+					    	modelmaterials.get(modelmaterials.size()-1).sheenfileimage = loadimage;
 					    }else if (fline.toLowerCase().startsWith("map_ns ")) {
 					    	String farg = fline.substring(7).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
 					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
-					    	modelmaterials.get(modelmaterials.size()-1).specularhighfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    	BufferedImage loadimage = null;
+					    	if (modelmaterialimages.containsKey(loadimgfile.getPath())) {
+					    		loadimage = modelmaterialimages.get(loadimgfile.getPath()).fileimage;
+					    	} else {
+					    		loadimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    		modelmaterialimages.put(loadimgfile.getPath(),new Material(Color.WHITE,1.0f,loadimage));
+					    	}
+					    	modelmaterials.get(modelmaterials.size()-1).specularhighfileimage = loadimage;
 					    }else if (fline.toLowerCase().startsWith("map_d ")) {
 					    	String farg = fline.substring(6).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
 					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
-					    	modelmaterials.get(modelmaterials.size()-1).alphafileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    	BufferedImage loadimage = null;
+					    	if (modelmaterialimages.containsKey(loadimgfile.getPath())) {
+					    		loadimage = modelmaterialimages.get(loadimgfile.getPath()).fileimage;
+					    	} else {
+					    		loadimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    		modelmaterialimages.put(loadimgfile.getPath(),new Material(Color.WHITE,1.0f,loadimage));
+					    	}
+					    	modelmaterials.get(modelmaterials.size()-1).alphafileimage = loadimage;
 					    }else if (fline.toLowerCase().startsWith("bump ")) {
 					    	String farg = fline.substring(5).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
 					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
-					    	modelmaterials.get(modelmaterials.size()-1).bumpfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    	BufferedImage loadimage = null;
+					    	if (modelmaterialimages.containsKey(loadimgfile.getPath())) {
+					    		loadimage = modelmaterialimages.get(loadimgfile.getPath()).fileimage;
+					    	} else {
+					    		loadimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    		modelmaterialimages.put(loadimgfile.getPath(),new Material(Color.WHITE,1.0f,loadimage));
+					    	}
+					    	modelmaterials.get(modelmaterials.size()-1).bumpfileimage = loadimage;
 					    }else if (fline.toLowerCase().startsWith("disp ")) {
 					    	String farg = fline.substring(5).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
 					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
-					    	modelmaterials.get(modelmaterials.size()-1).dispfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    	BufferedImage loadimage = null;
+					    	if (modelmaterialimages.containsKey(loadimgfile.getPath())) {
+					    		loadimage = modelmaterialimages.get(loadimgfile.getPath()).fileimage;
+					    	} else {
+					    		loadimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    		modelmaterialimages.put(loadimgfile.getPath(),new Material(Color.WHITE,1.0f,loadimage));
+					    	}
+					    	modelmaterials.get(modelmaterials.size()-1).dispfileimage = loadimage;
 					    }else if (fline.toLowerCase().startsWith("decal ")) {
 					    	String farg = fline.substring(5).trim();
 					    	File loadimgfile = new File(loadmtlfile.getParent(),farg);
 					    	modelmaterials.get(modelmaterials.size()-1).filename = farg;
-					    	modelmaterials.get(modelmaterials.size()-1).decalfileimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    	BufferedImage loadimage = null;
+					    	if (modelmaterialimages.containsKey(loadimgfile.getPath())) {
+					    		loadimage = modelmaterialimages.get(loadimgfile.getPath()).fileimage;
+					    	} else {
+					    		loadimage = UtilLib.loadImage(loadimgfile.getPath(), loadresourcefromjar);
+					    		modelmaterialimages.put(loadimgfile.getPath(),new Material(Color.WHITE,1.0f,loadimage));
+					    	}
+					    	modelmaterials.get(modelmaterials.size()-1).decalfileimage = loadimage;
 					    }else if (fline.toLowerCase().startsWith("kd ")) {
 					    	String farg = fline.substring(3).trim();
 					    	String[] fargsplit = farg.split(" ");
@@ -1342,9 +1630,12 @@ public class ModelLib {
 		}
 		loadentity.childlist = newentitylist;
 		loadentity.linelist = MathLib.generateLineList(newentitylist[0].trianglelist);
-		newentitylist[0].vertexlist = MathLib.generateVertexList(loadentity.linelist);
-		newentitylist[0].aabbboundaryvolume = MathLib.axisAlignedBoundingBox(newentitylist[0].vertexlist);
-		newentitylist[0].sphereboundaryvolume = MathLib.pointCloudCircumSphere(newentitylist[0].vertexlist);
+		loadentity.vertexlist = MathLib.generateVertexList(loadentity.linelist);
+		loadentity.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(loadentity.vertexlist);
+		loadentity.sphereboundaryvolume = MathLib.pointCloudCircumSphere(loadentity.vertexlist);
+		newentitylist[0].vertexlist = loadentity.vertexlist;
+		newentitylist[0].aabbboundaryvolume = loadentity.aabbboundaryvolume;
+		newentitylist[0].sphereboundaryvolume = loadentity.sphereboundaryvolume;
 		return loadentity;
 	}
 	public static Entity loadOBJFileEntity(String filename, boolean loadresourcefromjar) {
@@ -1467,6 +1758,9 @@ public class ModelLib {
 		Line[] linelist = linelisttree.toArray(new Line[linelisttree.size()]);
 		loadentity.childlist = entitylist;
 		loadentity.linelist = linelist;
+		loadentity.vertexlist = MathLib.generateVertexList(loadentity.linelist);
+		loadentity.aabbboundaryvolume = MathLib.axisAlignedBoundingBox(loadentity.vertexlist);
+		loadentity.sphereboundaryvolume = MathLib.pointCloudCircumSphere(loadentity.vertexlist);
 		return loadentity;
 	}
 
