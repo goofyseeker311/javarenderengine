@@ -5,6 +5,9 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Transparency;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -21,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 
 import javax.swing.JFileChooser;
@@ -33,23 +37,28 @@ import fi.jkauppa.javarenderengine.ModelLib.Entity;
 import fi.jkauppa.javarenderengine.ModelLib.Line;
 import fi.jkauppa.javarenderengine.ModelLib.Material;
 import fi.jkauppa.javarenderengine.ModelLib.Matrix;
+import fi.jkauppa.javarenderengine.ModelLib.Plane;
 import fi.jkauppa.javarenderengine.ModelLib.Position;
 import fi.jkauppa.javarenderengine.ModelLib.RenderView;
 import fi.jkauppa.javarenderengine.ModelLib.Rotation;
+import fi.jkauppa.javarenderengine.ModelLib.Scaling;
+import fi.jkauppa.javarenderengine.ModelLib.Sphere;
 import fi.jkauppa.javarenderengine.ModelLib.Triangle;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.OBJFileFilter;
 import fi.jkauppa.javarenderengine.UtilLib.ModelFileFilters.STLFileFilter;
-import fi.jkauppa.javarenderengine.ModelLib.Plane;
 
 public class CADApp extends AppHandlerPanel {
 	private static final long serialVersionUID = 1L;
+	private GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+	private GraphicsDevice gd = ge.getDefaultScreenDevice();
+	private GraphicsConfiguration gc = gd.getDefaultConfiguration();
 	private boolean draglinemode = false;
 	private boolean snaplinemode = false;
 	private boolean texturemode = false;
 	private boolean erasemode = false;
 	private Material drawmat = new Material(Color.getHSBColor(0.0f, 0.0f, 1.0f),1.0f,null);
-	private int renderoutputwidth = 7680, renderoutputheight = 4320;
-	private int rendercubemapoutputsize = 4096, rendercubemapoutputwidth = 3*rendercubemapoutputsize, rendercubemapoutputheight = 2*rendercubemapoutputsize;
+	private int renderoutputwidth = 3840, renderoutputheight = 2160;
+	private int rendercubemapoutputsize = 2048, rendercubemapoutputwidth = 3*rendercubemapoutputsize, rendercubemapoutputheight = 2*rendercubemapoutputsize;
 	private int renderspheremapoutputwidth = 2*renderoutputwidth, renderspheremapoutputheight = renderoutputheight;
 	private int renderbounces = 2;
 	private Color renderbackgroundcolor = Color.BLACK;
@@ -64,8 +73,11 @@ public class CADApp extends AppHandlerPanel {
 	private Line[] mouseoverline = null;
 	private int mouselocationx = 0, mouselocationy = 0;
 	private int mouselastlocationx = -1, mouselastlocationy = -1; 
-	private final double defaultcamdist = 1371.023f;
-	private final Position[] defaultcampos = {new Position(0.0f,0.0f,defaultcamdist)};
+	private double hfov = 70.0f;
+	private double vfov = 43.0f;
+	private int gridstep = 20;
+	private double editplanedistance = (((double)this.renderwidth)/2.0f)/MathLib.tand(this.hfov/2.0f);
+	private final Position[] defaultcampos = {new Position(0.0f,0.0f,editplanedistance)};
 	private final Rotation defaultcamrot = new Rotation(0.0f, 0.0f, 0.0f);
 	private Position drawstartpos = new Position(0,0,0);
 	private Position editpos = new Position(0.0f,0.0f,0.0f);
@@ -75,13 +87,9 @@ public class CADApp extends AppHandlerPanel {
 	private Matrix cameramat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
 	private final Direction[] lookdirs = MathLib.projectedCameraDirections(cameramat);
 	private Direction[] camdirs = lookdirs;
-	private double hfov = 70.0f;
-	private double vfov = 43.0f;
-	private int gridstep = 20;
-	private TreeSet<Line> linelisttree = new TreeSet<Line>();
+	private Set<Line> linelisttree = new TreeSet<Line>();
+	private Line[] linelist = null;
 	private Entity[] entitylist = null;
-	private JFileChooser filechooser = UtilLib.createModelFileChooser();
-	private JFileChooser imagechooser = UtilLib.createImageFileChooser();
 	private boolean leftkeydown = false;
 	private boolean rightkeydown = false;
 	private boolean upwardkeydown = false;
@@ -100,24 +108,32 @@ public class CADApp extends AppHandlerPanel {
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 		this.setFocusTraversalKeysEnabled(false);
 	}
+	
 	@Override public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D)g;
+		this.renderwidth = this.getWidth();
+		this.renderheight = this.getHeight();
 		g2.setComposite(AlphaComposite.Src);
 		g2.setColor(Color.BLACK);
 		g2.setPaint(null);
 		g2.setClip(null);
 		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
 		this.vfov = MathLib.calculateVfov(this.getWidth(), this.getHeight(), hfov);
+		this.editplanedistance = (((double)this.renderwidth)/2.0f)/MathLib.tand(this.hfov/2.0f);
 		if (this.renderview!=null) {
 			g2.drawImage(this.renderview.renderimage, 0, 0, null);
 		}
 	}
 	
-	@Override public void timerTick() {
-		double movementstep = 1.0f;
+	@Override public void tick() {
+		updateCamera();
+	}
+
+	private void updateCamera() {
+		double movementstep = 1000.0f*this.diffticktimesec;
 		if (this.snaplinemode) {
-			movementstep = this.gridstep;
+			movementstep *= this.gridstep;
 		}
 		if (this.leftkeydown) {
 			this.campos = MathLib.translate(campos, this.camdirs[1], -movementstep);
@@ -151,74 +167,34 @@ public class CADApp extends AppHandlerPanel {
 		}
 		if (this.yawleftkeydown) {
 			this.camrot = this.camrot.copy();
-        	this.camrot.z += (movementstep/((double)this.gridstep))*1.0f;
+        	this.camrot.z += (movementstep/((double)this.gridstep));
 			System.out.println("CADApp: keyPressed: key ARROW-LEFT: camera yaw rotation left="+this.camrot.x+","+this.camrot.y+","+this.camrot.z);
 		} else if (this.yawrightkeydown) {
 			this.camrot = this.camrot.copy();
-        	this.camrot.z -= (movementstep/((double)this.gridstep))*1.0f;
+        	this.camrot.z -= (movementstep/((double)this.gridstep));
 			System.out.println("CADApp: keyPressed: key ARROW-RIGHT: camera yaw rotation right="+this.camrot.x+","+this.camrot.y+","+this.camrot.z);
 		}
 		if (this.pitchupkeydown) {
 			this.camrot = this.camrot.copy();
-        	this.camrot.x += (movementstep/((double)this.gridstep))*1.0f;
+        	this.camrot.x += (movementstep/((double)this.gridstep));
 			System.out.println("CADApp: keyPressed: key ARROW-DOWN: camera yaw rotation down="+this.camrot.x+","+this.camrot.y+","+this.camrot.z);
 		} else if (this.pitchdownkeydown) {
 			this.camrot = this.camrot.copy();
-        	this.camrot.x -= (movementstep/((double)this.gridstep))*1.0f;
+        	this.camrot.x -= (movementstep/((double)this.gridstep));
 			System.out.println("CADApp: keyPressed: key ARROW-UP: camera yaw rotation up="+this.camrot.x+","+this.camrot.y+","+this.camrot.z);
 		}
-		updateCameraDirections();
-		(new RenderViewUpdater()).start();
-	}
-
-	private void updateCameraDirections() {
 		Matrix camrotmat = MathLib.rotationMatrixLookHorizontalRoll(this.camrot);
 		Direction[] camlookdirs = MathLib.projectedCameraDirections(camrotmat);
-		Position[] editposa = MathLib.translate(this.campos, camlookdirs[0], this.defaultcamdist);
-		this.mousepos = MathLib.cameraPlanePosition(this.editpos, this.mouselocationx, this.mouselocationy, this.getWidth(), this.getHeight(), this.snaplinemode, this.gridstep, this.cameramat);
+		Position[] editposa = MathLib.translate(this.campos, camlookdirs[0], this.editplanedistance);
+		this.mousepos = MathLib.cameraPlanePosition(this.editpos, this.mouselocationx, this.mouselocationy, this.renderwidth, this.renderheight, this.snaplinemode, this.gridstep, this.cameramat);
 		this.editpos = editposa[0];
 		this.cameramat = camrotmat;
 		this.camdirs = camlookdirs;
+		(new RenderViewUpdater()).start();
 	}
 	
 	@Override public void keyTyped(KeyEvent e) {}
-	@Override public void keyReleased(KeyEvent e) {
-		if (e.getKeyCode()==KeyEvent.VK_UP) {
-			this.pitchupkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_DOWN) {
-			this.pitchdownkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_LEFT) {
-			this.yawleftkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_RIGHT) {
-			this.yawrightkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
-			this.snaplinemode = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_TAB) {
-			this.texturemode = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_PERIOD) {
-			this.erasemode = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_W) {
-			this.upwardkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_S) {
-			this.downwardkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_A) {
-			this.leftkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_D) {
-			this.rightkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_SPACE) {
-			this.forwardkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_C) {
-			this.backwardkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_Q) {
-			this.rollleftkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_E) {
-			this.rollrightkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
-			this.forwardkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
-			this.backwardkeydown = false;
-		}
-	}
+	
 	@Override public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
 			if (e.isControlDown()) {
@@ -238,6 +214,7 @@ public class CADApp extends AppHandlerPanel {
 			} else {
 				if (!e.isShiftDown()) {
 					this.linelisttree.clear();
+					this.linelist = null;
 					this.entitylist = null;
 				}
 				this.campos = this.defaultcampos;
@@ -401,7 +378,7 @@ public class CADApp extends AppHandlerPanel {
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD1) {
 	    	Triangle mousetriangle = null;
     		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
-    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.renderwidth)&&(this.mouselocationy>=0)&&(this.mouselocationy<this.renderheight)) {
 	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
     			}
     		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
@@ -449,7 +426,7 @@ public class CADApp extends AppHandlerPanel {
 				this.unlitrender = !this.unlitrender;
 				System.out.println("CADApp: keyPressed: key SHIFT-ENTER: unlitrender="+this.unlitrender);
 			} else if (e.isControlDown()) {
-		    	(new EntityLightMapUpdater()).start();
+				(new EntityLightMapUpdater()).start();
 			} else {
 				this.polygonfillmode += 1;
 				if (this.polygonfillmode>3) {
@@ -492,195 +469,130 @@ public class CADApp extends AppHandlerPanel {
 		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
 			this.backwardkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_F2) {
-			this.filechooser.setDialogTitle("Save File");
-			this.filechooser.setApproveButtonText("Save");
-			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
-			    int onmask = KeyEvent.SHIFT_DOWN_MASK;
-			    int offmask = KeyEvent.ALT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
-			    boolean f2shiftdown = (e.getModifiersEx() & (onmask | offmask)) == onmask;
-				File savefile = this.filechooser.getSelectedFile();
-				FileFilter savefileformat = this.filechooser.getFileFilter();
-				UtilLib.saveModelFormat(savefile.getPath(), this.entitylist, savefileformat, f2shiftdown);
+		    boolean f2shiftdown = ((!e.isControlDown())&&(!e.isAltDown())&&(e.isShiftDown())&&(!e.isMetaDown()));
+        	JFileChooser filechooser = UtilLib.createModelFileChooser();
+	    	filechooser.setDialogTitle("Save Model");
+	    	filechooser.setApproveButtonText("Save");
+        	filechooser.setCurrentDirectory(new File(this.userdir));
+        	filechooser.setDialogType(JFileChooser.SAVE_DIALOG);
+        	if (filechooser.showSaveDialog(null)==JFileChooser.APPROVE_OPTION) {
+        		File savefile = filechooser.getSelectedFile();
+				if (savefile.getParent()!=null) {this.userdir = savefile.getParent();}
+	    		FileFilter savefileextension = filechooser.getFileFilter();
+	    		UtilLib.saveModelFormat(savefile.getPath(), this.entitylist, savefileextension, f2shiftdown);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
-		    int onmaskf3shiftdown = KeyEvent.SHIFT_DOWN_MASK;
-		    int offmaskf3shiftdown = KeyEvent.CTRL_DOWN_MASK|KeyEvent.ALT_DOWN_MASK;
-		    boolean f3shiftdown = (e.getModifiersEx() & (onmaskf3shiftdown | offmaskf3shiftdown)) == onmaskf3shiftdown;
-		    int onmaskf3ctrldown = KeyEvent.CTRL_DOWN_MASK;
-		    int offmaskf3ctrldown = KeyEvent.SHIFT_DOWN_MASK|KeyEvent.ALT_DOWN_MASK;
-		    boolean f3ctrldown = (e.getModifiersEx() & (onmaskf3ctrldown | offmaskf3ctrldown)) == onmaskf3ctrldown;
+		    boolean f3shiftdown = ((!e.isControlDown())&&(!e.isAltDown())&&(e.isShiftDown())&&(!e.isMetaDown()));
+		    boolean f3ctrldown = ((e.isControlDown())&&(!e.isAltDown())&&(!e.isShiftDown())&&(!e.isMetaDown()));
 		    if (f3shiftdown) {
 		    	this.snaplinemode = false;
-				this.imagechooser.setDialogTitle("Load File");
-				this.imagechooser.setApproveButtonText("Load");
-				if (this.imagechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
-					File loadfile = this.imagechooser.getSelectedFile();
+	        	JFileChooser filechooser = UtilLib.createAllImageFileChooser();
+		    	filechooser.setDialogTitle("Load Image");
+		    	filechooser.setApproveButtonText("Load");
+	        	filechooser.setCurrentDirectory(new File(this.userdir));
+	        	filechooser.setDialogType(JFileChooser.OPEN_DIALOG);
+	        	if (filechooser.showSaveDialog(null)==JFileChooser.APPROVE_OPTION) {
+	        		File loadfile = filechooser.getSelectedFile();
+					if (loadfile.getParent()!=null) {this.userdir = loadfile.getParent();}
 					BufferedImage fileimage = UtilLib.loadImage(loadfile.getPath(), false);
 					this.drawmat = this.drawmat.copy();
 					this.drawmat.fileimage = fileimage;
 				}
 		    } else if (f3ctrldown) {
-				this.filechooser.setDialogTitle("Load File");
-				this.filechooser.setApproveButtonText("Load");
-				if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
-					File loadfile = this.filechooser.getSelectedFile();
-					FileFilter loadfileformat = this.filechooser.getFileFilter();
-					this.entitybuffer = UtilLib.loadModelFormat(loadfile.getPath(), loadfileformat, false);
+	        	JFileChooser filechooser = UtilLib.createModelFileChooser();
+		    	filechooser.setDialogTitle("Insert Model");
+		    	filechooser.setApproveButtonText("Insert");
+	        	filechooser.setCurrentDirectory(new File(this.userdir));
+	        	filechooser.setDialogType(JFileChooser.OPEN_DIALOG);
+	        	if (filechooser.showSaveDialog(null)==JFileChooser.APPROVE_OPTION) {
+	        		File loadfile = filechooser.getSelectedFile();
+					if (loadfile.getParent()!=null) {this.userdir = loadfile.getParent();}
+		    		FileFilter loadfileextension = filechooser.getFileFilter();
+		    		this.entitybuffer = UtilLib.loadModelFormat(loadfile.getPath(), loadfileextension, false);
 				}
 		    } else {
-				this.filechooser.setDialogTitle("Load File");
-				this.filechooser.setApproveButtonText("Load");
-				if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
-					File loadfile = this.filechooser.getSelectedFile();
-					FileFilter loadfileformat = this.filechooser.getFileFilter();
-					Entity loadentity = UtilLib.loadModelFormat(loadfile.getPath(), loadfileformat, false);
+	        	JFileChooser filechooser = UtilLib.createModelFileChooser();
+		    	filechooser.setDialogTitle("Load Model");
+		    	filechooser.setApproveButtonText("Load");
+	        	filechooser.setCurrentDirectory(new File(this.userdir));
+	        	filechooser.setDialogType(JFileChooser.OPEN_DIALOG);
+	        	if (filechooser.showSaveDialog(null)==JFileChooser.APPROVE_OPTION) {
+	        		File loadfile = filechooser.getSelectedFile();
+					if (loadfile.getParent()!=null) {this.userdir = loadfile.getParent();}
+		    		FileFilter loadfileextension = filechooser.getFileFilter();
+	    			Entity loadentity = UtilLib.loadModelFormat(loadfile.getPath(), loadfileextension, false);
 					this.entitylist = loadentity.childlist;
 					this.linelisttree.addAll(Arrays.asList(loadentity.linelist));
+					this.linelist = linelisttree.toArray(new Line[linelisttree.size()]);
 				}
 		    }
 		} else if (e.getKeyCode()==KeyEvent.VK_F4) {
-		    int onmaskf4down = 0;
-		    int offmaskf4down = KeyEvent.SHIFT_DOWN_MASK|KeyEvent.ALT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
-		    boolean f4down = (e.getModifiersEx() & (onmaskf4down | offmaskf4down)) == onmaskf4down;
-		    int onmaskf4shiftdown = KeyEvent.SHIFT_DOWN_MASK;
-		    int offmaskf4shiftdown = KeyEvent.ALT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
-		    boolean f4shiftdown = (e.getModifiersEx() & (onmaskf4shiftdown | offmaskf4shiftdown)) == onmaskf4shiftdown;
-		    int onmaskf4ctrldown = KeyEvent.CTRL_DOWN_MASK;
-		    int offmaskf4ctrldown = KeyEvent.ALT_DOWN_MASK|KeyEvent.SHIFT_DOWN_MASK;
-		    boolean f4ctrldown = (e.getModifiersEx() & (onmaskf4ctrldown | offmaskf4ctrldown)) == onmaskf4ctrldown;
-			this.imagechooser.setDialogTitle("Render File");
-			this.imagechooser.setApproveButtonText("Render");
-			if (this.imagechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
-				File savefile = this.imagechooser.getSelectedFile();
-				FileFilter savefileformat = this.imagechooser.getFileFilter();
-				RenderView renderimageview = null;
-				if (f4ctrldown) {
-					renderimageview = RenderLib.renderCubemapView(this.campos[0], this.entitylist, this.rendercubemapoutputwidth, this.rendercubemapoutputheight, this.rendercubemapoutputsize, this.cameramat, this.unlitrender, 3, this.renderbounces, null, null, null, this.mouselocationx, this.mouselocationy);
-				} else if (f4shiftdown) {
-					renderimageview = RenderLib.renderSpheremapView(this.campos[0], this.entitylist, this.renderspheremapoutputwidth, this.renderspheremapoutputheight, this.cameramat, this.unlitrender, 2, this.renderbounces, null, null, null, this.mouselocationx, this.mouselocationy);
-				} else {
-					renderimageview = RenderLib.renderProjectedView(this.campos[0], this.entitylist, this.renderoutputwidth, this.hfov, this.renderoutputheight, this.vfov, this.cameramat, this.unlitrender, 3, this.renderbounces, null, null, null, this.mouselocationx, this.mouselocationy);
-				}
-				BufferedImage renderimage = renderimageview.renderimage;
-				if (f4down) {
-					BufferedImage blackbgimage = gc.createCompatibleImage(renderimage.getWidth(), renderimage.getHeight(), Transparency.TRANSLUCENT);
-					Graphics2D bbggfx = blackbgimage.createGraphics();
-					bbggfx.setComposite(AlphaComposite.Src);
-					bbggfx.setColor(this.renderbackgroundcolor);
-					bbggfx.fillRect(0, 0, renderimage.getWidth(), renderimage.getHeight());
-					bbggfx.setComposite(AlphaComposite.SrcOver);
-					bbggfx.drawImage(renderimage, 0, 0, null);
-					bbggfx.dispose();
-					renderimage = blackbgimage;
-				}
-				UtilLib.saveImageFormat(savefile.getPath(), renderimage, savefileformat);
+		    boolean f4down = ((!e.isControlDown())&&(!e.isAltDown())&&(!e.isShiftDown())&&(!e.isMetaDown()));
+		    boolean f4shiftdown = ((!e.isControlDown())&&(!e.isAltDown())&&(e.isShiftDown())&&(!e.isMetaDown()));
+		    boolean f4ctrldown = ((e.isControlDown())&&(!e.isAltDown())&&(!e.isShiftDown())&&(!e.isMetaDown()));
+        	JFileChooser filechooser = UtilLib.createImageFileChooser();
+	    	filechooser.setDialogTitle("Render Image");
+	    	filechooser.setApproveButtonText("Render");
+        	filechooser.setCurrentDirectory(new File(this.userdir));
+        	filechooser.setDialogType(JFileChooser.SAVE_DIALOG);
+        	if (filechooser.showSaveDialog(null)==JFileChooser.APPROVE_OPTION) {
+        		File savefile = filechooser.getSelectedFile();
+				if (savefile.getParent()!=null) {this.userdir = savefile.getParent();}
+	    		FileFilter savefileextension = filechooser.getFileFilter();
+	    		boolean rendercubemap = f4ctrldown;
+	    		boolean renderspheremap = f4shiftdown;
+	    		boolean renderbackground = f4down;
+	    		(new ImageRenderer(savefile.getPath(), savefileextension, rendercubemap, renderspheremap, renderbackground)).start();
 			}
 		}
 	}
 	
-	@Override public void mouseMoved(MouseEvent e) {
-		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
+	@Override public void keyReleased(KeyEvent e) {
+		if (e.getKeyCode()==KeyEvent.VK_UP) {
+			this.pitchupkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_DOWN) {
+			this.pitchdownkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_LEFT) {
+			this.yawleftkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_RIGHT) {
+			this.yawrightkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
+			this.snaplinemode = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_TAB) {
+			this.texturemode = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_PERIOD) {
+			this.erasemode = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_W) {
+			this.upwardkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_S) {
+			this.downwardkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_A) {
+			this.leftkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_D) {
+			this.rightkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_SPACE) {
+			this.forwardkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_C) {
+			this.backwardkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_Q) {
+			this.rollleftkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_E) {
+			this.rollrightkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_ADD) {
+			this.forwardkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_SUBTRACT) {
+			this.backwardkeydown = false;
+		}
 	}
+	
+	@Override public void mouseClicked(MouseEvent e) {}
+	
 	@Override public void mousePressed(MouseEvent e) {
-		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
-	    int onmask1ctrldown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
-	    int offmask1ctrldown = MouseEvent.ALT_DOWN_MASK;
-	    boolean mouse1ctrldown = ((e.getModifiersEx() & (onmask1ctrldown | offmask1ctrldown)) == onmask1ctrldown);
-    	if (mouse1ctrldown) {
-			if ((this.mouseoververtex!=null)&&(this.mouseoververtex.length>0)) {
-	    		if (this.snaplinemode) {
-	    			this.draglinemode = true;
-	    			this.selecteddragvertex = this.mouseoververtex;
-	    		} else {
-	    			this.draglinemode = true;
-	    			Position[] selectedvertex = {this.mouseoververtex[this.mouseoververtex.length-1]};
-	    			this.selecteddragvertex = selectedvertex; 
-	    		}
-	    	}
-    	}
-	    int onmask1alt = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    int offmask1alt = 0;
-	    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1alt | offmask1alt)) == onmask1alt);
-    	if ((mouse1altdown)&&(this.polygonfillmode==1)) {
-    		this.drawstartpos = null;
-			if (this.snaplinemode) {
-				if ((this.mouseoververtex!=null)&&(this.mouseoververtex.length>0)) {
-					this.drawstartpos = this.mouseoververtex[this.mouseoververtex.length-1].copy(); 
-				}
-			}
-    		Position[] drawposarray = {this.mousepos};
-			if (this.drawstartpos==null) {
-				this.drawstartpos = drawposarray[0].copy();
-			}
-			Line addline = new Line(this.drawstartpos, drawposarray[0]);
-			this.linelisttree.add(addline);
-			this.draglinemode = true;
-			this.selecteddragvertex = drawposarray;
-			(new EntityListUpdater()).start();
-			System.out.println("CADApp: mousePressed: key ALT-LMB: adding line="+addline.pos1.x+","+addline.pos1.y+","+addline.pos1.z+" "+addline.pos2.x+","+addline.pos2.y+","+addline.pos2.z);
-    	}
-	    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
-	    int offmask3 = 0;
-	    boolean mouse3down = ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3);
-    	if (mouse3down) {
-    		if (!this.erasemode) {
-		    	if ((this.mouseoverentity!=null)&&(mouseoverentity.length>0)) {
-	    			Entity[] mouseentity = {this.mouseoverentity[this.mouseoverentity.length-1]};
-	    			this.drawstartpos = this.mousepos;
-	    			this.selecteddragentity = mouseentity;
-	    		}
-    		}
-    	}
-		mouseDragged(e);
-	}
-	@Override public void mouseReleased(MouseEvent e) {
-	    boolean mouse1up = e.getButton()==MouseEvent.BUTTON1;
-	    boolean mouse3up = e.getButton()==MouseEvent.BUTTON3;
-		if (mouse1up) {
-			this.draglinemode = false;
-		}
-		if (mouse3up) {
-			this.selecteddragentity = null;
-		}
-	}
-	
-	public void mouseDragged(MouseEvent e) {
-		this.mouselastlocationx=this.mouselocationx;this.mouselastlocationy=this.mouselocationy;
-		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
-	    int onmask1down = MouseEvent.BUTTON1_DOWN_MASK;
-	    int offmask1down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
-	    boolean mouse1down = ((e.getModifiersEx() & (onmask1down | offmask1down)) == onmask1down);
-    	if (mouse1down) {
-    		if (this.erasemode) {
-        		if ((this.mouseoverline!=null)&&(this.mouseoverline.length>0)) {
-        			for (int i=0;i<this.mouseoverline.length;i++) {
-        				System.out.println("CADApp: mouseDragged: key PERIOD-LMB: erase line="+this.mouseoverline[i].pos1.x+" "+this.mouseoverline[i].pos1.y+" "+this.mouseoverline[i].pos1.z+" "+this.mouseoverline[i].pos2.x+" "+this.mouseoverline[i].pos2.y+" "+this.mouseoverline[i].pos2.z);
-        				this.linelisttree.remove(this.mouseoverline[i]);
-        			}
-    				(new EntityListUpdater()).start();
-    			}
-        		if ((this.mouseoverentity!=null)&&(mouseoverentity.length>0)&&(this.entitylist!=null)) {
-	    			Entity[] mouseentity = {this.mouseoverentity[this.mouseoverentity.length-1]};
-			    	Triangle mousetriangle = null;
-		    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
-		    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
-			    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
-		    			}
-		    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
-		    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
-		    		}
-					if (mousetriangle!=null) {
-		    			Line[] mouseentitylinelist = MathLib.generateLineList(mouseentity);
-		    			ArrayList<Line> mouseentitylinelistarray = new ArrayList<Line>(Arrays.asList(mouseentitylinelist));
-						ArrayList<Triangle> trianglelistarray = new ArrayList<Triangle>(Arrays.asList(mouseentity[0].trianglelist));
-						trianglelistarray.remove(mousetriangle);
-						mouseentity[0].trianglelist = trianglelistarray.toArray(new Triangle[trianglelistarray.size()]);
-						Line[] mouseentitytrianglelinelist = MathLib.generateLineList(mouseentity[0].trianglelist);
-						mouseentitylinelistarray.removeAll(Arrays.asList(mouseentitytrianglelinelist));
-		    			this.linelisttree.removeAll(mouseentitylinelistarray);
-					}
-	    		}
-    		} else if (this.entitybuffer!=null) {
+		this.mouselocationx=(int)e.getX();
+		this.mouselocationy=(int)e.getY();
+	    boolean mouse1down = ((e.getModifiersEx()&MouseEvent.BUTTON1_DOWN_MASK)!=0)&&(!e.isControlDown())&&(!e.isAltDown())&&(!e.isMetaDown());
+		if (mouse1down) {
+			if (this.entitybuffer!=null) {
 				Entity[] copyentitybuffer = new Entity[this.entitybuffer.childlist.length];
 				for (int i=0;i<this.entitybuffer.childlist.length;i++) {
         			copyentitybuffer[i] = this.entitybuffer.childlist[i].translate(this.mousepos);
@@ -699,10 +611,109 @@ public class CADApp extends AppHandlerPanel {
 					this.entitylist = copyentitybuffer;
 				}
 				this.linelisttree.addAll(Arrays.asList(copyentitybufferlinelist));
+				this.linelist = linelisttree.toArray(new Line[linelisttree.size()]);
+			}
+		}
+	    boolean mouse1ctrldown = ((e.getModifiersEx()&MouseEvent.BUTTON1_DOWN_MASK)!=0)&&(e.isControlDown())&&(!e.isAltDown())&&(!e.isMetaDown());
+    	if (mouse1ctrldown) {
+			if ((this.mouseoververtex!=null)&&(this.mouseoververtex.length>0)) {
+	    		if (this.snaplinemode) {
+	    			this.draglinemode = true;
+	    			this.selecteddragvertex = this.mouseoververtex;
+	    		} else {
+	    			this.draglinemode = true;
+	    			Position[] selectedvertex = {this.mouseoververtex[this.mouseoververtex.length-1]};
+	    			this.selecteddragvertex = selectedvertex; 
+	    		}
+	    	}
+    	}
+	    boolean mouse1altdown = ((e.getModifiersEx()&MouseEvent.BUTTON1_DOWN_MASK)!=0)&&(e.isAltDown());
+    	if ((mouse1altdown)&&(this.polygonfillmode==1)) {
+    		this.drawstartpos = null;
+			if (this.snaplinemode) {
+				if ((this.mouseoververtex!=null)&&(this.mouseoververtex.length>0)) {
+					this.drawstartpos = this.mouseoververtex[this.mouseoververtex.length-1].copy(); 
+				}
+			}
+    		Position[] drawposarray = {this.mousepos};
+			if (this.drawstartpos==null) {
+				this.drawstartpos = drawposarray[0].copy();
+			}
+			Line addline = new Line(this.drawstartpos, drawposarray[0]);
+			this.linelisttree.add(addline);
+			this.draglinemode = true;
+			this.selecteddragvertex = drawposarray;
+			(new EntityListUpdater()).start();
+			System.out.println("CADApp: mousePressed: key ALT-LMB: adding line="+addline.pos1.x+","+addline.pos1.y+","+addline.pos1.z+" "+addline.pos2.x+","+addline.pos2.y+","+addline.pos2.z);
+    	}
+	    boolean mouse3down = e.getButton()==MouseEvent.BUTTON3;
+    	if (mouse3down) {
+    		if (!this.erasemode) {
+		    	if ((this.mouseoverentity!=null)&&(mouseoverentity.length>0)) {
+	    			Entity[] mouseentity = {this.mouseoverentity[this.mouseoverentity.length-1]};
+	    			this.drawstartpos = this.mousepos;
+	    			this.selecteddragentity = mouseentity;
+	    		}
+    		}
+    	}
+		mouseDragged(e);
+	}
+	
+	@Override public void mouseReleased(MouseEvent e) {
+	    boolean mouse1up = e.getButton()==MouseEvent.BUTTON1;
+	    boolean mouse3up = e.getButton()==MouseEvent.BUTTON3;
+		if (mouse1up) {
+			this.draglinemode = false;
+		}
+		if (mouse3up) {
+			this.selecteddragentity = null;
+		}
+	}
+	
+	@Override public void mouseEntered(MouseEvent e) {}
+	@Override public void mouseExited(MouseEvent e) {}
+	
+	@Override public void mouseDragged(MouseEvent e) {
+		this.mouselastlocationx=this.mouselocationx;
+		this.mouselastlocationy=this.mouselocationy;
+		this.mouselocationx=(int)e.getX();
+		this.mouselocationy=(int)e.getY();
+	    boolean mouse1down = ((e.getModifiersEx()&MouseEvent.BUTTON1_DOWN_MASK)!=0)&&(!e.isControlDown())&&(!e.isAltDown())&&(!e.isShiftDown())&&(!e.isMetaDown());
+    	if (mouse1down) {
+    		if (this.erasemode) {
+        		if ((this.polygonfillmode==1)&&(this.mouseoverline!=null)&&(this.mouseoverline.length>0)) {
+        			for (int i=0;i<this.mouseoverline.length;i++) {
+        				System.out.println("CADApp: mouseDragged: key PERIOD-LMB: erase line="+this.mouseoverline[i].pos1.x+" "+this.mouseoverline[i].pos1.y+" "+this.mouseoverline[i].pos1.z+" "+this.mouseoverline[i].pos2.x+" "+this.mouseoverline[i].pos2.y+" "+this.mouseoverline[i].pos2.z);
+        				this.linelisttree.remove(this.mouseoverline[i]);
+        			}
+    				(new EntityListUpdater()).start();
+    			}
+        		if ((this.polygonfillmode!=1)&&(this.mouseoverentity!=null)&&(mouseoverentity.length>0)&&(this.entitylist!=null)) {
+	    			Entity[] mouseentity = {this.mouseoverentity[this.mouseoverentity.length-1]};
+			    	Triangle mousetriangle = null;
+		    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
+		    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.renderwidth)&&(this.mouselocationy>=0)&&(this.mouselocationy<this.renderheight)) {
+			    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
+		    			}
+		    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
+		    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
+		    		}
+					if (mousetriangle!=null) {
+		    			Line[] mouseentitylinelist = MathLib.generateLineList(mouseentity);
+		    			ArrayList<Line> mouseentitylinelistarray = new ArrayList<Line>(Arrays.asList(mouseentitylinelist));
+						ArrayList<Triangle> trianglelistarray = new ArrayList<Triangle>(Arrays.asList(mouseentity[0].trianglelist));
+						trianglelistarray.remove(mousetriangle);
+						mouseentity[0].trianglelist = trianglelistarray.toArray(new Triangle[trianglelistarray.size()]);
+						Line[] mouseentitytrianglelinelist = MathLib.generateLineList(mouseentity[0].trianglelist);
+						mouseentitylinelistarray.removeAll(Arrays.asList(mouseentitytrianglelinelist));
+		    			this.linelisttree.removeAll(mouseentitylinelistarray);
+		    			this.linelist = linelisttree.toArray(new Line[linelisttree.size()]);
+					}
+	    		}
     		} else {
 		    	Triangle mousetriangle = null;
 	    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
-	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.renderwidth)&&(this.mouselocationy>=0)&&(this.mouselocationy<this.renderheight)) {
 		    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
 	    			}
 	    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
@@ -715,13 +726,11 @@ public class CADApp extends AppHandlerPanel {
 				}
     		}
     	}
-	    int onmask1shiftdown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
-	    int offmask1shiftdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    boolean mouse1shiftdown = ((e.getModifiersEx() & (onmask1shiftdown | offmask1shiftdown)) == onmask1shiftdown);
+	    boolean mouse1shiftdown = ((e.getModifiersEx()&MouseEvent.BUTTON1_DOWN_MASK)!=0)&&(!e.isControlDown())&&(!e.isAltDown())&&(e.isShiftDown())&&(!e.isMetaDown());
 	    if (mouse1shiftdown) {
 	    	Triangle mousetriangle = null;
     		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
-    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.renderwidth)&&(this.mouselocationy>=0)&&(this.mouselocationy<this.renderheight)) {
 	    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
     			}
     		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
@@ -733,12 +742,8 @@ public class CADApp extends AppHandlerPanel {
 				System.out.println("CADApp: mouseDragged: key SHIFT-DRAG-LMB: selected material color: r="+facecolorcomp[0]+" g="+facecolorcomp[1]+" b="+facecolorcomp[2]+" tr="+facecolorcomp[3]);
 			}
 	    }
-	    int onmask1ctrldown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
-	    int offmask1ctrldown = 0;
-	    boolean mouse1ctrldown = ((e.getModifiersEx() & (onmask1ctrldown | offmask1ctrldown)) == onmask1ctrldown);
-	    int onmask1altdown = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    int offmask1altdown = 0;
-	    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1altdown | offmask1altdown)) == onmask1altdown);
+	    boolean mouse1ctrldown = ((e.getModifiersEx()&MouseEvent.BUTTON1_DOWN_MASK)!=0)&&(e.isControlDown());
+	    boolean mouse1altdown = ((e.getModifiersEx()&MouseEvent.BUTTON1_DOWN_MASK)!=0)&&(e.isAltDown());
     	if (mouse1ctrldown||mouse1altdown) {
     		if (this.draglinemode) {
     			Position drawlocation = null;
@@ -760,21 +765,19 @@ public class CADApp extends AppHandlerPanel {
 				System.out.println("CADApp: mouseDragged: key CTRL/ALT-DRAG-LMB: drag vertex position="+drawlocation.x+","+drawlocation.y+","+drawlocation.z);
     		}
 		}
-	    int onmask2down = MouseEvent.BUTTON2_DOWN_MASK;
-	    int offmask2down = MouseEvent.ALT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
-	    boolean mouse2down = ((e.getModifiersEx() & (onmask2down | offmask2down)) == onmask2down);
+	    boolean mouse2down = ((e.getModifiersEx()&MouseEvent.BUTTON2_DOWN_MASK)!=0)&&(!e.isControlDown())&&(!e.isAltDown())&&(!e.isMetaDown());
     	if (mouse2down) {
     		if (this.texturemode) {
 		    	Triangle mousetriangle = null;
 	    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
-	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.renderwidth)&&(this.mouselocationy>=0)&&(this.mouselocationy<this.renderheight)) {
 		    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
 	    			}
 	    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
 	    			mousetriangle = this.mouseovertriangle[this.mouseovertriangle.length-1];
 	    		}
 				if (mousetriangle!=null) {
-		        	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
+		        	int mousedeltax = this.mouselocationx - this.mouselastlocationx;
 		        	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
 		    		double movementstep = 1.0f;
 		    		if (this.snaplinemode) {
@@ -795,9 +798,7 @@ public class CADApp extends AppHandlerPanel {
 				}
     		}
     	}
-	    int onmask2ctrldown = MouseEvent.BUTTON2_DOWN_MASK;
-	    int offmask2ctrldown = MouseEvent.CTRL_DOWN_MASK;
-	    boolean mouse2ctrldown = ((e.getModifiersEx() & (onmask2ctrldown | offmask2ctrldown)) == onmask2ctrldown);
+	    boolean mouse2ctrldown = ((e.getModifiersEx()&MouseEvent.BUTTON2_DOWN_MASK)!=0)&&(!e.isControlDown());
     	if (mouse2ctrldown) {
     		if (!this.texturemode) {
 	    		double movementstep = 1.0f;
@@ -811,9 +812,7 @@ public class CADApp extends AppHandlerPanel {
 				System.out.println("CADApp: mouseDragged: key DRAG-CMB: camera position="+this.campos[0].x+","+this.campos[0].y+","+this.campos[0].z);
     		}
     	}
-	    int onmask2ctrlaltdown = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
-	    int offmask2ctrlaltdown = 0;
-	    boolean mouse2ctrlaltdown = ((e.getModifiersEx() & (onmask2ctrlaltdown | offmask2ctrlaltdown)) == onmask2ctrlaltdown);
+	    boolean mouse2ctrlaltdown = ((e.getModifiersEx()&MouseEvent.BUTTON2_DOWN_MASK)!=0)&&(e.isControlDown());
     	if (mouse2ctrlaltdown) {
     		if (!this.texturemode) {
 	    		double movementstep = 1.0f;
@@ -828,9 +827,7 @@ public class CADApp extends AppHandlerPanel {
 				System.out.println("CADApp: mouseDragged: key CTRL-DRAG-CMB: camera rotation angles="+this.camrot.x+","+this.camrot.y+","+this.camrot.z);
     		}
     	}
-	    int onmask3down = MouseEvent.BUTTON3_DOWN_MASK;
-	    int offmask3down = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
-	    boolean mouse3down = ((e.getModifiersEx() & (onmask3down | offmask3down)) == onmask3down);
+	    boolean mouse3down = ((e.getModifiersEx()&MouseEvent.BUTTON3_DOWN_MASK)!=0)&&(!e.isControlDown())&&(!e.isAltDown())&&(!e.isMetaDown());
     	if (mouse3down) {
     		if ((this.erasemode)&&(this.entitylist!=null)) {
 	    		if ((this.mouseoverentity!=null)&&(mouseoverentity.length>0)) {
@@ -840,48 +837,129 @@ public class CADApp extends AppHandlerPanel {
 	    			ArrayList<Entity> entitylistarray = new ArrayList<Entity>(Arrays.asList(this.entitylist));
 	    			entitylistarray.remove(mouseentity[0]);
 	    			this.entitylist = entitylistarray.toArray(new Entity[entitylistarray.size()]);
+	    			this.linelist = linelisttree.toArray(new Line[linelisttree.size()]);
 	    		}
+    		} else if (this.entitybuffer!=null) {
+    			//TODO place insert model on mouse-over ground position
     		} else if (this.selecteddragentity!=null) {
     			Entity selectedentity = this.selecteddragentity[0];
     			Line[] selectedentitylinelist = MathLib.generateLineList(this.selecteddragentity);
     			this.linelisttree.removeAll(Arrays.asList(selectedentitylinelist));
         		Position[] drawposarray = {this.mousepos};
     			Direction[] drawmovedir = MathLib.vectorFromPoints(this.drawstartpos, drawposarray);
+    			this.drawstartpos = drawposarray[0];
     			selectedentity.translateSelf(drawmovedir[0], 1.0f);
     			Line[] movedentitylinelist = MathLib.generateLineList(this.selecteddragentity);
     			this.linelisttree.addAll(Arrays.asList(movedentitylinelist));
-    			this.drawstartpos = drawposarray[0];
+    			this.linelist = linelisttree.toArray(new Line[linelisttree.size()]);
     			System.out.println("CADApp: mouseDragged: key DRAG-RMB: move entity ="+selectedentity.sphereboundaryvolume.x+" "+selectedentity.sphereboundaryvolume.y+" "+selectedentity.sphereboundaryvolume.z);
     		}
     	}
-	    int onmask3shiftdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
-	    int offmask3shiftdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    boolean mouse3shiftdown = ((e.getModifiersEx() & (onmask3shiftdown | offmask3shiftdown)) == onmask3shiftdown);
-	    if (mouse3shiftdown) {
-	    	//TODO <tbd>
-	    }
-	    int onmask3altdown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    int offmask3altdown = MouseEvent.CTRL_DOWN_MASK;
-	    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3altdown | offmask3altdown)) == onmask3altdown);
+	    boolean mouse3altdown = ((e.getModifiersEx()&MouseEvent.BUTTON3_DOWN_MASK)!=0)&&(!e.isControlDown())&&(e.isAltDown())&&(!e.isMetaDown());
     	if (mouse3altdown) {
-    		//TODO <tbd>
+			if (this.entitybuffer!=null) {
+				Sphere[] entitycentersphere = {this.entitybuffer.sphereboundaryvolume};
+    			Position[] entitycenterspherepos = MathLib.sphereVertexList(entitycentersphere);
+	        	int mousedeltax = this.mouselocationx - this.mouselastlocationx;
+	        	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+	        	double scalemultx = ((double)mousedeltax)/10000.0f;
+	        	double scalemulty = ((double)mousedeltay)/10000.0f;
+	        	if (e.isShiftDown()) {
+	        		scalemultx *= this.gridstep;
+	        		scalemulty *= this.gridstep;
+	        	}
+	        	scalemultx = 1.0f+scalemultx;
+	        	scalemulty = 1.0f-scalemulty;
+				for (int i=0;i<this.entitybuffer.childlist.length;i++) {
+					this.entitybuffer.childlist[i].scaleSelfAroundPos(entitycenterspherepos[0], new Scaling(scalemultx, scalemultx, scalemultx));
+					this.entitybuffer.childlist[i].scaleSelfAroundPos(entitycenterspherepos[0], new Scaling(1, 1, scalemulty));
+				}
+				for (int i=0;i<this.entitybuffer.linelist.length;i++) {
+					this.entitybuffer.linelist[i].scaleSelfAroundPos(entitycenterspherepos[0], new Scaling(scalemultx, scalemultx, scalemultx));
+					this.entitybuffer.linelist[i].scaleSelfAroundPos(entitycenterspherepos[0], new Scaling(1, 1, scalemulty));
+				}
+			} else if (this.selecteddragentity!=null) {
+    			Entity selectedentity = this.selecteddragentity[0];
+    			Line[] selectedentitylinelist = MathLib.generateLineList(this.selecteddragentity);
+    			Sphere[] selectedentitysphere = MathLib.entitySphereList(this.selecteddragentity);
+    			Position[] selectedentitypos = MathLib.sphereVertexList(selectedentitysphere);
+    			this.linelisttree.removeAll(Arrays.asList(selectedentitylinelist));
+	        	int mousedeltax = this.mouselocationx - this.mouselastlocationx;
+	        	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+	        	double scalemultx = ((double)mousedeltax)/10000.0f;
+	        	double scalemulty = ((double)mousedeltay)/10000.0f;
+	        	if (e.isShiftDown()) {
+	        		scalemultx *= this.gridstep;
+	        		scalemulty *= this.gridstep;
+	        	}
+	        	scalemultx = 1.0f+scalemultx;
+	        	scalemulty = 1.0f-scalemulty;
+    			selectedentity.scaleSelfAroundPos(selectedentitypos[0], new Scaling(scalemultx, scalemultx, scalemultx));
+    			selectedentity.scaleSelfAroundPos(selectedentitypos[0], new Scaling(1, 1, scalemulty));
+    			Line[] movedentitylinelist = MathLib.generateLineList(this.selecteddragentity);
+    			this.linelisttree.addAll(Arrays.asList(movedentitylinelist));
+    			this.linelist = linelisttree.toArray(new Line[linelisttree.size()]);
+    			System.out.println("CADApp: mouseDragged: key SHIFT-DRAG-RMB: rotate entity ="+selectedentity.sphereboundaryvolume.x+" "+selectedentity.sphereboundaryvolume.y+" "+selectedentity.sphereboundaryvolume.z);
+	    	}
     	}
-	    int onmask3ctrldown = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
-	    int offmask3ctrldown = MouseEvent.ALT_DOWN_MASK;
-	    boolean mouse3ctrldown = ((e.getModifiersEx() & (onmask3ctrldown | offmask3ctrldown)) == onmask3ctrldown);
+	    boolean mouse3ctrldown = ((e.getModifiersEx()&MouseEvent.BUTTON3_DOWN_MASK)!=0)&&(e.isControlDown())&&(!e.isAltDown())&&(!e.isMetaDown());
     	if (mouse3ctrldown) {
-    		//TODO <tbd>
+			if (this.entitybuffer!=null) {
+				Sphere[] entitycentersphere = {this.entitybuffer.sphereboundaryvolume};
+    			Position[] entitycenterspherepos = MathLib.sphereVertexList(entitycentersphere);
+	        	int mousedeltax = this.mouselocationx - this.mouselastlocationx;
+	        	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+	        	double rotmultx = -((double)mousedeltax)/100.0f;
+	        	double rotmulty = ((double)mousedeltay)/100.0f;
+	        	if (e.isShiftDown()) {
+	        		rotmultx *= this.gridstep;
+	        		rotmulty *= this.gridstep;
+	        	}
+				for (int i=0;i<this.entitybuffer.childlist.length;i++) {
+					this.entitybuffer.childlist[i].rotateSelfAroundAxisPos(entitycenterspherepos[0], this.camdirs[1], rotmulty);
+					this.entitybuffer.childlist[i].rotateSelfAroundAxisPos(entitycenterspherepos[0], this.camdirs[2], rotmultx);
+				}
+				for (int i=0;i<this.entitybuffer.linelist.length;i++) {
+					this.entitybuffer.linelist[i].rotateSelfAroundAxisPos(entitycenterspherepos[0], this.camdirs[1], rotmulty);
+					this.entitybuffer.linelist[i].rotateSelfAroundAxisPos(entitycenterspherepos[0], this.camdirs[2], rotmultx);
+				}
+			} else if (this.selecteddragentity!=null) {
+    			Entity selectedentity = this.selecteddragentity[0];
+    			Line[] selectedentitylinelist = MathLib.generateLineList(this.selecteddragentity);
+    			Sphere[] selectedentitysphere = MathLib.entitySphereList(this.selecteddragentity);
+    			Position[] selectedentitypos = MathLib.sphereVertexList(selectedentitysphere);
+    			this.linelisttree.removeAll(Arrays.asList(selectedentitylinelist));
+	        	int mousedeltax = this.mouselocationx - this.mouselastlocationx;
+	        	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
+	        	double rotmultx = -((double)mousedeltax)/100.0f;
+	        	double rotmulty = ((double)mousedeltay)/100.0f;
+	        	if (e.isShiftDown()) {
+	        		rotmultx *= this.gridstep;
+	        		rotmulty *= this.gridstep;
+	        	}
+    			selectedentity.rotateSelfAroundAxisPos(selectedentitypos[0], this.camdirs[1], rotmulty);
+    			selectedentity.rotateSelfAroundAxisPos(selectedentitypos[0], this.camdirs[2], rotmultx);
+    			Line[] movedentitylinelist = MathLib.generateLineList(this.selecteddragentity);
+    			this.linelisttree.addAll(Arrays.asList(movedentitylinelist));
+    			this.linelist = linelisttree.toArray(new Line[linelisttree.size()]);
+    			System.out.println("CADApp: mouseDragged: key SHIFT-DRAG-RMB: rotate entity ="+selectedentity.sphereboundaryvolume.x+" "+selectedentity.sphereboundaryvolume.y+" "+selectedentity.sphereboundaryvolume.z);
+	    	}
     	}
 	}
+	
+	@Override public void mouseMoved(MouseEvent e) {
+		this.mouselocationx=e.getX();
+		this.mouselocationy=e.getY();
+	}
+	
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {
-	    int onmask = 0;
-	    int offmask = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
-	    boolean mousewheeldown = ((e.getModifiersEx() & (onmask | offmask)) == onmask);
+		float scrollticks = e.getWheelRotation();
+	    boolean mousewheeldown = ((!e.isControlDown())&&(!e.isAltDown())&&(!e.isShiftDown())&&(!e.isMetaDown()));
 	    if (mousewheeldown) {
 	    	if (this.texturemode) {
 		    	Triangle mousetriangle = null;
 	    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
-	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.renderwidth)&&(this.mouselocationy>=0)&&(this.mouselocationy<this.renderheight)) {
 		    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
 	    			}
 	    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
@@ -891,24 +969,22 @@ public class CADApp extends AppHandlerPanel {
 		        	mousetriangle.pos1.tex = mousetriangle.pos1.tex.copy();
 		        	mousetriangle.pos2.tex = mousetriangle.pos2.tex.copy();
 		        	mousetriangle.pos3.tex = mousetriangle.pos3.tex.copy();
-		    		mousetriangle.pos1.tex.u *= 1-(0.01f*e.getWheelRotation());
-		    		mousetriangle.pos1.tex.v *= 1-(0.01f*e.getWheelRotation());
-		    		mousetriangle.pos2.tex.u *= 1-(0.01f*e.getWheelRotation());
-		    		mousetriangle.pos2.tex.v *= 1-(0.01f*e.getWheelRotation());
-		    		mousetriangle.pos3.tex.u *= 1-(0.01f*e.getWheelRotation());
-		    		mousetriangle.pos3.tex.v *= 1-(0.01f*e.getWheelRotation());
+		    		mousetriangle.pos1.tex.u *= 1-(0.01f*scrollticks);
+		    		mousetriangle.pos1.tex.v *= 1-(0.01f*scrollticks);
+		    		mousetriangle.pos2.tex.u *= 1-(0.01f*scrollticks);
+		    		mousetriangle.pos2.tex.v *= 1-(0.01f*scrollticks);
+		    		mousetriangle.pos3.tex.u *= 1-(0.01f*scrollticks);
+		    		mousetriangle.pos3.tex.v *= 1-(0.01f*scrollticks);
 					System.out.println("CADApp: mouseWheelMoved: key TAB-MWHEEL: zoom texture coordinate="+mousetriangle.pos1.tex.u+","+mousetriangle.pos1.tex.v+" "+mousetriangle.pos2.tex.u+","+mousetriangle.pos2.tex.v+" "+mousetriangle.pos3.tex.u+","+mousetriangle.pos3.tex.v);
 				}
 	    	}
 	    }
-	    int onmaskshiftdown = MouseEvent.SHIFT_DOWN_MASK;
-	    int offmaskshiftdown = MouseEvent.ALT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
-	    boolean mousewheelshiftdown = ((e.getModifiersEx() & (onmaskshiftdown | offmaskshiftdown)) == onmaskshiftdown);
+	    boolean mousewheelshiftdown = ((!e.isControlDown())&&(!e.isAltDown())&&(e.isShiftDown())&&(!e.isMetaDown()));
 	    if (mousewheelshiftdown) {
 	    	if (this.texturemode) {
 		    	Triangle mousetriangle = null;
 	    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
-	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.renderwidth)&&(this.mouselocationy>=0)&&(this.mouselocationy<this.renderheight)) {
 		    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
 	    			}
 	    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
@@ -916,7 +992,7 @@ public class CADApp extends AppHandlerPanel {
 	    		}
 				if (mousetriangle!=null) {
 		        	AffineTransform textr = new AffineTransform();
-		        	textr.rotate(0.01f*e.getWheelRotation());
+		        	textr.rotate(0.01f*scrollticks);
 		        	Point2D pos1tex = new Point2D.Double(mousetriangle.pos1.tex.u,mousetriangle.pos1.tex.v); 
 		        	Point2D pos2tex = new Point2D.Double(mousetriangle.pos2.tex.u,mousetriangle.pos2.tex.v); 
 		        	Point2D pos3tex = new Point2D.Double(mousetriangle.pos3.tex.u,mousetriangle.pos3.tex.v); 
@@ -930,14 +1006,12 @@ public class CADApp extends AppHandlerPanel {
 				}
 	    	}
 	    }
-	    int onmaskctrlshiftdown = MouseEvent.CTRL_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
-	    int offmaskctrlshiftdown = MouseEvent.ALT_DOWN_MASK;
-	    boolean mousewheelctrlshiftdown = ((e.getModifiersEx() & (onmaskctrlshiftdown | offmaskctrlshiftdown)) == onmaskctrlshiftdown);
+	    boolean mousewheelctrlshiftdown = ((e.isControlDown())&&(!e.isAltDown())&&(e.isShiftDown())&&(!e.isMetaDown()));
 	    if (mousewheelctrlshiftdown) {
 	    	if (this.texturemode) {
 		    	Triangle mousetriangle = null;
 	    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
-	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.renderwidth)&&(this.mouselocationy>=0)&&(this.mouselocationy<this.renderheight)) {
 		    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
 	    			}
 	    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
@@ -945,7 +1019,7 @@ public class CADApp extends AppHandlerPanel {
 	    		}
 				if (mousetriangle!=null) {
 		        	AffineTransform textr = new AffineTransform();
-		        	textr.scale(1+0.01f*e.getWheelRotation(),1.0f);
+		        	textr.scale(1+0.01f*scrollticks,1.0f);
 		        	Point2D pos1tex = new Point2D.Double(mousetriangle.pos1.tex.u,mousetriangle.pos1.tex.v); 
 		        	Point2D pos2tex = new Point2D.Double(mousetriangle.pos2.tex.u,mousetriangle.pos2.tex.v); 
 		        	Point2D pos3tex = new Point2D.Double(mousetriangle.pos3.tex.u,mousetriangle.pos3.tex.v); 
@@ -959,14 +1033,12 @@ public class CADApp extends AppHandlerPanel {
 				}
 	    	}
 	    }
-	    int onmaskaltshiftdown = MouseEvent.CTRL_DOWN_MASK;
-	    int offmaskaltshiftdown = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    boolean mousewheelaltshiftdown = ((e.getModifiersEx() & (onmaskaltshiftdown | offmaskaltshiftdown)) == onmaskaltshiftdown);
-	    if (mousewheelaltshiftdown) {
+	    boolean mousewheelctrldown = ((e.isControlDown())&&(!e.isAltDown())&&(!e.isShiftDown())&&(!e.isMetaDown()));
+	    if (mousewheelctrldown) {
 	    	if (this.texturemode) {
 		    	Triangle mousetriangle = null;
 	    		if ((this.renderview!=null)&&(this.renderview.tbuffer!=null)) {
-	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.getWidth())&&(this.mouselocationy>=0)&&(this.mouselocationy<this.getHeight())) {
+	    			if ((this.mouselocationx>=0)&&(this.mouselocationx<this.renderwidth)&&(this.mouselocationy>=0)&&(this.mouselocationy<this.renderheight)) {
 		    			mousetriangle = this.renderview.tbuffer[this.mouselocationy][this.mouselocationx];
 	    			}
 	    		} else if ((this.mouseovertriangle!=null)&&(this.mouseovertriangle.length>0)) {
@@ -974,7 +1046,7 @@ public class CADApp extends AppHandlerPanel {
 	    		}
 				if (mousetriangle!=null) {
 		        	AffineTransform textr = new AffineTransform();
-		        	textr.shear(0.01f*e.getWheelRotation(),0.0f);
+		        	textr.shear(0.01f*scrollticks,0.0f);
 		        	Point2D pos1tex = new Point2D.Double(mousetriangle.pos1.tex.u,mousetriangle.pos1.tex.v); 
 		        	Point2D pos2tex = new Point2D.Double(mousetriangle.pos2.tex.u,mousetriangle.pos2.tex.v); 
 		        	Point2D pos3tex = new Point2D.Double(mousetriangle.pos3.tex.u,mousetriangle.pos3.tex.v); 
@@ -988,23 +1060,20 @@ public class CADApp extends AppHandlerPanel {
 				}
 	    	}
 	    }
-	    int onmaskctrldown = 0;
-	    int offmaskctrldown = 0;
-	    boolean mousewheelctrldown = ((e.getModifiersEx() & (onmaskctrldown | offmaskctrldown)) == onmaskctrldown);
-	    if (mousewheelctrldown) {
-	    	if (!this.texturemode) {
-				double movementstep = 200.0f*e.getWheelRotation();
-				if (this.snaplinemode) {
-					movementstep *= this.gridstep;
-				}
-				this.campos = MathLib.translate(campos, this.camdirs[0], -movementstep);
-				System.out.println("CADApp: mouseWheelMoved: key MWHEEL: camera position="+this.campos[0].x+","+this.campos[0].y+","+this.campos[0].z);
-	    	}
-	    }
+    	if (!this.texturemode) {
+			double movementstep = 0.0f;
+			if (e.isShiftDown()) {
+				movementstep = 200.0f*scrollticks;
+			} else {
+				movementstep = 200.0f*scrollticks;
+			}
+			if (this.snaplinemode) {
+				movementstep *= this.gridstep;
+			}
+			this.campos = MathLib.translate(campos, this.camdirs[0], -movementstep);
+			System.out.println("CADApp: mouseWheelMoved: key MWHEEL: camera position="+this.campos[0].x+","+this.campos[0].y+","+this.campos[0].z);
+    	}
 	}
-	@Override public void mouseClicked(MouseEvent e) {}
-	@Override public void mouseEntered(MouseEvent e) {}
-	@Override public void mouseExited(MouseEvent e) {}
 	
 	@SuppressWarnings("unchecked")
 	@Override public void drop(DropTargetDropEvent dtde) {
@@ -1041,16 +1110,16 @@ public class CADApp extends AppHandlerPanel {
 			if (!EntityListUpdater.entitylistupdaterrunning) {
 				EntityListUpdater.entitylistupdaterrunning = true;
 				ArrayList<Triangle> entitylisttrianglearray = new ArrayList<Triangle>();
-				if (CADApp.this.entitylist!=null) {
-					for (int i=0;i<CADApp.this.entitylist.length;i++) {
-						if (CADApp.this.entitylist[i].trianglelist!=null) {
-							entitylisttrianglearray.addAll(Arrays.asList(CADApp.this.entitylist[i].trianglelist));
+				if (entitylist!=null) {
+					for (int i=0;i<entitylist.length;i++) {
+						if (entitylist[i].trianglelist!=null) {
+							entitylisttrianglearray.addAll(Arrays.asList(entitylist[i].trianglelist));
 						}
 					}
 				}
-				Line[] copylinelist = CADApp.this.linelisttree.toArray(new Line[CADApp.this.linelisttree.size()]);
+				Line[] copylinelist = linelisttree.toArray(new Line[linelisttree.size()]);
 				Entity[] newentitylist = MathLib.generateEntityList(copylinelist);
-				Material newmat = CADApp.this.drawmat;
+				Material newmat = drawmat;
 				for (int j=0;j<newentitylist.length;j++) {
 					for (int i=0;i<newentitylist[j].trianglelist.length;i++) {
 						newentitylist[j].trianglelist[i].mat = newmat;
@@ -1064,7 +1133,8 @@ public class CADApp extends AppHandlerPanel {
 						}
 					}
 				}
-				CADApp.this.entitylist = newentitylist;
+				entitylist = newentitylist;
+    			linelist = linelisttree.toArray(new Line[linelisttree.size()]);
 				EntityListUpdater.entitylistupdaterrunning = false;
 			}
 		}
@@ -1076,64 +1146,104 @@ public class CADApp extends AppHandlerPanel {
 			if (!RenderViewUpdater.renderupdaterrunning) {
 				RenderViewUpdater.renderupdaterrunning = true;
 				int bounces = 0;
-				if (CADApp.this.polygonfillmode==1) {
-					Line[] linelist = CADApp.this.linelisttree.toArray(new Line[CADApp.this.linelisttree.size()]);
-					RenderView drawrenderview = RenderLib.renderProjectedLineViewHardware(CADApp.this.campos[0], linelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, true, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
-					if (CADApp.this.entitybuffer!=null) {
-						Line[] copyentitybufferlinelist = new Line[CADApp.this.entitybuffer.linelist.length];
-						for (int i=0;i<CADApp.this.entitybuffer.linelist.length;i++) {
-							copyentitybufferlinelist[i] = CADApp.this.entitybuffer.linelist[i].translate(CADApp.this.mousepos);
+				if (polygonfillmode==1) {
+					RenderView mouseoverview = RenderLib.renderProjectedView(campos[0], entitylist, renderwidth, hfov, renderheight, vfov, cameramat, unlitrender, 1, bounces, null, null, null, mouselocationx, mouselocationy);
+					RenderView drawrenderview = RenderLib.renderProjectedLineViewHardware(campos[0], linelist, renderwidth, hfov, renderheight, vfov, true, cameramat, mouselocationx, mouselocationy);
+					if (entitybuffer!=null) {
+						Line[] copyentitybufferlinelist = new Line[entitybuffer.linelist.length];
+						for (int i=0;i<entitybuffer.linelist.length;i++) {
+							copyentitybufferlinelist[i] = entitybuffer.linelist[i].translate(mousepos);
 						}
-						RenderView entitybufferview = RenderLib.renderProjectedLineViewHardware(CADApp.this.campos[0], copyentitybufferlinelist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, false, CADApp.this.cameramat, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+						RenderView entitybufferview = RenderLib.renderProjectedLineViewHardware(campos[0], copyentitybufferlinelist, renderwidth, hfov, renderheight, vfov, false, cameramat, mouselocationx, mouselocationy);
 						Graphics2D viewgfx = drawrenderview.renderimage.createGraphics();
 						viewgfx.setComposite(AlphaComposite.SrcOver);
 						viewgfx.drawImage(entitybufferview.renderimage, 0, 0, null);
 						viewgfx.dispose();
 					}
-					CADApp.this.renderview = drawrenderview;
-					CADApp.this.mouseoverline = drawrenderview.mouseoverline;
-					CADApp.this.mouseoververtex = drawrenderview.mouseoververtex;
-					CADApp.this.mouseoverentity = null;
-					CADApp.this.mouseovertriangle = null;
-				} else if (CADApp.this.polygonfillmode==2) { 
-					RenderView drawrenderview = RenderLib.renderProjectedView(CADApp.this.campos[0], CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
-					if (CADApp.this.entitybuffer!=null) {
-						Entity[] copyentitybuffer = new Entity[CADApp.this.entitybuffer.childlist.length];
-						for (int i=0;i<CADApp.this.entitybuffer.childlist.length;i++) {
-		        			copyentitybuffer[i] = CADApp.this.entitybuffer.childlist[i].translate(CADApp.this.mousepos);
+					renderview = drawrenderview;
+					mouseoverline = drawrenderview.mouseoverline;
+					mouseoververtex = drawrenderview.mouseoververtex;
+					mouseoverentity = mouseoverview.mouseoverentity;
+					mouseovertriangle = mouseoverview.mouseovertriangle;
+					renderview.tbuffer = mouseoverview.tbuffer;
+					renderview.cbuffer = mouseoverview.cbuffer;
+				} else if (polygonfillmode==2) { 
+					RenderView drawrenderview = RenderLib.renderProjectedView(campos[0], entitylist, renderwidth, hfov, renderheight, vfov, cameramat, unlitrender, 1, bounces, null, null, null, mouselocationx, mouselocationy);
+					if (entitybuffer!=null) {
+						Entity[] copyentitybuffer = new Entity[entitybuffer.childlist.length];
+						for (int i=0;i<entitybuffer.childlist.length;i++) {
+		        			copyentitybuffer[i] = entitybuffer.childlist[i].translate(mousepos);
 		        		}
-						RenderView entitybufferview = RenderLib.renderProjectedView(CADApp.this.campos[0], copyentitybuffer, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 1, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+						RenderView entitybufferview = RenderLib.renderProjectedView(campos[0], copyentitybuffer, renderwidth, hfov, renderheight, vfov, cameramat, unlitrender, 1, bounces, null, null, null, mouselocationx, mouselocationy);
 						Graphics2D viewgfx = drawrenderview.renderimage.createGraphics();
 						viewgfx.setComposite(AlphaComposite.SrcOver);
 						viewgfx.drawImage(entitybufferview.renderimage, 0, 0, null);
 						viewgfx.dispose();
 					}
-					CADApp.this.renderview = drawrenderview;
-					CADApp.this.mouseoverline = null;
-					CADApp.this.mouseoververtex = null;
-					CADApp.this.mouseoverentity = drawrenderview.mouseoverentity;
-					CADApp.this.mouseovertriangle = drawrenderview.mouseovertriangle;
-				} else if (CADApp.this.polygonfillmode==3) {
-					RenderView drawrenderview = RenderLib.renderProjectedView(CADApp.this.campos[0], CADApp.this.entitylist, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 2, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
-					if (CADApp.this.entitybuffer!=null) {
-						Entity[] copyentitybuffer = new Entity[CADApp.this.entitybuffer.childlist.length];
-						for (int i=0;i<CADApp.this.entitybuffer.childlist.length;i++) {
-		        			copyentitybuffer[i] = CADApp.this.entitybuffer.childlist[i].translate(CADApp.this.mousepos);
+					renderview = drawrenderview;
+					mouseoverline = null;
+					mouseoververtex = null;
+					mouseoverentity = drawrenderview.mouseoverentity;
+					mouseovertriangle = drawrenderview.mouseovertriangle;
+				} else if (polygonfillmode==3) {
+					RenderView drawrenderview = RenderLib.renderProjectedView(campos[0], entitylist, renderwidth, hfov, renderheight, vfov, cameramat, unlitrender, 2, bounces, null, null, null, mouselocationx, mouselocationy);
+					if (entitybuffer!=null) {
+						Entity[] copyentitybuffer = new Entity[entitybuffer.childlist.length];
+						for (int i=0;i<entitybuffer.childlist.length;i++) {
+		        			copyentitybuffer[i] = entitybuffer.childlist[i].translate(mousepos);
 		        		}
-						RenderView entitybufferview = RenderLib.renderProjectedView(CADApp.this.campos[0], copyentitybuffer, CADApp.this.getWidth(), CADApp.this.hfov, CADApp.this.getHeight(), CADApp.this.vfov, CADApp.this.cameramat, CADApp.this.unlitrender, 2, bounces, null, null, null, CADApp.this.mouselocationx, CADApp.this.mouselocationy);
+						RenderView entitybufferview = RenderLib.renderProjectedView(campos[0], copyentitybuffer, renderwidth, hfov, renderheight, vfov, cameramat, unlitrender, 2, bounces, null, null, null, mouselocationx, mouselocationy);
 						Graphics2D viewgfx = drawrenderview.renderimage.createGraphics();
 						viewgfx.setComposite(AlphaComposite.SrcOver);
 						viewgfx.drawImage(entitybufferview.renderimage, 0, 0, null);
 						viewgfx.dispose();
 					}
-					CADApp.this.renderview = drawrenderview;
-					CADApp.this.mouseoverline = null;
-					CADApp.this.mouseoververtex = null;
-					CADApp.this.mouseoverentity = drawrenderview.mouseoverentity;
-					CADApp.this.mouseovertriangle = drawrenderview.mouseovertriangle;
+					renderview = drawrenderview;
+					mouseoverline = null;
+					mouseoververtex = null;
+					mouseoverentity = drawrenderview.mouseoverentity;
+					mouseovertriangle = drawrenderview.mouseovertriangle;
 				}
 				RenderViewUpdater.renderupdaterrunning = false;
 			}
+		}
+	}
+
+	private class ImageRenderer extends Thread {
+		private String filename;
+		private FileFilter saveformat;
+		private boolean rendercubemap;
+		private boolean renderspheremap;
+		private boolean renderbackground;
+		public ImageRenderer(String filenamei, FileFilter saveformati, boolean rendercubemapi, boolean renderspheremapi, boolean renderbackgroundi) {
+			this.filename = filenamei;
+			this.saveformat = saveformati;
+			this.rendercubemap = rendercubemapi;
+			this.renderspheremap = renderspheremapi;
+			this.renderbackground = renderbackgroundi;
+		}
+		public void run() {
+			RenderView renderimageview = null;
+			if (rendercubemap) {
+				renderimageview = RenderLib.renderCubemapView(campos[0], entitylist, rendercubemapoutputwidth, rendercubemapoutputheight, rendercubemapoutputsize, cameramat, unlitrender, 3, renderbounces, null, null, null, mouselocationx, mouselocationy);
+			} else if (renderspheremap) {
+				renderimageview = RenderLib.renderSpheremapView(campos[0], entitylist, renderspheremapoutputwidth, renderspheremapoutputheight, cameramat, unlitrender, 2, renderbounces, null, null, null, mouselocationx, mouselocationy);
+			} else {
+				renderimageview = RenderLib.renderProjectedView(campos[0], entitylist, renderoutputwidth, hfov, renderoutputheight, vfov, cameramat, unlitrender, 3, renderbounces, null, null, null, mouselocationx, mouselocationy);
+			}
+			BufferedImage renderimage = renderimageview.renderimage;
+			if (renderbackground) {
+				BufferedImage blackbgimage = gc.createCompatibleImage(renderimage.getWidth(), renderimage.getHeight(), Transparency.TRANSLUCENT);
+				Graphics2D bbggfx = blackbgimage.createGraphics();
+				bbggfx.setComposite(AlphaComposite.Src);
+				bbggfx.setColor(renderbackgroundcolor);
+				bbggfx.fillRect(0, 0, renderimage.getWidth(), renderimage.getHeight());
+				bbggfx.setComposite(AlphaComposite.SrcOver);
+				bbggfx.drawImage(renderimage, 0, 0, null);
+				bbggfx.dispose();
+				renderimage = blackbgimage;
+			}
+    		UtilLib.saveImageFormat(filename, renderimage, saveformat);
 		}
 	}
 

@@ -12,7 +12,7 @@ public class TemplateApp extends AppHandlerPanel {
 	private static final long serialVersionUID = 1L;
 	public TemplateApp() {}
 	@Override public void paintComponent(Graphics g) {}
-	@Override public void timerTick() {}
+	@Override public void tick() {}
 	@Override public void keyTyped(KeyEvent e) {}
 	@Override public void keyPressed(KeyEvent e) {}
 	@Override public void keyReleased(KeyEvent e) {}

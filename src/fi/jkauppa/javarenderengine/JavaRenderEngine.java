@@ -46,6 +46,8 @@ import fi.jkauppa.javarenderengine.ModelLib.Triangle;
 
 public class JavaRenderEngine extends JFrame implements ActionListener,KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 	private static final long serialVersionUID = 1L;
+	private static int defaultimagecanvaswidth = 1920;
+	private static int defaultimagecanvasheight = 1080;
 	private DrawApp drawapp = new DrawApp();
 	private CADApp cadapp = new CADApp();
 	private ModelApp modelapp = new ModelApp();
@@ -53,17 +55,15 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	private GameApp gameapp = new GameApp();
 	private AppHandlerPanel activeapp = null;
 	private DropTargetHandler droptargethandler = new DropTargetHandler();
-	private double fpstarget = 120.0f;
+	private double fpstarget = 288.0f;
 	private int fpstargetdelay = (int)Math.floor(1000.0f/fpstarget);
 	private Timer timer = new Timer(this.fpstargetdelay,this);
-	private final int defaultimagecanvaswidth = 1920;
-	private final int defaultimagecanvasheight= 1080;
 	private boolean windowedmode = true;
 	private BufferedImage logoimage = UtilLib.loadImage("res/icons/logo.png", true);
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.7.0");
+		this.setTitle("Java Render Engine v3.0.0");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -463,32 +463,22 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public static abstract class AppHandlerPanel extends JPanel implements KeyListener,MouseListener,MouseMotionListener,MouseWheelListener {
 		private static final long serialVersionUID = 1L;
-		public int lastrenderwidth = 0, lastrenderheight = 0;
-		public long newupdate = System.currentTimeMillis();
-		public long lastupdate = newupdate;
-		public long ticktime = 0;
-		public double ticktimesec = 0.0f;
-		public double ticktimefps = 0.0f;
+    	public String userdir = System.getProperty("user.dir");
+    	public int renderwidth = defaultimagecanvaswidth;
+    	public int renderheight = defaultimagecanvasheight;
+    	public long lastticktime = System.currentTimeMillis();
+    	public long nowticktime = this.lastticktime;
+		public double diffticktime = (double)(this.nowticktime - this.lastticktime);
+		public double diffticktimesec = this.diffticktime/1000.0f;
 		public GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		public GraphicsDevice gd = ge.getDefaultScreenDevice();
 		public GraphicsConfiguration gc = gd.getDefaultConfiguration();
 		public Toolkit tk = Toolkit.getDefaultToolkit();
 		public Clipboard cb = tk.getSystemClipboard();
-		
-		@Override public void paintComponent(Graphics g) {
-			super.paintComponent(g);
-			if ((this.lastrenderwidth!=this.getWidth())||(this.lastrenderheight!=this.getHeight())) {
-				this.lastrenderwidth = this.getWidth();
-				this.lastrenderheight = this.getHeight();
-				System.out.println("JavaRenderEngine: main: Window: Resolution "+this.getWidth()+"x"+this.getHeight());
-			}
-			this.newupdate = System.currentTimeMillis();
-			this.ticktime = this.newupdate-this.lastupdate;
-			this.ticktimesec = ((double)this.ticktime)/1000.0f;
-			this.ticktimefps = 1000.0f/((double)this.ticktime);
-		}
+
+		@Override public void paintComponent(Graphics g) {super.paintComponent(g);}
 		public abstract void drop(DropTargetDropEvent dtde);
-		public abstract void timerTick();
+		public abstract void tick();
 	}
 	
 	private class DropTargetHandler extends DropTarget {
@@ -497,8 +487,8 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	}
 
 	private void setActiveApp(AppHandlerPanel activeappi) {
-		int appcanvaswidth = this.defaultimagecanvaswidth; 
-		int appcanvasheight = this.defaultimagecanvasheight; 
+		int appcanvaswidth = defaultimagecanvaswidth; 
+		int appcanvasheight = defaultimagecanvasheight; 
 		if (this.activeapp!=null) {
 			this.activeapp.removeMouseListener(this);
 			this.activeapp.removeMouseMotionListener(this);
@@ -520,10 +510,16 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	}
 	
 	@Override public void actionPerformed(ActionEvent e) {
-		if (this.activeapp!=null) {this.activeapp.timerTick();}
-		Dimension componentsize=this.activeapp.getSize();
-		Rectangle paintregion=new Rectangle(0,0,componentsize.width,componentsize.height);
-		this.activeapp.paintImmediately(paintregion);
+		if (this.activeapp!=null) {
+			activeapp.lastticktime = activeapp.nowticktime;
+			activeapp.nowticktime = System.currentTimeMillis();
+			activeapp.diffticktime = (double)(activeapp.nowticktime - activeapp.lastticktime);
+			activeapp.diffticktimesec = activeapp.diffticktime/1000.0f;
+			this.activeapp.tick();
+			Dimension componentsize=this.activeapp.getSize();
+			Rectangle paintregion=new Rectangle(0,0,componentsize.width,componentsize.height);
+			this.activeapp.paintImmediately(paintregion);
+		}
 	}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {if (this.activeapp!=null) {this.activeapp.mouseWheelMoved(e);}}
 	@Override public void mouseDragged(MouseEvent e) {if (this.activeapp!=null) {this.activeapp.mouseDragged(e);}}
@@ -552,8 +548,8 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	    		windowedmode = true;
 	    		this.setExtendedState(this.getExtendedState()&~JFrame.MAXIMIZED_BOTH);
 	    		this.setUndecorated(false);
-	    		this.activeapp.setPreferredSize(new Dimension(this.defaultimagecanvaswidth,this.defaultimagecanvasheight));
-	    		this.activeapp.setSize(this.defaultimagecanvaswidth,this.defaultimagecanvasheight);
+	    		this.activeapp.setPreferredSize(new Dimension(defaultimagecanvaswidth,defaultimagecanvasheight));
+	    		this.activeapp.setSize(defaultimagecanvaswidth,defaultimagecanvasheight);
 	    		this.pack();
 	    	}else {
 	    		windowedmode = false;

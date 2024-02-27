@@ -29,18 +29,16 @@ import fi.jkauppa.javarenderengine.ModelLib.Rotation;
 public class ModelApp extends AppHandlerPanel {
 	private static final long serialVersionUID = 1L;
 	private Entity[] entitylist = null;
-	private final Position[] defaultcampos = {new Position(0.0f,0.0f,0.0f)};
-	private final Rotation defaultcamrot = new Rotation(0.0f, 0.0f, 0.0f);
+	private Position[] defaultcampos = {new Position(0.0f,0.0f,0.0f)};
+	private Rotation defaultcamrot = new Rotation(0.0f, 0.0f, 0.0f);
 	private Position[] campos = this.defaultcampos;
 	private Rotation camrot = this.defaultcamrot;
 	private Matrix cameramat = MathLib.rotationMatrix(0.0f, 0.0f, 0.0f);
-	private final Direction[] lookdirs = MathLib.projectedCameraDirections(cameramat);
+	private Direction[] lookdirs = MathLib.projectedCameraDirections(cameramat);
+	private double hfov = 70.0f, vfov = 43.0f;
 	private Direction[] camdirs = lookdirs;
-	private double hfov = 70.0f;
-	private double vfov = 43.0f;
 	private int polygonfillmode = 1;
 	private boolean unlitrender = false;
-	private JFileChooser filechooser = UtilLib.createModelFileChooser();
 	private boolean leftkeydown = false;
 	private boolean rightkeydown = false;
 	private boolean upwardkeydown = false;
@@ -49,8 +47,8 @@ public class ModelApp extends AppHandlerPanel {
 	private boolean backwardkeydown = false;
 	private boolean rollrightkeydown = false;
 	private boolean rollleftkeydown = false;
-	private int mouselastlocationx = -1, mouselastlocationy = -1; 
-	private int mouselocationx = -1, mouselocationy = -1;
+	private int mouselastlocationx = 0, mouselastlocationy = 0; 
+	private int mouselocationx = 0, mouselocationy = 0;
 	private BufferedImage cursorimage = gc.createCompatibleImage(1, 1, Transparency.TRANSLUCENT);
 	private Cursor customcursor = null;
 	private RenderView renderview = null;
@@ -61,23 +59,29 @@ public class ModelApp extends AppHandlerPanel {
 		this.setCursor(this.customcursor);
 		this.setFocusTraversalKeysEnabled(false);
 	}
-
+	
 	@Override public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D)g;
+		this.renderwidth = this.getWidth();
+		this.renderheight = this.getHeight();
+		this.vfov = MathLib.calculateVfov(this.renderwidth, this.renderheight, this.hfov);
         g2.setComposite(AlphaComposite.Src);
 		g2.setColor(Color.BLACK);
 		g2.setPaint(null);
 		g2.setClip(null);
 		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
-		this.vfov = MathLib.calculateVfov(this.getWidth(), this.getHeight(), hfov);
 		if (this.renderview!=null) {
 			g2.drawImage(renderview.renderimage, 0, 0, null);
 		}
 	}
 
-	@Override public void timerTick() {
-		double movementstep = 20.0f;
+	@Override public void tick() {
+		updateCamera();
+	}
+	
+	private void updateCamera() {
+		double movementstep = 1000.0f*this.diffticktimesec;
 		if (this.leftkeydown) {
 			this.campos = MathLib.translate(campos, this.camdirs[1], -movementstep);
 		} else if (this.rightkeydown) {
@@ -95,48 +99,25 @@ public class ModelApp extends AppHandlerPanel {
 		}
 		if (this.rollleftkeydown) {
 			this.camrot = this.camrot.copy();
-			this.camrot.y -= 1.0f;
+			this.camrot.y -= movementstep/20.0f;
 		} else if (this.rollrightkeydown) {
 			this.camrot = this.camrot.copy();
-			this.camrot.y += 1.0f;
+			this.camrot.y += movementstep/20.0f;
 		}
-		updateCameraDirections();
-		(new RenderViewUpdater()).start();
-	}
-
-	private void updateCameraDirections() {
 		Matrix camrotmat = MathLib.rotationMatrixLookHorizontalRoll(this.camrot);
 		Direction[] camlookdirs = MathLib.matrixMultiply(this.lookdirs, camrotmat);
 		this.cameramat = camrotmat;
 		this.camdirs = camlookdirs;
+		(new RenderViewUpdater()).start();
 	}
-	
-	@Override public void keyReleased(KeyEvent e) {
-		if (e.getKeyCode()==KeyEvent.VK_A) {
-		this.leftkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_D) {
-			this.rightkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_W) {
-			this.forwardkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_S) {
-			this.backwardkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_SPACE) {
-			this.upwardkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_C) {
-			this.downwardkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_Q) {
-			this.rollleftkeydown = false;
-		} else if (e.getKeyCode()==KeyEvent.VK_E) {
-			this.rollrightkeydown = false;
-		}
-	}
+
+	@Override public void keyTyped(KeyEvent e) {}
 	
 	@Override public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
 			this.entitylist = null;
 			this.campos = this.defaultcampos;
 			this.camrot = this.defaultcamrot;
-			updateCameraDirections();
 		} else if (e.getKeyCode()==KeyEvent.VK_A) {
 			this.leftkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_D) {
@@ -154,34 +135,59 @@ public class ModelApp extends AppHandlerPanel {
 		} else if (e.getKeyCode()==KeyEvent.VK_E) {
 			this.rollrightkeydown = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
-			if (e.isShiftDown()) {
-				this.unlitrender = !this.unlitrender;
-				System.out.println("ModelApp: keyPressed: key SHIFT-ENTER: unlitrender="+this.unlitrender);
-			} else {
-				this.polygonfillmode += 1;
-				if (this.polygonfillmode>8) {
-					this.polygonfillmode = 1;
+			if ((!e.isControlDown())&&(!e.isAltDown())&&(!e.isMetaDown())) {
+				if (e.isShiftDown()) {
+					this.unlitrender = !this.unlitrender;
+					System.out.println("ModelApp: keyPressed: key SHIFT-ENTER: unlitrender="+this.unlitrender);
+				} else {
+					this.polygonfillmode += 1;
+					if (this.polygonfillmode>8) {
+						this.polygonfillmode = 1;
+					}
+					System.out.println("ModelApp: keyPressed: key ENTER: polygonfillmode="+this.polygonfillmode);
 				}
-				System.out.println("ModelApp: keyPressed: key ENTER: polygonfillmode="+this.polygonfillmode);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
-			this.filechooser.setDialogTitle("Load File");
-			this.filechooser.setApproveButtonText("Load");
-			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
-				File loadfile = this.filechooser.getSelectedFile();
-				FileFilter loadfileformat = this.filechooser.getFileFilter();
-				Entity loadentity = UtilLib.loadModelFormat(loadfile.getPath(), loadfileformat, false);
+        	JFileChooser filechooser = UtilLib.createModelFileChooser();
+	    	filechooser.setDialogTitle("Load Model");
+	    	filechooser.setApproveButtonText("Load");
+        	filechooser.setCurrentDirectory(new File(this.userdir));
+        	filechooser.setDialogType(JFileChooser.OPEN_DIALOG);
+        	if (filechooser.showSaveDialog(null)==JFileChooser.APPROVE_OPTION) {
+        		File loadfile = filechooser.getSelectedFile();
+				if (loadfile.getParent()!=null) {this.userdir = loadfile.getParent();}
+	    		FileFilter loadfileextension = filechooser.getFileFilter();
+	    		Entity loadentity = UtilLib.loadModelFormat(loadfile.getPath(), loadfileextension, false);
 				this.entitylist = loadentity.childlist;
-			}
+	    	}
 		}
 	}
 	
-	@Override public void keyTyped(KeyEvent e) {}
-	@Override public void mousePressed(MouseEvent e) {}
-	@Override public void mouseDragged(MouseEvent e) {}
+	@Override public void keyReleased(KeyEvent e) {
+		if (e.getKeyCode()==KeyEvent.VK_A) {
+			this.leftkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_D) {
+			this.rightkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_W) {
+			this.forwardkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_S) {
+			this.backwardkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_SPACE) {
+			this.upwardkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_C) {
+			this.downwardkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_Q) {
+			this.rollleftkeydown = false;
+		} else if (e.getKeyCode()==KeyEvent.VK_E) {
+			this.rollrightkeydown = false;
+		}
+	}
+	
 	@Override public void mouseClicked(MouseEvent e) {}
+	@Override public void mousePressed(MouseEvent e) {}
 	@Override public void mouseReleased(MouseEvent e) {}
 	@Override public void mouseEntered(MouseEvent e) {}
+	
 	@Override public void mouseExited(MouseEvent e) {
 		if (this.isFocusOwner()) {
 			Point windowscreenlocation = this.getLocationOnScreen();
@@ -189,14 +195,17 @@ public class ModelApp extends AppHandlerPanel {
 			int origindeltay = (int)Math.floor(((double)(this.getHeight()-1))/2.0f);
 			int windowcenterx = windowscreenlocation.x + origindeltax;
 			int windowcentery = windowscreenlocation.y + origindeltay;
-			this.mouselocationx = this.lastrenderwidth/2; 
-			this.mouselocationy = this.lastrenderheight/2; 
+			this.mouselocationx = this.renderwidth/2; 
+			this.mouselocationy = this.renderheight/2; 
 			try {
 				Robot mouserobot = new Robot();
 				mouserobot.mouseMove(windowcenterx, windowcentery);
 			} catch (Exception ex) {ex.printStackTrace();}
 		}
 	}
+	
+	@Override public void mouseDragged(MouseEvent e) {}
+	
 	@Override public void mouseMoved(MouseEvent e) {
 		if (this.isFocusOwner()) {
 			this.mouselastlocationx=this.mouselocationx;this.mouselastlocationy=this.mouselocationy;
@@ -206,12 +215,12 @@ public class ModelApp extends AppHandlerPanel {
 			this.camrot = this.camrot.copy();
 	    	this.camrot.z -= mousedeltax*0.1f;
 	    	this.camrot.x -= mousedeltay*0.1f;
-	    	updateCameraDirections();
-			if ((this.mouselocationx<=0)||(this.mouselocationy<=0)||(this.mouselocationx>=(this.lastrenderwidth-1))||(this.mouselocationy>=(this.lastrenderheight-1))) {
+			if ((this.mouselocationx<=0)||(this.mouselocationy<=0)||(this.mouselocationx>=(this.renderwidth-1))||(this.mouselocationy>=(this.renderheight-1))) {
 				mouseExited(e);
 			}
 		}
 	}
+	
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
 	@Override public void drop(DropTargetDropEvent dtde) {}
 
