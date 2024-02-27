@@ -15,14 +15,14 @@ F9                    -- Game App
 F12                   -- save a screenshot image file
 
 Draw App Keys:
-ENTER                 -- toggles between alpha/src composite pencil draw mode
-BACKSPACE             -- erases the whole window canvas to white
+BACKSPACE             -- erases the whole window canvas to transparent
 DRAG-LMB              -- black/hsba-color drag paint
-SHIFT-LMB             -- rgba-color picker at cursor
+CTRL-LMB              -- rgba-color picker at cursor
 ALT-DRAG-LMB          -- black/hsba-color line drag paint
 DRAG-CMB              -- drag image contents on image canvas
+SHIFT                 -- speed up color change, pencil width change and rotation
 MWHEEL                -- pencil width change (minmax)
-SHIFT-MWHEEL          -- pencil brush image rotation angle change (looping)
+TAB-MWHEEL            -- pencil rotation angle change (looping)
 CTRL-MWHEEL           -- hue positive change (looping)
 CTRL-ALT-MWHEEL       -- saturation positive change (minmax)
 ALT-MWHEEL            -- brightness positive change (minmax)
@@ -40,8 +40,8 @@ NUMPAD*               -- pencil type change next (looping)
 NUMPAD/               -- pencil type change previous (looping)
 NUMPAD9               -- pencil transparency positive (minmax)
 NUMPAD8               -- pencil transparency negative (minmax)
-NUMPAD6               -- pencil brush image rotation angle change positive (looping)
-NUMPAD5               -- pencil brush image rotation angle change negative (looping)
+NUMPAD6               -- pencil rotation angle change positive (looping)
+NUMPAD5               -- pencil rotation angle change negative (looping)
 F2                    -- save image file dialog
 F3                    -- load image file dialog
 SHIFT-F3              -- load image file as pencil brush dialog
@@ -58,13 +58,15 @@ QE                    -- camera tilt change left/right (looping)
 BACKSPACE             -- removes all vector lines
 SHIFT-BACKSPACE       -- reset camera to starting location
 CTRL-BACKSPACE        -- reset all entity triangle surface light maps to zero
-DRAG-LMB              -- material drag triangle paint
+DRAG-LMB              -- material drag triangle paint, and place entity (minmax)
 SHIFT-LMB             -- material picker at cursor
 CTRL-DRAG-LMB         -- move line vertex
 ALT-DRAG-LMB          -- vector line drag draw (in vector line mode)
 PERIOD-DRAG-LMB       -- remove line vertex or triangle surface
 PERIOD-DRAG-RMB       -- remove entity
-DRAG-RMB              -- move entity (minmax)
+DRAG-RMB              -- move/ground entity (minmax)
+CTRL-DRAG-RMB         -- rotate entity (looping)
+ALT-DRAG-RMB          -- scale entity (minmax)
 SHIFT                 -- toggle snap to grid/vertex, drag multiple vertex, and speed movement
 DRAG-CMB              -- camera location view position sideways pan (minmax)
 CTRL-DRAG-CMB         -- change forward looking movement direction (looping)
@@ -102,7 +104,7 @@ CTRL-F3               -- load insert model file dialog
 SHIFT-F3              -- load texture image file dialog
 F4                    -- render and save projected view 3840x2160 image with black opaque background
 CTRL-F4               -- render and save cube map view 6144x4096 image with transparent background
-SHIFT-F4              -- render and save sphere map 7680x2160 image with transparent background
+SHIFT-F4              -- render and save sphere map view 7680x2160 image with transparent background
 CTRL-SHIFT-F4         -- render and save projected view 4K image with transparent background
 
 Model App Keys:
