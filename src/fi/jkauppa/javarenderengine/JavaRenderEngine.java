@@ -21,7 +21,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.image.VolatileImage;
+import java.awt.image.BufferedImage;
 import java.io.File;
 
 import javax.swing.JFrame;
@@ -59,11 +59,11 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	private final int defaultimagecanvaswidth = 1920;
 	private final int defaultimagecanvasheight= 1080;
 	private boolean windowedmode = true;
-	private VolatileImage logoimage = UtilLib.loadImage("res/icons/logo.png", true);
+	private BufferedImage logoimage = UtilLib.loadImage("res/icons/logo.png", true);
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v2.6.13");
+		this.setTitle("Java Render Engine v2.7.0");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -439,7 +439,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		double[] modnumout1 = {MathLib.mod(modnum[0], 1.5f), MathLib.mod(modnum[1], 1.5f), MathLib.mod(modnum[2], 1.5f), MathLib.mod(modnum[3], 1.5f), MathLib.mod(modnum[4], 1.5f)};
 		double[] modnumout2 = {MathLib.mod(modnum[0], 2.0f), MathLib.mod(modnum[1], 2.0f), MathLib.mod(modnum[2], 2.0f), MathLib.mod(modnum[3], 2.0f), MathLib.mod(modnum[4], 2.0f)};
 		Coordinate[] texreps = {new Coordinate(0.5f, -0.4f), new Coordinate(1.5f, -1.4f)};
-		Coordinate[] texrepmodeone = MathLib.mod(texreps);
+		Coordinate[] texrepmodeone = MathLib.mod(texreps, 1.0f);
 		for (int i=0;i<modnumout1.length;i++) {System.out.println("JavaRenderEngine: main: modnumout1[i]="+modnumout1[i]);}
 		for (int i=0;i<modnumout2.length;i++) {System.out.println("JavaRenderEngine: main: modnumout2[i]="+modnumout2[i]);}
 		for (int i=0;i<texrepmodeone.length;i++) {System.out.println("JavaRenderEngine: main: texrepmodeone[i]="+texrepmodeone[i].u+" "+texrepmodeone[i].v);}
@@ -586,7 +586,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 			//TODO <tbd>
 		}else if (e.getKeyCode()==KeyEvent.VK_F12) {
 			System.out.println("JavaRenderEngine: main: keyPressed: VK_F12");
-			VolatileImage componentimage = this.activeapp.gc.createCompatibleVolatileImage(this.activeapp.getWidth(),this.activeapp.getHeight(), Transparency.OPAQUE);
+			BufferedImage componentimage = this.activeapp.gc.createCompatibleImage(this.activeapp.getWidth(),this.activeapp.getHeight(), Transparency.OPAQUE);
 			Graphics2D gfx = componentimage.createGraphics();
 			this.activeapp.paintComponent(gfx);
 			gfx.dispose();

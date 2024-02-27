@@ -12,7 +12,6 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
-import java.awt.image.VolatileImage;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,33 +34,33 @@ public class UtilLib {
 	
 	public static class ImageFileFilters  {
 		public static class PNGFileFilter extends FileFilter {
-			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".png"));}
+			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().toLowerCase().endsWith(".png"));}
 			@Override public String getDescription() {return "PNG Image file";}
 		}
 		public static class JPGFileFilter extends FileFilter {
-			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".jpg"))||(f.getName().endsWith(".jpeg"));}
+			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().toLowerCase().endsWith(".jpg"))||(f.getName().toLowerCase().endsWith(".jpeg"));}
 			@Override public String getDescription() {return "JPG Image file";}
 		}
 		public static class GIFFileFilter extends FileFilter {
-			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".gif"));}
+			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().toLowerCase().endsWith(".gif"));}
 			@Override public String getDescription() {return "GIF Image file";}
 		}
 		public static class BMPFileFilter extends FileFilter {
-			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".bmp"));}
+			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().toLowerCase().endsWith(".bmp"));}
 			@Override public String getDescription() {return "BMP Image file";}
 		}
 		public static class WBMPFileFilter extends FileFilter {
-			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".wbmp"));}
+			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().toLowerCase().endsWith(".wbmp"));}
 			@Override public String getDescription() {return "WBMP Image file";}
 		}
 	}
 	public static class ModelFileFilters  {
 		public static class OBJFileFilter extends FileFilter {
-			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".obj"));}
+			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().toLowerCase().endsWith(".obj"));}
 			@Override public String getDescription() {return "OBJ Model file";}
 		}
 		public static class STLFileFilter extends FileFilter {
-			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().endsWith(".stl"));}
+			@Override public boolean accept(File f) {return (f.isDirectory())||(f.getName().toLowerCase().endsWith(".stl"));}
 			@Override public String getDescription() {return "STL Model file";}
 		}
 	}
@@ -147,7 +146,7 @@ public class UtilLib {
 		return imagechooser;
     }
 
-    public static void saveImageFormat(String filename, VolatileImage image, FileFilter savefileformat) {
+    public static void saveImageFormat(String filename, BufferedImage image, FileFilter savefileformat) {
     	String savefilename = filename;
 		if (savefileformat.getClass().equals(ImageFileFilters.JPGFileFilter.class)) {
 			if ((!savefilename.toLowerCase().endsWith(".jpg"))&&(!savefilename.toLowerCase().endsWith(".jpeg"))) {savefilename = savefilename.concat(".jpg");}
@@ -167,13 +166,13 @@ public class UtilLib {
 		}
     }
     
-	public static void saveImage(String filename, VolatileImage image, String format) {
+	public static void saveImage(String filename, BufferedImage image, String format) {
 		File savefile = new File(filename);
-		try {ImageIO.write(image.getSnapshot(), format, savefile);} catch (Exception ex) {ex.printStackTrace();}
+		try {ImageIO.write(image, format, savefile);} catch (Exception ex) {ex.printStackTrace();}
 	}
     
-	public static VolatileImage loadImage(String filename, boolean loadresourcefromjar) {
-		VolatileImage k = null;
+	public static BufferedImage loadImage(String filename, boolean loadresourcefromjar) {
+		BufferedImage k = null;
 		if (filename!=null) {
 			try {
 				File imagefile = new File(filename);
@@ -185,7 +184,7 @@ public class UtilLib {
 				}
 				BufferedImage loadimage = ImageIO.read(imagefilestream);
 				if (loadimage!=null) {
-					VolatileImage loadimagevolatile = gc.createCompatibleVolatileImage(loadimage.getWidth(), loadimage.getHeight(), Transparency.TRANSLUCENT);
+					BufferedImage loadimagevolatile = gc.createCompatibleImage(loadimage.getWidth(), loadimage.getHeight(), Transparency.TRANSLUCENT);
 					Graphics2D loadimagevolatilegfx = loadimagevolatile.createGraphics();
 					loadimagevolatilegfx.setComposite(AlphaComposite.Src);
 					loadimagevolatilegfx.drawImage(loadimage, 0, 0, null);
@@ -198,8 +197,8 @@ public class UtilLib {
 		return k;
 	}
 	
-	public static VolatileImage flipImage(VolatileImage image, boolean horizontal, boolean vertical) {
-		VolatileImage k = gc.createCompatibleVolatileImage(image.getWidth(), image.getHeight(), Transparency.TRANSLUCENT);
+	public static BufferedImage flipImage(BufferedImage image, boolean horizontal, boolean vertical) {
+		BufferedImage k = gc.createCompatibleImage(image.getWidth(), image.getHeight(), Transparency.TRANSLUCENT);
 		Graphics2D rigfx = k.createGraphics();
 		rigfx.setComposite(AlphaComposite.Src);
 		rigfx.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
@@ -285,7 +284,7 @@ public class UtilLib {
 		return k;
 	}
 
-	static class ImageTransferable implements Transferable {
+	public static class ImageTransferable implements Transferable {
         private Image image;
         public ImageTransferable (Image imagei) {this.image=imagei;}
         public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException {if (isDataFlavorSupported(flavor)) {return image;}else{throw new UnsupportedFlavorException(flavor);}}
