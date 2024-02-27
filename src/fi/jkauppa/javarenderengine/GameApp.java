@@ -1,6 +1,5 @@
 package fi.jkauppa.javarenderengine;
 
-import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -17,12 +16,13 @@ public class GameApp extends AppHandlerPanel {
 	@Override public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D)g;
-		g2.setComposite(AlphaComposite.Src);
+		this.renderwidth = this.getWidth();
+		this.renderheight = this.getHeight();
 		g2.setColor(Color.RED);
-		g2.setPaint(null);
-		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
+		g2.fillRect(0, 0, this.renderwidth, this.renderheight);
 	}
-	@Override public void timerTick() {}
+	@Override public void tick() {}
+	
 	@Override public void keyTyped(KeyEvent e) {}
 	@Override public void keyPressed(KeyEvent e) {}
 	@Override public void keyReleased(KeyEvent e) {}
@@ -35,4 +35,5 @@ public class GameApp extends AppHandlerPanel {
 	@Override public void mouseMoved(MouseEvent e) {}
 	@Override public void mouseWheelMoved(MouseWheelEvent e) {}
 	@Override public void drop(DropTargetDropEvent dtde) {}
+	
 }

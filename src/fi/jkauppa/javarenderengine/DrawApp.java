@@ -30,35 +30,32 @@ import fi.jkauppa.javarenderengine.UtilLib.ImageTransferable;
 
 public class DrawApp extends AppHandlerPanel {
 	private static final long serialVersionUID = 1L;
-	private BufferedImage renderbuffer = null;
-	private BufferedImage dragbuffer = null;
-	private TexturePaint bgpattern = null;
-	private Color drawcolor = Color.BLACK;
-	private float[] drawcolorhsb = {0.0f, 1.0f, 0.0f};
-	private Color erasecolor = new Color(1.0f,1.0f,1.0f,0.0f);
+	private float[] hsbdrawcolor = {0.0f,1.0f,0.0f,1.0f};
+	private float penciltransparency = 1.0f;
+	private Color drawcolor = UtilLib.getHSBTransparencyColor(hsbdrawcolor[0],hsbdrawcolor[1],hsbdrawcolor[2],this.penciltransparency);
 	private int pencilsize = 1;
 	private int pencilshape = 1;
 	private double pencilangle = 0;
-	private boolean penciloverridemode = false;
-	private float penciltransparency = 1.0f;
-	private BufferedImage pencilbuffer = null;
 	private int oldpencilsize = 1;
 	private boolean drawlinemode = false;
+	private boolean rotatemode = false;
 	private int mousestartlocationx = -1, mousestartlocationy = -1;  
 	private int mouselastlocationx = -1, mouselastlocationy = -1;  
 	private int mouselocationx = -1, mouselocationy = -1;
-	private JFileChooser filechooser = UtilLib.createImageFileChooser();
+	private BufferedImage renderbuffer = null;
+	private BufferedImage dragbuffer = null;
+	private TexturePaint bgpattern = null;
+	private BufferedImage pencilbuffer = null;
 	
 	public DrawApp() {
-		BufferedImage bgpatternimage = gc.createCompatibleImage(64, 64, Transparency.OPAQUE);
+		BufferedImage bgpatternimage = this.gc.createCompatibleImage(64,64,Transparency.OPAQUE);
 		Graphics2D pgfx = bgpatternimage.createGraphics();
 		pgfx.setColor(Color.WHITE);
 		pgfx.fillRect(0, 0, bgpatternimage.getWidth(), bgpatternimage.getHeight());
 		pgfx.setColor(Color.BLACK);
 		pgfx.drawLine(31, 0, 31, 63);
 		pgfx.drawLine(0, 31, 63, 31);
-		pgfx.dispose();
-		this.bgpattern = new TexturePaint(bgpatternimage,new Rectangle(0, 0, 64, 64));
+		this.bgpattern = new TexturePaint(bgpatternimage, new Rectangle(0, 0, bgpatternimage.getWidth(), bgpatternimage.getHeight()));
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		this.setFocusTraversalKeysEnabled(false);
 	}
@@ -66,6 +63,8 @@ public class DrawApp extends AppHandlerPanel {
 	@Override public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D)g;
+		this.renderwidth = this.getWidth();
+		this.renderheight = this.getHeight();
 		if ((renderbuffer==null)||(renderbuffer.getWidth()!=this.getWidth())||(renderbuffer.getHeight()!=this.getHeight())) {
 			BufferedImage oldimage = this.renderbuffer;
 			this.renderbuffer = gc.createCompatibleImage(this.getWidth(),this.getHeight(), Transparency.TRANSLUCENT);
@@ -82,120 +81,109 @@ public class DrawApp extends AppHandlerPanel {
 		g2.fillRect(0, 0, renderbuffer.getWidth(), renderbuffer.getHeight());
 		g2.setPaint(null);
 		g2.drawImage(renderbuffer, 0, 0, null);
-		if ((this.penciloverridemode)&&(this.pencilbuffer!=null)) {
-    		double pencilsizescalefactor = ((double)this.pencilsize)/((double)this.pencilbuffer.getWidth());
-			g2.setComposite(AlphaComposite.Src);
-			g2.setPaint(this.bgpattern);
-			int drawlocationx = this.mouselocationx-(int)Math.round((double)this.pencilbuffer.getWidth()*pencilsizescalefactor/2.0f);
-			int drawlocationy = this.mouselocationy-(int)Math.round((double)this.pencilbuffer.getHeight()*pencilsizescalefactor/2.0f);
-			int drawwidth = (int)Math.round(this.pencilbuffer.getWidth()*pencilsizescalefactor);
-			int drawheight = (int)Math.round(this.pencilbuffer.getHeight()*pencilsizescalefactor);
-			g2.fillRect(drawlocationx, drawlocationy, drawwidth, drawheight);
-		}
 		if (this.drawlinemode) {
-			this.drawPencilLine(g2, this.mousestartlocationx, this.mousestartlocationy, this.mouselocationx, this.mouselocationy, false, false);
+			this.drawPencilLine(g2, this.mousestartlocationx, this.mousestartlocationy, this.mouselocationx, this.mouselocationy, false);
 		} else {
-			this.drawPencil(g2, this.mouselocationx, this.mouselocationy, false, false);
+			this.drawPencil(g2, this.mouselocationx, this.mouselocationy, false);
 		}
 	}
-
-	@Override public void timerTick() {}
-	@Override public void keyTyped(KeyEvent e) {}
-	@Override public void keyReleased(KeyEvent e) {}
 	
-	@Override
-	public void keyPressed(KeyEvent e) {
+	@Override public void tick() {}
+	@Override public void keyTyped(KeyEvent e) {}
+	
+	@Override public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode()==KeyEvent.VK_ESCAPE) {
 			//TODO options menu
 		} else if (e.getKeyCode()==KeyEvent.VK_ENTER) {
-		    int onmaska = 0;
-		    int offmaska = KeyEvent.ALT_DOWN_MASK|KeyEvent.SHIFT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
-		    boolean enterdown = (e.getModifiersEx() & (onmaska | offmaska)) == onmaska;
-		    if(enterdown) {
-		    	this.penciloverridemode = !this.penciloverridemode;
-		    }
+			//TODO <tbd>
+		} else if (e.getKeyCode()==KeyEvent.VK_TAB) {
+			this.rotatemode = true;
 		} else if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
-			if (this.renderbuffer!=null) {
-				Graphics2D gfx = this.renderbuffer.createGraphics();
-				gfx.setComposite(AlphaComposite.Src);
-				gfx.setColor(this.erasecolor);
-				gfx.fillRect(0, 0, this.renderbuffer.getWidth(), this.renderbuffer.getHeight());
-				gfx.dispose();
-			}
+			this.renderbuffer = null;
 		} else if (e.getKeyCode()==KeyEvent.VK_C) {
 			if (e.isControlDown()) {
-				ImageTransferable transferable = new ImageTransferable(UtilLib.flipImage(this.renderbuffer, false, false));
-				this.cb.setContents(transferable, null);
+				ImageTransferable cbimage =  new ImageTransferable(UtilLib.flipImage(this.renderbuffer, false, false));
+				this.cb.setContents(cbimage, null);
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_V) {
 			if (e.isControlDown()) {
-				Transferable cbt = this.cb.getContents(null);
-				if ((cbt!=null)&&(cbt.isDataFlavorSupported(DataFlavor.imageFlavor))) {
-			        try {
-		                Image image = (Image)cbt.getTransferData(DataFlavor.imageFlavor);
-						Graphics2D loadimagegfx = this.renderbuffer.createGraphics();
-						loadimagegfx.setComposite(AlphaComposite.Src);
-						loadimagegfx.drawImage(image, 0, 0, null);
-						loadimagegfx.dispose();
-			        } catch (Exception ex){ex.printStackTrace();}
+				try {
+				if (this.cb.isDataFlavorAvailable(DataFlavor.imageFlavor)) {
+					Image cbimage = (Image)this.cb.getData(DataFlavor.imageFlavor);
+					Graphics2D gfx = this.renderbuffer.createGraphics();
+					gfx.setComposite(AlphaComposite.Src);
+					gfx.drawImage(cbimage, 0, 0, null);
 				}
+				} catch(Exception ex) {ex.printStackTrace();}
 			}
 		} else if (e.getKeyCode()==KeyEvent.VK_INSERT) {
-			this.drawcolorhsb[0] += 0.01f;
-			if (this.drawcolorhsb[0]>1.0f) {this.drawcolorhsb[0] = 0.0f;}
-			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
-			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
-			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+	    	if (e.isShiftDown()) {
+	    		this.hsbdrawcolor[0] = this.hsbdrawcolor[0] + 0.20f;
+	    	} else {
+	    		this.hsbdrawcolor[0] = this.hsbdrawcolor[0] + 0.01f;
+	    	}
+			if (this.hsbdrawcolor[0]>1.0f) {this.hsbdrawcolor[0] = 0.0f;}
+			this.drawcolor = UtilLib.getHSBTransparencyColor(hsbdrawcolor[0],hsbdrawcolor[1],hsbdrawcolor[2],this.penciltransparency);
 	    	if (this.pencilbuffer!=null) {
 	    		this.pencilbuffer = null;
 	    		this.pencilsize = this.oldpencilsize;
 	    	}
 		} else if (e.getKeyCode()==KeyEvent.VK_DELETE) {
-			this.drawcolorhsb[0] -= 0.01f;
-			if (this.drawcolorhsb[0]<0.0f) {this.drawcolorhsb[0] = 1.0f;}
-			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
-			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
-			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+	    	if (e.isShiftDown()) {
+	    		this.hsbdrawcolor[0] = this.hsbdrawcolor[0] - 0.20f;
+	    	} else {
+	    		this.hsbdrawcolor[0] = this.hsbdrawcolor[0] - 0.01f;
+	    	}
+			if (this.hsbdrawcolor[0]<0.0f) {this.hsbdrawcolor[0] = 1.0f;}
+			this.drawcolor = UtilLib.getHSBTransparencyColor(hsbdrawcolor[0],hsbdrawcolor[1],hsbdrawcolor[2],this.penciltransparency);
 	    	if (this.pencilbuffer!=null) {
 	    		this.pencilbuffer = null;
 	    		this.pencilsize = this.oldpencilsize;
 	    	}
 		} else if (e.getKeyCode()==KeyEvent.VK_HOME) {
-			this.drawcolorhsb[1] += 0.01f;
-			if (this.drawcolorhsb[1]>1.0f) {this.drawcolorhsb[1] = 1.0f;}
-			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
-			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
-			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+	    	if (e.isShiftDown()) {
+	    		this.hsbdrawcolor[1] = this.hsbdrawcolor[1] + 0.20f;
+	    	} else {
+				this.hsbdrawcolor[1] = this.hsbdrawcolor[1] + 0.01f;
+	    	}
+			if (this.hsbdrawcolor[1]>1.0f) {this.hsbdrawcolor[1] = 1.0f;}
+			this.drawcolor = UtilLib.getHSBTransparencyColor(hsbdrawcolor[0],hsbdrawcolor[1],hsbdrawcolor[2],this.penciltransparency);
 	    	if (this.pencilbuffer!=null) {
 	    		this.pencilbuffer = null;
 	    		this.pencilsize = this.oldpencilsize;
 	    	}
 		} else if (e.getKeyCode()==KeyEvent.VK_END) {
-			this.drawcolorhsb[1] -= 0.01f;
-			if (this.drawcolorhsb[1]<0.0f) {this.drawcolorhsb[1] = 0.0f;}
-			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
-			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
-			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+	    	if (e.isShiftDown()) {
+	    		this.hsbdrawcolor[1] = this.hsbdrawcolor[1] - 0.20f;
+	    	} else {
+				this.hsbdrawcolor[1] = this.hsbdrawcolor[1] - 0.01f;
+	    	}
+			if (this.hsbdrawcolor[1]<0.0f) {this.hsbdrawcolor[1] = 0.0f;}
+			this.drawcolor = UtilLib.getHSBTransparencyColor(hsbdrawcolor[0],hsbdrawcolor[1],hsbdrawcolor[2],this.penciltransparency);
 	    	if (this.pencilbuffer!=null) {
 	    		this.pencilbuffer = null;
 	    		this.pencilsize = this.oldpencilsize;
 	    	}
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_UP) {
-			this.drawcolorhsb[2] += 0.01f;
-			if (this.drawcolorhsb[2]>1.0f) {this.drawcolorhsb[2] = 1.0f;}
-			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
-			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
-			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+	    	if (e.isShiftDown()) {
+	    		this.hsbdrawcolor[2] = this.hsbdrawcolor[2] + 0.20f;
+	    	} else {
+				this.hsbdrawcolor[2] = this.hsbdrawcolor[2] + 0.01f;
+	    	}
+			if (this.hsbdrawcolor[2]>1.0f) {this.hsbdrawcolor[2] = 1.0f;}
+			this.drawcolor = UtilLib.getHSBTransparencyColor(hsbdrawcolor[0],hsbdrawcolor[1],hsbdrawcolor[2],this.penciltransparency);
 	    	if (this.pencilbuffer!=null) {
 	    		this.pencilbuffer = null;
 	    		this.pencilsize = this.oldpencilsize;
 	    	}
 		} else if (e.getKeyCode()==KeyEvent.VK_PAGE_DOWN) {
-			this.drawcolorhsb[2] -= 0.01f;
-			if (this.drawcolorhsb[2]<0.0f) {this.drawcolorhsb[2] = 0.0f;}
-			Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
-			float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
-			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+	    	if (e.isShiftDown()) {
+	    		this.hsbdrawcolor[2] = this.hsbdrawcolor[2] - 0.20f;
+	    	} else {
+				this.hsbdrawcolor[2] = this.hsbdrawcolor[2] - 0.01f;
+	    	}
+			if (this.hsbdrawcolor[2]<0.0f) {this.hsbdrawcolor[2] = 0.0f;}
+			this.drawcolor = UtilLib.getHSBTransparencyColor(hsbdrawcolor[0],hsbdrawcolor[1],hsbdrawcolor[2],this.penciltransparency);
 	    	if (this.pencilbuffer!=null) {
 	    		this.pencilbuffer = null;
 	    		this.pencilsize = this.oldpencilsize;
@@ -222,50 +210,62 @@ public class DrawApp extends AppHandlerPanel {
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD9) {
 			this.penciltransparency += 0.01f;
 			if (this.penciltransparency>1.0f) {this.penciltransparency = 1.0f;}
-			float[] colorvalues = this.drawcolor.getRGBColorComponents(new float[3]);
-			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+			this.drawcolor = UtilLib.getHSBTransparencyColor(hsbdrawcolor[0],hsbdrawcolor[1],hsbdrawcolor[2],this.penciltransparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD8) {
 			this.penciltransparency -= 0.01f;
 			if (this.penciltransparency<0.0f) {this.penciltransparency = 0.0f;}
-			float[] colorvalues = this.drawcolor.getRGBColorComponents(new float[3]);
-			this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+			this.drawcolor = UtilLib.getHSBTransparencyColor(hsbdrawcolor[0],hsbdrawcolor[1],hsbdrawcolor[2],this.penciltransparency);
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD6) {
-			this.pencilangle += 0.01f;
-			if (this.pencilangle>(2.0f*Math.PI)) {this.pencilangle = 0.0f;}
+	    	if (e.isShiftDown()) {
+	    		this.pencilangle += 20.0f*0.05f;
+	    	} else {
+	    		this.pencilangle += 1.0f*0.05f;
+	    	}
+			if (this.pencilangle>360.0f) {
+				this.pencilangle = 0.0f;
+			}
 		} else if (e.getKeyCode()==KeyEvent.VK_NUMPAD5) {
-			this.pencilangle -= 0.01f;
-			if (this.pencilangle<0.0f) {this.pencilangle = 2.0f*Math.PI;}
+	    	if (e.isShiftDown()) {
+	    		this.pencilangle -= 20.0f*0.05f;
+	    	} else {
+	    		this.pencilangle -= 1.0f*0.05f;
+	    	}
+			if (this.pencilangle<0.0f) {
+				this.pencilangle = 360.0f;
+			}
 		} else if (e.getKeyCode()==KeyEvent.VK_F1) {
 			//TODO help pop-up window
 		} else if (e.getKeyCode()==KeyEvent.VK_F2) {
-			this.filechooser.setDialogTitle("Save File");
-			this.filechooser.setApproveButtonText("Save");
-			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
-				File savefile = this.filechooser.getSelectedFile();
-				FileFilter savefileformat = this.filechooser.getFileFilter();
-				UtilLib.saveImageFormat(savefile.getPath(), this.renderbuffer, savefileformat);
-			}
+        	JFileChooser filechooser = UtilLib.createImageFileChooser();
+	    	filechooser.setDialogTitle("Save Image");
+	    	filechooser.setApproveButtonText("Save");
+        	filechooser.setCurrentDirectory(new File(this.userdir));
+        	if (filechooser.showSaveDialog(null)==JFileChooser.APPROVE_OPTION) {
+        		File savefile = filechooser.getSelectedFile();
+				if (savefile.getParent()!=null) {this.userdir = savefile.getParent();}
+	    		FileFilter savefileextension = filechooser.getFileFilter();
+	    		BufferedImage saveimage = this.renderbuffer;
+				UtilLib.saveImageFormat(savefile.getPath(), saveimage, savefileextension);
+        	}
 		} else if (e.getKeyCode()==KeyEvent.VK_F3) {
-			this.filechooser.setDialogTitle("Load File");
-			this.filechooser.setApproveButtonText("Load");
-			if (this.filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
-				File loadfile = this.filechooser.getSelectedFile();
+        	JFileChooser filechooser = UtilLib.createAllImageFileChooser();
+	    	filechooser.setDialogTitle("Load Image");
+	    	filechooser.setApproveButtonText("Load");
+        	filechooser.setCurrentDirectory(new File(this.userdir));
+        	if (filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
+        		File loadfile = filechooser.getSelectedFile();
+				if (loadfile.getParent()!=null) {this.userdir = loadfile.getParent();}
 				BufferedImage loadimage = UtilLib.loadImage(loadfile.getPath(), false);
 				if (loadimage!=null) {
-				    int onmask = KeyEvent.SHIFT_DOWN_MASK;
-				    int offmask = KeyEvent.ALT_DOWN_MASK|KeyEvent.CTRL_DOWN_MASK;
-				    boolean f3shiftdown = (e.getModifiersEx() & (onmask | offmask)) == onmask;
+				    boolean f3shiftdown = ((!e.isControlDown())&&(!e.isAltDown())&&(e.isShiftDown())&&(!e.isMetaDown()));
 				    if (f3shiftdown) {
 				    	this.oldpencilsize = this.pencilsize;
 						this.pencilsize = loadimage.getWidth();
 				    	this.pencilbuffer = loadimage;
 				    }else{
 				    	Graphics2D dragimagegfx = this.renderbuffer.createGraphics();
-				    	dragimagegfx.setComposite(AlphaComposite.Clear);
-				    	dragimagegfx.fillRect(0, 0, this.renderbuffer.getWidth(), this.renderbuffer.getHeight());
 				    	dragimagegfx.setComposite(AlphaComposite.Src);
 				    	dragimagegfx.drawImage(loadimage, 0, 0, null);
-				    	dragimagegfx.dispose();
 				    }
 				}
 			}
@@ -273,156 +273,153 @@ public class DrawApp extends AppHandlerPanel {
 			//TODO tools/color pop-up window
 		}
 	}
-
-	@Override public void mouseClicked(MouseEvent e) {}
-	@Override public void mouseEntered(MouseEvent e) {}
-	@Override public void mouseExited(MouseEvent e) {}
 	
-	@Override public void mouseMoved(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();}
-	@Override public void mousePressed(MouseEvent e) {this.mouselocationx=e.getX();this.mouselocationy=e.getY();this.mousestartlocationx=this.mouselocationx;this.mousestartlocationy=this.mouselocationy;mouseDragged(e);}
+	@Override public void keyReleased(KeyEvent e) {
+		if (e.getKeyCode()==KeyEvent.VK_TAB) {
+			this.rotatemode = false;
+		}
+	}
+	
+	@Override public void mouseClicked(MouseEvent e) {}
+	
+	@Override public void mousePressed(MouseEvent e) {
+		this.mouselocationx=e.getX();
+		this.mouselocationy=e.getY();
+		this.mousestartlocationx=this.mouselocationx;
+		this.mousestartlocationy=this.mouselocationy;
+		mouseDragged(e);
+	}
+	
 	@Override public void mouseReleased(MouseEvent e) {
 		if (this.renderbuffer!=null) {
 			Graphics2D renderbuffergfx = this.renderbuffer.createGraphics();
-			renderbuffergfx.setColor(this.drawcolor);
 		    boolean mouse1up = e.getButton()==MouseEvent.BUTTON1;
 		    boolean mouse3up = e.getButton()==MouseEvent.BUTTON3;
 			if (mouse1up||mouse3up) {
 				if (this.drawlinemode) {
 					this.drawlinemode=false;
-					drawPencilLine(renderbuffergfx, this.mousestartlocationx, this.mousestartlocationy, this.mouselocationx, this.mouselocationy, mouse3up, this.penciloverridemode);
+					drawPencilLine(renderbuffergfx, this.mousestartlocationx, this.mousestartlocationy, this.mouselocationx, this.mouselocationy, mouse3up);
 				}
 			}
-			renderbuffergfx.dispose();
 		}
 	}
 	
-	@Override
-	public void mouseDragged(MouseEvent e) {
-		this.mouselastlocationx=this.mouselocationx;this.mouselastlocationy=this.mouselocationy;
-		this.mouselocationx=e.getX();this.mouselocationy=e.getY();
+	@Override public void mouseEntered(MouseEvent e) {}
+	@Override public void mouseExited(MouseEvent e) {}
+	
+	@Override public void mouseDragged(MouseEvent e) {
+		this.mouselastlocationx=this.mouselocationx;
+		this.mouselastlocationy=this.mouselocationy;
+		this.mouselocationx=e.getX();
+		this.mouselocationy=e.getY();
     	int mousedeltax = this.mouselocationx - this.mouselastlocationx; 
     	int mousedeltay = this.mouselocationy - this.mouselastlocationy;
 		if (this.renderbuffer!=null) {
 			Graphics2D renderbuffergfx = this.renderbuffer.createGraphics();
-		    int onmask1 = MouseEvent.BUTTON1_DOWN_MASK;
-		    int offmask1 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-		    int onmask3 = MouseEvent.BUTTON3_DOWN_MASK;
-		    int offmask3 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-		    boolean mouse1down = ((e.getModifiersEx() & (onmask1 | offmask1)) == onmask1);
-		    boolean mouse3down = ((e.getModifiersEx() & (onmask3 | offmask3)) == onmask3);
+		    boolean mouse1down = ((e.getModifiersEx()&MouseEvent.BUTTON1_DOWN_MASK)!=0)&&((!e.isControlDown())&&(!e.isAltDown())&&(!e.isMetaDown()));
+		    boolean mouse3down = ((e.getModifiersEx()&MouseEvent.BUTTON3_DOWN_MASK)!=0)&&((!e.isControlDown())&&(!e.isAltDown())&&(!e.isMetaDown()));
 		    if (mouse1down||mouse3down) {
-		    	this.drawPencil(renderbuffergfx, e.getX(), e.getY(), mouse3down, this.penciloverridemode);
-			}			
-		    int onmask1c = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-		    int offmask1c = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
-		    int onmask3c = MouseEvent.BUTTON3_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-		    int offmask3c = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
-		    boolean mouse1altdown = ((e.getModifiersEx() & (onmask1c | offmask1c)) == onmask1c);
-		    boolean mouse3altdown = ((e.getModifiersEx() & (onmask3c | offmask3c)) == onmask3c);
+		    	this.drawPencil(renderbuffergfx, this.mouselocationx, this.mouselocationy, mouse3down);
+			}
+		    boolean mouse1altdown = ((e.getModifiersEx()&MouseEvent.BUTTON1_DOWN_MASK)!=0)&&((!e.isControlDown())&&(e.isAltDown())&&(!e.isMetaDown()));
+		    boolean mouse3altdown = ((e.getModifiersEx()&MouseEvent.BUTTON3_DOWN_MASK)!=0)&&((!e.isControlDown())&&(e.isAltDown())&&(!e.isMetaDown()));
 		    if (mouse1altdown||mouse3altdown) {
 			    this.drawlinemode = true;
 		    }
-		    int onmask1a = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
-		    int offmask1a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-		    boolean mouse1shiftdown = ((e.getModifiersEx() & (onmask1a | offmask1a)) == onmask1a);
-		    if (mouse1shiftdown) {
-				int colorvalue = this.renderbuffer.getRGB(e.getX(), e.getY());
-				Color pickeddrawcolor = new Color(colorvalue);
-				this.drawcolorhsb = Color.RGBtoHSB(pickeddrawcolor.getRed(), pickeddrawcolor.getGreen(), pickeddrawcolor.getBlue(), new float[3]);
-				float[] colorvalues = pickeddrawcolor.getRGBColorComponents(new float[3]);
-				this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+		    boolean mouse1ctrldown = ((e.getModifiersEx()&MouseEvent.BUTTON1_DOWN_MASK)!=0)&&((e.isControlDown())&&(!e.isAltDown())&&(!e.isMetaDown()));
+		    if (mouse1ctrldown) {
+		    	this.drawcolor = new Color(this.renderbuffer.getRGB(this.mouselocationx, this.mouselocationy));
+		    	this.hsbdrawcolor = UtilLib.getHSBTransparencyColorComponents(this.drawcolor, this.penciltransparency);
 		    }
-		    int onmask1b = MouseEvent.BUTTON1_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
-		    int offmask1b = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-		    boolean mouse1controldown = ((e.getModifiersEx() & (onmask1b | offmask1b)) == onmask1b);
+		    boolean mouse1controldown = ((e.getModifiersEx()&MouseEvent.BUTTON1_DOWN_MASK)!=0)&&((e.isControlDown())&&(!e.isAltDown())&&(!e.isMetaDown()));
 		    if (mouse1controldown) {
 		    	//TODO select canvas region
 		    }
-		    int onmask2 = MouseEvent.BUTTON2_DOWN_MASK;
-		    int offmask2 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-		    boolean mouse2down = ((e.getModifiersEx() & (onmask2 | offmask2)) == onmask2);
+		    boolean mouse2down = ((e.getModifiersEx()&MouseEvent.BUTTON2_DOWN_MASK)!=0)&&((!e.isControlDown())&&(!e.isAltDown())&&(!e.isMetaDown()));
 		    if (mouse2down) {
 		    	Graphics2D dragimagegfx = this.dragbuffer.createGraphics();
-		    	dragimagegfx.setComposite(AlphaComposite.Clear);
-		    	dragimagegfx.fillRect(0, 0, this.renderbuffer.getWidth(), this.renderbuffer.getHeight());
+		    	dragimagegfx.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
 		    	dragimagegfx.setComposite(AlphaComposite.Src);
+		    	dragimagegfx.fillRect(0, 0, this.renderbuffer.getWidth(), this.renderbuffer.getHeight());
 		    	dragimagegfx.drawImage(this.renderbuffer, mousedeltax, mousedeltay, null);
-		    	dragimagegfx.dispose();
-		    	renderbuffergfx.setComposite(AlphaComposite.Clear);
-		    	renderbuffergfx.fillRect(0, 0, this.renderbuffer.getWidth(), this.renderbuffer.getHeight());
+		    	renderbuffergfx.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
 		    	renderbuffergfx.setComposite(AlphaComposite.Src);
-		    	renderbuffergfx.drawImage(dragbuffer, 0, 0, null);
+		    	renderbuffergfx.fillRect(0, 0, this.renderbuffer.getWidth(), this.renderbuffer.getHeight());
+		    	renderbuffergfx.drawImage(this.dragbuffer, 0, 0, null);
 		    }
-		    int onmask2a = MouseEvent.BUTTON2_DOWN_MASK|MouseEvent.SHIFT_DOWN_MASK;
-		    int offmask2a = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-		    boolean mouse2shiftdown = ((e.getModifiersEx() & (onmask2a | offmask2a)) == onmask2a);
-		    if (mouse2shiftdown) {
-		    	//TODO <tbd>
-		    }
-	    	renderbuffergfx.dispose();
 		}
 	}
 	
-	@Override
-	public void mouseWheelMoved(MouseWheelEvent e) {
-	    int onmask4 = 0;
-	    int offmask4 = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    boolean mousewheeldown = ((e.getModifiersEx() & (onmask4 | offmask4)) == onmask4);
+	@Override public void mouseMoved(MouseEvent e) {
+		this.mouselocationx=e.getX();
+		this.mouselocationy=e.getY();
+	}
+	
+	@Override public void mouseWheelMoved(MouseWheelEvent e) {
+		float scrollticks = e.getWheelRotation();
+	    boolean mousewheeldown = ((!e.isControlDown())&&(!e.isAltDown())&&(!e.isMetaDown()));
 	    if (mousewheeldown) {
-	    	this.pencilsize += e.getWheelRotation()*((this.pencilsize>16)?this.pencilsize/16:1);
-			if (this.pencilsize<1) {
-				this.pencilsize = 1;
-			}
+	    	if (this.rotatemode) {
+		    	if (e.isShiftDown()) {
+		    		this.pencilangle -= 20.0f*0.05f*scrollticks;
+		    	} else {
+		    		this.pencilangle -= 1.0f*0.05f*scrollticks;
+		    	}
+				if (this.pencilangle>360.0f) {
+					this.pencilangle = 0.0f;
+				} else if (this.pencilangle<0.0f) {
+					this.pencilangle = 360.0f;
+				}
+	    	} else {
+		    	if (e.isShiftDown()) {
+		    		this.pencilsize -= 20.0f*scrollticks*((this.pencilsize>16)?this.pencilsize/16:1);
+		    	} else {
+		    		this.pencilsize -= 1.0f*scrollticks*((this.pencilsize>16)?this.pencilsize/16:1);
+		    	}
+				if (this.pencilsize<1) {
+					this.pencilsize = 1;
+				}
+	    	}
 	    }
-	    int onmask4a = MouseEvent.CTRL_DOWN_MASK;
-	    int offmask4a = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    boolean mousewheelctrldown = ((e.getModifiersEx() & (onmask4a | offmask4a)) == onmask4a);
+	    boolean mousewheelctrldown = ((e.isControlDown())&&(!e.isAltDown())&&(!e.isMetaDown()));
 	    if (mousewheelctrldown) {
-	    	this.drawcolorhsb[0] += 0.01f*e.getWheelRotation();
-	    	if (this.drawcolorhsb[0]>1.0f) {this.drawcolorhsb[0] = 0.0f;}
-	    	else if (this.drawcolorhsb[0]<0.0f) {this.drawcolorhsb[0] = 1.0f;}
-	    	Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
-	    	float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
-	    	this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+	    	if (e.isShiftDown()) {
+	    		this.hsbdrawcolor[0] = this.hsbdrawcolor[0] + 0.20f*scrollticks;
+	    	} else {
+	    		this.hsbdrawcolor[0] = this.hsbdrawcolor[0] + 0.01f*scrollticks;
+	    	}
+			if (this.hsbdrawcolor[0]>1.0f) {this.hsbdrawcolor[0] = 0.0f;}
+			if (this.hsbdrawcolor[0]<0.0f) {this.hsbdrawcolor[0] = 1.0f;}
+			this.drawcolor = UtilLib.getHSBTransparencyColor(this.hsbdrawcolor[0],this.hsbdrawcolor[1],this.hsbdrawcolor[2],this.penciltransparency);
 	    }
-	    int onmask4b = MouseEvent.ALT_DOWN_MASK;
-	    int offmask4b = MouseEvent.SHIFT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
-	    boolean mousewheelaltdown = ((e.getModifiersEx() & (onmask4b | offmask4b)) == onmask4b);
+	    boolean mousewheelaltdown = ((!e.isControlDown())&&(e.isAltDown())&&(!e.isMetaDown()));
 	    if (mousewheelaltdown) {
-	    	this.drawcolorhsb[2] += 0.01f*e.getWheelRotation();
-	    	if (this.drawcolorhsb[2]>1.0f) {this.drawcolorhsb[2] = 1.0f;}
-	    	else if (this.drawcolorhsb[2]<0.0f) {this.drawcolorhsb[2] = 0.0f;}
-	    	Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
-	    	float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
-	    	this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
+	    	if (e.isShiftDown()) {
+	    		this.hsbdrawcolor[1] = this.hsbdrawcolor[1] - 0.20f*scrollticks;
+	    	} else {
+	    		this.hsbdrawcolor[1] = this.hsbdrawcolor[1] - 0.01f*scrollticks;
+	    	}
+			if (this.hsbdrawcolor[1]>1.0f) {this.hsbdrawcolor[1] = 1.0f;}
+			if (this.hsbdrawcolor[1]<0.0f) {this.hsbdrawcolor[1] = 0.0f;}
+			this.drawcolor = UtilLib.getHSBTransparencyColor(this.hsbdrawcolor[0],this.hsbdrawcolor[1],this.hsbdrawcolor[2],this.penciltransparency);
 	    }
-	    int onmask4c = MouseEvent.ALT_DOWN_MASK|MouseEvent.CTRL_DOWN_MASK;
-	    int offmask4c = MouseEvent.SHIFT_DOWN_MASK;
-	    boolean mousewheelctrlaltdown = ((e.getModifiersEx() & (onmask4c | offmask4c)) == onmask4c);
+	    boolean mousewheelctrlaltdown = ((e.isControlDown())&&(e.isAltDown())&&(!e.isMetaDown()));
 	    if (mousewheelctrlaltdown) {
-	    	this.drawcolorhsb[1] += 0.01f*e.getWheelRotation();
-	    	if (this.drawcolorhsb[1]>1.0f) {this.drawcolorhsb[1] = 1.0f;}
-	    	else if (this.drawcolorhsb[1]<0.0f) {this.drawcolorhsb[1] = 0.0f;}
-	    	Color hsbcolor = Color.getHSBColor(this.drawcolorhsb[0], this.drawcolorhsb[1], this.drawcolorhsb[2]);
-	    	float[] colorvalues = hsbcolor.getRGBColorComponents(new float[3]);
-	    	this.drawcolor = new Color(colorvalues[0],colorvalues[1],colorvalues[2],this.penciltransparency);
-	    }
-	    int onmask4d = MouseEvent.SHIFT_DOWN_MASK;
-	    int offmask4d = MouseEvent.CTRL_DOWN_MASK|MouseEvent.ALT_DOWN_MASK;
-	    boolean mousewheelshiftdown = ((e.getModifiersEx() & (onmask4d | offmask4d)) == onmask4d);
-	    if (mousewheelshiftdown) {
-			this.pencilangle += 0.05f*e.getWheelRotation();
-			if (this.pencilangle>(2.0f*Math.PI)) {
-				this.pencilangle = 0.0f;
-			} else if (this.pencilangle<0.0f) {
-				this.pencilangle = 2.0f*Math.PI;
-			}
+	    	if (e.isShiftDown()) {
+	    		this.hsbdrawcolor[2] = this.hsbdrawcolor[2] - 0.20f*scrollticks;
+	    	} else {
+	    		this.hsbdrawcolor[2] = this.hsbdrawcolor[2] - 0.01f*scrollticks;
+	    	}
+			if (this.hsbdrawcolor[2]>1.0f) {this.hsbdrawcolor[2] = 1.0f;}
+			if (this.hsbdrawcolor[2]<0.0f) {this.hsbdrawcolor[2] = 0.0f;}
+			this.drawcolor = UtilLib.getHSBTransparencyColor(this.hsbdrawcolor[0],this.hsbdrawcolor[1],this.hsbdrawcolor[2],this.penciltransparency);
 	    }
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override public void drop(DropTargetDropEvent dtde) {
 		dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
+		boolean success = false;
 		Transferable dtt = dtde.getTransferable();
         try {
             if ((dtt!=null)&&(dtt.isDataFlavorSupported(DataFlavor.javaFileListFlavor))) {
@@ -434,63 +431,69 @@ public class DrawApp extends AppHandlerPanel {
 					this.pencilsize = loadimage.getWidth();
 					this.pencilbuffer = loadimage;
                 }
+            	success = true;
             }
         } catch (Exception ex){ex.printStackTrace();}
+		dtde.dropComplete(success);
 	}
-	
-	private void drawPencil(Graphics2D g, int mousex, int mousey, boolean erasemode, boolean overridemode) {
+
+	private void drawPencil(Graphics2D g, int mousex, int mousey, boolean erasemode) {
 		g.setComposite(AlphaComposite.SrcOver);
 		g.setPaint(null);
-		g.setColor(null);
-		int pencilwidth = (int)Math.ceil((double)(this.pencilsize-1)/2.0f);
     	if (this.pencilbuffer!=null) {
-	    	if (erasemode) {
-	    		if (overridemode) {
-	    			g.setComposite(AlphaComposite.Clear);
-	    		} else {
-	    			g.setComposite(AlphaComposite.DstOut);
-	    		}
-	    	} else {
-	    		if (overridemode) {
-	    			g.setComposite(AlphaComposite.Src);
-	    		}
-    		}
     		double pencilsizescalefactor = ((double)this.pencilsize)/((double)this.pencilbuffer.getWidth());
-    		int halfwidth = (int)Math.floor(((double)this.pencilbuffer.getWidth())*pencilsizescalefactor/2.0f);
-    		int halfheight = (int)Math.floor(((double)this.pencilbuffer.getHeight())*pencilsizescalefactor/2.0f);
-    		int drawlocationx = mousex - halfwidth;
-    		int drawlocationy = mousey - halfheight;
+    		int scalewidth = (int)Math.floor(((double)this.pencilbuffer.getWidth())*pencilsizescalefactor);
+    		int scaleheight = (int)Math.floor(((double)this.pencilbuffer.getHeight())*pencilsizescalefactor);
+    		int halfscalewidth = (int)(scalewidth/2.0f);
+    		int halfscaleheight = (int)(scaleheight/2.0f);
+    		int drawlocationx = mousex - halfscalewidth;
+    		int drawlocationy = mousey - halfscaleheight;
     		AffineTransform penciltransform = new AffineTransform();
     		penciltransform.translate(drawlocationx, drawlocationy);
-    		penciltransform.rotate(this.pencilangle,halfwidth,halfheight);
-    		penciltransform.scale(pencilsizescalefactor, pencilsizescalefactor);
-    		g.drawImage(this.pencilbuffer, penciltransform, null);
+    		penciltransform.rotate(Math.toRadians(this.pencilangle),halfscalewidth,halfscaleheight);
+    		AffineTransform otr = g.getTransform();
+    		g.transform(penciltransform);
+    		if (erasemode) {
+		    	g.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
+		    	g.setComposite(AlphaComposite.Src);
+    			g.fillRect(0, 0, scalewidth, scaleheight);
+    		} else {
+    			g.drawImage(this.pencilbuffer, 0, 0, scalewidth, scaleheight, 0, 0, this.pencilbuffer.getWidth(), this.pencilbuffer.getHeight(), null);
+    		}
+    		g.setTransform(otr);
     	} else {
-	    	if (erasemode) {
-	    		g.setComposite(AlphaComposite.Src);
-	    		g.setColor(this.erasecolor);
-	    	} else {
-	    		if (overridemode) {
-		    		g.setComposite(AlphaComposite.Src);
-	    		}
+    		int pencilwidth = (int)Math.ceil((double)(this.pencilsize-1)/2.0f);
+    		int drawlocationx = mousex - pencilwidth;
+    		int drawlocationy = mousey - pencilwidth;
+    		AffineTransform penciltransform = new AffineTransform();
+    		penciltransform.translate(drawlocationx, drawlocationy);
+    		penciltransform.rotate(Math.toRadians(this.pencilangle),pencilwidth,pencilwidth);
+    		AffineTransform otr = g.getTransform();
+    		g.transform(penciltransform);
+    		if (erasemode) {
+		    	g.setColor(new Color(0.0f,0.0f,0.0f,0.0f));
+		    	g.setComposite(AlphaComposite.Src);
+	    		g.fillRect(0, 0, this.pencilsize, this.pencilsize);
+    		} else {
     			g.setColor(this.drawcolor);
-	    	}
-			if (this.pencilshape==2) {
-				g.fillRoundRect(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize, 5, 5);
-			} else if (this.pencilshape==3) {
-				g.fillOval(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize);
-			} else if (this.pencilshape==4) {
-				g.drawRect(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize);
-			} else if (this.pencilshape==5) {
-				g.drawRoundRect(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize, 5, 5);
-			} else if (this.pencilshape==6) {
-				g.drawOval(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize);
-			}else {
-				g.fillRect(mousex-pencilwidth, mousey-pencilwidth, this.pencilsize, this.pencilsize);
-			}
+    			if (this.pencilshape==2) {
+    				g.fillRoundRect(0, 0, this.pencilsize, this.pencilsize, 5, 5);
+    			} else if (this.pencilshape==3) {
+    				g.fillOval(0, 0, this.pencilsize, this.pencilsize);
+    			} else if (this.pencilshape==4) {
+    				g.drawRect(0, 0, this.pencilsize, this.pencilsize);
+    			} else if (this.pencilshape==5) {
+    				g.drawRoundRect(0, 0, this.pencilsize, this.pencilsize, 5, 5);
+    			} else if (this.pencilshape==6) {
+    				g.drawOval(0, 0, this.pencilsize, this.pencilsize);
+    			}else {
+    				g.fillRect(0, 0, this.pencilsize, this.pencilsize);
+    			}
+    		}
+    		g.setTransform(otr);
     	}
 	}
-	private void drawPencilLine(Graphics2D g, int mousestartx, int mousestarty, int mousex, int mousey, boolean erasemode, boolean overridemode) {
+	private void drawPencilLine(Graphics2D g, int mousestartx, int mousestarty, int mousex, int mousey, boolean erasemode) {
 		double linedistx = mousex-mousestartx;
 		double linedisty = mousey-mousestarty;
 		int linestepnum = (int)Math.ceil(Math.sqrt(linedistx*linedistx+linedisty*linedisty))+1;
@@ -499,7 +502,7 @@ public class DrawApp extends AppHandlerPanel {
 		for (int i=0;i<linestepnum;i++) {
 			int drawposx = (int)Math.round(this.mousestartlocationx + i*linestepx);
 			int drawposy = (int)Math.round(this.mousestartlocationy + i*linestepy);
-	    	this.drawPencil(g, drawposx, drawposy, erasemode, overridemode);
+	    	this.drawPencil(g, drawposx, drawposy, erasemode);
 		}
 	}
 	
