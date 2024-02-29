@@ -328,5 +328,5 @@ public class UtilLib {
     	float[] newhsbdrawcolor = {newhsbdrawcolorcomp[0], newhsbdrawcolorcomp[1], newhsbdrawcolorcomp[2], transparency};
     	return newhsbdrawcolor;
 	}
-	
+
 }
