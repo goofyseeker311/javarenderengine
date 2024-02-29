@@ -210,7 +210,7 @@ public class ModelLib {
 		public RenderView sphereview=null;
 	}
 	
-	public static class Position implements Comparable<Position> {public double x=0,y=0,z=0; public Coordinate tex=new Coordinate(0.0f,0.0f); public Material mat=new Material(); public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
+	public static class Position implements Comparable<Position> {public double x=0,y=0,z=0; public Coordinate tex=new Coordinate(0.0f,0.0f); public Material mat=new Material(); public Object hwent=null, hwpos=null; public Position(double xi,double yi,double zi){this.x=xi;this.y=yi;this.z=zi;}
 		@Override public int compareTo(Position o){
 			int k = -1;
 			if (this.z>o.z) {
@@ -238,7 +238,7 @@ public class ModelLib {
 			}
 			return k;
 		}
-		public Position copy(){Position k=new Position(this.x,this.y,this.z); k.tex=this.tex.copy();k.mat=this.mat.copy(); return k;}
+		public Position copy(){Position k=new Position(this.x,this.y,this.z); k.tex=this.tex.copy();k.mat=this.mat.copy();k.hwent=this.hwent;k.hwpos=this.hwpos; return k;}
 		public Position invert(){Position k=this.copy(); k.x=-k.x;k.y=-k.y;k.z=-k.z; return k;}
 		public boolean isZero(){return (this.x==0.0f)&&(this.y==0.0f)&&(this.z==0.0f);}
 		public boolean isFinite(){return (Double.isFinite(this.x))&&(Double.isFinite(this.y))&&(Double.isFinite(this.z));}
@@ -453,6 +453,7 @@ public class ModelLib {
 	public static class Ellipse {public double x=0,y=0,z=0,rx=0,ry=0,rz=0; public Ellipse(double xi, double yi, double zi, double rxi, double ryi, double rzi){this.x=xi;this.y=yi;this.z=zi;this.rx=rxi;this.ry=ryi;this.rz=rzi;}}
 	public static class Arc {public double x=0,y=0,z=0,r=0,ang1=0,ang2=0; public Arc(double xi, double yi, double zi, double ri, double ang1i, double ang2i){this.x=xi;this.y=yi;this.z=zi;this.r=ri;this.ang1=ang1i;this.ang2=ang2i;}}
 	public static class Circle {public Position origin=new Position(0.0f,0.0f,0.0f); public double r=0; public Circle(Position origini, double ri){this.origin=origini;this.r=ri;}}
+	public static class Cylinder {public Axis dim=new Axis(new Position(0.0f,0.0f,0.0f),new Direction(1.0f,0.0f,0.0f),new Direction(1.0f,0.0f,0.0f),new Direction(1.0f,0.0f,0.0f)); public Cylinder(Axis dimi){this.dim=dimi;}}
 	public static class Ray {public Position pos=new Position(0.0f,0.0f,0.0f); public Direction dir=new Direction(0.0f,0.0f,0.0f); public Ray(Position posi, Direction diri){this.pos=posi;this.dir=diri;}
 		public Ray copy(){Ray k = new Ray(this.pos.copy(),this.dir.copy()); return k;}
 		public Ray invert(){return new Ray(this.pos, this.dir.invert());}
@@ -492,7 +493,7 @@ public class ModelLib {
 		public void scaleSelfAroundPos(Position pos, Scaling scale) {setValue(scaleAroundPos(pos,scale));}
 		public Plane scaleAroundPos(Position pos, Scaling scale) {Plane[]k={this};k=MathLib.scaleAroundPos(k,pos,scale);return k[0];}
 	}
-	public static class Line implements Comparable<Line> {public Position pos1=new Position(0.0f,0.0f,0.0f),pos2=new Position(0.0f,0.0f,0.0f); public Material mat=new Material(); public Line(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}
+	public static class Line implements Comparable<Line> {public Position pos1=new Position(0.0f,0.0f,0.0f),pos2=new Position(0.0f,0.0f,0.0f); public Material mat=new Material(); public Object hwent=null, hwline=null; public Line(Position pos1i,Position pos2i){this.pos1=pos1i;this.pos2=pos2i;}
 		@Override public int compareTo(Line o){
 			int k=-1;
 			Line ts=this.sort();
@@ -530,7 +531,7 @@ public class ModelLib {
 			}
 			return k;
 		}
-		public Line copy(){Line k = new Line(this.pos1.copy(),this.pos2.copy()); return k;}
+		public Line copy(){Line k = new Line(this.pos1.copy(),this.pos2.copy()); k.mat=this.mat.copy();k.hwent=this.hwent;k.hwline=this.hwline; return k;}
 		public Line swap(){return new Line(this.pos2,this.pos1);}
 		public Line sort(){Line k=this;if (this.pos1.compareTo(this.pos2)==1) {k=this.swap();}return k;}
 		public boolean isFinite(){return (this.pos1!=null)&&(this.pos2!=null)&&(this.pos1.isFinite())&&(this.pos2.isFinite());}
@@ -620,7 +621,7 @@ public class ModelLib {
 		public void scaleSelfAroundPos(Position pos, Scaling scale) {setValue(scaleAroundPos(pos,scale));}
 		public Tetrahedron scaleAroundPos(Position pos, Scaling scale) {Tetrahedron[]k={this};k=MathLib.scaleAroundPos(k,pos,scale);return k[0];}
 	}
-	public static class Triangle implements Comparable<Triangle> {public Position pos1=new Position(0.0f,0.0f,0.0f),pos2=new Position(0.0f,0.0f,0.0f),pos3=new Position(0.0f,0.0f,0.0f); public Direction norm=new Direction(0.0f,0.0f,0.0f); public Material mat=new Material(); public Material[] lmatl=null; public Object hwent=null; public Object hwtri=null;
+	public static class Triangle implements Comparable<Triangle> {public Position pos1=new Position(0.0f,0.0f,0.0f),pos2=new Position(0.0f,0.0f,0.0f),pos3=new Position(0.0f,0.0f,0.0f); public Direction norm=new Direction(0.0f,0.0f,0.0f); public Material mat=new Material(); public Material[] lmatl=null; public Object hwent=null, hwtri=null;
 		public Triangle(Position pos1i,Position pos2i,Position pos3i) {this.pos1=pos1i;this.pos2=pos2i;this.pos3=pos3i;}
 		@Override public int compareTo(Triangle o) {
 			int k = -1;
@@ -673,7 +674,7 @@ public class ModelLib {
 			}
 			return k;
 		}
-		public Triangle copy(){Triangle k=new Triangle(this.pos1.copy(),this.pos2.copy(),this.pos3.copy());k.norm=this.norm.copy();k.mat=this.mat.copy();k.lmatl=this.lmatl;return k;}
+		public Triangle copy(){Triangle k=new Triangle(this.pos1.copy(),this.pos2.copy(),this.pos3.copy());k.norm=this.norm.copy();k.mat=this.mat.copy();k.lmatl=this.lmatl;k.hwent=this.hwent;k.hwtri=this.hwtri;return k;}
 		public void setValue(Triangle value) {this.pos1=value.pos1;this.pos2=value.pos2;this.pos3=value.pos3;this.norm=value.norm;this.mat=value.mat;this.lmatl=value.lmatl;}
 		public void translateSelf(Position pos) {setValue(translate(pos));}
 		public void translateSelf(Direction dir, double mult) {setValue(translate(dir,mult));}

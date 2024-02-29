@@ -407,7 +407,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Direction ttplanedir = new Direction(1.0f,0,0);
 		Plane[] ttplane = MathLib.planeFromNormalAtPoint(ttplanepos[0], ttplanenorm);
 		Plane[] ttplanes = {ttplane[0],ttplane[0],ttplane[0]};
-		Position[] poplane = MathLib.pointOnPlane(ttplanes);
+		Position[] poplane = MathLib.planePosition(ttplanes);
 		Plane[] ttplanetr1 = MathLib.translate(ttplanes, ttplanedir, 0.1f);
 		Plane[] ttplanetr2 = MathLib.translate(ttplanes, ttplanepos[1]);
 		for (int i=0;i<poplane.length;i++) {System.out.println("JavaRenderEngine: main: poplane="+poplane[i].x+" "+poplane[i].y+" "+poplane[i].z);}
