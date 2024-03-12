@@ -29,8 +29,8 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.UIManager;
 
-import fi.jkauppa.javarenderengine.ModelLib.AxisAlignedBoundingBox;
 import fi.jkauppa.javarenderengine.ModelLib.Coordinate;
+import fi.jkauppa.javarenderengine.ModelLib.Cube;
 import fi.jkauppa.javarenderengine.ModelLib.Cuboid;
 import fi.jkauppa.javarenderengine.ModelLib.Direction;
 import fi.jkauppa.javarenderengine.ModelLib.Line;
@@ -63,7 +63,7 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 	
 	public JavaRenderEngine() {
 		if (this.logoimage!=null) {this.setIconImage(this.logoimage);}
-		this.setTitle("Java Render Engine v3.2.0");
+		this.setTitle("Java Render Engine v3.3.0");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setJMenuBar(null);
 		if (!windowedmode) {
@@ -220,12 +220,12 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		for (int j=0;j<vppdist2.length;j++) {System.out.print("JavaRenderEngine: main: vppdist2["+j+"]="); for (int i=0;i<vppdist2[0].length;i++) {System.out.print(" "+vppdist2[j][i]);}System.out.println();}
 		for (int j=0;j<vppdist3.length;j++) {System.out.print("JavaRenderEngine: main: vppdist3["+j+"]="); for (int i=0;i<vppdist3[0].length;i++) {System.out.print(" "+vppdist3[j][i]);}System.out.println();}
 		Position[] vertexlist = {new Position(-5,3,9),new Position(-7,-3,-1),new Position(4,-6,-7),new Position(2,4,11)};
-		AxisAlignedBoundingBox aabb = MathLib.axisAlignedBoundingBox(vertexlist);
+		Cube aabb = MathLib.axisAlignedBoundingBox(vertexlist);
 		Sphere pointcloudsphere = MathLib.pointCloudCircumSphere(vertexlist);
 		double[] trianglearea = MathLib.triangleArea(ptri);
 		Sphere[] trianglesphere = MathLib.triangleCircumSphere(ptri);
 		Sphere[] triangleinsphere = MathLib.triangleInSphere(ptri);
-		System.out.println("JavaRenderEngine: main: aabb="+aabb.pos1.x+","+aabb.pos1.y+","+aabb.pos1.z+" "+aabb.pos2.x+" "+aabb.pos2.y+" "+aabb.pos2.z);
+		System.out.println("JavaRenderEngine: main: aabb pos="+aabb.dim.pos.x+","+aabb.dim.pos.y+","+aabb.dim.pos.z+" fwd="+aabb.dim.fwd.dx+" "+aabb.dim.fwd.dy+" "+aabb.dim.fwd.dz+" rgt="+aabb.dim.rgt.dx+" "+aabb.dim.rgt.dy+" "+aabb.dim.rgt.dz+" up="+aabb.dim.up.dx+" "+aabb.dim.up.dy+" "+aabb.dim.up.dz);
 		System.out.println("JavaRenderEngine: main: boundingsphere="+pointcloudsphere.x+","+pointcloudsphere.y+","+pointcloudsphere.z+" "+pointcloudsphere.r);
 		System.out.println("JavaRenderEngine: main: trianglearea="+trianglearea[0]);
 		for (int i=0;i<trianglesphere.length;i++) {System.out.println("JavaRenderEngine: main: trianglesphere["+i+"]="+trianglesphere[i].x+" "+trianglesphere[i].y+" "+trianglesphere[i].z+" "+trianglesphere[i].r);}
@@ -258,16 +258,18 @@ public class JavaRenderEngine extends JFrame implements ActionListener,KeyListen
 		Triangle[] sdtri = MathLib.subDivideTriangle(ptri);
 		for (int i=0;i<sdtri.length;i++) {System.out.println("JavaRenderEngine: main: sdtri["+i+"]="+sdtri[i].pos1.x+","+sdtri[i].pos1.y+","+sdtri[i].pos1.z+" "+sdtri[i].pos2.x+","+sdtri[i].pos2.y+","+sdtri[i].pos2.z+" "+sdtri[i].pos3.x+","+sdtri[i].pos3.y+","+sdtri[i].pos3.z);}
 		Position[] tpoint = {new Position(0.0f,0.0f,0.0f),new Position(-50.0f,30.0f,45.0f),new Position(-8.0f,3.0f,9.0f),new Position(-6.0f,1.0f,4.0f)};
-		boolean[] aabbpint = MathLib.vertexAxisAlignedBoundingBoxIntersection(aabb, tpoint);
+		boolean[] aabbpint = MathLib.vertexCubeIntersection(aabb, tpoint);
 		for (int i=0;i<aabbpint.length;i++) {System.out.println("JavaRenderEngine: main: aabbpint[i]="+aabbpint[i]);}
 		Direction[] aabbdirlist = {new Direction(1,0,0),new Direction(0,1,0),new Direction(1,1,0)};
-		AxisAlignedBoundingBox[] aabblist = {aabb,aabb};
+		Cube[] aabblist = {aabb,aabb};
 		Position cubcam1 = new Position(-10.0f,1.0f,0.0f);
 		Position cubcam2 = new Position(1.0f,-10.0f,0.0f);
-		Cuboid cuboid = new Cuboid(new Position(aabb.pos1.x,aabb.pos1.y,aabb.pos1.z),new Position(aabb.pos2.x,aabb.pos1.y,aabb.pos1.z),new Position(aabb.pos1.x,aabb.pos2.y,aabb.pos1.z),new Position(aabb.pos2.x,aabb.pos2.y,aabb.pos1.z),new Position(aabb.pos1.x,aabb.pos1.y,aabb.pos2.z),new Position(aabb.pos2.x,aabb.pos1.y,aabb.pos2.z),new Position(aabb.pos1.x,aabb.pos2.y,aabb.pos2.z),new Position(aabb.pos2.x,aabb.pos2.y,aabb.pos2.z));
+		Position aabbpos1 = new Position(-5.0f,-5.0f,-5.0f);
+		Position aabbpos2 = new Position(5.0f,5.0f,5.0f);
+		Cuboid cuboid = new Cuboid(new Position(aabbpos1.x,aabbpos1.y,aabbpos1.z),new Position(aabbpos2.x,aabbpos1.y,aabbpos1.z),new Position(aabbpos1.x,aabbpos2.y,aabbpos1.z),new Position(aabbpos2.x,aabbpos2.y,aabbpos1.z),new Position(aabbpos1.x,aabbpos1.y,aabbpos2.z),new Position(aabbpos2.x,aabbpos1.y,aabbpos2.z),new Position(aabbpos1.x,aabbpos2.y,aabbpos2.z),new Position(aabbpos2.x,aabbpos2.y,aabbpos2.z));
 		Cuboid[] cuboidlist = {cuboid,cuboid};
-		Line[][] raabbint = MathLib.rayAxisAlignedBoundingBoxIntersection(cubcam1, aabbdirlist, aabblist);
-		Line[][] raabbint2 = MathLib.rayAxisAlignedBoundingBoxIntersection(cubcam2, aabbdirlist, aabblist);
+		Line[][] raabbint = MathLib.rayCubeIntersection(cubcam1, aabbdirlist, aabblist);
+		Line[][] raabbint2 = MathLib.rayCubeIntersection(cubcam2, aabbdirlist, aabblist);
 		Line[][] rcubint = MathLib.rayCuboidIntersection(cubcam1, aabbdirlist, cuboidlist);
 		Line[][] rcubint2 = MathLib.rayCuboidIntersection(cubcam2, aabbdirlist, cuboidlist);
 		for (int j=0;j<raabbint.length;j++) {for (int i=0;i<raabbint[0].length;i++) {if (raabbint[j][i]!=null) {System.out.println("JavaRenderEngine: main: raabbint["+j+"]["+i+"]="+raabbint[j][i].pos1.x+","+raabbint[j][i].pos1.y+","+raabbint[j][i].pos1.z+" "+raabbint[j][i].pos2.x+","+raabbint[j][i].pos2.y+","+raabbint[j][i].pos2.z);} else {System.out.println("JavaRenderEngine: main: raabbint["+j+"]["+i+"]=no hit.");}}}
