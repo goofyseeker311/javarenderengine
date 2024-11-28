@@ -153,7 +153,7 @@ public class ModelApp extends AppHandlerPanel {
 	    	filechooser.setApproveButtonText("Load");
         	filechooser.setCurrentDirectory(new File(this.userdir));
         	filechooser.setDialogType(JFileChooser.OPEN_DIALOG);
-        	if (filechooser.showSaveDialog(null)==JFileChooser.APPROVE_OPTION) {
+        	if (filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
         		File loadfile = filechooser.getSelectedFile();
 				if (loadfile.getParent()!=null) {this.userdir = loadfile.getParent();}
 	    		FileFilter loadfileextension = filechooser.getFileFilter();

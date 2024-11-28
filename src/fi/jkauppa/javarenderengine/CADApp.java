@@ -491,7 +491,7 @@ public class CADApp extends AppHandlerPanel {
 		    	filechooser.setApproveButtonText("Load");
 	        	filechooser.setCurrentDirectory(new File(this.userdir));
 	        	filechooser.setDialogType(JFileChooser.OPEN_DIALOG);
-	        	if (filechooser.showSaveDialog(null)==JFileChooser.APPROVE_OPTION) {
+	        	if (filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 	        		File loadfile = filechooser.getSelectedFile();
 					if (loadfile.getParent()!=null) {this.userdir = loadfile.getParent();}
 					BufferedImage fileimage = UtilLib.loadImage(loadfile.getPath(), false);
@@ -504,7 +504,7 @@ public class CADApp extends AppHandlerPanel {
 		    	filechooser.setApproveButtonText("Insert");
 	        	filechooser.setCurrentDirectory(new File(this.userdir));
 	        	filechooser.setDialogType(JFileChooser.OPEN_DIALOG);
-	        	if (filechooser.showSaveDialog(null)==JFileChooser.APPROVE_OPTION) {
+	        	if (filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 	        		File loadfile = filechooser.getSelectedFile();
 					if (loadfile.getParent()!=null) {this.userdir = loadfile.getParent();}
 		    		FileFilter loadfileextension = filechooser.getFileFilter();
@@ -516,7 +516,7 @@ public class CADApp extends AppHandlerPanel {
 		    	filechooser.setApproveButtonText("Load");
 	        	filechooser.setCurrentDirectory(new File(this.userdir));
 	        	filechooser.setDialogType(JFileChooser.OPEN_DIALOG);
-	        	if (filechooser.showSaveDialog(null)==JFileChooser.APPROVE_OPTION) {
+	        	if (filechooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
 	        		File loadfile = filechooser.getSelectedFile();
 					if (loadfile.getParent()!=null) {this.userdir = loadfile.getParent();}
 		    		FileFilter loadfileextension = filechooser.getFileFilter();
